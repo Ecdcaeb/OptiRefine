@@ -296,7 +296,7 @@ jar {
             for(String s : propertyStringList('mixin_configs').collect(config -> "mixins.${config}.json" as String)){
                 mixins.append(s).append(',');
             }
-            mixins.deleteCharAt(mixins.length());
+            mixins.deleteCharAt(mixins.length()-1);
             attribute_map['MixinConfigs'] = mixins.toString();
         }
 
