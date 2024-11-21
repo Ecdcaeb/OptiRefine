@@ -1,5 +1,5 @@
 {
-	"package": "",
+	"package": "mods.Hileb.optirefine.mixin",
 	"required": true,
 	"refmap": "${mixin_refmap}",
 	"target": "@env(DEFAULT)",
