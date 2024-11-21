@@ -44,6 +44,7 @@ buildscript {
 
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
+apply plugin: 'idea'
 apply plugin: 'maven-publish'
 apply plugin: 'java'
 apply plugin: 'org.spongepowered.mixin'
@@ -330,6 +331,13 @@ eclipse {
     //autoBuildTasks genEclipseRuns
     // Run when importing the project
     synchronizationTasks 'genEclipseRuns'
+}
+
+//https://intellij-support.jetbrains.com/hc/en-us/community/posts/8654418352402-Cannot-resolve-resource-filtering-of-MatchingCopyAction-when-I-reload-Gradle-projects/
+idea {
+    module {
+        inheritOutputDirs = true;
+    }
 }
 
 // Merge the resources and classes into the same directory.
