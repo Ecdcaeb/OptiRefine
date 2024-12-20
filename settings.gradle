@@ -1,21 +1,10 @@
 pluginManagement {
-    repositories {
-        gradlePluginPortal()
-        maven {
-            name = 'MinecraftForge'
-            url = 'https://maven.minecraftforge.net/'
-        }
-        maven{
-            name = 'OutLands'
-            url = 'https://maven.outlands.top/releases'
-        }
-    }
+	repositories {
+		mavenCentral()
+		maven { url 'https://repo.sleeping.town' }
+		maven { url = 'https://maven.minecraftforge.net' }
+		maven { url = 'https://repo.spongepowered.org/repository/maven-public' }
+		maven { url = 'https://maven.outlands.top/releases' }
+		maven { url 'https://raw.githubusercontent.com/Ecdcaeb/ecdcaeb.github.io/refs/heads/main/maven/' }
+	}
 }
-
-plugins {
-    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.7.0'
-}
-
-// Due to an IntelliJ bug, this has to be done
-// rootProject.name = archives_base_name
-rootProject.name = rootProject.projectDir.getName()
