@@ -1,4 +1,0 @@
-Manifest-Version: 1.0
-FMLCorePlugin: rml.loader.core.RMLFMLLoadingPlugin
-FMLAT: rml_at.cfg
-FMLCorePluginContainsFMLMod: true

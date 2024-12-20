@@ -194,6 +194,7 @@ dependencies {
     minecraft "com.cleanroommc:cleanroom:${project.cleanroom_version}"
 
 
+    implementation fg.deobf('blank:OptiFine-1.12.2:HD_U_G5')
     // compileOnly 'com.cleanroommc:groovyscript:1.1.3'
     // implementation 'curse.maven:just-enough-dimensions-254317:2932048'
     // implementation 'CraftTweaker2:CraftTweaker2-MC1120-Main:1.12-4.1.20.698'
