@@ -1,0 +1,17 @@
+{
+  "package": "mods.Hileb.optirefine.mixin",
+  "required": true,
+  "refmap": "${mixin_refmap}",
+  "target": "@env(DEFAULT)",
+  "minVersion": "0.8.5",
+  "compatibilityLevel": "JAVA_${java_version}",
+  "mixins": [
+    "minecraft.block.MixinBlockAir",
+    "minecraft.block.state.MixinBlockStateBase",
+    "minecraft.client.entity.MixinAbstractClientPlayer",
+    "minecraftforge.fml.MixinFMLClientHandler",
+    "optifine.MixinOptiFineClassTransformer"
+  ],
+  "server": [],
+  "client": []
+}

@@ -34,12 +34,4 @@ public class OptifineTransformerTransformer implements IExplicitTransformer {
     public static boolean canTransform(String name) {
         return !OptiRefineBlackboard.CLASSES.contains(name);
     }
-
-    >     public static void restoreLightOpacity(Block block) {
->         if (!mapOriginalOpacity.containsKey((Object)block)) {
->             return;
->         }
->         int opacity = (Integer)mapOriginalOpacity.get((Object)block);
->         BlockAir.setLightOpacity(block, opacity);
->     }
 }

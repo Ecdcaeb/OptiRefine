@@ -321,7 +321,7 @@ diff -r ../optifine_unpatch/src/main/java/net/minecraft/client/LoadingScreenRend
 > import net.optifine.reflect.Reflector;
 > import net.optifine.reflect.ReflectorMethod;
 47d44
-< @SideOnly(value=Side.CLIENT)
+< @SideOnly(value=Side.CLIENT)scaledresolution.getScaledWidth(), scaledresolution.getScaledHeight()
 118a116
 >                 Object fch;
 139,142c137,147

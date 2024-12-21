@@ -14,7 +14,11 @@ public class OptiRefineCore implements IFMLLoadingPlugin{
     static {
         TransformerDelegate.registerExplicitTransformerByInstance(
                 new OptifineTransformerTransformer(),
-                ""
+                "optifine.OptiFineClassTransformer"
+        );
+        TransformerDelegate.registerExplicitTransformerByInstance(
+                new OptiRefineRuntimePublicTransformer(),
+                OptiRefineBlackboard.CLASSES.toArray(String[]::new)
         );
     }
 
