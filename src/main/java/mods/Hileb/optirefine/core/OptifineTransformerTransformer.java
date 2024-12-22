@@ -31,6 +31,7 @@ public class OptifineTransformerTransformer implements IExplicitTransformer {
         return classWriter.toByteArray();
     }
 
+    @SuppressWarnings("unused") //ASM invoked
     public static boolean canTransform(String name) {
         return !OptiRefineBlackboard.CLASSES.contains(name);
     }
