@@ -9,6 +9,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.io.IOException;
 import java.net.*;
 
+@SuppressWarnings("all")
 @Mixin(OptiFineClassTransformer.class)
 public abstract class MixinOptiFineClassTransformer {
 

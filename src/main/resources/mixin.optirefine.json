@@ -6,6 +6,7 @@
   "minVersion": "0.8.5",
   "compatibilityLevel": "JAVA_${java_version}",
   "mixins": [
+    "minecraft.block.BlockAccessor",
     "minecraft.block.MixinBlockAir",
     "minecraft.block.state.MixinBlockStateBase",
     "minecraft.client.entity.MixinAbstractClientPlayer",

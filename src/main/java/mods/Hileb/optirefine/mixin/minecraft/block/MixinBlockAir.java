@@ -12,17 +12,20 @@ import java.util.Map;
 public abstract class MixinBlockAir{
 
     @Unique
-    private static Map<Block, Integer> mapOriginalOpacity = new IdentityHashMap();
+    @SuppressWarnings("all")
+    public static Map<Block, Integer> mapOriginalOpacity = new IdentityHashMap();
 
     @Unique
+    @SuppressWarnings("all")
     public static void setLightOpacity(Block block, int opacity) {
          if (!mapOriginalOpacity.containsKey(block)) {
-             mapOriginalOpacity.put(block, block.lightOpacity);
+             mapOriginalOpacity.put(block, ((BlockAccessor)block).getLightOpacity());
          }
-         block.lightOpacity = opacity;
+        ((BlockAccessor)block).setLightOpacity(opacity);
     }
 
     @Unique
+    @SuppressWarnings("all")
     public static void restoreLightOpacity(Block block) {
          if (!mapOriginalOpacity.containsKey(block)) {
              return;
