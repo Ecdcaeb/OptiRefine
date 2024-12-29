@@ -14,8 +14,10 @@ public class OptiRefineBlackboard {
             "net.minecraft.block.state.BlockStateContainer$StateImplementation", // Optifine -> add new field and methods -> very bad -> skip
             "net.minecraft.block.state.BlockStateContainer", // Optifine -> redirected a construction -> skip
             "net.minecraft.client.LoadingScreenRenderer", // Optifine -> customGUI -> mixin FMLClientHandler
-            "net.minecraft.client.entity.AbstractClientPlayer", // Optifine -> Capes
-            "net.minecraft.client.gui.FontRenderer" // Optifine -> custom font colors
-
+            "net.minecraft.client.entity.AbstractClientPlayer", // Optifine -> Capes -> mixin
+            "net.minecraft.client.gui.FontRenderer", // Optifine -> custom font colors -> mixin
+            "net.minecraft.client.gui.GuiCustomizeSkin", // Optifine -> add Capes button -> mixin
+            "net.minecraft.client.gui.GuiDownloadTerrain", // Optifine -> Custom Screen -> mixin
+            "net.minecraft.client.gui.GuiIngame" // Optfine -> gui in game -> mixin GuiIngameForge
     );
 }

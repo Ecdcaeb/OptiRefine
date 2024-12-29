@@ -14,5 +14,10 @@
     "optifine.MixinOptiFineClassTransformer"
   ],
   "server": [],
-  "client": []
+  "client": [
+    "minecraft.client.gui.MixinFontRenderer",
+    "minecraft.client.gui.MixinGuiCustomizeSkin",
+    "minecraft.client.gui.MixinGuiDownloadTerrain",
+    "minecraft.client.gui.MixinGuiIngame"
+  ]
 }
