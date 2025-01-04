@@ -11,6 +11,7 @@
     "minecraft.block.state.MixinBlockStateBase",
     "minecraft.client.entity.MixinAbstractClientPlayer",
     "minecraft.client.gui.GuiChatAccessor",
+    "minecraft.client.model.MixinModelBox",
     "minecraftforge.fml.MixinFMLClientHandler",
     "optifine.MixinOptiFineClassTransformer"
   ],

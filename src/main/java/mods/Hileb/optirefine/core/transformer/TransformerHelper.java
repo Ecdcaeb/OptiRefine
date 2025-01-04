@@ -2,6 +2,7 @@ package mods.Hileb.optirefine.core.transformer;
 
 import mods.Hileb.optirefine.core.OptiRefineBlackboard;
 import mods.Hileb.optirefine.core.transformer.aftermixin.GuiScreenOFTransformer;
+import mods.Hileb.optirefine.core.transformer.aftermixin.ModelBoxNewConstructorTransformer;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
@@ -40,6 +41,11 @@ public class TransformerHelper {
         TransformerDelegate.registerExplicitTransformer(
                 new GuiScreenOFTransformer(),
                 "net.minecraft.client.gui.GuiVideoSettings"
+        );
+
+        TransformerDelegate.registerExplicitTransformer(
+                new ModelBoxNewConstructorTransformer(),
+                "net.minecraft.client.model.ModelBox"
         );
 
     }

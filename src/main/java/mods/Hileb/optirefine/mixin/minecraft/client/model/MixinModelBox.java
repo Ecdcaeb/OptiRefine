@@ -4,13 +4,12 @@ import net.minecraft.client.model.ModelBox;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.model.PositionTextureVertex;
 import net.minecraft.client.model.TexturedQuad;
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 
 @Mixin(ModelBox.class)
-public class MixinModelBox {
+public abstract class MixinModelBox {
     @Shadow
     @SuppressWarnings("all")
     private PositionTextureVertex[] vertexPositions;

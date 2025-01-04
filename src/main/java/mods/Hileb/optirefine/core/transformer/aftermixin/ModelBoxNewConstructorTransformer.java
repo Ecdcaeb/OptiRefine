@@ -12,6 +12,7 @@ public class ModelBoxNewConstructorTransformer implements TransformerHelper.ITra
     public void transform(ClassNode classNode) {
         for (MethodNode mn : classNode.methods){
             if ("optirefine$init".equals(mn.name)) {
+                mn.name = "<init>";
                 mn.instructions.insert(new MethodInsnNode(Opcodes.INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false));
                 mn.instructions.insert(new VarInsnNode(Opcodes.ALOAD, 0));
             }
