@@ -1,6 +1,7 @@
 package mods.Hileb.optirefine.mixin.minecraft.client.entity;
 
 import com.mojang.authlib.GameProfile;
+import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.entity.passive.EntityShoulderRiding;
 import net.minecraft.util.ResourceLocation;
@@ -47,13 +48,15 @@ public class MixinAbstractClientPlayer {
     private static final ResourceLocation TEXTURE_ELYTRA = new ResourceLocation("textures/entity/elytra.png");
 
     @Inject(method = "<init>", at = @At("RETURN"))
+    @SuppressWarnings("all")
     public void injectInit(World worldIn, GameProfile playerProfile, CallbackInfo ci){
         this.nameClear = playerProfile.getName();
         if (this.nameClear != null && !this.nameClear.isEmpty()) {
             this.nameClear = StringUtils.stripControlCodes(this.nameClear);
         }
-        CapeUtils.downloadCape((AbstractClientPlayer)(Object)this);
-        PlayerConfigurations.getPlayerConfiguration((AbstractClientPlayer)(Object)this);
+
+        CapeUtils.downloadCape((AbstractClientPlayer)(Object) this);
+        PlayerConfigurations.getPlayerConfiguration((AbstractClientPlayer)(Object) this);
     }
 
     @Inject(method = " getLocationCape", at = @AT("HEAD"), cancellable = true)
@@ -62,7 +65,7 @@ public class MixinAbstractClientPlayer {
             cir.setReturnValue(null);
         } else {
             if (this.reloadCapeTimeMs != 0L && System.currentTimeMillis() > this.reloadCapeTimeMs) {
-                CapeUtils.reloadCape((AbstractClientPlayer) (Object) this);
+                CapeUtils.reloadCape((AbstractClientPlayer)(Object) this);
                 this.reloadCapeTimeMs = 0L;
             }
             if (this.locationOfCape != null) {
@@ -125,6 +128,5 @@ public class MixinAbstractClientPlayer {
     public void setReloadCapeTimeMs(long reloadCapeTimeMs) {
         this.reloadCapeTimeMs = reloadCapeTimeMs;
     }
-
 
 }

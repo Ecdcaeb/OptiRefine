@@ -1,5 +1,6 @@
 package mods.Hileb.optirefine.mixin.minecraft.client.gui;
 
+import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.util.ResourceLocation;
 import net.optifine.CustomColors;

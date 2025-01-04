@@ -1,11 +1,15 @@
-package mods.Hileb.optirefine.core;
+package mods.Hileb.optirefine.core.transformer;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.commons.ClassRemapper;
+import org.objectweb.asm.commons.Remapper;
+import org.objectweb.asm.commons.SimpleRemapper;
 import org.objectweb.asm.tree.ClassNode;
 import top.outlands.foundation.IExplicitTransformer;
 
 public class OptiRefineRuntimePublicTransformer implements IExplicitTransformer {
+    private static final Remapper CONFIG_REMAPPER = new SimpleRemapper("mods/Hileb/optirefine/optifine/Config", "Config");
     @Override
     public byte[] transform(byte[] bytes) {
         ClassReader classReader = new ClassReader(bytes);
@@ -18,6 +22,7 @@ public class OptiRefineRuntimePublicTransformer implements IExplicitTransformer 
 
         ClassWriter classWriter = new ClassWriter(0);
         classNode.accept(classWriter);
+        classNode.accept(new ClassRemapper(classNode, CONFIG_REMAPPER));
         return classWriter.toByteArray();
     }
 

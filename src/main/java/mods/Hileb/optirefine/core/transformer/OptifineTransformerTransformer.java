@@ -1,5 +1,6 @@
-package mods.Hileb.optirefine.core;
+package mods.Hileb.optirefine.core.transformer;
 
+import mods.Hileb.optirefine.core.OptiRefineBlackboard;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;

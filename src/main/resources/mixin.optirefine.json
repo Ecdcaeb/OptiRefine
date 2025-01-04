@@ -10,14 +10,20 @@
     "minecraft.block.MixinBlockAir",
     "minecraft.block.state.MixinBlockStateBase",
     "minecraft.client.entity.MixinAbstractClientPlayer",
+    "minecraft.client.gui.GuiChatAccessor",
     "minecraftforge.fml.MixinFMLClientHandler",
     "optifine.MixinOptiFineClassTransformer"
   ],
   "server": [],
   "client": [
+    "minecraft.client.gui.GuiScreenAccessor",
     "minecraft.client.gui.MixinFontRenderer",
     "minecraft.client.gui.MixinGuiCustomizeSkin",
     "minecraft.client.gui.MixinGuiDownloadTerrain",
-    "minecraft.client.gui.MixinGuiIngame"
+    "minecraft.client.gui.MixinGuiIngame",
+    "minecraft.client.gui.MixinGuiMainMenu",
+    "minecraft.client.gui.MixinGuiScreenWorking",
+    "minecraft.client.gui.MixinGuiSlot",
+    "minecraft.client.gui.MixinGuiVideoSettings"
   ]
 }

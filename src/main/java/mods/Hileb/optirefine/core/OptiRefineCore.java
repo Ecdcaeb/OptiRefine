@@ -2,8 +2,8 @@ package mods.Hileb.optirefine.core;
 
 import jakarta.annotation.Nullable;
 import mods.Hileb.optirefine.OptiRefine;
+import mods.Hileb.optirefine.core.transformer.TransformerHelper;
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
-import top.outlands.foundation.TransformerDelegate;
 
 import java.util.Map;
 
@@ -12,14 +12,7 @@ import java.util.Map;
 public class OptiRefineCore implements IFMLLoadingPlugin{
 
     static {
-        TransformerDelegate.registerExplicitTransformerByInstance(
-                new OptifineTransformerTransformer(),
-                "optifine.OptiFineClassTransformer"
-        );
-        TransformerDelegate.registerExplicitTransformerByInstance(
-                new OptiRefineRuntimePublicTransformer(),
-                OptiRefineBlackboard.CLASSES.toArray(String[]::new)
-        );
+        TransformerHelper.setupOptiRefineTransformers();
     }
 
     @Nullable
