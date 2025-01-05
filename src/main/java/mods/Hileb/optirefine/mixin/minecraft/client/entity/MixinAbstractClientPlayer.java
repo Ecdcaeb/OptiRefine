@@ -1,6 +1,8 @@
 package mods.Hileb.optirefine.mixin.minecraft.client.entity;
 
+import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.mojang.authlib.GameProfile;
+import mods.Hileb.optirefine.mixinx.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.entity.passive.EntityShoulderRiding;
@@ -14,41 +16,36 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+@SuppressWarnings("all")
 @Mixin(AbstractClientPlayer.class)
 public class MixinAbstractClientPlayer {
 
     @Unique
-    @SuppressWarnings("all")
     private ResourceLocation locationOfCape = null;
 
     @Unique
-    @SuppressWarnings("all")
     private long reloadCapeTimeMs = 0L;
 
     @Unique
-    @SuppressWarnings("all")
     private boolean elytraOfCape = false;
 
     @Unique
-    @SuppressWarnings("all")
     private String nameClear = null;
 
     @Unique
-    @SuppressWarnings("all")
+    @Public
     public EntityShoulderRiding entityShoulderLeft;
 
     @Unique
-    @SuppressWarnings("all")
+    @Public
     public EntityShoulderRiding entityShoulderRight;
 
     @Unique
-    @SuppressWarnings("all")
+    @Public
     private static final ResourceLocation TEXTURE_ELYTRA = new ResourceLocation("textures/entity/elytra.png");
 
     @Inject(method = "<init>", at = @At("RETURN"))
-    @SuppressWarnings("all")
     public void injectInit(World worldIn, GameProfile playerProfile, CallbackInfo ci){
         this.nameClear = playerProfile.getName();
         if (this.nameClear != null && !this.nameClear.isEmpty()) {
@@ -59,41 +56,42 @@ public class MixinAbstractClientPlayer {
         PlayerConfigurations.getPlayerConfiguration((AbstractClientPlayer)(Object) this);
     }
 
-    @Inject(method = " getLocationCape", at = @AT("HEAD"), cancellable = true)
-    public void injectGetLocationCape(CallbackInfoReturnable<ResourceLocation> cir){
+    @ModifyReturnValue(method = "getLocationCape", at = @At("RETURN"))
+    public ResourceLocation injectGetLocationCape(ResourceLocation cir){
         if (!Config.isShowCapes()) {
-            cir.setReturnValue(null);
+            return null;
         } else {
             if (this.reloadCapeTimeMs != 0L && System.currentTimeMillis() > this.reloadCapeTimeMs) {
                 CapeUtils.reloadCape((AbstractClientPlayer)(Object) this);
                 this.reloadCapeTimeMs = 0L;
             }
             if (this.locationOfCape != null) {
-                cir.setReturnValue(this.locationOfCape);
+                return this.locationOfCape;
             }
         }
+        return cir;
     }
 
     @Unique
-    @SuppressWarnings("all")
+    @Public
     public String getNameClear() {
         return this.nameClear;
     }
 
     @Unique
-    @SuppressWarnings("all")
+    @Public
     public ResourceLocation getLocationOfCape() {
         return this.locationOfCape;
     }
 
     @Unique
-    @SuppressWarnings("all")
+    @Public
     public void setLocationOfCape(ResourceLocation locationOfCape) {
         this.locationOfCape = locationOfCape;
     }
 
     @Unique
-    @SuppressWarnings("all")
+    @Public
     public boolean hasElytraCape() {
         ResourceLocation loc = ((AbstractClientPlayer)(Object)this).getLocationCape();
         if (loc == null) {
@@ -106,25 +104,25 @@ public class MixinAbstractClientPlayer {
     }
 
     @Unique
-    @SuppressWarnings("all")
+    @Public
     public void setElytraOfCape(boolean elytraOfCape) {
         this.elytraOfCape = elytraOfCape;
     }
 
     @Unique
-    @SuppressWarnings("all")
+    @Public
     public boolean isElytraOfCape() {
         return this.elytraOfCape;
     }
 
     @Unique
-    @SuppressWarnings("all")
+    @Public
     public long getReloadCapeTimeMs() {
         return this.reloadCapeTimeMs;
     }
 
     @Unique
-    @SuppressWarnings("all")
+    @Public
     public void setReloadCapeTimeMs(long reloadCapeTimeMs) {
         this.reloadCapeTimeMs = reloadCapeTimeMs;
     }

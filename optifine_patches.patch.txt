@@ -1607,7 +1607,7 @@ diff -r ../optifine_unpatch/src/main/java/net/minecraft/client/gui/GuiOverlayDeb
 >                 sb.append(" sf");
 >             }
 >             if (Config.isFastRender()) {
->                 sb.append(" fr");
+>                 sb.append(" mods.Hileb.optirefine.mixinx.fr");
 >             }
 >             if (Config.isAnisotropicFiltering()) {
 >                 sb.append(" af");
@@ -17661,7 +17661,7 @@ diff -r ../optifine_unpatch/src/main/java/net/minecraft/client/settings/GameSett
 >         }
 >         if (par1EnumOptions == Options.FAST_RENDER) {
 >             if (!this.ofFastRender && Config.isShaders()) {
->                 Config.showGuiMessage((String)Lang.get((String)"of.message.fr.shaders1"), (String)Lang.get((String)"of.message.fr.shaders2"));
+>                 Config.showGuiMessage((String)Lang.get((String)"of.message.mods.Hileb.optirefine.mixinx.fr.shaders1"), (String)Lang.get((String)"of.message.mods.Hileb.optirefine.mixinx.fr.shaders2"));
 >                 return;
 >             }
 >             boolean bl = this.ofFastRender = !this.ofFastRender;

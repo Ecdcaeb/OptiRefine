@@ -1,7 +1,6 @@
 package mods.Hileb.optirefine.mixin.minecraft.client.gui;
 
 import net.minecraft.client.gui.GuiResourcePackList;
-import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiSlot;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -11,11 +10,17 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(GuiSlot.class)
 public abstract class MixinGuiSlot{
+    @Shadow
     public int width;
+    @Shadow
     public int height;
+    @Shadow
     public int top;
+    @Shadow
     public int bottom;
+    @Shadow
     public int right;
+    @Shadow
     public int left;
     @Shadow
     @Final

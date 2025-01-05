@@ -1,12 +1,29 @@
 package mods.Hileb.optirefine.mixin.minecraft.client.gui;
 
+import mods.Hileb.optirefine.mixinx.cursedmixinextensions.annotations.ChangeSuperClass;
+import mods.Hileb.optirefine.mixinx.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.optifine.Config;
 import mods.Hileb.optirefine.optifine.client.GameSettingsOptionOF;
-import net.minecraft.client.gui.*;
+import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.GuiChat;
+import net.minecraft.client.gui.GuiListExtended;
+import net.minecraft.client.gui.GuiOptionButton;
+import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.GuiVideoSettings;
+import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.settings.GameSettings;
 import net.optifine.Lang;
-import net.optifine.gui.*;
+import net.optifine.gui.GuiAnimationSettingsOF;
+import net.optifine.gui.GuiDetailSettingsOF;
+import net.optifine.gui.GuiOptionButtonOF;
+import net.optifine.gui.GuiOptionSliderOF;
+import net.optifine.gui.GuiOtherSettingsOF;
+import net.optifine.gui.GuiPerformanceSettingsOF;
+import net.optifine.gui.GuiQualitySettingsOF;
+import net.optifine.gui.GuiScreenOF;
+import net.optifine.gui.TooltipManager;
+import net.optifine.gui.TooltipProviderOptions;
 import net.optifine.shaders.gui.GuiShaders;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -17,10 +34,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-/**
- * {@link net.optifine.gui.GuiScreenOF}
- * **/
+@SuppressWarnings("all")
 @Mixin(GuiVideoSettings.class)
+@ChangeSuperClass(GuiScreenOF.class)
 public class MixinGuiVideoSettings extends GuiScreen {
     @Shadow
     @Final
@@ -189,25 +205,25 @@ public class MixinGuiVideoSettings extends GuiScreen {
     }
 
     @Unique
-    @SuppressWarnings("all")
+    @Public
     public static int getButtonWidth(GuiButton btn) {
         return btn.width;
     }
 
     @Unique
-    @SuppressWarnings("all")
+    @Public
     public static int getButtonHeight(GuiButton btn) {
         return btn.height;
     }
 
     @Unique
-    @SuppressWarnings("all")
+    @Public
     public static void drawGradientRect(GuiScreen guiScreen, int left, int top, int right, int bottom, int startColor, int endColor) {
         ((GuiScreenAccessor)guiScreen).invokeDrawGradientRect(left, top, right, bottom, startColor, endColor);
     }
 
     @Unique
-    @SuppressWarnings("all")
+    @Public
     public static String getGuiChatText(GuiChat guiChat) {
         return ((GuiChatAccessor)guiChat).getInputField().getText();
     }

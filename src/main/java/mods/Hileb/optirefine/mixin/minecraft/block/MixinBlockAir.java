@@ -1,5 +1,6 @@
 package mods.Hileb.optirefine.mixin.minecraft.block;
 
+import mods.Hileb.optirefine.mixinx.cursedmixinextensions.annotations.Public;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockAir;
 import org.spongepowered.asm.mixin.Mixin;
@@ -13,10 +14,12 @@ public abstract class MixinBlockAir{
 
     @Unique
     @SuppressWarnings("all")
+    @Public
     public static Map<Block, Integer> mapOriginalOpacity = new IdentityHashMap();
 
     @Unique
     @SuppressWarnings("all")
+    @Public
     public static void setLightOpacity(Block block, int opacity) {
          if (!mapOriginalOpacity.containsKey(block)) {
              mapOriginalOpacity.put(block, ((BlockAccessor)block).getLightOpacity());
@@ -26,6 +29,7 @@ public abstract class MixinBlockAir{
 
     @Unique
     @SuppressWarnings("all")
+    @Public
     public static void restoreLightOpacity(Block block) {
          if (!mapOriginalOpacity.containsKey(block)) {
              return;

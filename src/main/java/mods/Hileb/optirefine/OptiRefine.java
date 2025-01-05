@@ -1,9 +1,7 @@
 package mods.Hileb.optirefine;
 
 import org.apache.logging.log4j.LogManager;
-
-import java.util.logging.Logger;
-
+import org.apache.logging.log4j.Logger;
 
 public class OptiRefine{
     public static final String NAME = "OptiRefine";

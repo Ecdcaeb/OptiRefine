@@ -1,5 +1,7 @@
 package mods.Hileb.optirefine.mixin.minecraft.client.model;
 
+import mods.Hileb.optirefine.mixinx.cursedmixinextensions.annotations.NewConstructor;
+import mods.Hileb.optirefine.mixinx.cursedmixinextensions.annotations.Public;
 import net.minecraft.client.model.ModelBox;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.model.PositionTextureVertex;
@@ -38,8 +40,10 @@ public abstract class MixinModelBox {
     @SuppressWarnings("all")
     public String boxName;
 
-    @Unique
-    public void optirefine$init(ModelRenderer renderer, int[][] faceUvs, float x, float y, float z, float dx, float dy, float dz, float delta, boolean mirror) {
+    @NewConstructor
+    @Public
+    @SuppressWarnings("all")
+    public void ModelBox(ModelRenderer renderer, int[][] faceUvs, float x, float y, float z, float dx, float dy, float dz, float delta, boolean mirror) {
         this.posX1 = x;
         this.posY1 = y;
         this.posZ1 = z;
@@ -105,7 +109,6 @@ public abstract class MixinModelBox {
     }
 
     @Unique
-    @SuppressWarnings("all")
     private TexturedQuad makeTexturedQuad(
             PositionTextureVertex[] positionTextureVertexs, int[] faceUvs, boolean reverseUV, float textureWidth, float textureHeight
     ) {

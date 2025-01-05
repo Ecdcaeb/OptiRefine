@@ -25,14 +25,13 @@ public abstract class MixinGuiCustomizeSkin extends GuiScreen {
         this.buttonList.add(done);
     }
 
-    @Inject(method = "actionPerformed", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "actionPerformed", at = @At("HEAD"))
     public void injectActionPerformed(GuiButton button, CallbackInfo ci){
         if (button.enabled) {
             if (button.id == 210) {
                 this.mc.displayGuiScreen(new GuiScreenCapeOF(this));
-                ci.cancel();
-            } // else, continue
-        } else ci.cancel();
+            }
+        }
     }
 
 
