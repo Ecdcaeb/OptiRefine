@@ -90,7 +90,7 @@ void setDefaultProperty(String propertyName, boolean warn, defaultValue) {
     }
 }
 
-void assertEnvironmentVariable(String propertyName) {
+static void assertEnvironmentVariable(String propertyName) {
     def property = System.getenv(propertyName)
     if (property == null) {
         throw new GradleException("System Environment Variable $propertyName is not defined!")

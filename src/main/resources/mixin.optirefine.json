@@ -28,6 +28,8 @@
     "minecraft.client.gui.MixinGuiOverlayDebug",
     "minecraft.client.gui.MixinGuiScreenWorking",
     "minecraft.client.gui.MixinGuiSlot",
-    "minecraft.client.gui.MixinGuiVideoSettings"
+    "minecraft.client.gui.MixinGuiVideoSettings",
+    "minecraft.client.multiplayer.MixinWorldClient",
+    "minecraftforge.client.MixinGuiIngameForge"
   ]
 }

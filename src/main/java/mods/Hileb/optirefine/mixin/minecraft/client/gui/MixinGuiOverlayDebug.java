@@ -1,6 +1,7 @@
 package mods.Hileb.optirefine.mixin.minecraft.client.gui;
 
 import mods.Hileb.optirefine.optifine.Config;
+import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiOverlayDebug;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.texture.TextureMap;
@@ -15,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.List;
 
 @Mixin(GuiOverlayDebug.class)
-public abstract class MixinGuiOverlayDebug extends GuiScreen {
+public abstract class MixinGuiOverlayDebug extends Gui {
     @Unique
     @SuppressWarnings("all")
     private String debugOF = null;
@@ -39,7 +40,7 @@ public abstract class MixinGuiOverlayDebug extends GuiScreen {
     @Inject(method = "call", at = @At("RETURN"), cancellable = true)
     public void injectCall(CallbackInfoReturnable<List<String>> cir){
         if (this.mc.debug.equals(this.debugOF)) {
-            StringBuffer sb = new StringBuffer(this.mc.debug);
+            StringBuilder sb = new StringBuilder(this.mc.debug);
             int fpsMin = Config.getFpsMin();
             int posFps = this.mc.debug.indexOf(" fps ");
             if (posFps >= 0) {

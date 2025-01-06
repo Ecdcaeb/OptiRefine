@@ -4,6 +4,7 @@ import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.settings.GameSettings;
 import net.minecraftforge.common.util.EnumHelper;
 
+@SuppressWarnings("unused")
 public class GameSettingsOptionOF {
     private static final Class<?>[] args0 = new Class[]{String.class, boolean.class, boolean.class};
     private static final Class<?>[] args1 = new Class[]{String.class, boolean.class, boolean.class, float.class, float.class, float.class};
@@ -79,6 +80,6 @@ public class GameSettingsOptionOF {
     public static final GameSettings.Options CUSTOM_GUIS = EnumHelper.addEnum(GameSettings.Options.class, "CUSTOM_GUIS", args0, "of.options.CUSTOM_GUIS", false, false);
     public static final GameSettings.Options RENDER_REGIONS = EnumHelper.addEnum(GameSettings.Options.class, "RENDER_REGIONS", args0, "of.options.RENDER_REGIONS", false, false);
     public static final GameSettings.Options SHOW_GL_ERRORS = EnumHelper.addEnum(GameSettings.Options.class, "SHOW_GL_ERRORS", args0, "of.options.SHOW_GL_ERRORS", false, false);
-    public static final GameSettings.Options SMART_ANIMATIONS = EnumHelper.addEnum(GameSettings.Options.class, "SMART_ANIMATIONS", args0"of.options.SMART_ANIMATIONS", false, false);
+    public static final GameSettings.Options SMART_ANIMATIONS = EnumHelper.addEnum(GameSettings.Options.class, "SMART_ANIMATIONS", args0,"of.options.SMART_ANIMATIONS", false, false);
     
 }

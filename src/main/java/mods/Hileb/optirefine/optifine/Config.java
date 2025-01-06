@@ -180,9 +180,9 @@ public class Config {
 
     public native static float getAmbientOcclusionLevel() ;
 
-    public native static String listToString(List list) ;
+    public native static String listToString(List<?> list) ;
 
-    public native static String listToString(List list, String separator) ;
+    public native static String listToString(List<?> list, String separator) ;
 
     public native static String arrayToString(Object[] arr) ;
 
@@ -380,7 +380,7 @@ public class Config {
 
     public native static Object[] removeObjectFromArray(Object[] arr, Object obj) ;
 
-    public native static Object[] collectionToArray(Collection coll, Class elementClass) ;
+    public native static Object[] collectionToArray(Collection<?> coll, Class<?> elementClass) ;
 
     public native static boolean isCustomItems() ;
 
