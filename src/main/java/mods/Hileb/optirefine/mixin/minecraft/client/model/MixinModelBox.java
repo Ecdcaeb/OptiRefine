@@ -1,7 +1,7 @@
 package mods.Hileb.optirefine.mixin.minecraft.client.model;
 
-import mods.Hileb.optirefine.mixinx.cursedmixinextensions.annotations.NewConstructor;
-import mods.Hileb.optirefine.mixinx.cursedmixinextensions.annotations.Public;
+import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.NewConstructor;
+import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import net.minecraft.client.model.ModelBox;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.model.PositionTextureVertex;

@@ -3,7 +3,7 @@ package mods.Hileb.optirefine.core;
 import jakarta.annotation.Nullable;
 import mods.Hileb.optirefine.OptiRefine;
 import mods.Hileb.optirefine.core.transformer.TransformerHelper;
-import mods.Hileb.optirefine.mixinx.cursedmixinextensions.CursedMixinExtensions;
+import mods.Hileb.optirefine.library.cursedmixinextensions.CursedMixinExtensions;
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
 
 import java.util.Map;

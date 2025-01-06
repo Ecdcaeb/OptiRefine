@@ -1,6 +1,6 @@
 package mods.Hileb.optirefine.mixin.minecraft.block.state;
 
-import mods.Hileb.optirefine.mixinx.cursedmixinextensions.annotations.Public;
+import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.BlockStateBase;
 import net.minecraft.block.state.IBlockState;

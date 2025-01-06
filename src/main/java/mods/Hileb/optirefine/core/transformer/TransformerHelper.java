@@ -28,6 +28,29 @@ public class TransformerHelper {
         }
     }
 
+    @FunctionalInterface
+    public interface ITransformerx extends IExplicitTransformer{
+        boolean transform(ClassNode classNode);
+
+        @Override
+        default byte[] transform(byte[] bytes){
+            ClassReader classReader = new ClassReader(bytes);
+            ClassNode classNode = new ClassNode();
+            classReader.accept(classNode, 0);
+
+            boolean frames = this.transform(classNode);
+
+            int flags = ClassWriter.COMPUTE_MAXS;
+            if (frames) {
+                flags |= ClassWriter.COMPUTE_FRAMES;
+            }
+
+            ClassWriter classWriter = new ClassWriter(flags);
+            classNode.accept(classWriter);
+            return classWriter.toByteArray();
+        }
+    }
+
     public static void setupOptiRefineTransformers(){
         TransformerDelegate.registerExplicitTransformer(
                 new OptifineTransformerTransformer(),

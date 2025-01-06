@@ -2,7 +2,7 @@ package mods.Hileb.optirefine.mixin.minecraft.client.entity;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.mojang.authlib.GameProfile;
-import mods.Hileb.optirefine.mixinx.cursedmixinextensions.annotations.Public;
+import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.entity.passive.EntityShoulderRiding;

@@ -1,6 +1,6 @@
 package mods.Hileb.optirefine.mixin.minecraft.block;
 
-import mods.Hileb.optirefine.mixinx.cursedmixinextensions.annotations.Public;
+import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockAir;
 import org.spongepowered.asm.mixin.Mixin;

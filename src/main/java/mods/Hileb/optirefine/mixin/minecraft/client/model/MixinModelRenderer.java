@@ -1,6 +1,6 @@
 package mods.Hileb.optirefine.mixin.minecraft.client.model;
 
-import mods.Hileb.optirefine.mixinx.cursedmixinextensions.annotations.Public;
+import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelBox;

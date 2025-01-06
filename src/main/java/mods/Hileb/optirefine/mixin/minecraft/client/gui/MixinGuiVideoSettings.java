@@ -1,7 +1,7 @@
 package mods.Hileb.optirefine.mixin.minecraft.client.gui;
 
-import mods.Hileb.optirefine.mixinx.cursedmixinextensions.annotations.ChangeSuperClass;
-import mods.Hileb.optirefine.mixinx.cursedmixinextensions.annotations.Public;
+import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.ChangeSuperClass;
+import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.optifine.Config;
 import mods.Hileb.optirefine.optifine.client.GameSettingsOptionOF;
 import net.minecraft.client.gui.GuiButton;
