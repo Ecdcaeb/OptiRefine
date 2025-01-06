@@ -31,6 +31,7 @@ public class OptiRefineBlackboard {
             "net.minecraft.client.model.ModelBox", // Optifine -> -this.bipedCape.rotationPointY -> skip
             "net.minecraft.client.model.ModelPlayer",
             "net.minecraft.client.model.ModelRenderer",
-            "net.minecraft.client.model.TexturedQuad"
+            "net.minecraft.client.model.TexturedQuad",
+            "net.minecraft.client.multiplayer.WorldClient"
     );
 }
