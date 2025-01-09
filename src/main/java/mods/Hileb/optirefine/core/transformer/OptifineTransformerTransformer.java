@@ -1,35 +1,30 @@
 package mods.Hileb.optirefine.core.transformer;
 
 import mods.Hileb.optirefine.core.OptiRefineBlackboard;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.Label;
-import org.objectweb.asm.Opcodes;
+import mods.Hileb.optirefine.library.foundationx.mini.MiniTransformer;
+import mods.Hileb.optirefine.library.foundationx.mini.PatchContext;
+import mods.Hileb.optirefine.library.foundationx.mini.annotation.Patch;
 import org.objectweb.asm.tree.*;
-import top.outlands.foundation.IExplicitTransformer;
 
-public class OptifineTransformerTransformer implements IExplicitTransformer {
-    @Override
-    public byte[] transform(byte[] bytes) {
-        ClassReader classReader = new ClassReader(bytes);
-        ClassNode classNode = new ClassNode();
-        classReader.accept(classNode, 0);
+@SuppressWarnings("unused") //ASM invoked
+@Patch.Class("optifine.OptiFineClassTransformer")
+public class OptifineTransformerTransformer extends MiniTransformer {
 
-        for (MethodNode mn : classNode.methods) {
-            if ("transform".equals(mn.name) && "(Ljava/lang/String;Ljava/lang/String;[B)[B".equals(mn.desc)) {
-                LabelNode labelNode = new LabelNode(new Label());
-                mn.instructions.add(labelNode);
-                mn.instructions.add(new VarInsnNode(Opcodes.ALOAD, 3));
-                mn.instructions.add(new InsnNode(Opcodes.ARETURN));
-
-                mn.instructions.insert(new MethodInsnNode(Opcodes.INVOKESTATIC, "mods/Hileb/optirefine/core/OptifineTransformerTransformer", "canTranform", "(Ljava/lang/String;)Z)", false));
-                mn.instructions.insert(new JumpInsnNode(Opcodes.IFEQ, labelNode));
-            }
-        }
-
-        var classWriter = new ClassWriter(0);
-        classNode.accept(classWriter);
-        return classWriter.toByteArray();
+    @Patch.Method("transform(Ljava/lang/String;Ljava/lang/String;[B)[B")
+    @Patch.Method.AffectsControlFlow
+    public void patch$transform(PatchContext context){
+        LabelNode labelNode = new LabelNode();
+        context.jumpToStart();
+        context.add(
+                INVOKESTATIC("mods/Hileb/optirefine/core/transformer/OptifineTransformerTransformer", "canTranform", "(Ljava/lang/String;)Z)"),
+                IFEQ(labelNode)
+        );
+        context.jumpToEnd();
+        context.add(
+                labelNode,
+                ALOAD(3),
+                ARETURN()
+                );
     }
 
     @SuppressWarnings("unused") //ASM invoked

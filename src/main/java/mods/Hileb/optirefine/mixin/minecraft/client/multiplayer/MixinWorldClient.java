@@ -3,6 +3,8 @@ package mods.Hileb.optirefine.mixin.minecraft.client.multiplayer;
 import com.llamalad7.mixinextras.expression.Definition;
 import com.llamalad7.mixinextras.expression.Expression;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.sugar.Local;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.optifine.Config;
@@ -65,15 +67,15 @@ public abstract class MixinWorldClient extends World {
         }
     }
 
-    @Inject(method = "refreshVisibleChunks", at = @At("HEAD"), cancellable = true)
-    public void injectRefreshVisibleChunks(CallbackInfo ci){
+    @WrapMethod(method = "refreshVisibleChunks")
+    public void injectRefreshVisibleChunks(Operation<Void> original){
         int cx = MathHelper.floor(this.mc.player.posX / 16.0);
         int cy = MathHelper.floor(this.mc.player.posY / 16.0);
         if (cx != this.playerChunkX || cy != this.playerChunkY) {
             this.playerChunkX = cx;
             this.playerChunkY = cy;
-            // The codes here continue
-        } else ci.cancel();
+            original.call();
+        }
     }
 
     @Definition(id = "ambienceTicks", field = "Lnet/minecraft/client/multiplayer/WorldClient;ambienceTicks:I")

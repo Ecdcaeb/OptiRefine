@@ -1,5 +1,6 @@
 package mods.Hileb.optirefine.mixin.minecraft.client.model;
 
+import com.llamalad7.mixinextras.sugar.Share;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.model.ModelBase;
@@ -149,7 +150,7 @@ public class MixinModelRenderer {
     }
 
     @Inject(method = "renderWithRotation", at = @At("HEAD"), cancellable = true)
-    public void injectPreRenderWithRotation(float p_78785_1_, CallbackInfo ci){
+    public void injectPreRenderWithRotation(float p_78785_1_, CallbackInfo ci, @Share("lastTextureId") Loc){
         if (!this.isHidden && this.showModel) {
             this.checkResetDisplayList();
 

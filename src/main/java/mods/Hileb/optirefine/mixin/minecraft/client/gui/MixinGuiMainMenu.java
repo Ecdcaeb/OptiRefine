@@ -1,5 +1,7 @@
 package mods.Hileb.optirefine.mixin.minecraft.client.gui;
 
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import net.minecraft.client.gui.GuiMainMenu;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.BufferBuilder;
@@ -40,8 +42,8 @@ public abstract class MixinGuiMainMenu extends GuiScreen {
 
     @Shadow public abstract void drawScreen(int p_73863_1_, int p_73863_2_, float p_73863_3_);
 
-    @Inject(method = "renderSkybox", at = @At("HEAD"), cancellable = true)
-    public void injectRenderSkybox(int mouseX, int mouseY, float partialTicks, CallbackInfo ci){
+    @WrapMethod(method = "renderSkybox")
+    public void injectRenderSkybox(int mouseX, int mouseY, float partialTicks, Operation<Void> original){
         CustomPanoramaProperties cpp = CustomPanorama.getCustomPanoramaProperties();
         if (cpp != null) {
             this.mc.getFramebuffer().unbindFramebuffer();
@@ -61,13 +63,12 @@ public abstract class MixinGuiMainMenu extends GuiScreen {
             Tessellator tessellator = Tessellator.getInstance();
             BufferBuilder bufferbuilder = tessellator.getBuffer();
             bufferbuilder.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
-            bufferbuilder.pos((double)0.0F, (double)j, (double)this.zLevel).tex((double)(0.5F - f1), (double)(0.5F + f2)).color(1.0F, 1.0F, 1.0F, 1.0F).endVertex();
-            bufferbuilder.pos((double)i, (double)j, (double)this.zLevel).tex((double)(0.5F - f1), (double)(0.5F - f2)).color(1.0F, 1.0F, 1.0F, 1.0F).endVertex();
-            bufferbuilder.pos((double)i, (double)0.0F, (double)this.zLevel).tex((double)(0.5F + f1), (double)(0.5F - f2)).color(1.0F, 1.0F, 1.0F, 1.0F).endVertex();
-            bufferbuilder.pos((double)0.0F, (double)0.0F, (double)this.zLevel).tex((double)(0.5F + f1), (double)(0.5F + f2)).color(1.0F, 1.0F, 1.0F, 1.0F).endVertex();
+            bufferbuilder.pos(0.0F, j, this.zLevel).tex(0.5F - f1, 0.5F + f2).color(1.0F, 1.0F, 1.0F, 1.0F).endVertex();
+            bufferbuilder.pos(i, j, this.zLevel).tex(0.5F - f1, (double)(0.5F - f2)).color(1.0F, 1.0F, 1.0F, 1.0F).endVertex();
+            bufferbuilder.pos(i, 0.0F, this.zLevel).tex(0.5F + f1, 0.5F - f2).color(1.0F, 1.0F, 1.0F, 1.0F).endVertex();
+            bufferbuilder.pos(0.0F, 0.0F, this.zLevel).tex(0.5F + f1, 0.5F + f2).color(1.0F, 1.0F, 1.0F, 1.0F).endVertex();
             tessellator.draw();
-            ci.cancel();
-        }
+        } else original.call(mouseX, mouseY, partialTicks);
     }
 
     @Redirect(method = "drawScreen", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiMainMenu;drawGradientRect(IIIIII)V"))

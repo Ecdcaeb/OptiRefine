@@ -10,6 +10,7 @@ import net.optifine.util.FontUtils;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
@@ -24,7 +25,7 @@ public class MixinFontRenderer {
 
     @Shadow private float red;
 
-    @Inject(method = "readFontTexture", at = @AT("RETURN"))
+    @Inject(method = "readFontTexture", at = @At("RETURN"))
     public void injectReadFontTexture(CallbackInfo ci){
         Properties props = FontUtils.readFontProperties(this.locationFontTexture);
         //this.blend = FontUtils.readBoolean(props, "blend", false);
@@ -35,7 +36,7 @@ public class MixinFontRenderer {
         }
     }
 
-    @ModifyReturnValue(method = "getColorCode", at = @AT("RETURN"))
+    @ModifyReturnValue(method = "getColorCode", at = @At("RETURN"))
     public int injectGetColorCode(int cir, @Local(argsOnly = true) char character){
         if (Config.isCustomColors()) {
             return CustomColors.getTextColor("0123456789abcdef".indexOf(character), cir);

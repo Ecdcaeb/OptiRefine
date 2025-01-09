@@ -1,7 +1,5 @@
 package mods.Hileb.optirefine.library.cursedmixinextensions;
 
-import com.llamalad7.mixinextras.service.MixinExtrasService;
-import com.llamalad7.mixinextras.service.MixinExtrasVersion;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.*;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.ChangeSuperClass;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.ShadowSuper;
@@ -9,9 +7,6 @@ import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
-import org.spongepowered.asm.mixin.MixinEnvironment;
-import org.spongepowered.asm.mixin.transformer.ext.IExtension;
-import org.spongepowered.asm.mixin.transformer.ext.ITargetClassContext;
 import org.spongepowered.asm.util.Annotations;
 
 import java.util.ArrayList;
@@ -24,16 +19,8 @@ import java.util.function.Consumer;
  * @author LlamaLad7
  * @author Cat Core
  */
-public class CursedMixinExtensions implements IExtension {
-    private static boolean isLaunched = false;
-    public static void bootstrap(){
-        if (!isLaunched) {
-            MixinExtrasService.getInstance().offerExtension(MixinExtrasVersion.V0_5_0_BETA_4.getNumber(), new CursedMixinExtensions());
-            isLaunched = true;
-        }
-    }
-
-    protected static void postApply(ClassNode targetClass) {
+public class CursedMixinExtensions {
+    public static void postApply(ClassNode targetClass) {
         AnnotationNode changeSuperClass = Annotations.getVisible(targetClass, ChangeSuperClass.class);
 
         if (changeSuperClass != null) {
@@ -146,25 +133,5 @@ public class CursedMixinExtensions implements IExtension {
                 }
             }
         }
-    }
-
-    @Override
-    public boolean checkActive(MixinEnvironment mixinEnvironment) {
-        return true;
-    }
-
-    @Override
-    public void preApply(ITargetClassContext iTargetClassContext) {
-
-    }
-
-    @Override
-    public void postApply(ITargetClassContext iTargetClassContext) {
-        postApply(iTargetClassContext.getClassNode());
-    }
-
-    @Override
-    public void export(MixinEnvironment mixinEnvironment, String s, boolean b, ClassNode classNode) {
-
     }
 }

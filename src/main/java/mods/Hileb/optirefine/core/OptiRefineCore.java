@@ -2,8 +2,9 @@ package mods.Hileb.optirefine.core;
 
 import jakarta.annotation.Nullable;
 import mods.Hileb.optirefine.OptiRefine;
-import mods.Hileb.optirefine.core.transformer.TransformerHelper;
-import mods.Hileb.optirefine.library.cursedmixinextensions.CursedMixinExtensions;
+import mods.Hileb.optirefine.core.transformer.OptiRefineRuntimePublicTransformer;
+import mods.Hileb.optirefine.core.transformer.OptifineTransformerTransformer;
+import mods.Hileb.optirefine.library.foundationx.TransformerHelper;
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
 
 import java.util.Map;
@@ -13,8 +14,13 @@ import java.util.Map;
 public class OptiRefineCore implements IFMLLoadingPlugin{
 
     static {
-        CursedMixinExtensions.bootstrap();
-        TransformerHelper.setupOptiRefineTransformers();
+        setupTransformers();
+    }
+
+    public static void setupTransformers(){
+        TransformerHelper.registerTransformer(new OptifineTransformerTransformer());
+        TransformerHelper.registerTransformer(new OptiRefineRuntimePublicTransformer());
+
     }
 
     @Nullable

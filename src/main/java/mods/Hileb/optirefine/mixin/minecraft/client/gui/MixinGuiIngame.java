@@ -1,5 +1,7 @@
 package mods.Hileb.optirefine.mixin.minecraft.client.gui;
 
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiIngame;
@@ -8,9 +10,7 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.optifine.CustomColors;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(GuiIngame.class)
 public class MixinGuiIngame {
@@ -27,13 +27,12 @@ public class MixinGuiIngame {
         }
     }
 
-    @Inject(method = "renderVignette", at = @At("HEAD"), cancellable = true)
-    public void injectRenderVignette(float p_180480_1_, ScaledResolution p_180480_2_, CallbackInfo ci){
+    @WrapMethod(method = "renderVignette")
+    public void injectRenderVignette(float p_180480_1_, ScaledResolution p_180480_2_, Operation<Void> original){
         if (!Config.isVignetteEnabled()) {
             GlStateManager.enableDepth();
             GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
-            ci.cancel();
-        }
+        } else original.call(p_180480_1_, p_180480_2_);
     }
 
 
