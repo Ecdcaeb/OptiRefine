@@ -60,7 +60,7 @@ public abstract class MiniTransformer implements TransformerHelper.TargetedASMTr
 	private final Map<String, List<PatchMethod>> methods = new HashMap<>();
 	private final Set<String> requiredMethods = new HashSet<>();
 
-	public static boolean debug = Boolean.parseBoolean(System.getProperty("foundation.dump", "false"));
+	public static final boolean DEBUG = Boolean.parseBoolean(System.getProperty("foundation.dump", "false"));
 
 	public MiniTransformer() {
 		Patch.Class classAnn = getClass().getAnnotation(Patch.Class.class);
@@ -80,7 +80,7 @@ public abstract class MiniTransformer implements TransformerHelper.TargetedASMTr
 				final String methodDesc = methodSign.substring(index, methodSign.length() -1);
 				String desc = MiniUtils.remapMethod(className, methodName, methodDesc) + MiniUtils.remapMethodDesc(methodDesc);
 
-				if (debug) {
+				if (DEBUG) {
 					if (!methodSign.equals(desc)) {
 						logForDeobfuscation(name, methodSign, desc);
 					}
@@ -143,7 +143,7 @@ public abstract class MiniTransformer implements TransformerHelper.TargetedASMTr
 				final String methodDesc = methodSign.substring(index, methodSign.length() -1);
 				String desc = MiniUtils.remapMethod(className, methodName, methodDesc) + MiniUtils.remapMethodDesc(methodDesc);
 
-				if (debug) {
+				if (DEBUG) {
 					if (!methodSign.equals(desc)) {
 						logForDeobfuscation(name, methodSign, desc);
 					}

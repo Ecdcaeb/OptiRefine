@@ -219,7 +219,7 @@ public class MixinGuiVideoSettings extends GuiScreen {
     @Unique
     @Public
     public static void drawGradientRect(GuiScreen guiScreen, int left, int top, int right, int bottom, int startColor, int endColor) {
-        ((GuiScreenAccessor)guiScreen).invokeDrawGradientRect(left, top, right, bottom, startColor, endColor);
+        guiScreen.draw(left, top, right, bottom, startColor, endColor);
     }
 
     @Unique

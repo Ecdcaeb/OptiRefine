@@ -5,22 +5,18 @@
   "plugin": "mods.Hileb.optirefine.core.OptiRefineMixinPlugin",
   "target": "@env(DEFAULT)",
   "minVersion": "0.8.5",
-  "compatibilityLevel": "JAVA_${java_version}",
+  "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "minecraft.block.BlockAccessor",
     "minecraft.block.MixinBlockAir",
     "minecraft.block.state.MixinBlockStateBase",
     "minecraft.client.entity.MixinAbstractClientPlayer",
-    "minecraft.client.gui.GuiChatAccessor",
     "minecraft.client.model.MixinModelBox",
     "minecraft.client.model.MixinModelRenderer",
     "minecraft.client.model.MixinTexturedQuad",
-    "minecraftforge.fml.MixinFMLClientHandler",
-    "optifine.MixinOptiFineClassTransformer"
+    "minecraftforge.fml.MixinFMLClientHandler"
   ],
   "server": [],
   "client": [
-    "minecraft.client.gui.GuiScreenAccessor",
     "minecraft.client.gui.MixinFontRenderer",
     "minecraft.client.gui.MixinGuiCustomizeSkin",
     "minecraft.client.gui.MixinGuiDownloadTerrain",
@@ -31,6 +27,7 @@
     "minecraft.client.gui.MixinGuiSlot",
     "minecraft.client.gui.MixinGuiVideoSettings",
     "minecraft.client.multiplayer.MixinWorldClient",
+    "minecraft.client.particle.MixinParticleItemPickup",
     "minecraftforge.client.MixinGuiIngameForge"
   ]
 }

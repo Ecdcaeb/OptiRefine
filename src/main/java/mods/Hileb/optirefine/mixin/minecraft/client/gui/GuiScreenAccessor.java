@@ -6,6 +6,6 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin(GuiScreen.class)
 public interface GuiScreenAccessor {
-    @Invoker("drawGradientRect")
+    @Invoker("func_73733_a")
     void invokeDrawGradientRect(int left, int top, int right, int bottom, int startColor, int endColor);
 }

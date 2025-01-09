@@ -39,6 +39,7 @@ import java.lang.annotation.Target;
  * This class is an annotation so it will appear in IDE autocomplete. Patch on its own is not
  * useful; it's a holder for other annotations.
  */
+@SuppressWarnings("unused")
 @Retention(SOURCE)
 @Target({TYPE, METHOD})
 public @interface Patch {

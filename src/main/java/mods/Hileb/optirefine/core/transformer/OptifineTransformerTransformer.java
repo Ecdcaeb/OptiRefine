@@ -1,6 +1,5 @@
 package mods.Hileb.optirefine.core.transformer;
 
-import mods.Hileb.optirefine.core.OptiRefineBlackboard;
 import mods.Hileb.optirefine.library.foundationx.mini.MiniTransformer;
 import mods.Hileb.optirefine.library.foundationx.mini.PatchContext;
 import mods.Hileb.optirefine.library.foundationx.mini.annotation.Patch;
@@ -16,19 +15,12 @@ public class OptifineTransformerTransformer extends MiniTransformer {
         LabelNode labelNode = new LabelNode();
         context.jumpToStart();
         context.add(
-                INVOKESTATIC("mods/Hileb/optirefine/core/transformer/OptifineTransformerTransformer", "canTranform", "(Ljava/lang/String;)Z)"),
-                IFEQ(labelNode)
-        );
-        context.jumpToEnd();
-        context.add(
-                labelNode,
+                GETSTATIC("mods/Hileb/optirefine/core/OptiRefineBlackboard", "CLASSES", "Ljava/util/HashSet;"),
+                INVOKEVIRTUAL("java/util/HashSet", "contains", "(Ljava/lang/Object;)Z", true),
+                IFNE(labelNode),
                 ALOAD(3),
-                ARETURN()
-                );
-    }
-
-    @SuppressWarnings("unused") //ASM invoked
-    public static boolean canTransform(String name) {
-        return !OptiRefineBlackboard.CLASSES.contains(name);
+                ARETURN(),
+                labelNode
+        );
     }
 }

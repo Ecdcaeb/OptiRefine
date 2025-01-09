@@ -2603,6 +2603,85 @@ public interface ASMHelper extends Opcodes {
     }
 
     /**
+     * <b>Invoke instance method; dispatch based on class</b>
+     * <p>
+     * <i>If you have mappings available, NilLoader will automatically remap the references to your
+     * currently selected mappings.</i>
+     * <p>
+     * The owner, name, and descriptor are stored in the constant pool as a symbolic reference.
+     * They are retrieved and resolved upon linking.
+     * <p>
+     * If the resolved method is not signature polymorphic, then the invokevirtual instruction
+     * proceeds as follows.
+     * <p>
+     * Let C be the class of objectref. A method is selected with respect to C and the resolved
+     * method. This is the method to be invoked.
+     * <p>
+     * The objectref must be followed on the operand stack by nargs argument values, where the
+     * number, type, and order of the values must be consistent with the descriptor of the selected
+     * instance method.
+     * <p>
+     * If the method to be invoked is synchronized, the monitor associated with objectref is entered
+     * or reentered as if by execution of a monitorenter instruction in the current thread.
+     * <p>
+     * If the method to be invoked is not native, the nargs argument values and objectref are popped
+     * from the operand stack. A new frame is created on the Java Virtual Machine stack for the
+     * method being invoked. The objectref and the argument values are consecutively made the values
+     * of local variables of the new frame, with objectref in local variable 0, arg1 in local
+     * variable 1 (or, if arg1 is of type long or double, in local variables 1 and 2), and so on.
+     * Any argument value that is of a floating-point type undergoes value set conversion prior to
+     * being stored in a local variable. The new frame is then made current, and the Java Virtual
+     * Machine pc is set to the opcode of the first instruction of the method to be invoked.
+     * Execution continues with the first instruction of the method.
+     * <p>
+     * If the method to be invoked is native and the platform-dependent code that implements it has
+     * not yet been bound into the Java Virtual Machine, that is done. The nargs argument values and
+     * objectref are popped from the operand stack and are passed as parameters to the code that
+     * implements the method. Any argument value that is of a floating-point type undergoes value
+     * set conversion prior to being passed as a parameter. The parameters are passed and the code
+     * is invoked in an implementation-dependent manner. When the platform-dependent code returns,
+     * the following take place:
+     * <ul>
+     * <li>If the native method is synchronized, the monitor associated with objectref is updated
+     * 		and possibly exited as if by execution of a monitorexit instruction in the current
+     * 		thread.
+     * <li>If the native method returns a value, the return value of the platform-dependent code is
+     * 		converted in an implementation-dependent way to the return type of the native method and
+     * 		pushed onto the operand stack.
+     * </ul>
+     * This instruction has various special behaviors for methods defined in MethodHandle and
+     * VarHandle. Please see the
+     * <a href="https://docs.oracle.com/javase/specs/jvms/se11/html/jvms-6.html#jvms-6.5.invokevirtual">original JVMS instruction documentation</a>
+     * for more information.
+     * <p>
+     * During resolution of the symbolic reference to the method, any of the exceptions pertaining
+     * to method resolution can be thrown.
+     * <p>
+     * The nargs argument values and objectref are not one-to-one with the first nargs+1 local
+     * variables. Argument values of types long and double must be stored in two consecutive local
+     * variables, thus more than nargs local variables may be required to pass nargs argument values
+     * to the invoked method.
+     * <p>
+     * It is possible that the symbolic reference of an invokevirtual instruction resolves to an
+     * interface method. In this case, it is possible that there is no overriding method in the
+     * class hierarchy, but that a non-abstract interface method matches the resolved method's
+     * descriptor. The selection logic matches such a method, using the same rules as for
+     * invokeinterface.
+     * @throws NullPointerException if objectref is null
+     * @throws IncompatibleClassChangeError if the resolved method is a class (static) method, or
+     * 		if no method is selected and there are multiple maximally-specific superinterface
+     * 		methods of C that match the resolved method's name and descriptor and are not abstract
+     * @throws AbstractMethodError if the selected method is abstract or there are no
+     * 		maximally-specific superinterface methods of C that match the resolved method's name and
+     * 		descriptor and are not abstract
+     * @throws UnsatisfiedLinkError if the selected method is native and the code that implements
+     * 		the method cannot be bound
+     */
+    default MethodInsnNode INVOKEVIRTUAL(String owner, String name, String desc, boolean itf) {
+        return new MethodInsnNode(INVOKEVIRTUAL, remapType(owner), remapMethod(owner, name, desc), remapMethodDesc(desc), itf);
+    }
+
+    /**
      * <b>Invoke instance method; direct invocation of instance initialization methods and methods
      * of the current class and its supertypes</b>
      * <p>

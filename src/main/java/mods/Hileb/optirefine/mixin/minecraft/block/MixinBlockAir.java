@@ -22,9 +22,9 @@ public abstract class MixinBlockAir{
     @Public
     public static void setLightOpacity(Block block, int opacity) {
          if (!mapOriginalOpacity.containsKey(block)) {
-             mapOriginalOpacity.put(block, ((BlockAccessor)block).getLightOpacity());
+             mapOriginalOpacity.put(block, block.lightOpacity);
          }
-        ((BlockAccessor)block).setLightOpacity(opacity);
+        block.lightOpacity = opacity;
     }
 
     @Unique

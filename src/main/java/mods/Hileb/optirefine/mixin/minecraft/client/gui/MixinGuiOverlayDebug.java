@@ -3,7 +3,6 @@ package mods.Hileb.optirefine.mixin.minecraft.client.gui;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiOverlayDebug;
-import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.optifine.SmartAnimations;
 import net.optifine.TextureAnimations;

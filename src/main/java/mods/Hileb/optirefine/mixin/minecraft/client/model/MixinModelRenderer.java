@@ -1,6 +1,7 @@
 package mods.Hileb.optirefine.mixin.minecraft.client.model;
 
 import com.llamalad7.mixinextras.sugar.Share;
+import com.llamalad7.mixinextras.sugar.ref.LocalIntRef;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.model.ModelBase;
@@ -116,21 +117,18 @@ public class MixinModelRenderer {
     @Public
     private RenderGlobal renderGlobal = Config.getRenderGlobal();
 
-    @Unique
-    private int optirefine$lastTextureId = 0;
-
     @Inject(method = "render", at = @At("HEAD"), cancellable = true)
-    public void injectPreRender(float p_78785_1_, CallbackInfo ci){
+    public void injectPreRender(float p_78785_1_, CallbackInfo ci, @Share("lastTextureId") LocalIntRef lastTextureId){
         if (!this.isHidden && this.showModel) {
             this.checkResetDisplayList();
 
-            optirefine$lastTextureId = 0;
+            lastTextureId.set(0);
             if (this.textureLocation != null && !this.renderGlobal.renderOverlayDamaged) {
                 if (this.renderGlobal.renderOverlayEyes) {
                     ci.cancel();
                 }
 
-                optirefine$lastTextureId = GlStateManager.getBoundTexture();
+                lastTextureId.set(GlStateManager.getBoundTexture());
                 Config.getTextureManager().bindTexture(this.textureLocation);
             }
 
@@ -141,26 +139,26 @@ public class MixinModelRenderer {
     }
 
     @Inject(method = "render", at = @At("RETURN"))
-    public void injectPostRender(float p_78785_1_, CallbackInfo ci){
+    public void injectPostRender(float p_78785_1_, CallbackInfo ci, @Share("lastTextureId") LocalIntRef lastTextureId){
         if (!this.isHidden && this.showModel) {
-            if (optirefine$lastTextureId != 0) {
-                GlStateManager.bindTexture(optirefine$lastTextureId);
+            if (lastTextureId.get() != 0) {
+                GlStateManager.bindTexture(lastTextureId.get());
             }
         }
     }
 
     @Inject(method = "renderWithRotation", at = @At("HEAD"), cancellable = true)
-    public void injectPreRenderWithRotation(float p_78785_1_, CallbackInfo ci, @Share("lastTextureId") Loc){
+    public void injectPreRenderWithRotation(float p_78785_1_, CallbackInfo ci, @Share("lastTextureId") LocalIntRef lastTextureId){
         if (!this.isHidden && this.showModel) {
             this.checkResetDisplayList();
 
-            optirefine$lastTextureId = 0;
+            lastTextureId.set(0);
             if (this.textureLocation != null && !this.renderGlobal.renderOverlayDamaged) {
                 if (this.renderGlobal.renderOverlayEyes) {
                     ci.cancel();
                 }
 
-                optirefine$lastTextureId = GlStateManager.getBoundTexture();
+                lastTextureId.set(GlStateManager.getBoundTexture());
                 Config.getTextureManager().bindTexture(this.textureLocation);
             }
 
@@ -171,10 +169,10 @@ public class MixinModelRenderer {
     }
 
     @Inject(method = "renderWithRotation", at = @At("RETURN"))
-    public void injectPostRenderWithRotation(float p_78785_1_, CallbackInfo ci){
+    public void injectPostRenderWithRotation(float p_78785_1_, CallbackInfo ci, @Share("lastTextureId") LocalIntRef lastTextureId){
         if (!this.isHidden && this.showModel) {
-            if (optirefine$lastTextureId != 0) {
-                GlStateManager.bindTexture(optirefine$lastTextureId);
+            if (lastTextureId.get() != 0) {
+                GlStateManager.bindTexture(lastTextureId.get());
             }
         }
     }

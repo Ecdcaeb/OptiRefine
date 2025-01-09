@@ -60,10 +60,10 @@ public class PatchContext {
 	 */
 	public class SearchResult {
 
-		private AbstractInsnNode start;
-		private AbstractInsnNode end;
-		private AbstractInsnNode[] query;
-		private boolean reverse;
+		private final AbstractInsnNode start;
+		private final AbstractInsnNode end;
+		private final AbstractInsnNode[] query;
+		private final boolean reverse;
 		
 		protected SearchResult(AbstractInsnNode start, AbstractInsnNode end, AbstractInsnNode[] query, boolean reverse) {
 			super();
@@ -147,10 +147,8 @@ public class PatchContext {
 		
 		/**
 		 * Erase the found code block and don't update the code pointer.
-		 * @deprecated This is a compatibility nightmare and should be used sparingly.
 		 * @throws NoSuchElementException if the search was unsuccessful
 		 */
-		@Deprecated
 		public void erase() {
 			assertSuccessful();
 			assertValid();

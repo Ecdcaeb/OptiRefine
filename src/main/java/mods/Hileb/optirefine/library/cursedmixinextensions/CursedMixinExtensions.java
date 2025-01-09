@@ -1,9 +1,6 @@
 package mods.Hileb.optirefine.library.cursedmixinextensions;
 
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.*;
-import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.ChangeSuperClass;
-import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.ShadowSuper;
-import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
