@@ -28,7 +28,6 @@ package mods.Hileb.optirefine.library.foundationx.mini;
 
 import java.util.*;
 
-import org.cadixdev.lorenz.MappingSet;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;

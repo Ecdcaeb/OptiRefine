@@ -40,6 +40,7 @@ public abstract class MixinModelBox {
     @SuppressWarnings("all")
     public String boxName;
 
+    @Unique
     @NewConstructor
     @Public
     @SuppressWarnings("all")

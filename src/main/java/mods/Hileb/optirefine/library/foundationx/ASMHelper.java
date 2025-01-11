@@ -1,4 +1,3 @@
-package mods.Hileb.optirefine.library.foundationx;
 /*
  * Mini - an ASM-based class transformer reminiscent of MalisisCore and Mixin
  *
@@ -24,15 +23,15 @@ package mods.Hileb.optirefine.library.foundationx;
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package mods.Hileb.optirefine.library.foundationx;
 
+import mods.Hileb.optirefine.library.foundationx.mini.MiniUtils;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
 
-
-import org.objectweb.asm.Type;
-
-import static mods.Hileb.optirefine.library.foundationx.mini.MiniUtils.*;
+import java.util.*;
 
 public interface ASMHelper extends Opcodes {
     // Below javadocs based on https://docs.oracle.com/javase/specs/jvms/se11/html/jvms-6.html#jvms-6.5.frem
@@ -68,7 +67,7 @@ public interface ASMHelper extends Opcodes {
      * <p>
      * Do nothing.
      */
-    default InsnNode NOP() {
+    static /*mark*/ InsnNode NOP() {
         return new InsnNode(NOP);
     }
 
@@ -77,7 +76,7 @@ public interface ASMHelper extends Opcodes {
      * <p>
      * Push the null object reference onto the operand stack.
      */
-    default InsnNode ACONST_NULL() {
+    static InsnNode ACONST_NULL() {
         return new InsnNode(ACONST_NULL);
     }
 
@@ -86,7 +85,7 @@ public interface ASMHelper extends Opcodes {
      * <p>
      * Push the int constant -1 onto the operand stack.
      */
-    default InsnNode ICONST_M1() {
+    static InsnNode ICONST_M1() {
         return new InsnNode(ICONST_M1);
     }
 
@@ -95,7 +94,7 @@ public interface ASMHelper extends Opcodes {
      * <p>
      * Push the int constant 0 onto the operand stack.
      */
-    default InsnNode ICONST_0() {
+    static InsnNode ICONST_0() {
         return new InsnNode(ICONST_0);
     }
 
@@ -104,7 +103,7 @@ public interface ASMHelper extends Opcodes {
      * <p>
      * Push the int constant 1 onto the operand stack.
      */
-    default InsnNode ICONST_1() {
+    static InsnNode ICONST_1() {
         return new InsnNode(ICONST_1);
     }
 
@@ -113,7 +112,7 @@ public interface ASMHelper extends Opcodes {
      * <p>
      * Push the int constant 2 onto the operand stack.
      */
-    default InsnNode ICONST_2() {
+    static InsnNode ICONST_2() {
         return new InsnNode(ICONST_2);
     }
 
@@ -122,7 +121,7 @@ public interface ASMHelper extends Opcodes {
      * <p>
      * Push the int constant 3 onto the operand stack.
      */
-    default InsnNode ICONST_3() {
+    static InsnNode ICONST_3() {
         return new InsnNode(ICONST_3);
     }
 
@@ -131,7 +130,7 @@ public interface ASMHelper extends Opcodes {
      * <p>
      * Push the int constant 4 onto the operand stack.
      */
-    default InsnNode ICONST_4() {
+    static InsnNode ICONST_4() {
         return new InsnNode(ICONST_4);
     }
 
@@ -140,7 +139,7 @@ public interface ASMHelper extends Opcodes {
      * <p>
      * Push the int constant 5 onto the operand stack.
      */
-    default InsnNode ICONST_5() {
+    static InsnNode ICONST_5() {
         return new InsnNode(ICONST_5);
     }
 
@@ -149,7 +148,7 @@ public interface ASMHelper extends Opcodes {
      * <p>
      * Push the long constant 0 onto the operand stack.
      */
-    default InsnNode LCONST_0() {
+    static InsnNode LCONST_0() {
         return new InsnNode(LCONST_0);
     }
 
@@ -158,7 +157,7 @@ public interface ASMHelper extends Opcodes {
      * <p>
      * Push the long constant 1 onto the operand stack.
      */
-    default InsnNode LCONST_1() {
+    static InsnNode LCONST_1() {
         return new InsnNode(LCONST_1);
     }
 
@@ -167,7 +166,7 @@ public interface ASMHelper extends Opcodes {
      * <p>
      * Push the float constant 0 onto the operand stack.
      */
-    default InsnNode FCONST_0() {
+    static InsnNode FCONST_0() {
         return new InsnNode(FCONST_0);
     }
 
@@ -176,7 +175,7 @@ public interface ASMHelper extends Opcodes {
      * <p>
      * Push the float constant 1 onto the operand stack.
      */
-    default InsnNode FCONST_1() {
+    static InsnNode FCONST_1() {
         return new InsnNode(FCONST_1);
     }
 
@@ -185,7 +184,7 @@ public interface ASMHelper extends Opcodes {
      * <p>
      * Push the float constant 2 onto the operand stack.
      */
-    default InsnNode FCONST_2() {
+    static InsnNode FCONST_2() {
         return new InsnNode(FCONST_2);
     }
 
@@ -194,7 +193,7 @@ public interface ASMHelper extends Opcodes {
      * <p>
      * Push the double constant 0 onto the operand stack.
      */
-    default InsnNode DCONST_0() {
+    static InsnNode DCONST_0() {
         return new InsnNode(DCONST_0);
     }
 
@@ -203,7 +202,7 @@ public interface ASMHelper extends Opcodes {
      * <p>
      * Push the double constant 1 onto the operand stack.
      */
-    default InsnNode DCONST_1() {
+    static InsnNode DCONST_1() {
         return new InsnNode(DCONST_1);
     }
 
@@ -212,7 +211,7 @@ public interface ASMHelper extends Opcodes {
      * <p>
      * The immediate byte is sign-extended to an int value. That value is pushed onto the operand stack.
      */
-    default IntInsnNode BIPUSH(int i) {
+    static IntInsnNode BIPUSH(int i) {
         if (i < Byte.MIN_VALUE || i > Byte.MAX_VALUE) throw new IllegalArgumentException("Value out of range: "+i);
         return new IntInsnNode(BIPUSH, i);
     }
@@ -222,7 +221,7 @@ public interface ASMHelper extends Opcodes {
      * <p>
      * The immediate short is sign-extended to an int value. That value is pushed onto the operand stack.
      */
-    default IntInsnNode SIPUSH(int i) {
+    static IntInsnNode SIPUSH(int i) {
         if (i < Short.MIN_VALUE || i > Short.MAX_VALUE) throw new IllegalArgumentException("Value out of range: "+i);
         return new IntInsnNode(SIPUSH, i);
     }
@@ -233,7 +232,7 @@ public interface ASMHelper extends Opcodes {
      * The int is stored in the constant pool, and upon execution of the instruction, is pushed onto
      * the operand stack.
      */
-    default LdcInsnNode LDC(int v) {
+    static LdcInsnNode LDC(int v) {
         return new LdcInsnNode(v);
     }
 
@@ -247,7 +246,7 @@ public interface ASMHelper extends Opcodes {
      * set because a constant of type float in the constant pool must be taken from the float value
      * set.
      */
-    default LdcInsnNode LDC(float v) {
+    static LdcInsnNode LDC(float v) {
         return new LdcInsnNode(v);
     }
 
@@ -257,7 +256,7 @@ public interface ASMHelper extends Opcodes {
      * The long is stored in the constant pool, and upon execution of the instruction, is pushed
      * onto the operand stack.
      */
-    default LdcInsnNode LDC(long v) {
+    static LdcInsnNode LDC(long v) {
         return new LdcInsnNode(v);
     }
 
@@ -267,7 +266,7 @@ public interface ASMHelper extends Opcodes {
      * The double is stored in the constant pool, and upon execution of the instruction, is pushed
      * onto the operand stack.
      */
-    default LdcInsnNode LDC(double v) {
+    static LdcInsnNode LDC(double v) {
         return new LdcInsnNode(v);
     }
 
@@ -277,7 +276,7 @@ public interface ASMHelper extends Opcodes {
      * The String is stored in the constant pool, and upon execution of the instruction, is pushed
      * onto the operand stack.
      */
-    default LdcInsnNode LDC(String v) {
+    static LdcInsnNode LDC(String v) {
         return new LdcInsnNode(v);
     }
 
@@ -288,7 +287,7 @@ public interface ASMHelper extends Opcodes {
      * the reference is resolved. If successful, the reference is pushed onto the operand stack when
      * this instruction is executed. Otherwise, an exception is thrown during linking.
      */
-    default LdcInsnNode LDC(Type v) {
+    static LdcInsnNode LDC(Type v) {
         return new LdcInsnNode(v);
     }
 
@@ -302,7 +301,7 @@ public interface ASMHelper extends Opcodes {
      * If the index is greater than 255, ASM will automatically wrap this insn in a WIDE insn
      * to allow further local variables.
      */
-    default VarInsnNode ILOAD(int var) {
+    static VarInsnNode ILOAD(int var) {
         return new VarInsnNode(ILOAD, var);
     }
 
@@ -316,7 +315,7 @@ public interface ASMHelper extends Opcodes {
      * If the index is greater than 255, ASM will automatically wrap this insn in a WIDE insn
      * to allow further local variables.
      */
-    default VarInsnNode LLOAD(int var) {
+    static VarInsnNode LLOAD(int var) {
         return new VarInsnNode(LLOAD, var);
     }
 
@@ -330,7 +329,7 @@ public interface ASMHelper extends Opcodes {
      * If the index is greater than 255, ASM will automatically wrap this insn in a WIDE insn
      * to allow further local variables.
      */
-    default VarInsnNode FLOAD(int var) {
+    static VarInsnNode FLOAD(int var) {
         return new VarInsnNode(FLOAD, var);
     }
 
@@ -344,7 +343,7 @@ public interface ASMHelper extends Opcodes {
      * If the index is greater than 255, ASM will automatically wrap this insn in a WIDE insn
      * to allow further local variables.
      */
-    default VarInsnNode DLOAD(int var) {
+    static VarInsnNode DLOAD(int var) {
         return new VarInsnNode(DLOAD, var);
     }
 
@@ -358,7 +357,7 @@ public interface ASMHelper extends Opcodes {
      * If the index is greater than 255, ASM will automatically wrap this insn in a WIDE insn
      * to allow further local variables.
      */
-    default VarInsnNode ALOAD(int var) {
+    static VarInsnNode ALOAD(int var) {
         return new VarInsnNode(ALOAD, var);
     }
 
@@ -373,7 +372,7 @@ public interface ASMHelper extends Opcodes {
      * @throws ArrayIndexOutOfBoundsException if index is not within the bounds of the array
      * 		referenced by arrayref
      */
-    default InsnNode IALOAD() {
+    static InsnNode IALOAD() {
         return new InsnNode(IALOAD);
     }
 
@@ -388,7 +387,7 @@ public interface ASMHelper extends Opcodes {
      * @throws ArrayIndexOutOfBoundsException if index is not within the bounds of the array
      * 		referenced by arrayref
      */
-    default InsnNode LALOAD() {
+    static InsnNode LALOAD() {
         return new InsnNode(LALOAD);
     }
 
@@ -403,7 +402,7 @@ public interface ASMHelper extends Opcodes {
      * @throws ArrayIndexOutOfBoundsException if index is not within the bounds of the array
      * 		referenced by arrayref
      */
-    default InsnNode FALOAD() {
+    static InsnNode FALOAD() {
         return new InsnNode(FALOAD);
     }
 
@@ -418,7 +417,7 @@ public interface ASMHelper extends Opcodes {
      * @throws ArrayIndexOutOfBoundsException if index is not within the bounds of the array
      * 		referenced by arrayref
      */
-    default InsnNode DALOAD() {
+    static InsnNode DALOAD() {
         return new InsnNode(DALOAD);
     }
 
@@ -433,7 +432,7 @@ public interface ASMHelper extends Opcodes {
      * @throws ArrayIndexOutOfBoundsException if index is not within the bounds of the array
      * 		referenced by arrayref
      */
-    default InsnNode AALOAD() {
+    static InsnNode AALOAD() {
         return new InsnNode(AALOAD);
     }
 
@@ -448,7 +447,7 @@ public interface ASMHelper extends Opcodes {
      * @throws ArrayIndexOutOfBoundsException if index is not within the bounds of the array
      * 		referenced by arrayref
      */
-    default InsnNode BALOAD() {
+    static InsnNode BALOAD() {
         return new InsnNode(BALOAD);
     }
 
@@ -463,7 +462,7 @@ public interface ASMHelper extends Opcodes {
      * @throws ArrayIndexOutOfBoundsException if index is not within the bounds of the array
      * 		referenced by arrayref
      */
-    default InsnNode CALOAD() {
+    static InsnNode CALOAD() {
         return new InsnNode(CALOAD);
     }
 
@@ -478,7 +477,7 @@ public interface ASMHelper extends Opcodes {
      * @throws ArrayIndexOutOfBoundsException if index is not within the bounds of the array
      * 		referenced by arrayref
      */
-    default InsnNode SALOAD() {
+    static InsnNode SALOAD() {
         return new InsnNode(SALOAD);
     }
 
@@ -492,7 +491,7 @@ public interface ASMHelper extends Opcodes {
      * If the index is greater than 255, ASM will automatically wrap this insn in a WIDE insn
      * to allow further local variables.
      */
-    default VarInsnNode ISTORE(int var) {
+    static VarInsnNode ISTORE(int var) {
         return new VarInsnNode(ISTORE, var);
     }
 
@@ -506,7 +505,7 @@ public interface ASMHelper extends Opcodes {
      * If the index is greater than 255, ASM will automatically wrap this insn in a WIDE insn
      * to allow further local variables.
      */
-    default VarInsnNode LSTORE(int var) {
+    static VarInsnNode LSTORE(int var) {
         return new VarInsnNode(LSTORE, var);
     }
 
@@ -520,7 +519,7 @@ public interface ASMHelper extends Opcodes {
      * If the index is greater than 255, ASM will automatically wrap this insn in a WIDE insn
      * to allow further local variables.
      */
-    default VarInsnNode FSTORE(int var) {
+    static VarInsnNode FSTORE(int var) {
         return new VarInsnNode(FSTORE, var);
     }
 
@@ -534,7 +533,7 @@ public interface ASMHelper extends Opcodes {
      * If the index is greater than 255, ASM will automatically wrap this insn in a WIDE insn
      * to allow further local variables.
      */
-    default VarInsnNode DSTORE(int var) {
+    static VarInsnNode DSTORE(int var) {
         return new VarInsnNode(DSTORE, var);
     }
 
@@ -552,7 +551,7 @@ public interface ASMHelper extends Opcodes {
      * If the index is greater than 255, ASM will automatically wrap this insn in a WIDE insn
      * to allow further local variables.
      */
-    default VarInsnNode ASTORE(int var) {
+    static VarInsnNode ASTORE(int var) {
         return new VarInsnNode(ASTORE, var);
     }
 
@@ -567,7 +566,7 @@ public interface ASMHelper extends Opcodes {
      * @throws ArrayIndexOutOfBoundsException if index is not within the bounds of the array
      * 		referenced by arrayref
      */
-    default InsnNode IASTORE() {
+    static InsnNode IASTORE() {
         return new InsnNode(IASTORE);
     }
 
@@ -582,7 +581,7 @@ public interface ASMHelper extends Opcodes {
      * @throws ArrayIndexOutOfBoundsException if index is not within the bounds of the array
      * 		referenced by arrayref
      */
-    default InsnNode LASTORE() {
+    static InsnNode LASTORE() {
         return new InsnNode(LASTORE);
     }
 
@@ -597,7 +596,7 @@ public interface ASMHelper extends Opcodes {
      * @throws ArrayIndexOutOfBoundsException if index is not within the bounds of the array
      * 		referenced by arrayref
      */
-    default InsnNode FASTORE() {
+    static InsnNode FASTORE() {
         return new InsnNode(FASTORE);
     }
 
@@ -612,7 +611,7 @@ public interface ASMHelper extends Opcodes {
      * @throws ArrayIndexOutOfBoundsException if index is not within the bounds of the array
      * 		referenced by arrayref
      */
-    default InsnNode DASTORE() {
+    static InsnNode DASTORE() {
         return new InsnNode(DASTORE);
     }
 
@@ -658,7 +657,7 @@ public interface ASMHelper extends Opcodes {
      * @throws ArrayStoreException if arrayref is not null and the actual type of the non-null value
      * 		is not assignment compatible with the actual type of the components of the array
      */
-    default InsnNode AASTORE() {
+    static InsnNode AASTORE() {
         return new InsnNode(AASTORE);
     }
 
@@ -685,7 +684,7 @@ public interface ASMHelper extends Opcodes {
      * @throws ArrayIndexOutOfBoundsException if index is not within the bounds of the array
      * 		referenced by arrayref
      */
-    default InsnNode BASTORE() {
+    static InsnNode BASTORE() {
         return new InsnNode(BASTORE);
     }
 
@@ -700,7 +699,7 @@ public interface ASMHelper extends Opcodes {
      * @throws ArrayIndexOutOfBoundsException if index is not within the bounds of the array
      * 		referenced by arrayref
      */
-    default InsnNode CASTORE() {
+    static InsnNode CASTORE() {
         return new InsnNode(CASTORE);
     }
 
@@ -715,7 +714,7 @@ public interface ASMHelper extends Opcodes {
      * @throws ArrayIndexOutOfBoundsException if index is not within the bounds of the array
      * 		referenced by arrayref
      */
-    default InsnNode SASTORE() {
+    static InsnNode SASTORE() {
         return new InsnNode(SASTORE);
     }
 
@@ -727,7 +726,7 @@ public interface ASMHelper extends Opcodes {
      * The pop instruction must not be used unless value is a value of a category 1 computational
      * type. (i.e. it is not a long or double)
      */
-    default InsnNode POP() {
+    static InsnNode POP() {
         return new InsnNode(POP);
     }
 
@@ -737,7 +736,7 @@ public interface ASMHelper extends Opcodes {
      * Pop the top one or two values from the operand stack, depending on if it is a category 1 or
      * 2 computational type.
      */
-    default InsnNode POP2() {
+    static InsnNode POP2() {
         return new InsnNode(POP2);
     }
 
@@ -750,7 +749,7 @@ public interface ASMHelper extends Opcodes {
      * The dup instruction must not be used unless value is a value of a category 1 computational
      * type. (i.e. it is not a long or double)
      */
-    default InsnNode DUP() {
+    static InsnNode DUP() {
         return new InsnNode(DUP);
     }
 
@@ -763,7 +762,7 @@ public interface ASMHelper extends Opcodes {
      * The dup_x1 instruction must not be used unless value and the previous value on the stack are
      * of a category 1 computational type. (i.e. they are not a component of a long or double)
      */
-    default InsnNode DUP_X1() {
+    static InsnNode DUP_X1() {
         return new InsnNode(DUP_X1);
     }
 
@@ -774,7 +773,7 @@ public interface ASMHelper extends Opcodes {
      * values down in the operand stack, depending on if the current and previous value are of a
      * category 1 or 2 computational type.
      */
-    default InsnNode DUP_X2() {
+    static InsnNode DUP_X2() {
         return new InsnNode(DUP_X2);
     }
 
@@ -785,7 +784,7 @@ public interface ASMHelper extends Opcodes {
      * values, depending on if it is a category 1 or 2 computational type, back onto the operand
      * stack in the original order.
      */
-    default InsnNode DUP2() {
+    static InsnNode DUP2() {
         return new InsnNode(DUP2);
     }
 
@@ -795,7 +794,7 @@ public interface ASMHelper extends Opcodes {
      * Duplicate the top one or two values on the operand stack and insert the duplicated values, in
      * the original order, one value beneath the original value or values in the operand stack.
      */
-    default InsnNode DUP2_X1() {
+    static InsnNode DUP2_X1() {
         return new InsnNode(DUP2_X1);
     }
 
@@ -805,7 +804,7 @@ public interface ASMHelper extends Opcodes {
      * Duplicate the top one or two values on the operand stack and insert the duplicated values, in
      * the original order, into the operand stack.
      */
-    default InsnNode DUP2_X2() {
+    static InsnNode DUP2_X2() {
         return new InsnNode(DUP2_X2);
     }
 
@@ -817,7 +816,7 @@ public interface ASMHelper extends Opcodes {
      * The swap instruction must not be used unless value1 and value2 are both values of a category
      * 1 computational type. (i.e. they are not a component of a long or double)
      */
-    default InsnNode SWAP() {
+    static InsnNode SWAP() {
         return new InsnNode(SWAP);
     }
 
@@ -834,7 +833,7 @@ public interface ASMHelper extends Opcodes {
      * Despite the fact that overflow may occur, execution of an iadd instruction never throws a
      * run-time exception.
      */
-    default InsnNode IADD() {
+    static InsnNode IADD() {
         return new InsnNode(IADD);
     }
 
@@ -851,7 +850,7 @@ public interface ASMHelper extends Opcodes {
      * Despite the fact that overflow may occur, execution of an ladd instruction never throws a
      * run-time exception.
      */
-    default InsnNode LADD() {
+    static InsnNode LADD() {
         return new InsnNode(LADD);
     }
 
@@ -885,7 +884,7 @@ public interface ASMHelper extends Opcodes {
      * Despite the fact that overflow, underflow, or loss of precision may occur, execution of an
      * fadd instruction never throws a run-time exception.
      */
-    default InsnNode FADD() {
+    static InsnNode FADD() {
         return new InsnNode(FADD);
     }
 
@@ -918,7 +917,7 @@ public interface ASMHelper extends Opcodes {
      * Despite the fact that overflow, underflow, or loss of precision may occur, execution of a
      * dadd instruction never throws a run-time exception.
      */
-    default InsnNode DADD() {
+    static InsnNode DADD() {
         return new InsnNode(DADD);
     }
 
@@ -939,7 +938,7 @@ public interface ASMHelper extends Opcodes {
      * Despite the fact that overflow may occur, execution of an isub instruction never throws a
      * run-time exception.
      */
-    default InsnNode ISUB() {
+    static InsnNode ISUB() {
         return new InsnNode(ISUB);
     }
 
@@ -960,7 +959,7 @@ public interface ASMHelper extends Opcodes {
      * Despite the fact that overflow may occur, execution of an lsub instruction never throws a
      * run-time exception.
      */
-    default InsnNode LSUB() {
+    static InsnNode LSUB() {
         return new InsnNode(LSUB);
     }
 
@@ -979,7 +978,7 @@ public interface ASMHelper extends Opcodes {
      * Despite the fact that overflow, underflow, or loss of precision may occur, execution of an
      * fsub instruction never throws a run-time exception.
      */
-    default InsnNode FSUB() {
+    static InsnNode FSUB() {
         return new InsnNode(FSUB);
     }
 
@@ -998,7 +997,7 @@ public interface ASMHelper extends Opcodes {
      * Despite the fact that overflow, underflow, or loss of precision may occur, execution of a
      * dsub instruction never throws a run-time exception.
      */
-    default InsnNode DSUB() {
+    static InsnNode DSUB() {
         return new InsnNode(DSUB);
     }
 
@@ -1016,7 +1015,7 @@ public interface ASMHelper extends Opcodes {
      * Despite the fact that overflow may occur, execution of an imul instruction never throws a
      * run-time exception.
      */
-    default InsnNode IMUL() {
+    static InsnNode IMUL() {
         return new InsnNode(IMUL);
     }
 
@@ -1034,7 +1033,7 @@ public interface ASMHelper extends Opcodes {
      * Despite the fact that overflow may occur, execution of an lmul instruction never throws a
      * run-time exception.
      */
-    default InsnNode LMUL() {
+    static InsnNode LMUL() {
         return new InsnNode(LMUL);
     }
 
@@ -1064,7 +1063,7 @@ public interface ASMHelper extends Opcodes {
      * Despite the fact that overflow, underflow, or loss of precision may occur, execution of an
      * fmul instruction never throws a run-time exception.
      */
-    default InsnNode FMUL() {
+    static InsnNode FMUL() {
         return new InsnNode(FMUL);
     }
 
@@ -1094,7 +1093,7 @@ public interface ASMHelper extends Opcodes {
      * Despite the fact that overflow, underflow, or loss of precision may occur, execution of a
      * dmul instruction never throws a run-time exception.
      */
-    default InsnNode DMUL() {
+    static InsnNode DMUL() {
         return new InsnNode(DMUL);
     }
 
@@ -1116,7 +1115,7 @@ public interface ASMHelper extends Opcodes {
      * in this case.
      * @throws ArithmeticException if the value of the divisor is 0
      */
-    default InsnNode IDIV() {
+    static InsnNode IDIV() {
         return new InsnNode(IDIV);
     }
 
@@ -1138,7 +1137,7 @@ public interface ASMHelper extends Opcodes {
      * in this case.
      * @throws ArithmeticException if the value of the divisor is 0
      */
-    default InsnNode LDIV() {
+    static InsnNode LDIV() {
         return new InsnNode(LDIV);
     }
 
@@ -1173,7 +1172,7 @@ public interface ASMHelper extends Opcodes {
      * Despite the fact that overflow, underflow, division by zero, or loss of precision may occur,
      * execution of an fdiv instruction never throws a run-time exception.
      */
-    default InsnNode FDIV() {
+    static InsnNode FDIV() {
         return new InsnNode(FDIV);
     }
 
@@ -1208,7 +1207,7 @@ public interface ASMHelper extends Opcodes {
      * Despite the fact that overflow, underflow, division by zero, or loss of precision may occur,
      * execution of a ddiv instruction never throws a run-time exception.
      */
-    default InsnNode DDIV() {
+    static InsnNode DDIV() {
         return new InsnNode(DDIV);
     }
 
@@ -1227,7 +1226,7 @@ public interface ASMHelper extends Opcodes {
      * is always less than the magnitude of the divisor.
      * @throws ArithmeticException if the value of the divisor is 0
      */
-    default InsnNode IREM() {
+    static InsnNode IREM() {
         return new InsnNode(IREM);
     }
 
@@ -1246,7 +1245,7 @@ public interface ASMHelper extends Opcodes {
      * is always less than the magnitude of the divisor.
      * @throws ArithmeticException if the value of the divisor is 0
      */
-    default InsnNode LREM() {
+    static InsnNode LREM() {
         return new InsnNode(LREM);
     }
 
@@ -1284,7 +1283,7 @@ public interface ASMHelper extends Opcodes {
      * <p>
      * The IEEE 754 remainder operation may be computed by the library routine Math.IEEEremainder.
      */
-    default InsnNode FREM() {
+    static InsnNode FREM() {
         return new InsnNode(FREM);
     }
 
@@ -1322,7 +1321,7 @@ public interface ASMHelper extends Opcodes {
      * <p>
      * The IEEE 754 remainder operation may be computed by the library routine Math.IEEEremainder.
      */
-    default InsnNode DREM() {
+    static InsnNode DREM() {
         return new InsnNode(DREM);
     }
 
@@ -1339,7 +1338,7 @@ public interface ASMHelper extends Opcodes {
      * <p>
      * For all int values x, -x equals (~x)+1.
      */
-    default InsnNode INEG() {
+    static InsnNode INEG() {
         return new InsnNode(INEG);
     }
 
@@ -1356,7 +1355,7 @@ public interface ASMHelper extends Opcodes {
      * <p>
      * For all long values x, -x equals (~x)+1.
      */
-    default InsnNode LNEG() {
+    static InsnNode LNEG() {
         return new InsnNode(LNEG);
     }
 
@@ -1377,7 +1376,7 @@ public interface ASMHelper extends Opcodes {
      * <li>If the operand is a zero, the result is the zero of opposite sign.
      * </ul>
      */
-    default InsnNode FNEG() {
+    static InsnNode FNEG() {
         return new InsnNode(FNEG);
     }
 
@@ -1398,7 +1397,7 @@ public interface ASMHelper extends Opcodes {
      * <li>If the operand is a zero, the result is the zero of opposite sign.
      * </ul>
      */
-    default InsnNode DNEG() {
+    static InsnNode DNEG() {
         return new InsnNode(DNEG);
     }
 
@@ -1413,7 +1412,7 @@ public interface ASMHelper extends Opcodes {
      * distance actually used is always in the range 0 to 31, inclusive, as if value2 were subjected
      * to a bitwise logical AND with the mask value 0x1f.
      */
-    default InsnNode ISHL() {
+    static InsnNode ISHL() {
         return new InsnNode(ISHL);
     }
 
@@ -1428,7 +1427,7 @@ public interface ASMHelper extends Opcodes {
      * distance actually used is therefore always in the range 0 to 63, inclusive, as if value2 were
      * subjected to a bitwise logical AND with the mask value 0x3f.
      */
-    default InsnNode LSHL() {
+    static InsnNode LSHL() {
         return new InsnNode(LSHL);
     }
 
@@ -1445,7 +1444,7 @@ public interface ASMHelper extends Opcodes {
      * actually used is always in the range 0 to 31, inclusive, as if value2 were subjected to a
      * bitwise logical AND with the mask value 0x1f.
      */
-    default InsnNode ISHR() {
+    static InsnNode ISHR() {
         return new InsnNode(ISHR);
     }
 
@@ -1462,7 +1461,7 @@ public interface ASMHelper extends Opcodes {
      * actually used is therefore always in the range 0 to 63, inclusive, as if value2 were
      * subjected to a bitwise logical AND with the mask value 0x3f.
      */
-    default InsnNode LSHR() {
+    static InsnNode LSHR() {
         return new InsnNode(LSHR);
     }
 
@@ -1479,7 +1478,7 @@ public interface ASMHelper extends Opcodes {
      * << ~s). The addition of the (2 << ~s) term cancels out the propagated sign bit. The shift
      * distance actually used is always in the range 0 to 31, inclusive.
      */
-    default InsnNode IUSHR() {
+    static InsnNode IUSHR() {
         return new InsnNode(IUSHR);
     }
 
@@ -1496,7 +1495,7 @@ public interface ASMHelper extends Opcodes {
      * << ~s). The addition of the (2L << ~s) term cancels out the propagated sign bit. The shift
      * distance actually used is always in the range 0 to 63, inclusive.
      */
-    default InsnNode LUSHR() {
+    static InsnNode LUSHR() {
         return new InsnNode(LUSHR);
     }
 
@@ -1507,7 +1506,7 @@ public interface ASMHelper extends Opcodes {
      * result is calculated by taking the bitwise AND (conjunction) of value1 and value2. The result
      * is pushed onto the operand stack.
      */
-    default InsnNode IAND() {
+    static InsnNode IAND() {
         return new InsnNode(IAND);
     }
 
@@ -1518,7 +1517,7 @@ public interface ASMHelper extends Opcodes {
      * result is calculated by taking the bitwise AND (conjunction) of value1 and value2. The result
      * is pushed onto the operand stack.
      */
-    default InsnNode LAND() {
+    static InsnNode LAND() {
         return new InsnNode(LAND);
     }
 
@@ -1529,7 +1528,7 @@ public interface ASMHelper extends Opcodes {
      * result is calculated by taking the bitwise OR of value1 and value2. The result is pushed onto
      * the operand stack.
      */
-    default InsnNode IOR() {
+    static InsnNode IOR() {
         return new InsnNode(IOR);
     }
 
@@ -1540,7 +1539,7 @@ public interface ASMHelper extends Opcodes {
      * result is calculated by taking the bitwise OR of value1 and value2. The result is pushed onto
      * the operand stack.
      */
-    default InsnNode LOR() {
+    static InsnNode LOR() {
         return new InsnNode(LOR);
     }
 
@@ -1551,7 +1550,7 @@ public interface ASMHelper extends Opcodes {
      * result is calculated by taking the bitwise XOR of value1 and value2. The result is pushed
      * onto the operand stack.
      */
-    default InsnNode IXOR() {
+    static InsnNode IXOR() {
         return new InsnNode(IXOR);
     }
     /**
@@ -1561,7 +1560,7 @@ public interface ASMHelper extends Opcodes {
      * result is calculated by taking the bitwise XOR of value1 and value2. The result is pushed
      * onto the operand stack.
      */
-    default InsnNode LXOR() {
+    static InsnNode LXOR() {
         return new InsnNode(LXOR);
     }
 
@@ -1576,7 +1575,7 @@ public interface ASMHelper extends Opcodes {
      * If the index is greater than 255, ASM will automatically wrap this insn in a WIDE insn to
      * allow further local variables.
      */
-    default IincInsnNode IINC(int var, int incr) {
+    static IincInsnNode IINC(int var, int incr) {
         return new IincInsnNode(var, incr);
     }
 
@@ -1589,7 +1588,7 @@ public interface ASMHelper extends Opcodes {
      * The i2l instruction performs a widening primitive conversion (JLS §5.1.2). Because all values
      * of type int are exactly representable by type long, the conversion is exact.
      */
-    default InsnNode I2L() {
+    static InsnNode I2L() {
         return new InsnNode(I2L);
     }
 
@@ -1603,7 +1602,7 @@ public interface ASMHelper extends Opcodes {
      * The i2f instruction performs a widening primitive conversion (JLS §5.1.2), but may result in
      * a loss of precision because values of type float have only 24 significand bits.
      */
-    default InsnNode I2F() {
+    static InsnNode I2F() {
         return new InsnNode(I2F);
     }
 
@@ -1616,7 +1615,7 @@ public interface ASMHelper extends Opcodes {
      * The i2d instruction performs a widening primitive conversion (JLS §5.1.2). Because all values
      * of type int are exactly representable by type double, the conversion is exact.
      */
-    default InsnNode I2D() {
+    static InsnNode I2D() {
         return new InsnNode(I2D);
     }
 
@@ -1631,7 +1630,7 @@ public interface ASMHelper extends Opcodes {
      * information about the overall magnitude of value. The result may also not have the same sign
      * as value.
      */
-    default InsnNode L2I() {
+    static InsnNode L2I() {
         return new InsnNode(L2I);
     }
 
@@ -1645,7 +1644,7 @@ public interface ASMHelper extends Opcodes {
      * The l2f instruction performs a widening primitive conversion (JLS §5.1.2) that may lose
      * precision because values of type float have only 24 significand bits.
      */
-    default InsnNode L2F() {
+    static InsnNode L2F() {
         return new InsnNode(L2F);
     }
 
@@ -1659,7 +1658,7 @@ public interface ASMHelper extends Opcodes {
      * The l2d instruction performs a widening primitive conversion (JLS §5.1.2) that may lose
      * precision because values of type double have only 53 significand bits.
      */
-    default InsnNode L2D() {
+    static InsnNode L2D() {
         return new InsnNode(L2D);
     }
 
@@ -1682,7 +1681,7 @@ public interface ASMHelper extends Opcodes {
      * The f2i instruction performs a narrowing primitive conversion (JLS §5.1.3). It may lose
      * information about the overall magnitude of value' and may also lose precision.
      */
-    default InsnNode F2I() {
+    static InsnNode F2I() {
         return new InsnNode(F2I);
     }
 
@@ -1705,7 +1704,7 @@ public interface ASMHelper extends Opcodes {
      * The f2l instruction performs a narrowing primitive conversion (JLS §5.1.3). It may lose
      * information about the overall magnitude of value' and may also lose precision.
      */
-    default InsnNode F2L() {
+    static InsnNode F2L() {
         return new InsnNode(F2L);
     }
 
@@ -1726,7 +1725,7 @@ public interface ASMHelper extends Opcodes {
      * float-extended-exponent value set and the target result is constrained to the double value
      * set, rounding of value may be required.
      */
-    default InsnNode F2D() {
+    static InsnNode F2D() {
         return new InsnNode(F2D);
     }
 
@@ -1749,7 +1748,7 @@ public interface ASMHelper extends Opcodes {
      * The d2i instruction performs a narrowing primitive conversion (JLS §5.1.3). It may lose
      * information about the overall magnitude of value' and may also lose precision.
      */
-    default InsnNode D2I() {
+    static InsnNode D2I() {
         return new InsnNode(D2I);
     }
 
@@ -1772,7 +1771,7 @@ public interface ASMHelper extends Opcodes {
      * The d2l instruction performs a narrowing primitive conversion (JLS §5.1.3). It may lose
      * information about the overall magnitude of value' and may also lose precision.
      */
-    default InsnNode D2L() {
+    static InsnNode D2L() {
         return new InsnNode(D2L);
     }
 
@@ -1798,7 +1797,7 @@ public interface ASMHelper extends Opcodes {
      * The d2f instruction performs a narrowing primitive conversion (JLS §5.1.3). It may lose
      * information about the overall magnitude of value' and may also lose precision.
      */
-    default InsnNode D2F() {
+    static InsnNode D2F() {
         return new InsnNode(D2F);
     }
 
@@ -1813,7 +1812,7 @@ public interface ASMHelper extends Opcodes {
      * information about the overall magnitude of value. The result may also not have the same sign
      * as value.
      */
-    default InsnNode I2B() {
+    static InsnNode I2B() {
         return new InsnNode(I2B);
     }
 
@@ -1828,7 +1827,7 @@ public interface ASMHelper extends Opcodes {
      * information about the overall magnitude of value. The result (which is always positive) may
      * also not have the same sign as value.
      */
-    default InsnNode I2C() {
+    static InsnNode I2C() {
         return new InsnNode(I2C);
     }
 
@@ -1843,7 +1842,7 @@ public interface ASMHelper extends Opcodes {
      * information about the overall magnitude of value. The result may also not have the same sign
      * as value.
      */
-    default InsnNode I2S() {
+    static InsnNode I2S() {
         return new InsnNode(I2S);
     }
 
@@ -1856,7 +1855,7 @@ public interface ASMHelper extends Opcodes {
      * onto the operand stack. If value1 is less than value2, the int value -1 is pushed onto the
      * operand stack.
      */
-    default InsnNode LCMP() {
+    static InsnNode LCMP() {
         return new InsnNode(LCMP);
     }
 
@@ -1884,7 +1883,7 @@ public interface ASMHelper extends Opcodes {
      * same result onto the operand stack whether the comparison fails on non-NaN values or fails
      * because it encountered a NaN.
      */
-    default InsnNode FCMPL() {
+    static InsnNode FCMPL() {
         return new InsnNode(FCMPL);
     }
 
@@ -1912,7 +1911,7 @@ public interface ASMHelper extends Opcodes {
      * same result onto the operand stack whether the comparison fails on non-NaN values or fails
      * because it encountered a NaN.
      */
-    default InsnNode FCMPG() {
+    static InsnNode FCMPG() {
         return new InsnNode(FCMPG);
     }
 
@@ -1940,7 +1939,7 @@ public interface ASMHelper extends Opcodes {
      * same result onto the operand stack whether the comparison fails on non-NaN values or fails
      * because it encountered a NaN.
      */
-    default InsnNode DCMPL() {
+    static InsnNode DCMPL() {
         return new InsnNode(DCMPL);
     }
     /**
@@ -1967,7 +1966,7 @@ public interface ASMHelper extends Opcodes {
      * same result onto the operand stack whether the comparison fails on non-NaN values or fails
      * because it encountered a NaN.
      */
-    default InsnNode DCMPG() {
+    static InsnNode DCMPG() {
         return new InsnNode(DCMPG);
     }
 
@@ -1980,7 +1979,7 @@ public interface ASMHelper extends Opcodes {
      * If comparison succeeds, execution proceeds at the location of the given label. Otherwise,
      * execution proceeds following this instruction.
      */
-    default JumpInsnNode IFEQ(LabelNode label) {
+    static JumpInsnNode IFEQ(LabelNode label) {
         return new JumpInsnNode(IFEQ, label);
     }
 
@@ -1993,7 +1992,7 @@ public interface ASMHelper extends Opcodes {
      * If comparison succeeds, execution proceeds at the location of the given label. Otherwise,
      * execution proceeds following this instruction.
      */
-    default JumpInsnNode IFNE(LabelNode label) {
+    static JumpInsnNode IFNE(LabelNode label) {
         return new JumpInsnNode(IFNE, label);
     }
 
@@ -2006,7 +2005,7 @@ public interface ASMHelper extends Opcodes {
      * If comparison succeeds, execution proceeds at the location of the given label. Otherwise,
      * execution proceeds following this instruction.
      */
-    default JumpInsnNode IFLT(LabelNode label) {
+    static JumpInsnNode IFLT(LabelNode label) {
         return new JumpInsnNode(IFLT, label);
     }
 
@@ -2019,7 +2018,7 @@ public interface ASMHelper extends Opcodes {
      * If comparison succeeds, execution proceeds at the location of the given label. Otherwise,
      * execution proceeds following this instruction.
      */
-    default JumpInsnNode IFGE(LabelNode label) {
+    static JumpInsnNode IFGE(LabelNode label) {
         return new JumpInsnNode(IFGE, label);
     }
 
@@ -2032,7 +2031,7 @@ public interface ASMHelper extends Opcodes {
      * If comparison succeeds, execution proceeds at the location of the given label. Otherwise,
      * execution proceeds following this instruction.
      */
-    default JumpInsnNode IFGT(LabelNode label) {
+    static JumpInsnNode IFGT(LabelNode label) {
         return new JumpInsnNode(IFGT, label);
     }
 
@@ -2045,7 +2044,7 @@ public interface ASMHelper extends Opcodes {
      * If comparison succeeds, execution proceeds at the location of the given label. Otherwise,
      * execution proceeds following this instruction.
      */
-    default JumpInsnNode IFLE(LabelNode label) {
+    static JumpInsnNode IFLE(LabelNode label) {
         return new JumpInsnNode(IFLE, label);
     }
 
@@ -2058,7 +2057,7 @@ public interface ASMHelper extends Opcodes {
      * If comparison succeeds, execution proceeds at the location of the given label. Otherwise,
      * execution proceeds following this instruction.
      */
-    default JumpInsnNode IF_ICMPEQ(LabelNode label) {
+    static JumpInsnNode IF_ICMPEQ(LabelNode label) {
         return new JumpInsnNode(IF_ICMPEQ, label);
     }
 
@@ -2071,7 +2070,7 @@ public interface ASMHelper extends Opcodes {
      * If comparison succeeds, execution proceeds at the location of the given label. Otherwise,
      * execution proceeds following this instruction.
      */
-    default JumpInsnNode IF_ICMPNE(LabelNode label) {
+    static JumpInsnNode IF_ICMPNE(LabelNode label) {
         return new JumpInsnNode(IF_ICMPNE, label);
     }
 
@@ -2084,7 +2083,7 @@ public interface ASMHelper extends Opcodes {
      * If comparison succeeds, execution proceeds at the location of the given label. Otherwise,
      * execution proceeds following this instruction.
      */
-    default JumpInsnNode IF_ICMPLT(LabelNode label) {
+    static JumpInsnNode IF_ICMPLT(LabelNode label) {
         return new JumpInsnNode(IF_ICMPLT, label);
     }
 
@@ -2097,7 +2096,7 @@ public interface ASMHelper extends Opcodes {
      * If comparison succeeds, execution proceeds at the location of the given label. Otherwise,
      * execution proceeds following this instruction.
      */
-    default JumpInsnNode IF_ICMPGE(LabelNode label) {
+    static JumpInsnNode IF_ICMPGE(LabelNode label) {
         return new JumpInsnNode(IF_ICMPGE, label);
     }
 
@@ -2110,7 +2109,7 @@ public interface ASMHelper extends Opcodes {
      * If comparison succeeds, execution proceeds at the location of the given label. Otherwise,
      * execution proceeds following this instruction.
      */
-    default JumpInsnNode IF_ICMPGT(LabelNode label) {
+    static JumpInsnNode IF_ICMPGT(LabelNode label) {
         return new JumpInsnNode(IF_ICMPGT, label);
     }
 
@@ -2123,7 +2122,7 @@ public interface ASMHelper extends Opcodes {
      * If comparison succeeds, execution proceeds at the location of the given label. Otherwise,
      * execution proceeds following this instruction.
      */
-    default JumpInsnNode IF_ICMPLE(LabelNode label) {
+    static JumpInsnNode IF_ICMPLE(LabelNode label) {
         return new JumpInsnNode(IF_ICMPLE, label);
     }
 
@@ -2136,7 +2135,7 @@ public interface ASMHelper extends Opcodes {
      * If comparison succeeds, execution proceeds at the location of the given label. Otherwise,
      * execution proceeds following this instruction.
      */
-    default JumpInsnNode IF_ACMPEQ(LabelNode label) {
+    static JumpInsnNode IF_ACMPEQ(LabelNode label) {
         return new JumpInsnNode(IF_ACMPEQ, label);
     }
 
@@ -2149,7 +2148,7 @@ public interface ASMHelper extends Opcodes {
      * If comparison succeeds, execution proceeds at the location of the given label. Otherwise,
      * execution proceeds following this instruction.
      */
-    default JumpInsnNode IF_ACMPNE(LabelNode label) {
+    static JumpInsnNode IF_ACMPNE(LabelNode label) {
         return new JumpInsnNode(IF_ACMPNE, label);
     }
 
@@ -2158,7 +2157,7 @@ public interface ASMHelper extends Opcodes {
      * <p>
      * Execution proceeds at the location of the given label.
      */
-    default JumpInsnNode GOTO(LabelNode label) {
+    static JumpInsnNode GOTO(LabelNode label) {
         return new JumpInsnNode(GOTO, label);
     }
 
@@ -2178,7 +2177,7 @@ public interface ASMHelper extends Opcodes {
      * @deprecated If encountered in a modern classfile, a VerifyError will be thrown.
      */
     @Deprecated
-    default JumpInsnNode JSR(LabelNode label) {
+    static JumpInsnNode JSR(LabelNode label) {
         return new JumpInsnNode(JSR, label);
     }
 
@@ -2206,7 +2205,7 @@ public interface ASMHelper extends Opcodes {
      * 		stack.
      */
     @Deprecated
-    default VarInsnNode RET(int i) {
+    static VarInsnNode RET(int i) {
         return new VarInsnNode(RET, i);
     }
 
@@ -2218,7 +2217,7 @@ public interface ASMHelper extends Opcodes {
      * position index - low of the given jump table is extracted. Execution then proceeds at the
      * given label.
      */
-    default TableSwitchInsnNode TABLESWITCH(int min, int max, LabelNode dflt, LabelNode... labels) {
+    static TableSwitchInsnNode TABLESWITCH(int min, int max, LabelNode dflt, LabelNode... labels) {
         return new TableSwitchInsnNode(min, max, dflt, labels);
     }
 
@@ -2236,7 +2235,7 @@ public interface ASMHelper extends Opcodes {
      * The match-offset pairs are sorted to support lookup routines that are quicker than linear
      * search.
      */
-    default LookupSwitchInsnNode LOOKUPSWITCH(LabelNode dflt, int[] keys, LabelNode[] labels) {
+    static LookupSwitchInsnNode LOOKUPSWITCH(LabelNode dflt, int[] keys, LabelNode[] labels) {
         return new LookupSwitchInsnNode(dflt, keys, labels);
     }
 
@@ -2268,7 +2267,7 @@ public interface ASMHelper extends Opcodes {
      * 		Machine implementation enforces the rules on structured locking and the first of those
      * 		rules is violated during invocation of the current method.
      */
-    default InsnNode IRETURN() {
+    static InsnNode IRETURN() {
         return new InsnNode(IRETURN);
     }
 
@@ -2293,7 +2292,7 @@ public interface ASMHelper extends Opcodes {
      * 		Machine implementation enforces the rules on structured locking and the first of those
      * 		rules is violated during invocation of the current method.
      */
-    default InsnNode LRETURN() {
+    static InsnNode LRETURN() {
         return new InsnNode(LRETURN);
     }
 
@@ -2318,7 +2317,7 @@ public interface ASMHelper extends Opcodes {
      * 		Machine implementation enforces the rules on structured locking and the first of those
      * 		rules is violated during invocation of the current method.
      */
-    default InsnNode FRETURN() {
+    static InsnNode FRETURN() {
         return new InsnNode(FRETURN);
     }
 
@@ -2343,7 +2342,7 @@ public interface ASMHelper extends Opcodes {
      * 		Machine implementation enforces the rules on structured locking and the first of those
      * 		rules is violated during invocation of the current method.
      */
-    default InsnNode DRETURN() {
+    static InsnNode DRETURN() {
         return new InsnNode(DRETURN);
     }
 
@@ -2370,7 +2369,7 @@ public interface ASMHelper extends Opcodes {
      * 		Machine implementation enforces the rules on structured locking and the first of those
      * 		rules is violated during invocation of the current method.
      */
-    default InsnNode ARETURN() {
+    static InsnNode ARETURN() {
         return new InsnNode(ARETURN);
     }
 
@@ -2393,7 +2392,7 @@ public interface ASMHelper extends Opcodes {
      * 		Machine implementation enforces the rules on structured locking and the first of those
      * 		rules is violated during invocation of the current method.
      */
-    default InsnNode RETURN() {
+    static InsnNode RETURN() {
         return new InsnNode(RETURN);
     }
 
@@ -2415,8 +2414,8 @@ public interface ASMHelper extends Opcodes {
      * @throws IncompatibleClassChangeError if the resolved field is not a static (class) field or
      * 		an interface field
      */
-    default FieldInsnNode GETSTATIC(String owner, String name, String desc) {
-        return new FieldInsnNode(GETSTATIC, remapType(owner), remapField(owner, name, desc), remapFieldDesc(desc));
+    static FieldInsnNode GETSTATIC(String owner, String name, String desc) {
+        return new FieldInsnNode(GETSTATIC, MiniUtils.remapType(MiniUtils.remapType(owner)), MiniUtils.remapField(owner, name, desc), MiniUtils.remapFieldDesc(desc));
     }
 
     /**
@@ -2455,8 +2454,8 @@ public interface ASMHelper extends Opcodes {
      * 		current class or interface and the instruction does not occur in the class or interface
      *		initialization method of the current class or interface
      */
-    default FieldInsnNode PUTSTATIC(String owner, String name, String desc) {
-        return new FieldInsnNode(PUTSTATIC, remapType(owner), remapField(owner, name, desc), remapFieldDesc(desc));
+    static FieldInsnNode PUTSTATIC(String owner, String name, String desc) {
+        return new FieldInsnNode(PUTSTATIC, MiniUtils.remapType(owner), MiniUtils.remapField(owner, name, desc), MiniUtils.remapFieldDesc(desc));
     }
 
     /**
@@ -2479,8 +2478,8 @@ public interface ASMHelper extends Opcodes {
      * {@link #ARRAYLENGTH} instruction is used instead.
      * @throws NullPointerException if objectref is null
      */
-    default FieldInsnNode GETFIELD(String owner, String name, String desc) {
-        return new FieldInsnNode(GETFIELD, remapType(owner), remapField(owner, name, desc), remapFieldDesc(desc));
+    static FieldInsnNode GETFIELD(String owner, String name, String desc) {
+        return new FieldInsnNode(GETFIELD, MiniUtils.remapType(owner), MiniUtils.remapField(owner, name, desc), MiniUtils.remapFieldDesc(desc));
     }
 
     /**
@@ -2519,8 +2518,8 @@ public interface ASMHelper extends Opcodes {
      * 		current class and the instruction does not occur inan instance initialization method of
      * 		the current class
      */
-    default FieldInsnNode PUTFIELD(String owner, String name, String desc) {
-        return new FieldInsnNode(PUTFIELD, remapType(owner), remapField(owner, name, desc), remapFieldDesc(desc));
+    static FieldInsnNode PUTFIELD(String owner, String name, String desc) {
+        return new FieldInsnNode(PUTFIELD, MiniUtils.remapType(owner), MiniUtils.remapField(owner, name, desc), MiniUtils.remapFieldDesc(desc));
     }
 
     /**
@@ -2598,8 +2597,8 @@ public interface ASMHelper extends Opcodes {
      * @throws UnsatisfiedLinkError if the selected method is native and the code that implements
      * 		the method cannot be bound
      */
-    default MethodInsnNode INVOKEVIRTUAL(String owner, String name, String desc) {
-        return new MethodInsnNode(INVOKEVIRTUAL, remapType(owner), remapMethod(owner, name, desc), remapMethodDesc(desc));
+    static MethodInsnNode INVOKEVIRTUAL(String owner, String name, String desc) {
+        return new MethodInsnNode(INVOKEVIRTUAL, MiniUtils.remapType(owner), MiniUtils.remapMethod(owner, name, desc), MiniUtils.remapMethodDesc(desc));
     }
 
     /**
@@ -2677,8 +2676,8 @@ public interface ASMHelper extends Opcodes {
      * @throws UnsatisfiedLinkError if the selected method is native and the code that implements
      * 		the method cannot be bound
      */
-    default MethodInsnNode INVOKEVIRTUAL(String owner, String name, String desc, boolean itf) {
-        return new MethodInsnNode(INVOKEVIRTUAL, remapType(owner), remapMethod(owner, name, desc), remapMethodDesc(desc), itf);
+    static MethodInsnNode INVOKEVIRTUAL(String owner, String name, String desc, boolean itf) {
+        return new MethodInsnNode(INVOKEVIRTUAL, MiniUtils.remapType(owner), MiniUtils.remapMethod(owner, name, desc), MiniUtils.remapMethodDesc(desc), itf);
     }
 
     /**
@@ -2780,8 +2779,8 @@ public interface ASMHelper extends Opcodes {
      * 		superinterface methods of C that match the resolved method's name and descriptor and are
      * 		not abstract
      */
-    default MethodInsnNode INVOKESPECIAL(String owner, String name, String desc) {
-        return new MethodInsnNode(INVOKESPECIAL, remapType(owner), remapMethod(owner, name, desc), remapMethodDesc(desc));
+    static MethodInsnNode INVOKESPECIAL(String owner, String name, String desc) {
+        return new MethodInsnNode(INVOKESPECIAL, MiniUtils.remapType(owner), MiniUtils.remapMethod(owner, name, desc), MiniUtils.remapMethodDesc(desc));
     }
 
     /**
@@ -2843,71 +2842,12 @@ public interface ASMHelper extends Opcodes {
      * @throws UnsatisfiedLinkError if the resolved method is native and the code that implements
      * 		the method cannot be bound
      */
-    default MethodInsnNode INVOKESTATIC(String owner, String name, String desc) {
-        return new MethodInsnNode(INVOKESTATIC, remapType(owner), remapMethod(owner, name, desc), remapMethodDesc(desc));
+    static MethodInsnNode INVOKESTATIC(String owner, String name, String desc) {
+        return new MethodInsnNode(INVOKESTATIC, MiniUtils.remapType(owner), MiniUtils.remapMethod(owner, name, desc), MiniUtils.remapMethodDesc(desc));
     }
 
-    /**
-     * <b>Invoke a class (static) method</b>
-     * <p>
-     * <i>If you have mappings available, NilLoader will automatically remap the references to your
-     * currently selected mappings.</i>
-     * <p>
-     * The owner, name, and descriptor are stored in the constant pool as a symbolic reference. They
-     * are retrieved and resolved upon linking.
-     * <p>
-     * The resolved method must not be an instance initialization method, or the class or interface
-     * initialization method.
-     * <p>
-     * The resolved method must be static, and therefore cannot be abstract.
-     * <p>
-     * On successful resolution of the method, the class or interface that declared the resolved
-     * method is initialized if that class or interface has not already been initialized (§5.5).
-     * <p>
-     * The operand stack must contain nargs argument values, where the number, type, and order of
-     * the values must be consistent with the descriptor of the resolved method.
-     * <p>
-     * If the method is synchronized, the monitor associated with the resolved Class object is
-     * entered or reentered as if by execution of a monitorenter instruction (§monitorenter) in the
-     * current thread.
-     * <p>
-     * If the method is not native, the nargs argument values are popped from the operand stack. A
-     * new frame is created on the Java Virtual Machine stack for the method being invoked. The
-     * nargs argument values are consecutively made the values of local variables of the new frame,
-     * with arg1 in local variable 0 (or, if arg1 is of type long or double, in local variables 0
-     * and 1) and so on. Any argument value that is of a floating-point type undergoes value set
-     * conversion (§2.8.3) prior to being stored in a local variable. The new frame is then made
-     * current, and the Java Virtual Machine pc is set to the opcode of the first instruction of the
-     * method to be invoked. Execution continues with the first instruction of the method.
-     * <p>
-     * If the method is native and the platform-dependent code that implements it has not yet been
-     * bound (§5.6) into the Java Virtual Machine, that is done. The nargs argument values are
-     * popped from the operand stack and are passed as parameters to the code that implements the
-     * method. Any argument value that is of a floating-point type undergoes value set conversion
-     * (§2.8.3) prior to being passed as a parameter. The parameters are passed and the code is
-     * invoked in an implementation-dependent manner. When the platform-dependent code returns, the
-     * following take place:
-     * <ul>
-     * <li>If the native method is synchronized, the monitor associated with the resolved Class object
-     * 		is updated and possibly exited as if by execution of a monitorexit instruction (§monitorexit)
-     * 		in the current thread.
-     * <li>If the native method returns a value, the return value of the platform-dependent code is
-     * 		converted in an implementation-dependent way to the return type of the native method and
-     * 		pushed onto the operand stack.
-     * </ul>
-     * During resolution of the symbolic reference to the method, any of the exceptions pertaining
-     * to method resolution (§5.4.3.3) can be thrown.
-     * <p>
-     * The nargs argument values are not one-to-one with the first nargs local variables. Argument
-     * values of types long and double must be stored in two consecutive local variables, thus more
-     * than nargs local variables may be required to pass nargs argument values to the invoked
-     * method.
-     * @throws IncompatibleClassChangeError if the resolved method is an instance method
-     * @throws UnsatisfiedLinkError if the resolved method is native and the code that implements
-     * 		the method cannot be bound
-     */
-    default MethodInsnNode INVOKESTATIC(String owner, String name, String desc, boolean itf) {
-        return new MethodInsnNode(INVOKESTATIC, remapType(owner), remapMethod(owner, name, desc), remapMethodDesc(desc), itf);
+    static MethodInsnNode INVOKESTATIC(String owner, String name, String desc, boolean itf) {
+        return new MethodInsnNode(INVOKESTATIC, MiniUtils.remapType(owner), MiniUtils.remapMethod(owner, name, desc), MiniUtils.remapMethodDesc(desc), itf);
     }
 
     /**
@@ -2982,8 +2922,8 @@ public interface ASMHelper extends Opcodes {
      * 		method's name and descriptor and are not abstract
      * @throws UnsatisfiedLinkError if the selected method is native and the code that implements the method cannot be bound
      */
-    default MethodInsnNode INVOKEINTERFACE(String owner, String name, String desc) {
-        return new MethodInsnNode(INVOKEINTERFACE, remapType(owner), remapMethod(owner, name, desc), remapMethodDesc(desc));
+    static MethodInsnNode INVOKEINTERFACE(String owner, String name, String desc) {
+        return new MethodInsnNode(INVOKEINTERFACE, MiniUtils.remapType(owner), MiniUtils.remapMethod(owner, name, desc), MiniUtils.remapMethodDesc(desc), true);
     }
 
     /**
@@ -3031,8 +2971,8 @@ public interface ASMHelper extends Opcodes {
      * instance of java.lang.invoke.CallSite never throws a NullPointerException or a
      * java.lang.invoke.WrongMethodTypeException.
      */
-    default InvokeDynamicInsnNode INVOKEDYNAMIC(String name, String desc, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
-        return new InvokeDynamicInsnNode(name, remapMethodDesc(desc), bootstrapMethodHandle, bootstrapMethodArguments);
+    static InvokeDynamicInsnNode INVOKEDYNAMIC(String name, String desc, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
+        return new InvokeDynamicInsnNode(name, MiniUtils.remapMethodDesc(desc), bootstrapMethodHandle, bootstrapMethodArguments);
     }
 
     /**
@@ -3060,8 +3000,8 @@ public interface ASMHelper extends Opcodes {
      * @throws InstantiationError if the symbolic reference to the class or interface type resolved
      * 		to an interface or an abstract class
      */
-    default TypeInsnNode NEW(String type) {
-        return new TypeInsnNode(NEW, remapType(type));
+    static TypeInsnNode NEW(String type) {
+        return new TypeInsnNode(NEW, MiniUtils.remapType(type));
     }
 
     /**
@@ -3087,7 +3027,7 @@ public interface ASMHelper extends Opcodes {
      * to access those arrays.
      * @throws NegativeArraySizeException if count is less than zero
      */
-    default IntInsnNode NEWARRAY(ArrayType atype) {
+    static IntInsnNode NEWARRAY(ArrayType atype) {
         return new IntInsnNode(NEWARRAY, atype.value);
     }
 
@@ -3096,7 +3036,7 @@ public interface ASMHelper extends Opcodes {
      * @see #NEWARRAY(ArrayType)
      */
     @Deprecated
-    default IntInsnNode NEWARRAY(int atype) {
+    static IntInsnNode NEWARRAY(int atype) {
         return new IntInsnNode(NEWARRAY, atype);
     }
 
@@ -3120,8 +3060,8 @@ public interface ASMHelper extends Opcodes {
      *
      * @throws NegativeArraySizeException if count is less than zero
      */
-    default TypeInsnNode ANEWARRAY(String type) {
-        return new TypeInsnNode(ANEWARRAY, remapType(type));
+    static TypeInsnNode ANEWARRAY(String type) {
+        return new TypeInsnNode(ANEWARRAY, MiniUtils.remapType(type));
     }
 
     /**
@@ -3133,7 +3073,7 @@ public interface ASMHelper extends Opcodes {
      *
      * @throws NullPointerException if arrayref is null
      */
-    default InsnNode ARRAYLENGTH() {
+    static InsnNode ARRAYLENGTH() {
         return new InsnNode(ARRAYLENGTH);
     }
 
@@ -3179,7 +3119,7 @@ public interface ASMHelper extends Opcodes {
      * intervening frames from the method that threw the exception up to, but not including, the
      * method that handles the exception are discarded.
      */
-    default InsnNode ATHROW() {
+    static InsnNode ATHROW() {
         return new InsnNode(ATHROW);
     }
 
@@ -3233,8 +3173,8 @@ public interface ASMHelper extends Opcodes {
      * @throws ClassCastException  if objectref cannot be cast to the resolved class, array, or
      * 		interface type
      */
-    default TypeInsnNode CHECKCAST(String desc) {
-        return new TypeInsnNode(CHECKCAST, remapType(desc));
+    static TypeInsnNode CHECKCAST(String desc) {
+        return new TypeInsnNode(CHECKCAST, MiniUtils.remapType(desc));
     }
 
     /**
@@ -3286,8 +3226,8 @@ public interface ASMHelper extends Opcodes {
      * in its treatment of null, its behavior when its test fails (checkcast throws an exception,
      * instanceof pushes a result code), and its effect on the operand stack.
      */
-    default TypeInsnNode INSTANCEOF(String desc) {
-        return new TypeInsnNode(INSTANCEOF, remapType(desc));
+    static TypeInsnNode INSTANCEOF(String desc) {
+        return new TypeInsnNode(INSTANCEOF, MiniUtils.remapType(desc));
     }
 
     /**
@@ -3328,7 +3268,7 @@ public interface ASMHelper extends Opcodes {
      * instruction set of the Java Virtual Machine.
      * @throws NullPointerException if objectref is null
      */
-    default InsnNode MONITORENTER() {
+    static InsnNode MONITORENTER() {
         return new InsnNode(MONITORENTER);
     }
 
@@ -3366,7 +3306,7 @@ public interface ASMHelper extends Opcodes {
      * 		Virtual Machine implementation enforces the rules on structured locking and if the
      * 		second of those rules is violated by the execution of this monitorexit instruction
      */
-    default InsnNode MONITOREXIT() {
+    static InsnNode MONITOREXIT() {
         return new InsnNode(MONITOREXIT);
     }
 
@@ -3409,8 +3349,8 @@ public interface ASMHelper extends Opcodes {
      * @throws NegativeArraySizeException if any of the dimensions values on the operand stack are
      * 		less than zero
      */
-    default MultiANewArrayInsnNode MULTIANEWARRAY(String type, int dim) {
-        return new MultiANewArrayInsnNode(remapType(type), dim);
+    static MultiANewArrayInsnNode MULTIANEWARRAY(String type, int dim) {
+        return new MultiANewArrayInsnNode(MiniUtils.remapType(type), dim);
     }
 
     /**
@@ -3419,7 +3359,7 @@ public interface ASMHelper extends Opcodes {
      * The value must of type reference. It is popped from the operand stack. If value is null,
      * execution proceeds at the given label. Otherwise, execution proceeds following this instruction.
      */
-    default JumpInsnNode IFNULL(LabelNode label) {
+    static JumpInsnNode IFNULL(LabelNode label) {
         return new JumpInsnNode(IFNULL, label);
     }
 
@@ -3429,8 +3369,142 @@ public interface ASMHelper extends Opcodes {
      * The value must of type reference. It is popped from the operand stack. If value is not null,
      * execution proceeds at the given label. Otherwise, execution proceeds following this instruction.
      */
-    default JumpInsnNode IFNONNULL(LabelNode label) {
+    static JumpInsnNode IFNONNULL(LabelNode label) {
         return new JumpInsnNode(IFNONNULL, label);
+    }
+
+    static boolean instructionsEqual(AbstractInsnNode a, AbstractInsnNode b) {
+        if (a == b) return true;
+        if (a == null || b == null) return false;
+        if (a.getClass() != b.getClass()) return false;
+        if (a.getOpcode() != b.getOpcode()) return false;
+
+        if (a instanceof FieldInsnNode fa) {
+            FieldInsnNode fb = (FieldInsnNode)b;
+            return Objects.equals(fa.owner, fb.owner) &&
+                    Objects.equals(fa.name, fb.name) &&
+                    Objects.equals(fa.desc, fb.desc);
+        } else if (a instanceof IincInsnNode ia) {
+            IincInsnNode ib = (IincInsnNode)b;
+            return ia.var == ib.var && ia.incr == ib.incr;
+        } else if (a instanceof InsnNode) {
+            return true;
+        } else if (a instanceof IntInsnNode ia) {
+            IntInsnNode ib = (IntInsnNode)b;
+            return ia.operand == ib.operand;
+        } else if (a instanceof InvokeDynamicInsnNode ia) {
+            InvokeDynamicInsnNode ib = (InvokeDynamicInsnNode)b;
+            return Objects.equals(ia.bsm, ib.bsm) &&
+                    Arrays.equals(ia.bsmArgs, ib.bsmArgs) &&
+                    Objects.equals(ia.name, ib.name) &&
+                    Objects.equals(ia.desc, ib.desc);
+        } else if (a instanceof JumpInsnNode || a instanceof LabelNode) {
+            // no good way to compare label equality
+            return true;
+        } else if (a instanceof LdcInsnNode la) {
+            LdcInsnNode lb = (LdcInsnNode)b;
+            return Objects.equals(la.cst, lb.cst);
+        } else if (a instanceof LineNumberNode la) {
+            LineNumberNode lb = (LineNumberNode)b;
+            return la.line == lb.line && instructionsEqual(la.start, lb.start);
+        } else if (a instanceof LookupSwitchInsnNode la) {
+            LookupSwitchInsnNode lb = (LookupSwitchInsnNode)b;
+            return instructionsEqual(la.dflt, lb.dflt) &&
+                    Objects.equals(la.keys, lb.keys) &&
+                    instructionListsEqual(la.labels, lb.labels);
+        } else if (a instanceof MethodInsnNode ma) {
+            MethodInsnNode mb = (MethodInsnNode)b;
+            return Objects.equals(ma.owner, mb.owner) &&
+                    Objects.equals(ma.name, mb.name) &&
+                    Objects.equals(ma.desc, mb.desc) &&
+                    ma.itf == mb.itf;
+        } else if (a instanceof MultiANewArrayInsnNode ma) {
+            MultiANewArrayInsnNode mb = (MultiANewArrayInsnNode)b;
+            return Objects.equals(ma.desc, mb.desc) && ma.dims == mb.dims;
+        } else if (a instanceof TableSwitchInsnNode ta) {
+            TableSwitchInsnNode tb = (TableSwitchInsnNode)b;
+            return ta.min == tb.min &&
+                    ta.max == tb.max &&
+                    instructionsEqual(ta.dflt, tb.dflt) &&
+                    instructionListsEqual(ta.labels, tb.labels);
+        } else if (a instanceof TypeInsnNode ta) {
+            TypeInsnNode tb = (TypeInsnNode)b;
+            return Objects.equals(ta.desc, tb.desc);
+        } else if (a instanceof VarInsnNode va) {
+            VarInsnNode vb = (VarInsnNode)b;
+            return va.var == vb.var;
+        }
+        throw new IllegalArgumentException("Unknown insn type "+a.getClass().getName());
+    }
+
+    static boolean instructionListsEqual(List<? extends AbstractInsnNode> a, List<? extends AbstractInsnNode> b) {
+        if (a == b) return true;
+        if (a == null || b == null) return false;
+        if (a.size() != b.size()) return false;
+        for (int i = 0; i < a.size(); i++) {
+            if (!instructionsEqual(a.get(i), b.get(i))) return false;
+        }
+        return true;
+    }
+
+    record SearchResult(AbstractInsnNode start, AbstractInsnNode end, AbstractInsnNode[] query, boolean reverse){}
+
+    /**
+     * @param code the code
+     * @param nodes the nodes to match, see {@link ASMHelper#instructionListsEqual(List, List)}
+     * @return the Iterator for multi results.
+     */
+    static Iterator<SearchResult> searchBackward(InsnList code, AbstractInsnNode... nodes) {
+        return searchFrom(code, 0, nodes, true);
+    }
+
+    /**
+     * @param code the code
+     * @param nodes the nodes to match, see {@link ASMHelper#instructionListsEqual(List, List)}
+     * @return the Iterator for multi results.
+     */
+    static Iterator<SearchResult> search(InsnList code, AbstractInsnNode... nodes) {
+        return searchFrom(code, 0, nodes, false);
+    }
+
+    /**
+     * @param code the codes
+     * @param start the start index
+     * @param nodes the nodes to match, see {@link ASMHelper#instructionListsEqual(List, List)}
+     * @param reverse is reverse
+     * @return the Iterator for multi results.
+     */
+    static Iterator<SearchResult> searchFrom(InsnList code, int start, AbstractInsnNode[] nodes, boolean reverse) {
+        return new Iterator<>() {
+            private SearchResult searchResult = searchFrom0(code, start, nodes, reverse);
+            @Override
+            public boolean hasNext() {
+                return searchResult != null;
+            }
+
+            @Override
+            public SearchResult next() {
+                SearchResult r = searchResult;
+                searchResult = searchFrom0(code, code.indexOf(searchResult.start), nodes, reverse);
+                return r;
+            }
+        };
+    }
+
+    private static SearchResult searchFrom0(InsnList code, int start, AbstractInsnNode[] nodes, boolean reverse) {
+        for (int k = start; reverse ? k >= 0 : k < code.size(); k += (reverse ? -1 : 1)) {
+            boolean allMatched = true;
+            for (int j = 0; j < nodes.length; j++) {
+                if (!instructionsEqual(code.get(k+j), nodes[j])) {
+                    allMatched = false;
+                    break;
+                }
+            }
+            if (allMatched) {
+                return new SearchResult(code.get(k), code.get(k+nodes.length-1), nodes, reverse);
+            }
+        }
+        return null;
     }
 
 }

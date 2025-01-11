@@ -32,6 +32,17 @@ public class OptiRefineBlackboard {
             "net.minecraft.client.model.ModelPlayer",
             "net.minecraft.client.model.ModelRenderer",
             "net.minecraft.client.model.TexturedQuad",
-            "net.minecraft.client.multiplayer.WorldClient"
+            "net.minecraft.client.multiplayer.WorldClient",
+            "net.minecraft.client.particle.ParticleItemPickup",
+            "net.minecraft.client.particle.ParticleManager",
+
+            "net.minecraft.client.settings.GameSettings$Options",
+
+            "net.minecraft.crash.CrashReport",
+            "net.minecraft.entity.EntityLiving",
+            "net.minecraft.potion.PotionUtils",
+            "net.minecraft.profiler.Profiler",
+
+            "net.minecraft.util.math.ChunkPos"
     );
 }

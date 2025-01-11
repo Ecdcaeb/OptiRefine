@@ -69,11 +69,11 @@ public abstract class MiniTransformer implements TransformerHelper.TargetedASMTr
 		if (!className.equals(classTargetName)) {
 			LOGGER.debug("Retargeted {} from {} to {}", getClass().getSimpleName(), className, classTargetName);
 		}
-		for (final Method m : getClass().getMethods()) {
-			final String name = m.getName();
-			final boolean isStatic = Modifier.isStatic(m.getModifiers());
+		for (final Method method : getClass().getMethods()) {
+			final String name = method.getName();
+			final boolean isStatic = Modifier.isStatic(method.getModifiers());
 
-			for (final Patch.Method a : m.getAnnotationsByType(Patch.Method.class)) {
+			for (final Patch.Method a : method.getAnnotationsByType(Patch.Method.class)) {
 				final String methodSign = a.value();
 				final int index = methodSign.indexOf('(');
 				final String methodName = methodSign.substring(0, index -1);
@@ -89,14 +89,14 @@ public abstract class MiniTransformer implements TransformerHelper.TargetedASMTr
 					methods.put(desc, new ArrayList<>());
 				}
 
-				final boolean frames = m.getAnnotation(Patch.Method.AffectsControlFlow.class) != null;
+				final boolean frames = method.getAnnotation(Patch.Method.AffectsControlFlow.class) != null;
 
 				if (isStatic) {
 					methods.get(desc).add(new PatchMethod() {
 						@Override
 						public boolean patch(PatchContext ctx) throws Throwable {
 							try {
-								m.invoke(null, ctx);
+								method.invoke(null, ctx);
 							} catch (InvocationTargetException e) {
 								throw e.getCause();
 							}
@@ -112,7 +112,7 @@ public abstract class MiniTransformer implements TransformerHelper.TargetedASMTr
 						@Override
 						public boolean patch(PatchContext ctx) throws Throwable {
 							try {
-								m.invoke(MiniTransformer.this, ctx);
+								method.invoke(MiniTransformer.this, ctx);
 							} catch (InvocationTargetException e) {
 								throw e.getCause();
 							}
@@ -125,7 +125,7 @@ public abstract class MiniTransformer implements TransformerHelper.TargetedASMTr
 					});
 				}
 
-				if (m.getAnnotation(Patch.Method.Optional.class) == null) {
+				if (method.getAnnotation(Patch.Method.Optional.class) == null) {
 					requiredMethods.add(desc);
 				}
 

@@ -3,11 +3,15 @@ package mods.Hileb.optirefine.core.transformer;
 import mods.Hileb.optirefine.library.foundationx.mini.MiniTransformer;
 import mods.Hileb.optirefine.library.foundationx.mini.PatchContext;
 import mods.Hileb.optirefine.library.foundationx.mini.annotation.Patch;
-import org.objectweb.asm.tree.*;
+import org.objectweb.asm.tree.LabelNode;
+
+
+import static mods.Hileb.optirefine.library.foundationx.ASMHelper.*;
+
 
 @SuppressWarnings("unused") //ASM invoked
 @Patch.Class("optifine.OptiFineClassTransformer")
-public class OptifineTransformerTransformer extends MiniTransformer {
+public class OptifineTransformerTransformer extends MiniTransformer{
 
     @Patch.Method("transform(Ljava/lang/String;Ljava/lang/String;[B)[B")
     @Patch.Method.AffectsControlFlow

@@ -1,5 +1,6 @@
 package mods.Hileb.optirefine.mixin.minecraft.client.gui;
 
+import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.ChangeSuperClass;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.optifine.Config;
@@ -25,6 +26,7 @@ import net.optifine.gui.GuiScreenOF;
 import net.optifine.gui.TooltipManager;
 import net.optifine.gui.TooltipProviderOptions;
 import net.optifine.shaders.gui.GuiShaders;
+import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -217,9 +219,15 @@ public class MixinGuiVideoSettings extends GuiScreen {
     }
 
     @Unique
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.gui func_73733_a (IIIIII)V", deobf = true)
+    private static void _acc_GuiScreen_draw(GuiScreen guiScreen, int left, int top, int right, int bottom, int startColor, int endColor){
+        throw new AbstractMethodError();
+    }
+
+    @Unique
     @Public
     public static void drawGradientRect(GuiScreen guiScreen, int left, int top, int right, int bottom, int startColor, int endColor) {
-        guiScreen.draw(left, top, right, bottom, startColor, endColor);
+        _acc_GuiScreen_draw(guiScreen, left, top, right, bottom, startColor, endColor);
     }
 
     @Unique

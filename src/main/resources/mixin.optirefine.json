@@ -13,6 +13,11 @@
     "minecraft.client.model.MixinModelBox",
     "minecraft.client.model.MixinModelRenderer",
     "minecraft.client.model.MixinTexturedQuad",
+    "minecraft.crash.MixinCrashReport",
+    "minecraft.entity.MixinEntityLiving",
+    "minecraft.potion.MixinPotionUtil",
+    "minecraft.profiler.MixinProfiler",
+    "minecraft.util.math.MixinChunkPos",
     "minecraftforge.fml.MixinFMLClientHandler"
   ],
   "server": [],
@@ -28,6 +33,8 @@
     "minecraft.client.gui.MixinGuiVideoSettings",
     "minecraft.client.multiplayer.MixinWorldClient",
     "minecraft.client.particle.MixinParticleItemPickup",
+    "minecraft.client.particle.MixinParticleManager",
+    "minecraft.client.settings.MixinGameSettingsOption",
     "minecraftforge.client.MixinGuiIngameForge"
   ]
 }

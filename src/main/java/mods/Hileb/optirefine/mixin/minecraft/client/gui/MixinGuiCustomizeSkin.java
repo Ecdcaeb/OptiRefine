@@ -1,6 +1,7 @@
 package mods.Hileb.optirefine.mixin.minecraft.client.gui;
 
 import com.llamalad7.mixinextras.sugar.Local;
+import com.llamalad7.mixinextras.sugar.ref.LocalIntRef;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiCustomizeSkin;
 import net.minecraft.client.gui.GuiScreen;
@@ -16,12 +17,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class MixinGuiCustomizeSkin extends GuiScreen {
 
     @Inject(method = "initGui", at = @At(value = "TAIL"))
-    public void injectInitGui(CallbackInfo ci, @Local int lvt_1_1_){
-        GuiButtonOF of = new GuiButtonOF(210, this.width / 2 - 100, this.height / 6 + 24 * (i >> 1), I18n.format("of.options.skinCustomisation.ofCape"));
-        lvt_1_1_ += 2;
+    public void injectInitGui(CallbackInfo ci, @Local LocalIntRef lvt_1_1_){
+        GuiButtonOF of = new GuiButtonOF(210, this.width / 2 - 100, this.height / 6 + 24 * (lvt_1_1_.get() >> 1), I18n.format("of.options.skinCustomisation.ofCape"));
+        lvt_1_1_.set(lvt_1_1_.get() + 2);
         GuiButton done = this.buttonList.getLast();
         this.buttonList.add(this.buttonList.size() -1, of);
-        done.y = this.height / 6 + 24 * (lvt_1_1_ >> 1);
+        done.y = this.height / 6 + 24 * (lvt_1_1_.get() >> 1);
         this.buttonList.add(done);
     }
 

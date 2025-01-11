@@ -2,6 +2,7 @@ package mods.Hileb.optirefine.mixin.minecraft.client.model;
 
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalIntRef;
+import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.model.ModelBase;
@@ -16,6 +17,7 @@ import net.minecraft.util.ResourceLocation;
 import net.optifine.entity.model.anim.ModelUpdater;
 import net.optifine.model.ModelSprite;
 import net.optifine.shaders.Shaders;
+import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
@@ -117,18 +119,36 @@ public class MixinModelRenderer {
     @Public
     private RenderGlobal renderGlobal = Config.getRenderGlobal();
 
+    @Unique
+    @AccessibleOperation(opcode = Opcodes.GETSTATIC, desc = "net/minecraft/client/renderer/RenderGlobal renderOverlayDamaged Z")
+    private static boolean _acc_RenderGlobal_renderOverlayDamaged_(RenderGlobal global){
+        throw new AbstractMethodError();
+    }
+
+    @Unique
+    @AccessibleOperation(opcode = Opcodes.GETSTATIC, desc = "net/minecraft/client/renderer/RenderGlobal renderOverlayEyes Z")
+    private static boolean _acc_RenderGlobal_renderOverlayEyes_(RenderGlobal global){
+        throw new AbstractMethodError();
+    }
+
+    @Unique
+    @AccessibleOperation(opcode = Opcodes.GETSTATIC, desc = "net/minecraft/client/renderer/GlStateManager getBoundTexture ()I")
+    private static int _acc_GlStateManager_getBoundTexture_(){
+        throw new AbstractMethodError();
+    }
+
     @Inject(method = "render", at = @At("HEAD"), cancellable = true)
     public void injectPreRender(float p_78785_1_, CallbackInfo ci, @Share("lastTextureId") LocalIntRef lastTextureId){
         if (!this.isHidden && this.showModel) {
             this.checkResetDisplayList();
 
             lastTextureId.set(0);
-            if (this.textureLocation != null && !this.renderGlobal.renderOverlayDamaged) {
-                if (this.renderGlobal.renderOverlayEyes) {
+            if (this.textureLocation != null && !_acc_RenderGlobal_renderOverlayDamaged_(this.renderGlobal)) {
+                if (_acc_RenderGlobal_renderOverlayEyes_(this.renderGlobal)) {
                     ci.cancel();
                 }
 
-                lastTextureId.set(GlStateManager.getBoundTexture());
+                lastTextureId.set(_acc_GlStateManager_getBoundTexture_());
                 Config.getTextureManager().bindTexture(this.textureLocation);
             }
 
@@ -153,12 +173,12 @@ public class MixinModelRenderer {
             this.checkResetDisplayList();
 
             lastTextureId.set(0);
-            if (this.textureLocation != null && !this.renderGlobal.renderOverlayDamaged) {
-                if (this.renderGlobal.renderOverlayEyes) {
+            if (this.textureLocation != null && !_acc_RenderGlobal_renderOverlayDamaged_(this.renderGlobal)) {
+                if (_acc_RenderGlobal_renderOverlayEyes_(this.renderGlobal)) {
                     ci.cancel();
                 }
 
-                lastTextureId.set(GlStateManager.getBoundTexture());
+                lastTextureId.set(_acc_GlStateManager_getBoundTexture_());
                 Config.getTextureManager().bindTexture(this.textureLocation);
             }
 
@@ -257,9 +277,27 @@ public class MixinModelRenderer {
     }
 
     @Unique
+    @AccessibleOperation(opcode = Opcodes.NEW, desc = "net/minecraft/client/model/ModelBox (Lnet/minecraft/client/model/ModelRenderer;[[IFFFFFFFZ)V")
+    private static ModelBox _new_ModelBox(ModelRenderer renderer, int[][] faceUvs, float x, float y, float z, float dx, float dy, float dz, float delta, boolean mirror){
+        throw new AbstractMethodError();
+    }
+
+    @Unique
     @Public
     public void addBox(int[][] faceUvs, float x, float y, float z, float dx, float dy, float dz, float delta) {
-        this.cubeList.add(new ModelBox(this, faceUvs, x, y, z, dx, dy, dz, delta, this.mirror));
+        this.cubeList.add(_new_ModelBox(_cast_this(), faceUvs, x, y, z, dx, dy, dz, delta, this.mirror));
+    }
+
+    @Unique
+    @AccessibleOperation
+    public ModelRenderer _cast_this(){
+        throw new AbstractMethodError();
+    }
+
+    @Unique
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "getId ()I")
+    private static int _acc_ModelRenderer_getId(ModelRenderer renderer){
+        throw new AbstractMethodError();
     }
 
     @Unique
@@ -271,7 +309,7 @@ public class MixinModelRenderer {
             if (this.childModels != null) {
                 for (int i = 0; i < this.childModels.size(); i++) {
                     ModelRenderer child = (ModelRenderer)this.childModels.get(i);
-                    if (name.equals(child.getId())) {
+                    if (name.equals(_acc_ModelRenderer_getId(child))) {
                         return child;
                     }
                 }

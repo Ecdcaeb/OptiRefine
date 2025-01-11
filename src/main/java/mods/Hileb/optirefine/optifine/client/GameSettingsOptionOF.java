@@ -49,7 +49,7 @@ public class GameSettingsOptionOF {
     public static final GameSettings.Options PROFILER = EnumHelper.addEnum(GameSettings.Options.class, "PROFILER", args0, "of.options.PROFILER", false, false);
     public static final GameSettings.Options DRIPPING_WATER_LAVA = EnumHelper.addEnum(GameSettings.Options.class, "DRIPPING_WATER_LAVA", args0, "of.options.DRIPPING_WATER_LAVA", false, false);
     public static final GameSettings.Options BETTER_SNOW = EnumHelper.addEnum(GameSettings.Options.class, "BETTER_SNOW", args0, "of.options.BETTER_SNOW", false, false);
-    public static final GameSettings.Options FULLSCREEN_MODE = EnumHelper.addEnum(GameSettings.Options.class, "FULLSCREEN_MODE", args2, "of.options.FULLSCREEN_MODE", true, false, 0.0F, (float) Config.getDisplayModes().length, 1.0F);
+    public static final GameSettings.Options FULLSCREEN_MODE = EnumHelper.addEnum(GameSettings.Options.class, "FULLSCREEN_MODE", args1, "of.options.FULLSCREEN_MODE", true, false, 0.0F, (float) Config.getDisplayModes().length, 1.0F);
     public static final GameSettings.Options ANIMATED_TERRAIN = EnumHelper.addEnum(GameSettings.Options.class, "ANIMATED_TERRAIN", args0, "of.options.ANIMATED_TERRAIN", false, false);
     public static final GameSettings.Options SWAMP_COLORS = EnumHelper.addEnum(GameSettings.Options.class, "SWAMP_COLORS", args0, "of.options.SWAMP_COLORS", false, false);
     public static final GameSettings.Options RANDOM_ENTITIES = EnumHelper.addEnum(GameSettings.Options.class, "RANDOM_ENTITIES", args0, "of.options.RANDOM_ENTITIES", false, false);
