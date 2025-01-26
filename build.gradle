@@ -37,6 +37,7 @@ buildscript {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '6.10.+', changing: true
         classpath "net.minecraftforge:gradlejarsigner:1.0.5"
         classpath "org.spongepowered:mixingradle:0.7.+"
+        classpath "de.undercouch:gradle-download-task:5.6.0"
     }
 }
 
@@ -49,6 +50,7 @@ apply plugin: 'maven-publish'
 apply plugin: 'java'
 apply plugin: 'org.spongepowered.mixin'
 apply plugin: 'net.minecraftforge.gradlejarsigner'
+apply plugin: "de.undercouch.download"
 
 version = project.mod_version
 group = project.root_package
@@ -354,5 +356,112 @@ sourceSets.each {
 mixin {
     add sourceSets.main, project.mixin_refmap
 }
+
+tasks.register('downloadOptiFine', Download) {
+    if (!file("libs/Optifine_notch-1.12.2-HD_U_G5.jar").exists()) {
+        src 'https://bmclapi2.bangbang93.com/optifine/1.12.2/HD_U/G5'
+
+        rename 'Optifine_notch-1.12.2-HD_U_G5.jar'
+        dest rootProject.mkdir("libs")
+        System.out.printIn("[downloadOptiFine] libs/Optifine_notch-1.12.2-HD_U_G5.jar")
+    } else System.out.printIn("[downloadOptiFine] SKIPPED")
+}
+
+tasks.register('downloadAutoRenamingTool', Download) {
+    if (!file("libs/AutoRenamingTool.jar").exists()) {
+        src 'https://maven.neoforged.net/releases/net/neoforged/AutoRenamingTool/2.0.8/AutoRenamingTool-2.0.8-all.jar'
+        rename 'AutoRenamingTool.jar'
+        dest rootProject.mkdir("libs")
+        System.out.printIn("[downloadAutoRenamingTool] libs/AutoRenamingTool.jar")
+    } else System.out.printIn("[downloadAutoRenamingTool] SKIPPED")
+}
+
+tasks.register('optifineObf2Srg', Exec) {
+    if (!file("libs/AutoRenamingTool.jar").exists()) {
+        workingDir '../libs'
+        commandLine 'java -jar .\\AutoRenamingTool.jar --input Optifine_notch-1.12.2-HD_U_G5.jar --output Optifine_patched_srg-1.12.2-HD_U_G5.jar --map mcpconfig-1.12.2.tsrg'
+        System.out.printIn("[optifineObf2Srg] libs/Optifine_patched_srg-1.12.2-HD_U_G5.jar")
+    } else System.out.printIn("[optifineObf2Srg] SKIPPED")
+}
+tasks.optifineObf2Srg.dependsOn("downloadOptiFine")
+tasks.optifineObf2Srg.dependsOn("ownloadAutoRenamingTool")
+tasks.register("prepareOptifine"){}
+tasks.prepareOptifine.dependsOn("unpatchedOptifine")
+tasks.unpatchedOptifine.dependsOn('optifineObf2Srg')
+import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
+import java.util.zip.ZipOutputStream
+tasks.register("unpatchedOptifine", Copy) {
+    if (file("libs/AutoRenamingTool.jar").exists()) {
+        System.out.printIn("[unpatchedOptifine] SKIPPED")
+    } else {
+        def inputZipFile = file('libs/Optifine_patched_srg-1.12.2-HD_U_G5.jar')
+        def outputZipFile = file('libs/Optifine_srg-1.12.2-HD_U_G5.jar')
+
+        doLast {
+            def tempDir = file("build/temp/unpatchedOptifine")
+            tempDir.mkdirs()
+
+            try {
+                {
+                    def fis = new FileInputStream(inputZipFile)
+                    def zis = new ZipInputStream(fis)
+                    ZipEntry entry
+                    while ((entry = zis.nextEntry) != null) {
+                        if (!entry.name.startsWith('net/minecraft')) {
+                            def outputFile = new File(tempDir, entry.name)
+                            if (entry.isDirectory()) {
+                                outputFile.mkdirs()
+                            } else {
+                                outputFile.parentFile.mkdirs()
+                                def fos = new FileOutputStream(outputFile)
+                                def bos = new BufferedOutputStream(fos)
+                                byte[] buffer = new byte[4096]
+                                int bytesRead
+                                while ((bytesRead = zis.read(buffer)) != -1) {
+                                    bos.write(buffer, 0, bytesRead)
+                                }
+                                bos.close()
+                                fos.close()
+                            }
+                        }
+                        zis.closeEntry()
+                    }
+                    zis.close()
+                    fis.close()
+                }
+                {
+                    def fos = new FileOutputStream(outputZipFile)
+                    def zos = new ZipOutputStream(fos)
+                    tempDir.eachFileRecurse { file ->
+                        def relativePath = file.absolutePath.replace(tempDir.absolutePath + File.separator, '')
+                        def zipEntry = new ZipEntry(relativePath)
+                        zos.putNextEntry(zipEntry)
+                        if (!file.isDirectory()) {
+                            def fis = new FileInputStream(file)
+                            def bis = new BufferedInputStream(fis)
+                            byte[] buffer = new byte[4096]
+                            int bytesRead
+                            while ((bytesRead = bis.read(buffer)) != -1) {
+                                zos.write(buffer, 0, bytesRead)
+                            }
+                            bis.close()
+                            fis.close()
+                        }
+                        zos.closeEntry()
+                    }
+                    zos.close()
+                    fos.close()
+                }
+            } finally {
+                // 删除临时目录
+                tempDir.deleteDir()
+            }
+        }
+    }
+}
+compileJava.dependsOn("prepareOptifine")
+
+
 
 
