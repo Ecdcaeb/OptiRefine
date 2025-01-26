@@ -355,4 +355,27 @@ mixin {
     add sourceSets.main, project.mixin_refmap
 }
 
+tasks.register('downloadOptiFine', Download) {
+    src 'https://bmclapi2.bangbang93.com/optifine/1.12.2/HD_U/G5'
+
+    rename 'Optifine_notch-1.12.2-HD_U_G5.jar'
+    dest rootProject.mkdir("libs")
+}
+
+tasks.register('downloadAutoRenamingTool', Download) {
+    src 'blob:https://maven.neoforged.net/dada6ebf-5f7b-4313-907d-565599540729'
+    rename 'AutoRenamingTool.jar'
+    dest rootProject.mkdir("libs")
+}
+
+tasks.register('optifineObf2Srg', Extc) {
+    workingDir '../libs'
+    commandLine 'java -jar .\\AutoRenamingTool.jar --input Optifine_notch-1.12.2-HD_U_G5.jar --output Optifine_srg-1.12.2-HD_U_G5.jar --map mcpconfig-1.12.2.tsrg'
+}
+optifineObf2Srg.dependsOn("downloadOptiFine")
+optifineObf2Srg.dependsOn("ownloadAutoRenamingTool")
+compileJava.dependsOn("optifineObf2Srg")
+
+
+
 
