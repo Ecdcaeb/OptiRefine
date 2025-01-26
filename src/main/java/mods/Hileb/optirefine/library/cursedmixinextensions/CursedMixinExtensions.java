@@ -221,7 +221,7 @@ public class CursedMixinExtensions {
                             if (call.owner.equals(targetClass.name) && call.name.equals(method.name) && call.desc.equals(method.desc)) {
                                 call.owner = owner;
                                 call.name = name;
-                                call.desc = desc;
+                                call.desc = _opt_desc;
                                 call.itf = itf_;
                                 call.setOpcode(opc);
                             }

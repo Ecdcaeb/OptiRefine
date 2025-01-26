@@ -198,7 +198,7 @@ public class MixinGuiVideoSettings extends GuiScreen {
 
     @Redirect(method = "drawScreen", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiListExtended;drawScreen(IIF)V"))
     public void injectDrawScreen(GuiListExtended instance, int x, int y, float v){
-        this.a(this.fontRenderer, this.screenTitle, this.width / 2, 15, 16777215);
+        this.drawString(this.fontRenderer, this.screenTitle, this.width / 2, 15, 16777215);
         final String ver = "OptiFine HD G5 Ultra";
         this.drawCenteredString(this.fontRenderer, ver, 2, this.height - 10, 8421504);
         final String verMc = "Minecraft 1.12.2";
