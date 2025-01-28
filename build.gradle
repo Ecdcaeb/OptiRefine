@@ -363,8 +363,8 @@ tasks.register('downloadOptiFine', Download) {
 
         rename 'Optifine_notch-1.12.2-HD_U_G5.jar'
         dest rootProject.mkdir("libs")
-        System.out.printIn("[downloadOptiFine] libs/Optifine_notch-1.12.2-HD_U_G5.jar")
-    } else System.out.printIn("[downloadOptiFine] SKIPPED")
+        System.out.println("[downloadOptiFine] libs/Optifine_notch-1.12.2-HD_U_G5.jar")
+    } else System.out.println("[downloadOptiFine] SKIPPED")
 }
 
 tasks.register('downloadAutoRenamingTool', Download) {
@@ -372,16 +372,16 @@ tasks.register('downloadAutoRenamingTool', Download) {
         src 'https://maven.neoforged.net/releases/net/neoforged/AutoRenamingTool/2.0.8/AutoRenamingTool-2.0.8-all.jar'
         rename 'AutoRenamingTool.jar'
         dest rootProject.mkdir("libs")
-        System.out.printIn("[downloadAutoRenamingTool] libs/AutoRenamingTool.jar")
-    } else System.out.printIn("[downloadAutoRenamingTool] SKIPPED")
+        System.out.println("[downloadAutoRenamingTool] libs/AutoRenamingTool.jar")
+    } else System.out.println("[downloadAutoRenamingTool] SKIPPED")
 }
 
 tasks.register('optifineObf2Srg', Exec) {
     if (!file("libs/AutoRenamingTool.jar").exists()) {
         workingDir '../libs'
         commandLine 'java -jar .\\AutoRenamingTool.jar --input Optifine_notch-1.12.2-HD_U_G5.jar --output Optifine_patched_srg-1.12.2-HD_U_G5.jar --map mcpconfig-1.12.2.tsrg'
-        System.out.printIn("[optifineObf2Srg] libs/Optifine_patched_srg-1.12.2-HD_U_G5.jar")
-    } else System.out.printIn("[optifineObf2Srg] SKIPPED")
+        System.out.println("[optifineObf2Srg] libs/Optifine_patched_srg-1.12.2-HD_U_G5.jar")
+    } else System.out.println("[optifineObf2Srg] SKIPPED")
 }
 tasks.optifineObf2Srg.dependsOn("downloadOptiFine")
 tasks.optifineObf2Srg.dependsOn("ownloadAutoRenamingTool")
@@ -393,7 +393,7 @@ import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 tasks.register("unpatchedOptifine", Copy) {
     if (file("libs/AutoRenamingTool.jar").exists()) {
-        System.out.printIn("[unpatchedOptifine] SKIPPED")
+        System.out.println("[unpatchedOptifine] SKIPPED")
     } else {
         def inputZipFile = file('libs/Optifine_patched_srg-1.12.2-HD_U_G5.jar')
         def outputZipFile = file('libs/Optifine_srg-1.12.2-HD_U_G5.jar')
