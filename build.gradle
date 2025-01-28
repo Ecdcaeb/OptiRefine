@@ -365,7 +365,8 @@ tasks.register('downloadOptifine', Download) {
 }
 
 tasks.register('downloadAutoRenamingTool', Download) {
-    src 'https://maven.neoforged.net/releases/net/neoforged/AutoRenamingTool/2.0.8/AutoRenamingTool-2.0.8-all.jar'
+    //src 'https://maven.neoforged.net/releases/net/neoforged/AutoRenamingTool/2.0.8/AutoRenamingTool-2.0.8-all.jar'
+    src 'https://raw.githubusercontent.com/hube12/DecompilerMC/3a8aa87d01065fbd7fdc8422f19a0fa379740635/lib/SpecialSource-1.11.4.jar'
     dest rootProject.file("libs/AutoRenamingTool.jar")
     onlyIfModified true
     System.out.println("[downloadAutoRenamingTool] libs/AutoRenamingTool.jar")
@@ -374,7 +375,8 @@ tasks.register('downloadAutoRenamingTool', Download) {
 tasks.register('optifineObf2Srg', Exec) {
     if (!file("libs/Optifine_patched_srg-1.12.2-HD_U_G5.jar").exists()) {
         workingDir '../libs'
-        commandLine 'java -jar .\\AutoRenamingTool.jar --input Optifine_notch-1.12.2-HD_U_G5.jar --output Optifine_patched_srg-1.12.2-HD_U_G5.jar --map mcpconfig-1.12.2.tsrg'
+        commandLine 'java -jar AutoRenamingTool.jar --i .\\Optifine_notch-1.12.2-HD_U_G5.jar --o .\\Optifine_patched_srg-1.12.2-HD_U_G5.jar --m mcpconfig-1.12.2.tsrg'
+        // commandLine 'java -jar AutoRenamingTool.jar --input Optifine_notch-1.12.2-HD_U_G5.jar --output Optifine_patched_srg-1.12.2-HD_U_G5.jar --map mcpconfig-1.12.2.tsrg'
         System.out.println("[optifineObf2Srg] libs/Optifine_patched_srg-1.12.2-HD_U_G5.jar")
     } else System.out.println("[optifineObf2Srg] SKIPPED")
 }
@@ -385,7 +387,7 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 tasks.register("unpatchedOptifine", Copy) {
-    if (file("libs/AutoRenamingTool.jar").exists()) {
+    if (file("libs/Optifine_srg-1.12.2-HD_U_G5.jar").exists()) {
         System.out.println("[unpatchedOptifine] SKIPPED")
     } else {
         def inputZipFile = file('libs/Optifine_patched_srg-1.12.2-HD_U_G5.jar')
@@ -447,7 +449,6 @@ tasks.register("unpatchedOptifine", Copy) {
                     fos.close()
                 }
             } finally {
-                // 删除临时目录
                 tempDir.deleteDir()
             }
         }
