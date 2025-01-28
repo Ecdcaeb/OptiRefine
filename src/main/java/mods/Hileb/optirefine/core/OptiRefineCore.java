@@ -4,10 +4,8 @@ import jakarta.annotation.Nullable;
 import mods.Hileb.optirefine.OptiRefine;
 import mods.Hileb.optirefine.core.transformer.OptiRefineRuntimePublicTransformer;
 import mods.Hileb.optirefine.core.transformer.OptifineTransformerTransformer;
-import mods.Hileb.optirefine.library.fmlmodhacker.MetaDataDecoder;
 import mods.Hileb.optirefine.library.foundationx.TransformerHelper;
 import net.minecraftforge.fml.common.DummyModContainer;
-import net.minecraftforge.fml.common.ModMetadata;
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
 
 import java.util.Map;
