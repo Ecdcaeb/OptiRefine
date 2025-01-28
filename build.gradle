@@ -358,26 +358,21 @@ mixin {
 }
 
 tasks.register('downloadOptifine', Download) {
-    if (!file("libs/Optifine_notch-1.12.2-HD_U_G5.jar").exists()) {
-        src 'https://bmclapi2.bangbang93.com/optifine/1.12.2/HD_U/G5'
-
-        rename 'Optifine_notch-1.12.2-HD_U_G5.jar'
-        dest rootProject.mkdir("libs")
-        System.out.println("[downloadOptiFine] libs/Optifine_notch-1.12.2-HD_U_G5.jar")
-    } else System.out.println("[downloadOptiFine] SKIPPED")
+    src 'https://bmclapi2.bangbang93.com/optifine/1.12.2/HD_U/G5'
+    dest rootProject.file("libs/Optifine_notch-1.12.2-HD_U_G5.jar")
+    onlyIfModified true
+    System.out.println("[downloadOptiFine] libs/Optifine_notch-1.12.2-HD_U_G5.jar")
 }
 
 tasks.register('downloadAutoRenamingTool', Download) {
-    if (!file("libs/AutoRenamingTool.jar").exists()) {
-        src 'https://maven.neoforged.net/releases/net/neoforged/AutoRenamingTool/2.0.8/AutoRenamingTool-2.0.8-all.jar'
-        rename 'AutoRenamingTool.jar'
-        dest rootProject.mkdir("libs")
-        System.out.println("[downloadAutoRenamingTool] libs/AutoRenamingTool.jar")
-    } else System.out.println("[downloadAutoRenamingTool] SKIPPED")
+    src 'https://maven.neoforged.net/releases/net/neoforged/AutoRenamingTool/2.0.8/AutoRenamingTool-2.0.8-all.jar'
+    dest rootProject.file("libs/AutoRenamingTool.jar")
+    onlyIfModified true
+    System.out.println("[downloadAutoRenamingTool] libs/AutoRenamingTool.jar")
 }
 
 tasks.register('optifineObf2Srg', Exec) {
-    if (!file("libs/AutoRenamingTool.jar").exists()) {
+    if (!file("libs/Optifine_patched_srg-1.12.2-HD_U_G5.jar").exists()) {
         workingDir '../libs'
         commandLine 'java -jar .\\AutoRenamingTool.jar --input Optifine_notch-1.12.2-HD_U_G5.jar --output Optifine_patched_srg-1.12.2-HD_U_G5.jar --map mcpconfig-1.12.2.tsrg'
         System.out.println("[optifineObf2Srg] libs/Optifine_patched_srg-1.12.2-HD_U_G5.jar")
