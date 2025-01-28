@@ -376,7 +376,7 @@ tasks.register('downloadAutoRenamingTool', Download) {
     } else System.out.printIn("[downloadAutoRenamingTool] SKIPPED")
 }
 
-tasks.register('optifineObf2Srg', Extc) {
+tasks.register('optifineObf2Srg', Exec) {
     if (!file("libs/AutoRenamingTool.jar").exists()) {
         workingDir '../libs'
         commandLine 'java -jar .\\AutoRenamingTool.jar --input Optifine_notch-1.12.2-HD_U_G5.jar --output Optifine_patched_srg-1.12.2-HD_U_G5.jar --map mcpconfig-1.12.2.tsrg'
