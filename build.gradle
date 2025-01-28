@@ -357,7 +357,7 @@ mixin {
     add sourceSets.main, project.mixin_refmap
 }
 
-tasks.register('downloadOptiFine', Download) {
+tasks.register('downloadOptifine', Download) {
     if (!file("libs/Optifine_notch-1.12.2-HD_U_G5.jar").exists()) {
         src 'https://bmclapi2.bangbang93.com/optifine/1.12.2/HD_U/G5'
 
@@ -383,11 +383,9 @@ tasks.register('optifineObf2Srg', Exec) {
         System.out.println("[optifineObf2Srg] libs/Optifine_patched_srg-1.12.2-HD_U_G5.jar")
     } else System.out.println("[optifineObf2Srg] SKIPPED")
 }
-tasks.optifineObf2Srg.dependsOn("downloadOptiFine")
-tasks.optifineObf2Srg.dependsOn("ownloadAutoRenamingTool")
+tasks.optifineObf2Srg.dependsOn("downloadOptifine")
+tasks.optifineObf2Srg.dependsOn("downloadAutoRenamingTool")
 tasks.register("prepareOptifine"){}
-tasks.prepareOptifine.dependsOn("unpatchedOptifine")
-tasks.unpatchedOptifine.dependsOn('optifineObf2Srg')
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
@@ -460,7 +458,10 @@ tasks.register("unpatchedOptifine", Copy) {
         }
     }
 }
+tasks.prepareOptifine.dependsOn("unpatchedOptifine")
+tasks.unpatchedOptifine.dependsOn('optifineObf2Srg')
 compileJava.dependsOn("prepareOptifine")
+
 
 
 
