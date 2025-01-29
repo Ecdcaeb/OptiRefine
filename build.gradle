@@ -357,106 +357,90 @@ mixin {
     add sourceSets.main, project.mixin_refmap
 }
 
+// OptifineGradle Start
+
 tasks.register('downloadOptifine', Download) {
-    src 'https://bmclapi2.bangbang93.com/optifine/1.12.2/HD_U/G5'
-    dest rootProject.file("libs/Optifine_notch-1.12.2-HD_U_G5.jar")
-    onlyIfModified true
-    System.out.println("[downloadOptiFine] libs/Optifine_notch-1.12.2-HD_U_G5.jar")
+    src 'https://raw.githubusercontent.com/SynArchive/OptiFine-Archive/refs/heads/main/1.12.2/OptiFine_1.12.2_HD_U_G5.jar'
+    dest rootProject.file("build/optifine_gradle/Optifine_notch-1.12.2-HD_U_G5.jar")
+    overwrite false
+    System.out.println("[OptifineGradle] Obfucated Optifine")
 }
 
 tasks.register('downloadAutoRenamingTool', Download) {
     //src 'https://maven.neoforged.net/releases/net/neoforged/AutoRenamingTool/2.0.8/AutoRenamingTool-2.0.8-all.jar'
     src 'https://raw.githubusercontent.com/hube12/DecompilerMC/3a8aa87d01065fbd7fdc8422f19a0fa379740635/lib/SpecialSource-1.11.4.jar'
-    dest rootProject.file("libs/AutoRenamingTool.jar")
-    onlyIfModified true
-    System.out.println("[downloadAutoRenamingTool] libs/AutoRenamingTool.jar")
+    dest rootProject.file("build/optifine_gradle/AutoRenamingTool.jar")
+    overwrite false
+    System.out.println("[OptifineGradle] deobfTool")
 }
 
-tasks.register('optifineObf2Srg', Exec) {
-    if (!file("libs/Optifine_patched_srg-1.12.2-HD_U_G5.jar").exists()) {
-        workingDir '../libs'
-        commandLine 'java -jar AutoRenamingTool.jar --i .\\Optifine_notch-1.12.2-HD_U_G5.jar --o .\\Optifine_patched_srg-1.12.2-HD_U_G5.jar --m mcpconfig-1.12.2.tsrg'
-        // commandLine 'java -jar AutoRenamingTool.jar --input Optifine_notch-1.12.2-HD_U_G5.jar --output Optifine_patched_srg-1.12.2-HD_U_G5.jar --map mcpconfig-1.12.2.tsrg'
-        System.out.println("[optifineObf2Srg] libs/Optifine_patched_srg-1.12.2-HD_U_G5.jar")
-    } else System.out.println("[optifineObf2Srg] SKIPPED")
+tasks.register('downloadMCPConfig', Download) {
+    //src 'https://maven.neoforged.net/releases/net/neoforged/AutoRenamingTool/2.0.8/AutoRenamingTool-2.0.8-all.jar'
+    src 'https://raw.githubusercontent.com/MinecraftForge/MCPConfig/bc0ddbb8ca0fff8a2e34c4f14bed68af02e372d3/versions/release/1.12.2/joined.tsrg'
+    dest rootProject.file("build/optifine_gradle/mcpconfig-1.12.2.tsrg")
+    overwrite false
+    System.out.println("[OptifineGradle] download mcpconfig")
+}
+
+tasks.register('optifineObf2Srg') {
+    if(!file("libs/Optifine_patched_srg-1.12.2-HD_U_G5.jar").exists()){
+        Runtime.getRuntime().exec("java -jar AutoRenamingTool.jar --i Optifine_notch-1.12.2-HD_U_G5.jar --o Optifine_patched_srg-1.12.2-HD_U_G5.jar --m mcpconfig-1.12.2.tsrg".split(" "), null, file("build/optifine_gradle"))
+    }
 }
 tasks.optifineObf2Srg.dependsOn("downloadOptifine")
 tasks.optifineObf2Srg.dependsOn("downloadAutoRenamingTool")
+tasks.optifineObf2Srg.dependsOn("downloadMCPConfig")
 tasks.register("prepareOptifine"){}
+
+
 import java.util.zip.ZipEntry
-import java.util.zip.ZipInputStream
+import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
-tasks.register("unpatchedOptifine", Copy) {
+
+tasks.register("unpatchedOptifine") {
     if (file("libs/Optifine_srg-1.12.2-HD_U_G5.jar").exists()) {
         System.out.println("[unpatchedOptifine] SKIPPED")
     } else {
-        def inputZipFile = file('libs/Optifine_patched_srg-1.12.2-HD_U_G5.jar')
+        def inputZipFile = file('build/optifine_gradle/Optifine_patched_srg-1.12.2-HD_U_G5.jar')
         def outputZipFile = file('libs/Optifine_srg-1.12.2-HD_U_G5.jar')
-
-        doLast {
-            def tempDir = file("build/temp/unpatchedOptifine")
-            tempDir.mkdirs()
-
-            try {
-                {
-                    def fis = new FileInputStream(inputZipFile)
-                    def zis = new ZipInputStream(fis)
-                    ZipEntry entry
-                    while ((entry = zis.nextEntry) != null) {
-                        if (!entry.name.startsWith('net/minecraft')) {
-                            def outputFile = new File(tempDir, entry.name)
-                            if (entry.isDirectory()) {
-                                outputFile.mkdirs()
-                            } else {
-                                outputFile.parentFile.mkdirs()
-                                def fos = new FileOutputStream(outputFile)
-                                def bos = new BufferedOutputStream(fos)
-                                byte[] buffer = new byte[4096]
-                                int bytesRead
-                                while ((bytesRead = zis.read(buffer)) != -1) {
-                                    bos.write(buffer, 0, bytesRead)
+    }
+}
+tasks.register("unpatchedOptifine", Copy) {
+    doFirst {
+        if (!file("build/optifine_gradle/Optifine_srg-1.12.2-HD_U_G5.jar").exists()) {
+            try (ZipFile jar = new ZipFile("build/optifine_gradle/Optifine_patched_srg-1.12.2-HD_U_G5.jar")){
+                try (FileOutputStream fos = new FileOutputStream("build/optifine_gradle/Optifine_srg-1.12.2-HD_U_G5.jar")) {
+                    ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(fos))
+                    Enumeration<ZipEntry> entries = zipFile.entries()
+                    while (entries.hasMoreElements()) {
+                        ZipEntry entry = entries.nextElement()
+                        if (!entry.name.startsWith("net/minecraft")) {
+                            zos.putNextEntry(new ZipEntry(entry.name));
+                            try (InputStream is = jar.getInputStream(entry)) {
+                                try(BufferedInputStream bufferedInputStream = new BufferedInputStream(is)) {
+                                    byte[] buffer = bufferedInputStream.readAllBytes();
+                                    zos.write(buffer, 0, buffer.length);
                                 }
-                                bos.close()
-                                fos.close()
                             }
+                            zos.closeEntry();
                         }
-                        zis.closeEntry()
                     }
-                    zis.close()
-                    fis.close()
                 }
-                {
-                    def fos = new FileOutputStream(outputZipFile)
-                    def zos = new ZipOutputStream(fos)
-                    tempDir.eachFileRecurse { file ->
-                        def relativePath = file.absolutePath.replace(tempDir.absolutePath + File.separator, '')
-                        def zipEntry = new ZipEntry(relativePath)
-                        zos.putNextEntry(zipEntry)
-                        if (!file.isDirectory()) {
-                            def fis = new FileInputStream(file)
-                            def bis = new BufferedInputStream(fis)
-                            byte[] buffer = new byte[4096]
-                            int bytesRead
-                            while ((bytesRead = bis.read(buffer)) != -1) {
-                                zos.write(buffer, 0, bytesRead)
-                            }
-                            bis.close()
-                            fis.close()
-                        }
-                        zos.closeEntry()
-                    }
-                    zos.close()
-                    fos.close()
-                }
-            } finally {
-                tempDir.deleteDir()
             }
         }
+    }
+    if (!file("libs/Optifine_srg-1.12.2-HD_U_G5.jar").exists()) {
+        from 'build/optifine_gradle/Optifine_srg-1.12.2-HD_U_G5.jar'
+        to 'libs/'
     }
 }
 tasks.prepareOptifine.dependsOn("unpatchedOptifine")
 tasks.unpatchedOptifine.dependsOn('optifineObf2Srg')
-compileJava.dependsOn("prepareOptifine")
+beforeEvaluate{
+    tasks.prepareOptifine.execute()
+}
+
+// OptifineGradle End
 
 
 
