@@ -446,7 +446,7 @@ tasks.register("libUnpatchedOptifine", Copy) {
         }
     }
 
-    from unpatchedJar
+    from "build/optifine_gradle/Optifine_srg-1.12.2-HD_U_G5.jar"
     into 'libs/'
 
     if (file("lib/Optifine_srg-1.12.2-HD_U_G5.jar").exists()) {
