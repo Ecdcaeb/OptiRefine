@@ -168,6 +168,10 @@ repositories {
         name 'GTCEu Maven'
         url 'https://maven.gtceu.com'
     }
+    maven {
+        name 'Hileb'
+        url 'https://ecdcaeb.github.io/maven/'
+    }
     exclusiveContent {
         forRepository {
             maven {
@@ -196,7 +200,7 @@ dependencies {
     minecraft "com.cleanroommc:cleanroom:${project.cleanroom_version}"
 
 
-    implementation fg.deobf("libs/Optifine__srg-1.12.2-HD_U_G5.jar")
+    implementation fg.deobf("net.optifine:optifine:1.12.2-HD_U_G5_unpatched_srg")
     //compileOnly fileTree('libs') { include '*.jar' }
     // compileOnly 'com.cleanroommc:groovyscript:1.1.3'
     // implementation 'curse.maven:just-enough-dimensions-254317:2932048'
@@ -358,137 +362,6 @@ mixin {
     add sourceSets.main, project.mixin_refmap
 }
 
-
-/***
- *   /$$$$$$              /$$     /$$  /$$$$$$  /$$                            /$$$$$$                           /$$ /$$
- *  /$$__  $$            | $$    |__/ /$$__  $$|__/                           /$$__  $$                         | $$| $$
- * | $$  \ $$  /$$$$$$  /$$$$$$   /$$| $$  \__/ /$$ /$$$$$$$   /$$$$$$       | $$  \__/  /$$$$$$  /$$$$$$   /$$$$$$$| $$  /$$$$$$
- * | $$  | $$ /$$__  $$|_  $$_/  | $$| $$$$    | $$| $$__  $$ /$$__  $$      | $$ /$$$$ /$$__  $$|____  $$ /$$__  $$| $$ /$$__  $$
- * | $$  | $$| $$  \ $$  | $$    | $$| $$_/    | $$| $$  \ $$| $$$$$$$$      | $$|_  $$| $$  \__/ /$$$$$$$| $$  | $$| $$| $$$$$$$$
- * | $$  | $$| $$  | $$  | $$ /$$| $$| $$      | $$| $$  | $$| $$_____/      | $$  \ $$| $$      /$$__  $$| $$  | $$| $$| $$_____/
- * |  $$$$$$/| $$$$$$$/  |  $$$$/| $$| $$      | $$| $$  | $$|  $$$$$$$      |  $$$$$$/| $$     |  $$$$$$$|  $$$$$$$| $$|  $$$$$$$
- *  \______/ | $$____/    \___/  |__/|__/      |__/|__/  |__/ \_______/       \______/ |__/      \_______/ \_______/|__/ \_______/
- *           | $$
- *           | $$
- *           |__/
- */
-
-
-tasks.register('downloadOptifine', Download) {
-    src 'https://raw.githubusercontent.com/SynArchive/OptiFine-Archive/refs/heads/main/1.12.2/OptiFine_1.12.2_HD_U_G5.jar'
-    dest rootProject.file("build/optifine_gradle/Optifine_notch-1.12.2-HD_U_G5.jar")
-    overwrite false
-    System.out.println("[OptifineGradle] Obfucated Optifine")
-}
-
-tasks.register('downloadAutoRenamingTool', Download) {
-    //src 'https://maven.neoforged.net/releases/net/neoforged/AutoRenamingTool/2.0.8/AutoRenamingTool-2.0.8-all.jar'
-    src 'https://raw.githubusercontent.com/hube12/DecompilerMC/3a8aa87d01065fbd7fdc8422f19a0fa379740635/lib/SpecialSource-1.11.4.jar'
-    dest rootProject.file("build/optifine_gradle/SpecialSource.jar")
-    overwrite false
-    System.out.println("[OptifineGradle] deobfTool")
-}
-
-tasks.register('downloadMCPConfig', Download) {
-    src 'https://raw.githubusercontent.com/MinecraftForge/MCPConfig/bc0ddbb8ca0fff8a2e34c4f14bed68af02e372d3/versions/release/1.12.2/joined.tsrg'
-    dest rootProject.file("build/optifine_gradle/mcpconfig-1.12.2.tsrg")
-    overwrite false
-    System.out.println("[OptifineGradle] download mcpconfig")
-}
-
-tasks.register('optifineObf2Srg', JavaExec) {
-    classpath = files("build/optifine_gradle/SpecialSource.jar")
-    mainClass = 'net.md_5.specialsource.SpecialSource'
-    if(!file("build/optifine_gradle/Optifine_patched_srg-1.12.2-HD_U_G5.jar").exists()){
-        args '--i', 'build/optifine_gradle/Optifine_notch-1.12.2-HD_U_G5.jar', '--o' , 'build/optifine_gradle/Optifine_patched_srg-1.12.2-HD_U_G5.jar', '--m', 'build/optifine_gradle/mcpconfig-1.12.2.tsrg'
-        System.out.println("[OptifineGradle] optifineObf2Srg excuting")
-    } else {
-        enabled = false
-        System.out.println("[OptifineGradle] optifineObf2Srg SKIPPED")
-    }
-}
-tasks.optifineObf2Srg.dependsOn("downloadOptifine")
-tasks.optifineObf2Srg.dependsOn("downloadAutoRenamingTool")
-tasks.optifineObf2Srg.dependsOn("downloadMCPConfig")
-
-import java.util.zip.ZipEntry
-import java.util.zip.ZipFile
-import java.util.zip.ZipOutputStream
-
-tasks.register("libUnpatchedOptifine", Copy) {
-    doFirst{
-        def patchedJar = file("build/optifine_gradle/Optifine_patched_srg-1.12.2-HD_U_G5.jar")
-        def unpatchedJar = file("build/optifine_gradle/Optifine_srg-1.12.2-HD_U_G5.jar")
-
-        if (!unpatchedJar.exists()) {
-            if (patchedJar.exists()) {
-                try (ZipFile jar = new ZipFile(patchedJar)) {
-                    try (FileOutputStream fos = new FileOutputStream(unpatchedJar)) {
-                        ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(fos))
-                        Enumeration<ZipEntry> entries = jar.entries()
-                        while (entries.hasMoreElements()) {
-                            ZipEntry entry = entries.nextElement()
-                            if (!entry.name.startsWith("net/minecraft")) {
-                                zos.putNextEntry(new ZipEntry(entry.name));
-                                try (InputStream is = jar.getInputStream(entry)) {
-                                    try (BufferedInputStream bufferedInputStream = new BufferedInputStream(is)) {
-                                        byte[] buffer = bufferedInputStream.readAllBytes();
-                                        zos.write(buffer, 0, buffer.length);
-                                    }
-                                }
-                                zos.closeEntry();
-                            }
-                        }
-                    }
-                }
-            } else {
-            throw new IllegalAccessException("[OptifineGradle] Optifine_patched_srg Not Found, optifineObf2Srg might failed")
-            }
-        }
-    }
-
-    from "build/optifine_gradle/Optifine_srg-1.12.2-HD_U_G5.jar"
-    into 'libs/'
-
-    if (file("lib/Optifine_srg-1.12.2-HD_U_G5.jar").exists()) {
-        enabled = false
-    }
-}
-tasks.libUnpatchedOptifine.dependsOn("optifineObf2Srg")
-
-tasks.register("libPatchedOptifine", Copy) {
-    from "build/optifine_gradle/Optifine_patched_srg-1.12.2-HD_U_G5.jar"
-    into 'libs/'
-
-    if (file("lib/Optifine_patched_srg-1.12.2-HD_U_G5.jar").exists()) {
-        System.out.print("[OptifineGradle] libPatchedOptifine SKIPPED")
-        enabled = false
-    }
-}
-tasks.libPatchedOptifine.dependsOn('optifineObf2Srg')
-
-tasks.register("OptifineGradle"){
-    // boolean useUnpatchedOptifine = false;
-    // if(useUnpatchedOptifine) {
-    //     tasks.libUnpatchedOptifine.execute()
-    // } else tasks.libPatchedOptifine.execute()
-}
-beforeEvaluate{
-    //tasks.OptifineGradle.execute()
-}
-/*
-
- Optifine Gradle
-  Edit OptifineGradle task, useUnpatcheOptifine
-    - true  implementation fg.deobf('blank:Optifine_srg-1.12.2:HD_U_G5')
-    - false implementation fg.deobf('blank:Optifine_patched_srg-1.12.2:HD_U_G5')
-  Add : to .gitignore to avoid copyright issue
-    ./libs/Optifine_srg-1.12.2-HD_U_G5.jar
-    ./libs/Optifine_patched_srg-1.12.2-HD_U_G5.jar
-
-
-*/
-/** OptifineGradle End **/
 
 
 
