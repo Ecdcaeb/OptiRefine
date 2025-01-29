@@ -31,7 +31,7 @@ jobs:
             uses: actions/setup-java@v4.2.1
             with:
               java-version: '21'
-              distribution: 'temurin'
+              distribution: 'zulu'
               cache: gradle
           - name: Cache Gradle
             id: cache-gradle
