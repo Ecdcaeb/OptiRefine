@@ -415,32 +415,34 @@ import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
 
 tasks.register("libUnpatchedOptifine", Copy) {
-    def patchedJar = file("build/optifine_gradle/Optifine_patched_srg-1.12.2-HD_U_G5.jar")
-    def unpatchedJar = file("build/optifine_gradle/Optifine_srg-1.12.2-HD_U_G5.jar")
+    doFirst{
+        def patchedJar = file("build/optifine_gradle/Optifine_patched_srg-1.12.2-HD_U_G5.jar")
+        def unpatchedJar = file("build/optifine_gradle/Optifine_srg-1.12.2-HD_U_G5.jar")
 
-    if (!unpatchedJar.exists()) {
-        if (patchedJar.exists()) {
-            try (ZipFile jar = new ZipFile(patchedJar)) {
-                try (FileOutputStream fos = new FileOutputStream(unpatchedJar)) {
-                    ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(fos))
-                    Enumeration<ZipEntry> entries = jar.entries()
-                    while (entries.hasMoreElements()) {
-                        ZipEntry entry = entries.nextElement()
-                        if (!entry.name.startsWith("net/minecraft")) {
-                            zos.putNextEntry(new ZipEntry(entry.name));
-                            try (InputStream is = jar.getInputStream(entry)) {
-                                try (BufferedInputStream bufferedInputStream = new BufferedInputStream(is)) {
-                                    byte[] buffer = bufferedInputStream.readAllBytes();
-                                    zos.write(buffer, 0, buffer.length);
+        if (!unpatchedJar.exists()) {
+            if (patchedJar.exists()) {
+                try (ZipFile jar = new ZipFile(patchedJar)) {
+                    try (FileOutputStream fos = new FileOutputStream(unpatchedJar)) {
+                        ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(fos))
+                        Enumeration<ZipEntry> entries = jar.entries()
+                        while (entries.hasMoreElements()) {
+                            ZipEntry entry = entries.nextElement()
+                            if (!entry.name.startsWith("net/minecraft")) {
+                                zos.putNextEntry(new ZipEntry(entry.name));
+                                try (InputStream is = jar.getInputStream(entry)) {
+                                    try (BufferedInputStream bufferedInputStream = new BufferedInputStream(is)) {
+                                        byte[] buffer = bufferedInputStream.readAllBytes();
+                                        zos.write(buffer, 0, buffer.length);
+                                    }
                                 }
+                                zos.closeEntry();
                             }
-                            zos.closeEntry();
                         }
                     }
                 }
-            }
-        } else {
+            } else {
             throw new IllegalAccessException("[OptifineGradle] Optifine_patched_srg Not Found, optifineObf2Srg might failed")
+            }
         }
     }
 
@@ -454,7 +456,6 @@ tasks.register("libUnpatchedOptifine", Copy) {
 tasks.libUnpatchedOptifine.dependsOn("optifineObf2Srg")
 
 tasks.register("libPatchedOptifine", Copy) {
-    System.out.print("[OptifineGradle] libPatchedOptifine")
     from "build/optifine_gradle/Optifine_patched_srg-1.12.2-HD_U_G5.jar"
     into 'libs/'
 
