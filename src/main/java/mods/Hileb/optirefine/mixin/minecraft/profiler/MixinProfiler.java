@@ -5,7 +5,6 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.optifine.Config;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.profiler.Profiler;
 import net.optifine.Lagometer;
 import org.objectweb.asm.Opcodes;

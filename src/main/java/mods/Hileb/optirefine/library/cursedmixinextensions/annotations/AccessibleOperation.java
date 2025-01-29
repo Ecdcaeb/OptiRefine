@@ -1,5 +1,6 @@
 package mods.Hileb.optirefine.library.cursedmixinextensions.annotations;
 
+@SuppressWarnings("all")
 public @interface AccessibleOperation {
     int opcode() default 0;
 

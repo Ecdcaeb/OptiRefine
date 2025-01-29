@@ -34,15 +34,50 @@ public class OptiRefineBlackboard {
             "net.minecraft.client.model.ModelRenderer",
             "net.minecraft.client.model.TexturedQuad",
             "net.minecraft.client.multiplayer.WorldClient",
+            "net.minecraft.client.multiplayer.WorldClient$1",
+            "net.minecraft.client.multiplayer.WorldClient$2",
+            "net.minecraft.client.multiplayer.WorldClient$3",
+            "net.minecraft.client.multiplayer.WorldClient$4",
             "net.minecraft.client.particle.ParticleItemPickup",
             "net.minecraft.client.particle.ParticleManager",
+            "net.minecraft.client.particle.ParticleManager$1",
+            "net.minecraft.client.particle.ParticleManager$2",
+            "net.minecraft.client.particle.ParticleManager$3",
+            "net.minecraft.client.particle.ParticleManager$4",
 
+            "net.minecraft.client.resources.AbstractResourcePack", // Optifine : access -> ignored
+            "net.minecraft.client.resources.DefaultResourcePack", //
+            "net.minecraft.client.resources.I18n",
+
+            "net.minecraft.client.resources.ResourcePackRepository$1",
+            "net.minecraft.client.resources.ResourcePackRepository$2",
+            "net.minecraft.client.resources.ResourcePackRepository$3",
+            "net.minecraft.client.resources.ResourcePackRepository$Entry",
+            "net.minecraft.client.settings.GameSettings$1",
+            "net.minecraft.client.settings.GameSettings$2",
             "net.minecraft.client.settings.GameSettings$Options",
 
+
+
             "net.minecraft.crash.CrashReport",
+            "net.minecraft.crash.CrashReport$1",
+            "net.minecraft.crash.CrashReport$2",
+            "net.minecraft.crash.CrashReport$3",
+            "net.minecraft.crash.CrashReport$4",
+            "net.minecraft.crash.CrashReport$5",
+            "net.minecraft.crash.CrashReport$6",
+            "net.minecraft.crash.CrashReport$7",
             "net.minecraft.entity.EntityLiving",
+            "net.minecraft.entity.EntityLiving$1",
+            "net.minecraft.entity.EntityLiving$SpawnPlacementType",
+            "net.minecraft.network.datasync.EntityDataManager",
+            "net.minecraft.network.datasync.EntityDataManager$1",
+            "net.minecraft.network.PacketThreadUtil",
+            "net.minecraft.network.PacketThreadUtil$1",
             "net.minecraft.potion.PotionUtils",
             "net.minecraft.profiler.Profiler",
+            "net.minecraft.profiler.Profiler$Result",
+
 
             "net.minecraft.util.math.ChunkPos"
     );
