@@ -1,0 +1,56 @@
+# This workflow will build and upload test artifact
+# Simple workflow with ignoring condition to prevent unneccessary build
+# To download artifact check on job task
+
+name: Build Test Artifact
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    name: Build and Upload Artifact
+    runs-on: ubuntu-latest
+
+    steps:
+          - name: Checkout Repository
+            uses: actions/checkout@v4.1.4
+          - name: Gather Gradle properties
+            uses: madhead/read-java-properties@latest
+            id: gradle_properties
+            with:
+                 file: gradle.properties
+                 all: true
+
+          - name: Grant Execute Permission for gradlew
+            run: chmod +x ./gradlew
+          - name: Change mod version
+            run: sed -i "s/mod_version.*=.*/mod_version = snapshot-${{ github.run_number}}/g" gradle.properties
+          - name: Setup Java
+            uses: actions/setup-java@v4.2.1
+            with:
+              java-version: '21'
+              distribution: 'temurin'
+              cache: gradle
+          - name: Cache Gradle
+            id: cache-gradle
+            uses: actions/cache@v3
+            env:
+              cache-name: cache-gradle
+            with:
+              path:
+                .gradle/~
+                build/~
+              key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('build.gradle') }}
+              restore-keys: |
+                ${{ runner.os }}-build-${{ env.cache-name }}-
+                ${{ runner.os }}-build-
+                ${{ runner.os }}-
+          - name: Build
+            run: ./gradlew build
+          - name: Upload Build Artifacts
+            uses: actions/upload-artifact@v4.3.3
+            with:
+              name: OptiRefine-snapshot-${{ github.run_number}}.jar
+              path: build/libs

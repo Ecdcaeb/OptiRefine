@@ -1,0 +1,40 @@
+{
+  "package": "mods.Hileb.optirefine.mixin",
+  "required": true,
+  "refmap": "${mixin_refmap}",
+  "plugin": "mods.Hileb.optirefine.core.OptiRefineMixinPlugin",
+  "target": "@env(DEFAULT)",
+  "minVersion": "0.8.5",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "minecraft.block.MixinBlockAir",
+    "minecraft.block.state.MixinBlockStateBase",
+    "minecraft.client.entity.MixinAbstractClientPlayer",
+    "minecraft.client.model.MixinModelBox",
+    "minecraft.client.model.MixinModelRenderer",
+    "minecraft.client.model.MixinTexturedQuad",
+    "minecraft.crash.MixinCrashReport",
+    "minecraft.entity.MixinEntityLiving",
+    "minecraft.potion.MixinPotionUtil",
+    "minecraft.profiler.MixinProfiler",
+    "minecraft.util.math.MixinChunkPos",
+    "minecraftforge.fml.MixinFMLClientHandler"
+  ],
+  "server": [],
+  "client": [
+    "minecraft.client.gui.MixinFontRenderer",
+    "minecraft.client.gui.MixinGuiCustomizeSkin",
+    "minecraft.client.gui.MixinGuiDownloadTerrain",
+    "minecraft.client.gui.MixinGuiIngame",
+    "minecraft.client.gui.MixinGuiMainMenu",
+    "minecraft.client.gui.MixinGuiOverlayDebug",
+    "minecraft.client.gui.MixinGuiScreenWorking",
+    "minecraft.client.gui.MixinGuiSlot",
+    "minecraft.client.gui.MixinGuiVideoSettings",
+    "minecraft.client.multiplayer.MixinWorldClient",
+    "minecraft.client.particle.MixinParticleItemPickup",
+    "minecraft.client.particle.MixinParticleManager",
+    "minecraft.client.settings.MixinGameSettingsOption",
+    "minecraftforge.client.MixinGuiIngameForge"
+  ]
+}
