@@ -472,6 +472,7 @@ tasks.register("OptifineGradle"){
         tasks.libUnpatchedOptifine.execute()
     } else tasks.libPatchedOptifine.execute()
 }
+tasks.OptifineGradle.execute()
 /*
 
  Optifine Gradle
@@ -485,10 +486,6 @@ tasks.register("OptifineGradle"){
 
 */
 /** OptifineGradle End **/
-
-beforeEvaluate{
-    tasks.OptifineGradle.execute()
-}
 
 
 
