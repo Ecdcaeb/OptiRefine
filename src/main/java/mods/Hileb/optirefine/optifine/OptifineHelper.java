@@ -2,10 +2,11 @@ package mods.Hileb.optirefine.optifine;
 
 
 
+import optifine.OptiFineClassTransformer;
+
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
-import static net.optifine.reflect.Reflector.OptiFineClassTransformer;
 
 public class OptifineHelper {
     private static final OptiFineClassTransformer optifineClassTransformer = new OptiFineClassTransformer();
