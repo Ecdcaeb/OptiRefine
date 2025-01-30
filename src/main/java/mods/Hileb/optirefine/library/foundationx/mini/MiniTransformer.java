@@ -76,8 +76,8 @@ public abstract class MiniTransformer implements TransformerHelper.TargetedASMTr
 			for (final Patch.Method a : method.getAnnotationsByType(Patch.Method.class)) {
 				final String methodSign = a.value();
 				final int index = methodSign.indexOf('(');
-				final String methodName = methodSign.substring(0, index -1);
-				final String methodDesc = methodSign.substring(index, methodSign.length() -1);
+				final String methodName = methodSign.substring(0, index);
+				final String methodDesc = methodSign.substring(index);
 				String desc = MiniUtils.remapMethod(className, methodName, methodDesc) + MiniUtils.remapMethodDesc(methodDesc);
 
 				if (DEBUG) {
@@ -139,8 +139,8 @@ public abstract class MiniTransformer implements TransformerHelper.TargetedASMTr
 			for (final Patch.Method a : f.getAnnotationsByType(Patch.Method.class)) {
 				final String methodSign = a.value();
 				final int index = methodSign.indexOf('(');
-				final String methodName = methodSign.substring(0, index -1);
-				final String methodDesc = methodSign.substring(index, methodSign.length() -1);
+				final String methodName = methodSign.substring(0, index);
+				final String methodDesc = methodSign.substring(index);
 				String desc = MiniUtils.remapMethod(className, methodName, methodDesc) + MiniUtils.remapMethodDesc(methodDesc);
 
 				if (DEBUG) {
