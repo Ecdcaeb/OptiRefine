@@ -20,6 +20,7 @@ public class OptifineTransformerTransformer extends MiniTransformer{
         context.jumpToStart();
         context.add(
                 GETSTATIC("mods/Hileb/optirefine/core/OptiRefineBlackboard", "CLASSES", "Ljava/util/HashSet;"),
+                ALOAD(2),
                 INVOKEVIRTUAL("java/util/HashSet", "contains", "(Ljava/lang/Object;)Z", true),
                 IFNE(labelNode),
                 ALOAD(3),
