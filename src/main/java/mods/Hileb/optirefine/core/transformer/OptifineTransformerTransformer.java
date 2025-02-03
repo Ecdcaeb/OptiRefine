@@ -42,7 +42,7 @@ public class OptifineTransformerTransformer extends MiniTransformer{
             result.erase();
             context.add(
                 INVOKESTATIC("mods/Hileb/optirefine/core/transformer/OptifineTransformerTransformer", "url2uri", "(Ljava/net/URL;)Ljava/net/URI;");
-            )
+            );
             result.next();
         }
     }
