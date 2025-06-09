@@ -19,7 +19,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @SuppressWarnings("all")
 @Mixin(AbstractClientPlayer.class)
-public class MixinAbstractClientPlayer {
+public abstract class MixinAbstractClientPlayer {
 
     @Unique
     private ResourceLocation locationOfCape = null;

@@ -40,7 +40,7 @@ public abstract class MixinGuiSlot{
     }
 
     @Unique
-    @AccessibleOperation(opcode = Opcodes.NEW, desc = "net.minecraft.client.gui.GuiResourcePackList")
+    @AccessibleOperation(opcode = Opcodes.INSTANCEOF, desc = "net.minecraft.client.gui.GuiResourcePackList")
     public boolean _is_GuiResourcePackList(){
         throw new AbstractMethodError();
     }

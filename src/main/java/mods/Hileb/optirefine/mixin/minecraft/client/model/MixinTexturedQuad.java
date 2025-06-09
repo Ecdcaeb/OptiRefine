@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(TexturedQuad.class)
-public class MixinTexturedQuad {
+public abstract class MixinTexturedQuad {
 
     @Redirect(method = "draw", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/BufferBuilder;begin(ILnet/minecraft/client/renderer/vertex/VertexFormat;)V"))
     public void injectDraw(BufferBuilder instance, int p_181668_1_, VertexFormat p_181668_2_){

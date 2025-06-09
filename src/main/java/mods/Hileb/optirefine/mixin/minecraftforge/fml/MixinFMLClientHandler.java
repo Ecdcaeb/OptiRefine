@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(FMLClientHandler.class)
-public class MixinFMLClientHandler {
+public abstract class MixinFMLClientHandler {
     @Inject(method = "handleLoadingScreen", at = @At("RETURN"), remap = false, cancellable = true)
     public void inject$handleLoadingScreen(ScaledResolution scaledResolution, CallbackInfoReturnable<Boolean> returnable){
         if (!returnable.getReturnValueZ()) {

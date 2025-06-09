@@ -8,7 +8,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
 @Mixin(GameSettings.Options.class)
-public class MixinGameSettingsOption {
+public abstract class MixinGameSettingsOption {
     @Unique
     private static final Class<?>[] _optirefine_args0 = new Class[]{String.class, boolean.class, boolean.class};
     @Unique

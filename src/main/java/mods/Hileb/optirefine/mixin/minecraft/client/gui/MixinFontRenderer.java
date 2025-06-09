@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.Properties;
 
 @Mixin(FontRenderer.class)
-public class MixinFontRenderer {
+public abstract class MixinFontRenderer {
 
     @Shadow @Final protected ResourceLocation locationFontTexture;
 
