@@ -54,7 +54,7 @@ apply plugin: "de.undercouch.download"
 
 version = project.mod_version
 group = project.root_package
-archivesBaseName = project.mod_name
+archivesBaseName = "!" + project.mod_name
 
 
 
