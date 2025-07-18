@@ -2,9 +2,12 @@ package net.minecraft.client.renderer;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockLiquid;
+import net.minecraft.block.BlockSlab;
+import net.minecraft.block.BlockSlab.EnumBlockHalf;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.block.model.FaceBakery;
 import net.minecraft.client.renderer.color.BlockColors;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;
@@ -13,6 +16,9 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.IBlockAccess;
+import net.optifine.CustomColors;
+import net.optifine.render.RenderEnv;
+import net.optifine.shaders.SVertexBuilder;
 
 public class BlockFluidRenderer {
    private final BlockColors blockColors;
@@ -20,403 +26,298 @@ public class BlockFluidRenderer {
    private final TextureAtlasSprite[] atlasSpritesWater = new TextureAtlasSprite[2];
    private TextureAtlasSprite atlasSpriteWaterOverlay;
 
-   public BlockFluidRenderer(BlockColors var1) {
-      this.blockColors = ☃;
+   public BlockFluidRenderer(BlockColors blockColorsIn) {
+      this.blockColors = blockColorsIn;
       this.initAtlasSprites();
    }
 
    protected void initAtlasSprites() {
-      TextureMap ☃ = Minecraft.getMinecraft().getTextureMapBlocks();
-      this.atlasSpritesLava[0] = ☃.getAtlasSprite("minecraft:blocks/lava_still");
-      this.atlasSpritesLava[1] = ☃.getAtlasSprite("minecraft:blocks/lava_flow");
-      this.atlasSpritesWater[0] = ☃.getAtlasSprite("minecraft:blocks/water_still");
-      this.atlasSpritesWater[1] = ☃.getAtlasSprite("minecraft:blocks/water_flow");
-      this.atlasSpriteWaterOverlay = ☃.getAtlasSprite("minecraft:blocks/water_overlay");
+      TextureMap texturemap = Minecraft.getMinecraft().getTextureMapBlocks();
+      this.atlasSpritesLava[0] = texturemap.getAtlasSprite("minecraft:blocks/lava_still");
+      this.atlasSpritesLava[1] = texturemap.getAtlasSprite("minecraft:blocks/lava_flow");
+      this.atlasSpritesWater[0] = texturemap.getAtlasSprite("minecraft:blocks/water_still");
+      this.atlasSpritesWater[1] = texturemap.getAtlasSprite("minecraft:blocks/water_flow");
+      this.atlasSpriteWaterOverlay = texturemap.getAtlasSprite("minecraft:blocks/water_overlay");
    }
 
-   public boolean renderFluid(IBlockAccess var1, IBlockState var2, BlockPos var3, BufferBuilder var4) {
-      BlockLiquid ☃ = (BlockLiquid)☃.getBlock();
-      boolean ☃x = ☃.getMaterial() == Material.LAVA;
-      TextureAtlasSprite[] ☃xx = ☃x ? this.atlasSpritesLava : this.atlasSpritesWater;
-      int ☃xxx = this.blockColors.colorMultiplier(☃, ☃, ☃, 0);
-      float ☃xxxx = (☃xxx >> 16 & 0xFF) / 255.0F;
-      float ☃xxxxx = (☃xxx >> 8 & 0xFF) / 255.0F;
-      float ☃xxxxxx = (☃xxx & 0xFF) / 255.0F;
-      boolean ☃xxxxxxx = ☃.shouldSideBeRendered(☃, ☃, EnumFacing.UP);
-      boolean ☃xxxxxxxx = ☃.shouldSideBeRendered(☃, ☃, EnumFacing.DOWN);
-      boolean[] ☃xxxxxxxxx = new boolean[]{
-         ☃.shouldSideBeRendered(☃, ☃, EnumFacing.NORTH),
-         ☃.shouldSideBeRendered(☃, ☃, EnumFacing.SOUTH),
-         ☃.shouldSideBeRendered(☃, ☃, EnumFacing.WEST),
-         ☃.shouldSideBeRendered(☃, ☃, EnumFacing.EAST)
-      };
-      if (!☃xxxxxxx && !☃xxxxxxxx && !☃xxxxxxxxx[0] && !☃xxxxxxxxx[1] && !☃xxxxxxxxx[2] && !☃xxxxxxxxx[3]) {
-         return false;
-      } else {
-         boolean ☃xxxxxxxxxx = false;
-         float ☃xxxxxxxxxxx = 0.5F;
-         float ☃xxxxxxxxxxxx = 1.0F;
-         float ☃xxxxxxxxxxxxx = 0.8F;
-         float ☃xxxxxxxxxxxxxx = 0.6F;
-         Material ☃xxxxxxxxxxxxxxx = ☃.getMaterial();
-         float ☃xxxxxxxxxxxxxxxx = this.getFluidHeight(☃, ☃, ☃xxxxxxxxxxxxxxx);
-         float ☃xxxxxxxxxxxxxxxxx = this.getFluidHeight(☃, ☃.south(), ☃xxxxxxxxxxxxxxx);
-         float ☃xxxxxxxxxxxxxxxxxx = this.getFluidHeight(☃, ☃.east().south(), ☃xxxxxxxxxxxxxxx);
-         float ☃xxxxxxxxxxxxxxxxxxx = this.getFluidHeight(☃, ☃.east(), ☃xxxxxxxxxxxxxxx);
-         double ☃xxxxxxxxxxxxxxxxxxxx = ☃.getX();
-         double ☃xxxxxxxxxxxxxxxxxxxxx = ☃.getY();
-         double ☃xxxxxxxxxxxxxxxxxxxxxx = ☃.getZ();
-         float ☃xxxxxxxxxxxxxxxxxxxxxxx = 0.001F;
-         if (☃xxxxxxx) {
-            ☃xxxxxxxxxx = true;
-            float ☃xxxxxxxxxxxxxxxxxxxxxxxx = BlockLiquid.getSlopeAngle(☃, ☃, ☃xxxxxxxxxxxxxxx, ☃);
-            TextureAtlasSprite ☃xxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxxxxxx > -999.0F ? ☃xx[1] : ☃xx[0];
-            ☃xxxxxxxxxxxxxxxx -= 0.001F;
-            ☃xxxxxxxxxxxxxxxxx -= 0.001F;
-            ☃xxxxxxxxxxxxxxxxxx -= 0.001F;
-            ☃xxxxxxxxxxxxxxxxxxx -= 0.001F;
-            float ☃xxxxxxxxxxxxxxxxxxxxxxxxxx;
-            float ☃xxxxxxxxxxxxxxxxxxxxxxxxxxx;
-            float ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxx;
-            float ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxx;
-            float ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;
-            float ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;
-            float ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;
-            float ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;
-            if (☃xxxxxxxxxxxxxxxxxxxxxxxx < -999.0F) {
-               ☃xxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxxxxxxx.getInterpolatedU(0.0);
-               ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxxxxxxx.getInterpolatedV(0.0);
-               ☃xxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxxxxxxxx;
-               ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxxxxxxx.getInterpolatedV(16.0);
-               ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxxxxxxx.getInterpolatedU(16.0);
-               ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;
-               ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxx;
-               ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;
-            } else {
-               float ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = MathHelper.sin(☃xxxxxxxxxxxxxxxxxxxxxxxx) * 0.25F;
-               float ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = MathHelper.cos(☃xxxxxxxxxxxxxxxxxxxxxxxx) * 0.25F;
-               float ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = 8.0F;
-               ☃xxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxxxxxxx.getInterpolatedU(
-                  8.0F + (-☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx - ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx) * 16.0F
-               );
-               ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxxxxxxx.getInterpolatedV(
-                  8.0F + (-☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx + ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx) * 16.0F
-               );
-               ☃xxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxxxxxxx.getInterpolatedU(
-                  8.0F + (-☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx + ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx) * 16.0F
-               );
-               ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxxxxxxx.getInterpolatedV(
-                  8.0F + (☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx + ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx) * 16.0F
-               );
-               ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxxxxxxx.getInterpolatedU(
-                  8.0F + (☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx + ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx) * 16.0F
-               );
-               ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxxxxxxx.getInterpolatedV(
-                  8.0F + (☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx - ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx) * 16.0F
-               );
-               ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxxxxxxx.getInterpolatedU(
-                  8.0F + (☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx - ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx) * 16.0F
-               );
-               ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxxxxxxx.getInterpolatedV(
-                  8.0F + (-☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx - ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx) * 16.0F
-               );
-            }
-
-            int ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃.getPackedLightmapCoords(☃, ☃);
-            int ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx >> 16 & 65535;
-            int ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx & 65535;
-            float ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = 1.0F * ☃xxxx;
-            float ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = 1.0F * ☃xxxxx;
-            float ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = 1.0F * ☃xxxxxx;
-            ☃.pos(☃xxxxxxxxxxxxxxxxxxxx + 0.0, ☃xxxxxxxxxxxxxxxxxxxxx + ☃xxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxx + 0.0)
-               .color(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, 1.0F)
-               .tex(☃xxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-               .lightmap(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-               .endVertex();
-            ☃.pos(☃xxxxxxxxxxxxxxxxxxxx + 0.0, ☃xxxxxxxxxxxxxxxxxxxxx + ☃xxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxx + 1.0)
-               .color(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, 1.0F)
-               .tex(☃xxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-               .lightmap(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-               .endVertex();
-            ☃.pos(☃xxxxxxxxxxxxxxxxxxxx + 1.0, ☃xxxxxxxxxxxxxxxxxxxxx + ☃xxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxx + 1.0)
-               .color(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, 1.0F)
-               .tex(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-               .lightmap(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-               .endVertex();
-            ☃.pos(☃xxxxxxxxxxxxxxxxxxxx + 1.0, ☃xxxxxxxxxxxxxxxxxxxxx + ☃xxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxx + 0.0)
-               .color(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, 1.0F)
-               .tex(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-               .lightmap(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-               .endVertex();
-            if (☃.shouldRenderSides(☃, ☃.up())) {
-               ☃.pos(☃xxxxxxxxxxxxxxxxxxxx + 0.0, ☃xxxxxxxxxxxxxxxxxxxxx + ☃xxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxx + 0.0)
-                  .color(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, 1.0F)
-                  .tex(☃xxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-                  .lightmap(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-                  .endVertex();
-               ☃.pos(☃xxxxxxxxxxxxxxxxxxxx + 1.0, ☃xxxxxxxxxxxxxxxxxxxxx + ☃xxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxx + 0.0)
-                  .color(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, 1.0F)
-                  .tex(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-                  .lightmap(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-                  .endVertex();
-               ☃.pos(☃xxxxxxxxxxxxxxxxxxxx + 1.0, ☃xxxxxxxxxxxxxxxxxxxxx + ☃xxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxx + 1.0)
-                  .color(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, 1.0F)
-                  .tex(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-                  .lightmap(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-                  .endVertex();
-               ☃.pos(☃xxxxxxxxxxxxxxxxxxxx + 0.0, ☃xxxxxxxxxxxxxxxxxxxxx + ☃xxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxx + 1.0)
-                  .color(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, 1.0F)
-                  .tex(☃xxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-                  .lightmap(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-                  .endVertex();
-            }
+   public boolean renderFluid(IBlockAccess blockAccess, IBlockState blockStateIn, BlockPos blockPosIn, BufferBuilder worldRendererIn) {
+      boolean flag3;
+      try {
+         if (Config.isShaders()) {
+            SVertexBuilder.pushEntity(blockStateIn, blockPosIn, blockAccess, worldRendererIn);
          }
 
-         if (☃xxxxxxxx) {
-            float ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xx[0].getMinU();
-            float ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xx[0].getMaxU();
-            float ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xx[0].getMinV();
-            float ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xx[0].getMaxV();
-            int ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃.getPackedLightmapCoords(☃, ☃.down());
-            int ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx >> 16 & 65535;
-            int ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx & 65535;
-            ☃.pos(☃xxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxx + 1.0)
-               .color(0.5F, 0.5F, 0.5F, 1.0F)
-               .tex(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-               .lightmap(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-               .endVertex();
-            ☃.pos(☃xxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxx)
-               .color(0.5F, 0.5F, 0.5F, 1.0F)
-               .tex(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-               .lightmap(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-               .endVertex();
-            ☃.pos(☃xxxxxxxxxxxxxxxxxxxx + 1.0, ☃xxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxx)
-               .color(0.5F, 0.5F, 0.5F, 1.0F)
-               .tex(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-               .lightmap(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-               .endVertex();
-            ☃.pos(☃xxxxxxxxxxxxxxxxxxxx + 1.0, ☃xxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxx + 1.0)
-               .color(0.5F, 0.5F, 0.5F, 1.0F)
-               .tex(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-               .lightmap(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-               .endVertex();
-            ☃xxxxxxxxxx = true;
-         }
-
-         for (int ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = 0; ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx < 4; ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx++) {
-            int ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = 0;
-            int ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = 0;
-            if (☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx == 0) {
-               ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx--;
-            }
-
-            if (☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx == 1) {
-               ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx++;
-            }
-
-            if (☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx == 2) {
-               ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx--;
-            }
-
-            if (☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx == 3) {
-               ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx++;
-            }
-
-            BlockPos ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃.add(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, 0, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx);
-            TextureAtlasSprite ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xx[1];
-            if (!☃x) {
-               Block ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃.getBlockState(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx).getBlock();
-               if (☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx == Blocks.GLASS || ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx == Blocks.STAINED_GLASS) {
-                  ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = this.atlasSpriteWaterOverlay;
-               }
-            }
-
-            if (☃xxxxxxxxx[☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx]) {
-               float ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;
-               float ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;
-               double ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;
-               double ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;
-               double ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;
-               double ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;
-               if (☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx == 0) {
-                  ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxx;
-                  ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxx;
-                  ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxx;
-                  ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxx + 1.0;
-                  ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxxxx + 0.001F;
-                  ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxxxx + 0.001F;
-               } else if (☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx == 1) {
-                  ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxx;
-                  ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxx;
-                  ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxx + 1.0;
-                  ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxx;
-                  ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxxxx + 1.0 - 0.001F;
-                  ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxxxx + 1.0 - 0.001F;
-               } else if (☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx == 2) {
-                  ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxx;
-                  ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxx;
-                  ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxx + 0.001F;
-                  ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxx + 0.001F;
-                  ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxxxx + 1.0;
-                  ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxxxx;
+         BlockLiquid blockliquid = (BlockLiquid)blockStateIn.getBlock();
+         boolean flag = blockStateIn.a() == Material.LAVA;
+         TextureAtlasSprite[] atextureatlassprite = flag ? this.atlasSpritesLava : this.atlasSpritesWater;
+         RenderEnv renderEnv = worldRendererIn.getRenderEnv(blockStateIn, blockPosIn);
+         int i = CustomColors.getFluidColor(blockAccess, blockStateIn, blockPosIn, renderEnv);
+         float f = (i >> 16 & 0xFF) / 255.0F;
+         float f1 = (i >> 8 & 0xFF) / 255.0F;
+         float f2 = (i & 0xFF) / 255.0F;
+         boolean flag1 = blockStateIn.c(blockAccess, blockPosIn, EnumFacing.UP);
+         boolean flag2 = blockStateIn.c(blockAccess, blockPosIn, EnumFacing.DOWN);
+         boolean[] aboolean = renderEnv.getBorderFlags();
+         aboolean[0] = blockStateIn.c(blockAccess, blockPosIn, EnumFacing.NORTH);
+         aboolean[1] = blockStateIn.c(blockAccess, blockPosIn, EnumFacing.SOUTH);
+         aboolean[2] = blockStateIn.c(blockAccess, blockPosIn, EnumFacing.WEST);
+         aboolean[3] = blockStateIn.c(blockAccess, blockPosIn, EnumFacing.EAST);
+         if (flag1 || flag2 || aboolean[0] || aboolean[1] || aboolean[2] || aboolean[3]) {
+            flag3 = false;
+            float f3 = 0.5F;
+            float f4 = 1.0F;
+            float f5 = 0.8F;
+            float f6 = 0.6F;
+            Material material = blockStateIn.a();
+            float f7 = this.getFluidHeight(blockAccess, blockPosIn, material);
+            float f8 = this.getFluidHeight(blockAccess, blockPosIn.south(), material);
+            float f9 = this.getFluidHeight(blockAccess, blockPosIn.east().south(), material);
+            float f10 = this.getFluidHeight(blockAccess, blockPosIn.east(), material);
+            double d0 = blockPosIn.getX();
+            double d1 = blockPosIn.getY();
+            double d2 = blockPosIn.getZ();
+            float f11 = 0.001F;
+            if (flag1) {
+               flag3 = true;
+               float f12 = BlockLiquid.getSlopeAngle(blockAccess, blockPosIn, material, blockStateIn);
+               TextureAtlasSprite textureatlassprite = f12 > -999.0F ? atextureatlassprite[1] : atextureatlassprite[0];
+               worldRendererIn.setSprite(textureatlassprite);
+               f7 -= 0.001F;
+               f8 -= 0.001F;
+               f9 -= 0.001F;
+               f10 -= 0.001F;
+               float f13;
+               float f14;
+               float f15;
+               float f16;
+               float f17;
+               float f18;
+               float f19;
+               float f20;
+               if (f12 < -999.0F) {
+                  f13 = textureatlassprite.getInterpolatedU(0.0);
+                  f17 = textureatlassprite.getInterpolatedV(0.0);
+                  f14 = f13;
+                  f18 = textureatlassprite.getInterpolatedV(16.0);
+                  f15 = textureatlassprite.getInterpolatedU(16.0);
+                  f19 = f18;
+                  f16 = f15;
+                  f20 = f17;
                } else {
-                  ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxx;
-                  ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxx;
-                  ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxx + 1.0 - 0.001F;
-                  ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxx + 1.0 - 0.001F;
-                  ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxxxx;
-                  ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxxxx + 1.0;
+                  float f21 = MathHelper.sin(f12) * 0.25F;
+                  float f22 = MathHelper.cos(f12) * 0.25F;
+                  float f23 = 8.0F;
+                  f13 = textureatlassprite.getInterpolatedU(8.0F + (-f22 - f21) * 16.0F);
+                  f17 = textureatlassprite.getInterpolatedV(8.0F + (-f22 + f21) * 16.0F);
+                  f14 = textureatlassprite.getInterpolatedU(8.0F + (-f22 + f21) * 16.0F);
+                  f18 = textureatlassprite.getInterpolatedV(8.0F + (f22 + f21) * 16.0F);
+                  f15 = textureatlassprite.getInterpolatedU(8.0F + (f22 + f21) * 16.0F);
+                  f19 = textureatlassprite.getInterpolatedV(8.0F + (f22 - f21) * 16.0F);
+                  f16 = textureatlassprite.getInterpolatedU(8.0F + (f22 - f21) * 16.0F);
+                  f20 = textureatlassprite.getInterpolatedV(8.0F + (-f22 - f21) * 16.0F);
                }
 
-               ☃xxxxxxxxxx = true;
-               float ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.getInterpolatedU(0.0);
-               float ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.getInterpolatedU(8.0);
-               float ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.getInterpolatedV(
-                  (1.0F - ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx) * 16.0F * 0.5F
-               );
-               float ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.getInterpolatedV(
-                  (1.0F - ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx) * 16.0F * 0.5F
-               );
-               float ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.getInterpolatedV(8.0);
-               int ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃.getPackedLightmapCoords(☃, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx);
-               int ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx >> 16 & 65535;
-               int ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx & 65535;
-               float ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx < 2 ? 0.8F : 0.6F;
-               float ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = 1.0F * ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx * ☃xxxx;
-               float ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = 1.0F * ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx * ☃xxxxx;
-               float ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = 1.0F * ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx * ☃xxxxxx;
-               ☃.pos(
-                     ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,
-                     ☃xxxxxxxxxxxxxxxxxxxxx + ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,
-                     ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-                  )
-                  .color(
-                     ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,
-                     ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,
-                     ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,
-                     1.0F
-                  )
-                  .tex(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-                  .lightmap(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-                  .endVertex();
-               ☃.pos(
-                     ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,
-                     ☃xxxxxxxxxxxxxxxxxxxxx + ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,
-                     ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-                  )
-                  .color(
-                     ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,
-                     ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,
-                     ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,
-                     1.0F
-                  )
-                  .tex(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-                  .lightmap(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-                  .endVertex();
-               ☃.pos(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxx + 0.0, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-                  .color(
-                     ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,
-                     ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,
-                     ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,
-                     1.0F
-                  )
-                  .tex(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-                  .lightmap(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-                  .endVertex();
-               ☃.pos(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxx + 0.0, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-                  .color(
-                     ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,
-                     ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,
-                     ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,
-                     1.0F
-                  )
-                  .tex(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-                  .lightmap(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-                  .endVertex();
-               if (☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx != this.atlasSpriteWaterOverlay) {
-                  ☃.pos(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxx + 0.0, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-                     .color(
-                        ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,
-                        ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,
-                        ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,
-                        1.0F
-                     )
-                     .tex(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-                     .lightmap(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-                     .endVertex();
-                  ☃.pos(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxx + 0.0, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-                     .color(
-                        ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,
-                        ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,
-                        ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,
-                        1.0F
-                     )
-                     .tex(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-                     .lightmap(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-                     .endVertex();
-                  ☃.pos(
-                        ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,
-                        ☃xxxxxxxxxxxxxxxxxxxxx + ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,
-                        ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-                     )
-                     .color(
-                        ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,
-                        ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,
-                        ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,
-                        1.0F
-                     )
-                     .tex(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-                     .lightmap(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-                     .endVertex();
-                  ☃.pos(
-                        ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,
-                        ☃xxxxxxxxxxxxxxxxxxxxx + ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,
-                        ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-                     )
-                     .color(
-                        ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,
-                        ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,
-                        ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,
-                        1.0F
-                     )
-                     .tex(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-                     .lightmap(☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-                     .endVertex();
+               int k2 = blockStateIn.b(blockAccess, blockPosIn);
+               int l2 = k2 >> 16 & 65535;
+               int i3 = k2 & 65535;
+               float f24 = 1.0F * f;
+               float f25 = 1.0F * f1;
+               float f26 = 1.0F * f2;
+               worldRendererIn.pos(d0 + 0.0, d1 + f7, d2 + 0.0).color(f24, f25, f26, 1.0F).tex(f13, f17).lightmap(l2, i3).endVertex();
+               worldRendererIn.pos(d0 + 0.0, d1 + f8, d2 + 1.0).color(f24, f25, f26, 1.0F).tex(f14, f18).lightmap(l2, i3).endVertex();
+               worldRendererIn.pos(d0 + 1.0, d1 + f9, d2 + 1.0).color(f24, f25, f26, 1.0F).tex(f15, f19).lightmap(l2, i3).endVertex();
+               worldRendererIn.pos(d0 + 1.0, d1 + f10, d2 + 0.0).color(f24, f25, f26, 1.0F).tex(f16, f20).lightmap(l2, i3).endVertex();
+               if (blockliquid.shouldRenderSides(blockAccess, blockPosIn.up())) {
+                  worldRendererIn.pos(d0 + 0.0, d1 + f7, d2 + 0.0).color(f24, f25, f26, 1.0F).tex(f13, f17).lightmap(l2, i3).endVertex();
+                  worldRendererIn.pos(d0 + 1.0, d1 + f10, d2 + 0.0).color(f24, f25, f26, 1.0F).tex(f16, f20).lightmap(l2, i3).endVertex();
+                  worldRendererIn.pos(d0 + 1.0, d1 + f9, d2 + 1.0).color(f24, f25, f26, 1.0F).tex(f15, f19).lightmap(l2, i3).endVertex();
+                  worldRendererIn.pos(d0 + 0.0, d1 + f8, d2 + 1.0).color(f24, f25, f26, 1.0F).tex(f14, f18).lightmap(l2, i3).endVertex();
                }
             }
+
+            if (flag2) {
+               worldRendererIn.setSprite(atextureatlassprite[0]);
+               float f35 = atextureatlassprite[0].getMinU();
+               float f36 = atextureatlassprite[0].getMaxU();
+               float f37 = atextureatlassprite[0].getMinV();
+               float f38 = atextureatlassprite[0].getMaxV();
+               int l1 = blockStateIn.b(blockAccess, blockPosIn.down());
+               int i2 = l1 >> 16 & 65535;
+               int j2 = l1 & 65535;
+               float fbr = FaceBakery.getFaceBrightness(EnumFacing.DOWN);
+               worldRendererIn.pos(d0, d1, d2 + 1.0).color(f * fbr, f1 * fbr, f2 * fbr, 1.0F).tex(f35, f38).lightmap(i2, j2).endVertex();
+               worldRendererIn.pos(d0, d1, d2).color(f * fbr, f1 * fbr, f2 * fbr, 1.0F).tex(f35, f37).lightmap(i2, j2).endVertex();
+               worldRendererIn.pos(d0 + 1.0, d1, d2).color(f * fbr, f1 * fbr, f2 * fbr, 1.0F).tex(f36, f37).lightmap(i2, j2).endVertex();
+               worldRendererIn.pos(d0 + 1.0, d1, d2 + 1.0).color(f * fbr, f1 * fbr, f2 * fbr, 1.0F).tex(f36, f38).lightmap(i2, j2).endVertex();
+               flag3 = true;
+            }
+
+            for (int i1 = 0; i1 < 4; i1++) {
+               int j1 = 0;
+               int k1 = 0;
+               if (i1 == 0) {
+                  k1--;
+               }
+
+               if (i1 == 1) {
+                  k1++;
+               }
+
+               if (i1 == 2) {
+                  j1--;
+               }
+
+               if (i1 == 3) {
+                  j1++;
+               }
+
+               BlockPos blockpos = blockPosIn.add(j1, 0, k1);
+               TextureAtlasSprite textureatlassprite1 = atextureatlassprite[1];
+               worldRendererIn.setSprite(textureatlassprite1);
+               float yMin1 = 0.0F;
+               float yMin2 = 0.0F;
+               if (!flag) {
+                  IBlockState blockState = blockAccess.getBlockState(blockpos);
+                  Block block = blockState.getBlock();
+                  if (block == Blocks.GLASS || block == Blocks.STAINED_GLASS || block == Blocks.BEACON || block == Blocks.SLIME_BLOCK) {
+                     textureatlassprite1 = this.atlasSpriteWaterOverlay;
+                     worldRendererIn.setSprite(textureatlassprite1);
+                  }
+
+                  if (block == Blocks.FARMLAND || block == Blocks.GRASS_PATH) {
+                     yMin1 = 0.9375F;
+                     yMin2 = 0.9375F;
+                  }
+
+                  if (block instanceof BlockSlab) {
+                     BlockSlab blockSlab = (BlockSlab)block;
+                     if (!blockSlab.isDouble() && blockState.getValue(BlockSlab.HALF) == EnumBlockHalf.BOTTOM) {
+                        yMin1 = 0.5F;
+                        yMin2 = 0.5F;
+                     }
+                  }
+               }
+
+               if (aboolean[i1]) {
+                  float f39;
+                  float f40;
+                  double d3;
+                  double d4;
+                  double d5;
+                  double d6;
+                  if (i1 == 0) {
+                     f39 = f7;
+                     f40 = f10;
+                     d3 = d0;
+                     d5 = d0 + 1.0;
+                     d4 = d2 + 0.001F;
+                     d6 = d2 + 0.001F;
+                  } else if (i1 == 1) {
+                     f39 = f9;
+                     f40 = f8;
+                     d3 = d0 + 1.0;
+                     d5 = d0;
+                     d4 = d2 + 1.0 - 0.001F;
+                     d6 = d2 + 1.0 - 0.001F;
+                  } else if (i1 == 2) {
+                     f39 = f8;
+                     f40 = f7;
+                     d3 = d0 + 0.001F;
+                     d5 = d0 + 0.001F;
+                     d4 = d2 + 1.0;
+                     d6 = d2;
+                  } else {
+                     f39 = f10;
+                     f40 = f9;
+                     d3 = d0 + 1.0 - 0.001F;
+                     d5 = d0 + 1.0 - 0.001F;
+                     d4 = d2;
+                     d6 = d2 + 1.0;
+                  }
+
+                  if (!(f39 <= yMin1) || !(f40 <= yMin2)) {
+                     yMin1 = Math.min(yMin1, f39);
+                     yMin2 = Math.min(yMin2, f40);
+                     if (yMin1 > f11) {
+                        yMin1 -= f11;
+                     }
+
+                     if (yMin2 > f11) {
+                        yMin2 -= f11;
+                     }
+
+                     flag3 = true;
+                     float f41 = textureatlassprite1.getInterpolatedU(0.0);
+                     float f27 = textureatlassprite1.getInterpolatedU(8.0);
+                     float f28 = textureatlassprite1.getInterpolatedV((1.0F - f39) * 16.0F * 0.5F);
+                     float f29 = textureatlassprite1.getInterpolatedV((1.0F - f40) * 16.0F * 0.5F);
+                     float f30 = textureatlassprite1.getInterpolatedV(8.0);
+                     float vMin1 = textureatlassprite1.getInterpolatedV((1.0F - yMin1) * 16.0F * 0.5F);
+                     float vMin2 = textureatlassprite1.getInterpolatedV((1.0F - yMin2) * 16.0F * 0.5F);
+                     int j = blockStateIn.b(blockAccess, blockpos);
+                     int k = j >> 16 & 65535;
+                     int l = j & 65535;
+                     float f31 = i1 < 2 ? FaceBakery.getFaceBrightness(EnumFacing.NORTH) : FaceBakery.getFaceBrightness(EnumFacing.WEST);
+                     float f32 = 1.0F * f31 * f;
+                     float f33 = 1.0F * f31 * f1;
+                     float f34 = 1.0F * f31 * f2;
+                     worldRendererIn.pos(d3, d1 + f39, d4).color(f32, f33, f34, 1.0F).tex(f41, f28).lightmap(k, l).endVertex();
+                     worldRendererIn.pos(d5, d1 + f40, d6).color(f32, f33, f34, 1.0F).tex(f27, f29).lightmap(k, l).endVertex();
+                     worldRendererIn.pos(d5, d1 + yMin2, d6).color(f32, f33, f34, 1.0F).tex(f27, vMin2).lightmap(k, l).endVertex();
+                     worldRendererIn.pos(d3, d1 + yMin1, d4).color(f32, f33, f34, 1.0F).tex(f41, vMin1).lightmap(k, l).endVertex();
+                     if (textureatlassprite1 != this.atlasSpriteWaterOverlay) {
+                        worldRendererIn.pos(d3, d1 + yMin1, d4).color(f32, f33, f34, 1.0F).tex(f41, vMin1).lightmap(k, l).endVertex();
+                        worldRendererIn.pos(d5, d1 + yMin2, d6).color(f32, f33, f34, 1.0F).tex(f27, vMin2).lightmap(k, l).endVertex();
+                        worldRendererIn.pos(d5, d1 + f40, d6).color(f32, f33, f34, 1.0F).tex(f27, f29).lightmap(k, l).endVertex();
+                        worldRendererIn.pos(d3, d1 + f39, d4).color(f32, f33, f34, 1.0F).tex(f41, f28).lightmap(k, l).endVertex();
+                     }
+                  }
+               }
+            }
+
+            worldRendererIn.setSprite(null);
+            return flag3;
          }
 
-         return ☃xxxxxxxxxx;
+         flag3 = false;
+      } finally {
+         if (Config.isShaders()) {
+            SVertexBuilder.popEntity(worldRendererIn);
+         }
       }
+
+      return flag3;
    }
 
-   private float getFluidHeight(IBlockAccess var1, BlockPos var2, Material var3) {
-      int ☃ = 0;
-      float ☃x = 0.0F;
+   private float getFluidHeight(IBlockAccess blockAccess, BlockPos blockPosIn, Material blockMaterial) {
+      int i = 0;
+      float f = 0.0F;
 
-      for (int ☃xx = 0; ☃xx < 4; ☃xx++) {
-         BlockPos ☃xxx = ☃.add(-(☃xx & 1), 0, -(☃xx >> 1 & 1));
-         if (☃.getBlockState(☃xxx.up()).getMaterial() == ☃) {
+      for (int j = 0; j < 4; j++) {
+         BlockPos blockpos = blockPosIn.add(-(j & 1), 0, -(j >> 1 & 1));
+         if (blockAccess.getBlockState(blockpos.up()).a() == blockMaterial) {
             return 1.0F;
          }
 
-         IBlockState ☃xxxx = ☃.getBlockState(☃xxx);
-         Material ☃xxxxx = ☃xxxx.getMaterial();
-         if (☃xxxxx == ☃) {
-            int ☃xxxxxx = ☃xxxx.getValue(BlockLiquid.LEVEL);
-            if (☃xxxxxx >= 8 || ☃xxxxxx == 0) {
-               ☃x += BlockLiquid.getLiquidHeightPercent(☃xxxxxx) * 10.0F;
-               ☃ += 10;
+         IBlockState iblockstate = blockAccess.getBlockState(blockpos);
+         Material material = iblockstate.a();
+         if (material != blockMaterial) {
+            if (!material.isSolid()) {
+               f++;
+               i++;
+            }
+         } else {
+            int k = (Integer)iblockstate.getValue(BlockLiquid.LEVEL);
+            if (k >= 8 || k == 0) {
+               f += BlockLiquid.getLiquidHeightPercent(k) * 10.0F;
+               i += 10;
             }
 
-            ☃x += BlockLiquid.getLiquidHeightPercent(☃xxxxxx);
-            ☃++;
-         } else if (!☃xxxxx.isSolid()) {
-            ☃x++;
-            ☃++;
+            f += BlockLiquid.getLiquidHeightPercent(k);
+            i++;
          }
       }
 
-      return 1.0F - ☃x / ☃;
+      return 1.0F - f / i;
    }
 }

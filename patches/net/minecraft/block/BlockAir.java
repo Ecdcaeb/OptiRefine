@@ -1,5 +1,7 @@
 package net.minecraft.block;
 
+import java.util.IdentityHashMap;
+import java.util.Map;
 import javax.annotation.Nullable;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.BlockFaceShape;
@@ -12,47 +14,56 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
 public class BlockAir extends Block {
+   private static Map mapOriginalOpacity = new IdentityHashMap();
+
    protected BlockAir() {
       super(Material.AIR);
    }
 
-   @Override
-   public EnumBlockRenderType getRenderType(IBlockState var1) {
+   public EnumBlockRenderType getRenderType(IBlockState state) {
       return EnumBlockRenderType.INVISIBLE;
    }
 
    @Nullable
-   @Override
-   public AxisAlignedBB getCollisionBoundingBox(IBlockState var1, IBlockAccess var2, BlockPos var3) {
+   public AxisAlignedBB getCollisionBoundingBox(IBlockState blockState, IBlockAccess worldIn, BlockPos pos) {
       return NULL_AABB;
    }
 
-   @Override
-   public boolean isOpaqueCube(IBlockState var1) {
+   public boolean isOpaqueCube(IBlockState state) {
       return false;
    }
 
-   @Override
-   public boolean canCollideCheck(IBlockState var1, boolean var2) {
+   public boolean canCollideCheck(IBlockState state, boolean hitIfLiquid) {
       return false;
    }
 
-   @Override
-   public void dropBlockAsItemWithChance(World var1, BlockPos var2, IBlockState var3, float var4, int var5) {
+   public void dropBlockAsItemWithChance(World worldIn, BlockPos pos, IBlockState state, float chance, int fortune) {
    }
 
-   @Override
-   public boolean isReplaceable(IBlockAccess var1, BlockPos var2) {
+   public boolean isReplaceable(IBlockAccess worldIn, BlockPos pos) {
       return true;
    }
 
-   @Override
-   public boolean isFullCube(IBlockState var1) {
+   public boolean isFullCube(IBlockState state) {
       return false;
    }
 
-   @Override
-   public BlockFaceShape getBlockFaceShape(IBlockAccess var1, IBlockState var2, BlockPos var3, EnumFacing var4) {
+   public static void setLightOpacity(Block block, int opacity) {
+      if (!mapOriginalOpacity.containsKey(block)) {
+         mapOriginalOpacity.put(block, block.lightOpacity);
+      }
+
+      block.lightOpacity = opacity;
+   }
+
+   public static void restoreLightOpacity(Block block) {
+      if (mapOriginalOpacity.containsKey(block)) {
+         int opacity = (Integer)mapOriginalOpacity.get(block);
+         setLightOpacity(block, opacity);
+      }
+   }
+
+   public BlockFaceShape getBlockFaceShape(IBlockAccess p_193383_1_, IBlockState p_193383_2_, BlockPos p_193383_3_, EnumFacing p_193383_4_) {
       return BlockFaceShape.UNDEFINED;
    }
 }

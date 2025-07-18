@@ -2,6 +2,7 @@ package net.minecraft.client.renderer.texture;
 
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
+import java.awt.image.ImageObserver;
 import java.io.IOException;
 import java.util.List;
 import net.minecraft.client.resources.IResource;
@@ -9,6 +10,8 @@ import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.item.EnumDyeColor;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
+import net.optifine.reflect.Reflector;
+import net.optifine.shaders.ShadersTex;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -19,76 +22,84 @@ public class LayeredColorMaskTexture extends AbstractTexture {
    private final List<String> listTextures;
    private final List<EnumDyeColor> listDyeColors;
 
-   public LayeredColorMaskTexture(ResourceLocation var1, List<String> var2, List<EnumDyeColor> var3) {
-      this.textureLocation = ☃;
-      this.listTextures = ☃;
-      this.listDyeColors = ☃;
+   public LayeredColorMaskTexture(ResourceLocation textureLocationIn, List<String> p_i46101_2_, List<EnumDyeColor> p_i46101_3_) {
+      this.textureLocation = textureLocationIn;
+      this.listTextures = p_i46101_2_;
+      this.listDyeColors = p_i46101_3_;
    }
 
    @Override
-   public void loadTexture(IResourceManager var1) throws IOException {
+   public void loadTexture(IResourceManager resourceManager) throws IOException {
       this.deleteGlTexture();
-      IResource ☃ = null;
+      IResource iresource = null;
 
-      BufferedImage ☃x;
-      label198: {
+      BufferedImage bufferedimage;
+      label201: {
          try {
-            ☃ = ☃.getResource(this.textureLocation);
-            BufferedImage ☃xx = TextureUtil.readBufferedImage(☃.getInputStream());
-            int ☃xxx = ☃xx.getType();
-            if (☃xxx == 0) {
-               ☃xxx = 6;
+            iresource = resourceManager.getResource(this.textureLocation);
+            BufferedImage bufferedimage1 = TextureUtil.readBufferedImage(iresource.getInputStream());
+            int i = bufferedimage1.getType();
+            if (i == 0) {
+               i = 6;
             }
 
-            ☃x = new BufferedImage(☃xx.getWidth(), ☃xx.getHeight(), ☃xxx);
-            Graphics ☃xxxx = ☃x.getGraphics();
-            ☃xxxx.drawImage(☃xx, 0, 0, null);
-            int ☃xxxxx = 0;
+            bufferedimage = new BufferedImage(bufferedimage1.getWidth(), bufferedimage1.getHeight(), i);
+            Graphics graphics = bufferedimage.getGraphics();
+            graphics.drawImage(bufferedimage1, 0, 0, (ImageObserver)null);
+            int j = 0;
 
             while (true) {
-               if (☃xxxxx >= 17 || ☃xxxxx >= this.listTextures.size() || ☃xxxxx >= this.listDyeColors.size()) {
-                  break label198;
+               if (j >= 17 || j >= this.listTextures.size() || j >= this.listDyeColors.size()) {
+                  break label201;
                }
 
-               IResource ☃xxxxxx = null;
+               IResource iresource1 = null;
 
                try {
-                  String ☃xxxxxxx = this.listTextures.get(☃xxxxx);
-                  int ☃xxxxxxxx = this.listDyeColors.get(☃xxxxx).getColorValue();
-                  if (☃xxxxxxx != null) {
-                     ☃xxxxxx = ☃.getResource(new ResourceLocation(☃xxxxxxx));
-                     BufferedImage ☃xxxxxxxxx = TextureUtil.readBufferedImage(☃xxxxxx.getInputStream());
-                     if (☃xxxxxxxxx.getWidth() == ☃x.getWidth() && ☃xxxxxxxxx.getHeight() == ☃x.getHeight() && ☃xxxxxxxxx.getType() == 6) {
-                        for (int ☃xxxxxxxxxx = 0; ☃xxxxxxxxxx < ☃xxxxxxxxx.getHeight(); ☃xxxxxxxxxx++) {
-                           for (int ☃xxxxxxxxxxx = 0; ☃xxxxxxxxxxx < ☃xxxxxxxxx.getWidth(); ☃xxxxxxxxxxx++) {
-                              int ☃xxxxxxxxxxxx = ☃xxxxxxxxx.getRGB(☃xxxxxxxxxxx, ☃xxxxxxxxxx);
-                              if ((☃xxxxxxxxxxxx & 0xFF000000) != 0) {
-                                 int ☃xxxxxxxxxxxxx = (☃xxxxxxxxxxxx & 0xFF0000) << 8 & 0xFF000000;
-                                 int ☃xxxxxxxxxxxxxx = ☃xx.getRGB(☃xxxxxxxxxxx, ☃xxxxxxxxxx);
-                                 int ☃xxxxxxxxxxxxxxx = MathHelper.multiplyColor(☃xxxxxxxxxxxxxx, ☃xxxxxxxx) & 16777215;
-                                 ☃xxxxxxxxx.setRGB(☃xxxxxxxxxxx, ☃xxxxxxxxxx, ☃xxxxxxxxxxxxx | ☃xxxxxxxxxxxxxxx);
+                  String s = this.listTextures.get(j);
+                  int k = this.listDyeColors.get(j).getColorValue();
+                  if (s != null) {
+                     iresource1 = resourceManager.getResource(new ResourceLocation(s));
+                     BufferedImage bufferedimage2 = Reflector.MinecraftForgeClient_getImageLayer.exists()
+                        ? (BufferedImage)Reflector.call(Reflector.MinecraftForgeClient_getImageLayer, new Object[]{new ResourceLocation(s), resourceManager})
+                        : TextureUtil.readBufferedImage(iresource1.getInputStream());
+                     if (bufferedimage2.getWidth() == bufferedimage.getWidth()
+                        && bufferedimage2.getHeight() == bufferedimage.getHeight()
+                        && bufferedimage2.getType() == 6) {
+                        for (int l = 0; l < bufferedimage2.getHeight(); l++) {
+                           for (int i1 = 0; i1 < bufferedimage2.getWidth(); i1++) {
+                              int j1 = bufferedimage2.getRGB(i1, l);
+                              if ((j1 & 0xFF000000) != 0) {
+                                 int k1 = (j1 & 0xFF0000) << 8 & 0xFF000000;
+                                 int l1 = bufferedimage1.getRGB(i1, l);
+                                 int i2 = MathHelper.multiplyColor(l1, k) & 16777215;
+                                 bufferedimage2.setRGB(i1, l, k1 | i2);
                               }
                            }
                         }
 
-                        ☃x.getGraphics().drawImage(☃xxxxxxxxx, 0, 0, null);
+                        bufferedimage.getGraphics().drawImage(bufferedimage2, 0, 0, (ImageObserver)null);
                      }
                   }
                } finally {
-                  IOUtils.closeQuietly(☃xxxxxx);
+                  IOUtils.closeQuietly(iresource1);
                }
 
-               ☃xxxxx++;
+               j++;
             }
          } catch (IOException var27) {
             LOGGER.error("Couldn't load layered image", var27);
          } finally {
-            IOUtils.closeQuietly(☃);
+            IOUtils.closeQuietly(iresource);
          }
 
          return;
       }
 
-      TextureUtil.uploadTextureImage(this.getGlTextureId(), ☃x);
+      if (Config.isShaders()) {
+         ShadersTex.loadSimpleTexture(this.getGlTextureId(), bufferedimage, false, false, resourceManager, this.textureLocation, this.getMultiTexID());
+      } else {
+         TextureUtil.uploadTextureImage(this.getGlTextureId(), bufferedimage);
+      }
    }
 }

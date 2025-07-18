@@ -10,6 +10,9 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.shader.Framebuffer;
 import net.minecraft.util.IProgressUpdate;
 import net.minecraft.util.MinecraftError;
+import net.optifine.CustomLoadingScreen;
+import net.optifine.CustomLoadingScreens;
+import net.optifine.reflect.Reflector;
 
 public class LoadingScreenRenderer implements IProgressUpdate {
    private String message = "";
@@ -20,27 +23,25 @@ public class LoadingScreenRenderer implements IProgressUpdate {
    private final ScaledResolution scaledResolution;
    private final Framebuffer framebuffer;
 
-   public LoadingScreenRenderer(Minecraft var1) {
-      this.mc = ☃;
-      this.scaledResolution = new ScaledResolution(☃);
-      this.framebuffer = new Framebuffer(☃.displayWidth, ☃.displayHeight, false);
+   public LoadingScreenRenderer(Minecraft mcIn) {
+      this.mc = mcIn;
+      this.scaledResolution = new ScaledResolution(mcIn);
+      this.framebuffer = new Framebuffer(mcIn.displayWidth, mcIn.displayHeight, false);
       this.framebuffer.setFramebufferFilter(9728);
    }
 
-   @Override
-   public void resetProgressAndMessage(String var1) {
+   public void resetProgressAndMessage(String message) {
       this.loadingSuccess = false;
-      this.displayString(☃);
+      this.displayString(message);
    }
 
-   @Override
-   public void displaySavingString(String var1) {
+   public void displaySavingString(String message) {
       this.loadingSuccess = true;
-      this.displayString(☃);
+      this.displayString(message);
    }
 
-   private void displayString(String var1) {
-      this.currentlyDisplayedText = ☃;
+   private void displayString(String message) {
+      this.currentlyDisplayedText = message;
       if (!this.mc.running) {
          if (!this.loadingSuccess) {
             throw new MinecraftError();
@@ -50,11 +51,11 @@ public class LoadingScreenRenderer implements IProgressUpdate {
          GlStateManager.matrixMode(5889);
          GlStateManager.loadIdentity();
          if (OpenGlHelper.isFramebufferEnabled()) {
-            int ☃ = this.scaledResolution.getScaleFactor();
-            GlStateManager.ortho(0.0, this.scaledResolution.getScaledWidth() * ☃, this.scaledResolution.getScaledHeight() * ☃, 0.0, 100.0, 300.0);
+            int i = this.scaledResolution.getScaleFactor();
+            GlStateManager.ortho(0.0, this.scaledResolution.getScaledWidth() * i, this.scaledResolution.getScaledHeight() * i, 0.0, 100.0, 300.0);
          } else {
-            ScaledResolution ☃ = new ScaledResolution(this.mc);
-            GlStateManager.ortho(0.0, ☃.getScaledWidth_double(), ☃.getScaledHeight_double(), 0.0, 100.0, 300.0);
+            ScaledResolution scaledresolution = new ScaledResolution(this.mc);
+            GlStateManager.ortho(0.0, scaledresolution.getScaledWidth_double(), scaledresolution.getScaledHeight_double(), 0.0, 100.0, 300.0);
          }
 
          GlStateManager.matrixMode(5888);
@@ -63,34 +64,32 @@ public class LoadingScreenRenderer implements IProgressUpdate {
       }
    }
 
-   @Override
-   public void displayLoadingString(String var1) {
+   public void displayLoadingString(String message) {
       if (!this.mc.running) {
          if (!this.loadingSuccess) {
             throw new MinecraftError();
          }
       } else {
          this.systemTime = 0L;
-         this.message = ☃;
+         this.message = message;
          this.setLoadingProgress(-1);
          this.systemTime = 0L;
       }
    }
 
-   @Override
-   public void setLoadingProgress(int var1) {
+   public void setLoadingProgress(int progress) {
       if (!this.mc.running) {
          if (!this.loadingSuccess) {
             throw new MinecraftError();
          }
       } else {
-         long ☃ = Minecraft.getSystemTime();
-         if (☃ - this.systemTime >= 100L) {
-            this.systemTime = ☃;
-            ScaledResolution ☃x = new ScaledResolution(this.mc);
-            int ☃xx = ☃x.getScaleFactor();
-            int ☃xxx = ☃x.getScaledWidth();
-            int ☃xxxx = ☃x.getScaledHeight();
+         long i = Minecraft.getSystemTime();
+         if (i - this.systemTime >= 100L) {
+            this.systemTime = i;
+            ScaledResolution scaledresolution = new ScaledResolution(this.mc);
+            int j = scaledresolution.getScaleFactor();
+            int k = scaledresolution.getScaledWidth();
+            int l = scaledresolution.getScaledHeight();
             if (OpenGlHelper.isFramebufferEnabled()) {
                this.framebuffer.framebufferClear();
             } else {
@@ -100,7 +99,7 @@ public class LoadingScreenRenderer implements IProgressUpdate {
             this.framebuffer.bindFramebuffer(false);
             GlStateManager.matrixMode(5889);
             GlStateManager.loadIdentity();
-            GlStateManager.ortho(0.0, ☃x.getScaledWidth_double(), ☃x.getScaledHeight_double(), 0.0, 100.0, 300.0);
+            GlStateManager.ortho(0.0, scaledresolution.getScaledWidth_double(), scaledresolution.getScaledHeight_double(), 0.0, 100.0, 300.0);
             GlStateManager.matrixMode(5888);
             GlStateManager.loadIdentity();
             GlStateManager.translate(0.0F, 0.0F, -200.0F);
@@ -108,66 +107,80 @@ public class LoadingScreenRenderer implements IProgressUpdate {
                GlStateManager.clear(16640);
             }
 
-            Tessellator ☃xxxxx = Tessellator.getInstance();
-            BufferBuilder ☃xxxxxx = ☃xxxxx.getBuffer();
-            this.mc.getTextureManager().bindTexture(Gui.OPTIONS_BACKGROUND);
-            float ☃xxxxxxx = 32.0F;
-            ☃xxxxxx.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
-            ☃xxxxxx.pos(0.0, ☃xxxx, 0.0).tex(0.0, ☃xxxx / 32.0F).color(64, 64, 64, 255).endVertex();
-            ☃xxxxxx.pos(☃xxx, ☃xxxx, 0.0).tex(☃xxx / 32.0F, ☃xxxx / 32.0F).color(64, 64, 64, 255).endVertex();
-            ☃xxxxxx.pos(☃xxx, 0.0, 0.0).tex(☃xxx / 32.0F, 0.0).color(64, 64, 64, 255).endVertex();
-            ☃xxxxxx.pos(0.0, 0.0, 0.0).tex(0.0, 0.0).color(64, 64, 64, 255).endVertex();
-            ☃xxxxx.draw();
-            if (☃ >= 0) {
-               int ☃xxxxxxxx = 100;
-               int ☃xxxxxxxxx = 2;
-               int ☃xxxxxxxxxx = ☃xxx / 2 - 50;
-               int ☃xxxxxxxxxxx = ☃xxxx / 2 + 16;
-               GlStateManager.disableTexture2D();
-               ☃xxxxxx.begin(7, DefaultVertexFormats.POSITION_COLOR);
-               ☃xxxxxx.pos(☃xxxxxxxxxx, ☃xxxxxxxxxxx, 0.0).color(128, 128, 128, 255).endVertex();
-               ☃xxxxxx.pos(☃xxxxxxxxxx, ☃xxxxxxxxxxx + 2, 0.0).color(128, 128, 128, 255).endVertex();
-               ☃xxxxxx.pos(☃xxxxxxxxxx + 100, ☃xxxxxxxxxxx + 2, 0.0).color(128, 128, 128, 255).endVertex();
-               ☃xxxxxx.pos(☃xxxxxxxxxx + 100, ☃xxxxxxxxxxx, 0.0).color(128, 128, 128, 255).endVertex();
-               ☃xxxxxx.pos(☃xxxxxxxxxx, ☃xxxxxxxxxxx, 0.0).color(128, 255, 128, 255).endVertex();
-               ☃xxxxxx.pos(☃xxxxxxxxxx, ☃xxxxxxxxxxx + 2, 0.0).color(128, 255, 128, 255).endVertex();
-               ☃xxxxxx.pos(☃xxxxxxxxxx + ☃, ☃xxxxxxxxxxx + 2, 0.0).color(128, 255, 128, 255).endVertex();
-               ☃xxxxxx.pos(☃xxxxxxxxxx + ☃, ☃xxxxxxxxxxx, 0.0).color(128, 255, 128, 255).endVertex();
-               ☃xxxxx.draw();
-               GlStateManager.enableTexture2D();
+            boolean render = true;
+            if (Reflector.FMLClientHandler_handleLoadingScreen.exists()) {
+               Object fch = Reflector.call(Reflector.FMLClientHandler_instance, new Object[0]);
+               if (fch != null) {
+                  render = !Reflector.callBoolean(fch, Reflector.FMLClientHandler_handleLoadingScreen, new Object[]{scaledresolution});
+               }
             }
 
-            GlStateManager.enableBlend();
-            GlStateManager.tryBlendFuncSeparate(
-               GlStateManager.SourceFactor.SRC_ALPHA,
-               GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA,
-               GlStateManager.SourceFactor.ONE,
-               GlStateManager.DestFactor.ZERO
-            );
-            this.mc
-               .fontRenderer
-               .drawStringWithShadow(
-                  this.currentlyDisplayedText, (☃xxx - this.mc.fontRenderer.getStringWidth(this.currentlyDisplayedText)) / 2, ☃xxxx / 2 - 4 - 16, 16777215
+            if (render) {
+               Tessellator tessellator = Tessellator.getInstance();
+               BufferBuilder bufferbuilder = tessellator.getBuffer();
+               CustomLoadingScreen scr = CustomLoadingScreens.getCustomLoadingScreen();
+               if (scr != null) {
+                  scr.drawBackground(scaledresolution.getScaledWidth(), scaledresolution.getScaledHeight());
+               } else {
+                  this.mc.getTextureManager().bindTexture(Gui.OPTIONS_BACKGROUND);
+                  float f = 32.0F;
+                  bufferbuilder.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
+                  bufferbuilder.pos(0.0, l, 0.0).tex(0.0, l / 32.0F).color(64, 64, 64, 255).endVertex();
+                  bufferbuilder.pos(k, l, 0.0).tex(k / 32.0F, l / 32.0F).color(64, 64, 64, 255).endVertex();
+                  bufferbuilder.pos(k, 0.0, 0.0).tex(k / 32.0F, 0.0).color(64, 64, 64, 255).endVertex();
+                  bufferbuilder.pos(0.0, 0.0, 0.0).tex(0.0, 0.0).color(64, 64, 64, 255).endVertex();
+                  tessellator.draw();
+               }
+
+               if (progress >= 0) {
+                  int i1 = 100;
+                  int j1 = 2;
+                  int k1 = k / 2 - 50;
+                  int l1 = l / 2 + 16;
+                  GlStateManager.disableTexture2D();
+                  bufferbuilder.begin(7, DefaultVertexFormats.POSITION_COLOR);
+                  bufferbuilder.pos(k1, l1, 0.0).color(128, 128, 128, 255).endVertex();
+                  bufferbuilder.pos(k1, l1 + 2, 0.0).color(128, 128, 128, 255).endVertex();
+                  bufferbuilder.pos(k1 + 100, l1 + 2, 0.0).color(128, 128, 128, 255).endVertex();
+                  bufferbuilder.pos(k1 + 100, l1, 0.0).color(128, 128, 128, 255).endVertex();
+                  bufferbuilder.pos(k1, l1, 0.0).color(128, 255, 128, 255).endVertex();
+                  bufferbuilder.pos(k1, l1 + 2, 0.0).color(128, 255, 128, 255).endVertex();
+                  bufferbuilder.pos(k1 + progress, l1 + 2, 0.0).color(128, 255, 128, 255).endVertex();
+                  bufferbuilder.pos(k1 + progress, l1, 0.0).color(128, 255, 128, 255).endVertex();
+                  tessellator.draw();
+                  GlStateManager.enableTexture2D();
+               }
+
+               GlStateManager.enableBlend();
+               GlStateManager.tryBlendFuncSeparate(
+                  GlStateManager.SourceFactor.SRC_ALPHA,
+                  GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA,
+                  GlStateManager.SourceFactor.ONE,
+                  GlStateManager.DestFactor.ZERO
                );
-            this.mc
-               .fontRenderer
-               .drawStringWithShadow(this.message, (☃xxx - this.mc.fontRenderer.getStringWidth(this.message)) / 2, ☃xxxx / 2 - 4 + 8, 16777215);
+               this.mc
+                  .fontRenderer
+                  .drawStringWithShadow(
+                     this.currentlyDisplayedText, (k - this.mc.fontRenderer.getStringWidth(this.currentlyDisplayedText)) / 2, l / 2 - 4 - 16, 16777215
+                  );
+               this.mc.fontRenderer.drawStringWithShadow(this.message, (k - this.mc.fontRenderer.getStringWidth(this.message)) / 2, l / 2 - 4 + 8, 16777215);
+            }
+
             this.framebuffer.unbindFramebuffer();
             if (OpenGlHelper.isFramebufferEnabled()) {
-               this.framebuffer.framebufferRender(☃xxx * ☃xx, ☃xxxx * ☃xx);
+               this.framebuffer.framebufferRender(k * j, l * j);
             }
 
             this.mc.updateDisplay();
 
             try {
                Thread.yield();
-            } catch (Exception var15) {
+            } catch (Exception var16) {
             }
          }
       }
    }
 
-   @Override
    public void setDoneWorking() {
    }
 }

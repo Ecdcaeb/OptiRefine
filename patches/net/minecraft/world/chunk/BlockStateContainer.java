@@ -19,13 +19,13 @@ public class BlockStateContainer implements IBlockStatePaletteResizer {
       this.setBits(4);
    }
 
-   private static int getIndex(int var0, int var1, int var2) {
-      return ☃ << 8 | ☃ << 4 | ☃;
+   private static int getIndex(int x, int y, int z) {
+      return y << 8 | z << 4 | x;
    }
 
-   private void setBits(int var1) {
-      if (☃ != this.bits) {
-         this.bits = ☃;
+   private void setBits(int bitsIn) {
+      if (bitsIn != this.bits) {
+         this.bits = bitsIn;
          if (this.bits <= 4) {
             this.bits = 4;
             this.palette = new BlockStatePaletteLinear(this.bits, this);
@@ -41,88 +41,87 @@ public class BlockStateContainer implements IBlockStatePaletteResizer {
       }
    }
 
-   @Override
-   public int onResize(int var1, IBlockState var2) {
-      BitArray ☃ = this.storage;
-      IBlockStatePalette ☃x = this.palette;
-      this.setBits(☃);
+   public int onResize(int bits, IBlockState state) {
+      BitArray bitarray = this.storage;
+      IBlockStatePalette iblockstatepalette = this.palette;
+      this.setBits(bits);
 
-      for (int ☃xx = 0; ☃xx < ☃.size(); ☃xx++) {
-         IBlockState ☃xxx = ☃x.getBlockState(☃.getAt(☃xx));
-         if (☃xxx != null) {
-            this.set(☃xx, ☃xxx);
+      for (int i = 0; i < bitarray.size(); i++) {
+         IBlockState iblockstate = iblockstatepalette.getBlockState(bitarray.getAt(i));
+         if (iblockstate != null) {
+            this.set(i, iblockstate);
          }
       }
 
-      return this.palette.idFor(☃);
+      return this.palette.idFor(state);
    }
 
-   public void set(int var1, int var2, int var3, IBlockState var4) {
-      this.set(getIndex(☃, ☃, ☃), ☃);
+   public void set(int x, int y, int z, IBlockState state) {
+      this.set(getIndex(x, y, z), state);
    }
 
-   protected void set(int var1, IBlockState var2) {
-      int ☃ = this.palette.idFor(☃);
-      this.storage.setAt(☃, ☃);
+   protected void set(int index, IBlockState state) {
+      int i = this.palette.idFor(state);
+      this.storage.setAt(index, i);
    }
 
-   public IBlockState get(int var1, int var2, int var3) {
-      return this.get(getIndex(☃, ☃, ☃));
+   public IBlockState get(int x, int y, int z) {
+      return this.get(getIndex(x, y, z));
    }
 
-   protected IBlockState get(int var1) {
-      IBlockState ☃ = this.palette.getBlockState(this.storage.getAt(☃));
-      return ☃ == null ? AIR_BLOCK_STATE : ☃;
+   protected IBlockState get(int index) {
+      IBlockState iblockstate = this.palette.getBlockState(this.storage.getAt(index));
+      return iblockstate == null ? AIR_BLOCK_STATE : iblockstate;
    }
 
-   public void read(PacketBuffer var1) {
-      int ☃ = ☃.readByte();
-      if (this.bits != ☃) {
-         this.setBits(☃);
+   public void read(PacketBuffer buf) {
+      int i = buf.readByte();
+      if (this.bits != i) {
+         this.setBits(i);
       }
 
-      this.palette.read(☃);
-      ☃.readLongArray(this.storage.getBackingLongArray());
+      this.palette.read(buf);
+      buf.readLongArray(this.storage.getBackingLongArray());
    }
 
-   public void write(PacketBuffer var1) {
-      ☃.writeByte(this.bits);
-      this.palette.write(☃);
-      ☃.writeLongArray(this.storage.getBackingLongArray());
+   public void write(PacketBuffer buf) {
+      buf.writeByte(this.bits);
+      this.palette.write(buf);
+      buf.writeLongArray(this.storage.getBackingLongArray());
    }
 
    @Nullable
-   public NibbleArray getDataForNBT(byte[] var1, NibbleArray var2) {
-      NibbleArray ☃ = null;
+   public NibbleArray getDataForNBT(byte[] blockIds, NibbleArray data) {
+      NibbleArray nibblearray = null;
 
-      for (int ☃x = 0; ☃x < 4096; ☃x++) {
-         int ☃xx = Block.BLOCK_STATE_IDS.get(this.get(☃x));
-         int ☃xxx = ☃x & 15;
-         int ☃xxxx = ☃x >> 8 & 15;
-         int ☃xxxxx = ☃x >> 4 & 15;
-         if ((☃xx >> 12 & 15) != 0) {
-            if (☃ == null) {
-               ☃ = new NibbleArray();
+      for (int i = 0; i < 4096; i++) {
+         int j = Block.BLOCK_STATE_IDS.get(this.get(i));
+         int k = i & 15;
+         int l = i >> 8 & 15;
+         int i1 = i >> 4 & 15;
+         if ((j >> 12 & 15) != 0) {
+            if (nibblearray == null) {
+               nibblearray = new NibbleArray();
             }
 
-            ☃.set(☃xxx, ☃xxxx, ☃xxxxx, ☃xx >> 12 & 15);
+            nibblearray.set(k, l, i1, j >> 12 & 15);
          }
 
-         ☃[☃x] = (byte)(☃xx >> 4 & 0xFF);
-         ☃.set(☃xxx, ☃xxxx, ☃xxxxx, ☃xx & 15);
+         blockIds[i] = (byte)(j >> 4 & 0xFF);
+         data.set(k, l, i1, j & 15);
       }
 
-      return ☃;
+      return nibblearray;
    }
 
-   public void setDataFromNBT(byte[] var1, NibbleArray var2, @Nullable NibbleArray var3) {
-      for (int ☃ = 0; ☃ < 4096; ☃++) {
-         int ☃x = ☃ & 15;
-         int ☃xx = ☃ >> 8 & 15;
-         int ☃xxx = ☃ >> 4 & 15;
-         int ☃xxxx = ☃ == null ? 0 : ☃.get(☃x, ☃xx, ☃xxx);
-         int ☃xxxxx = ☃xxxx << 12 | (☃[☃] & 255) << 4 | ☃.get(☃x, ☃xx, ☃xxx);
-         this.set(☃, Block.BLOCK_STATE_IDS.getByValue(☃xxxxx));
+   public void setDataFromNBT(byte[] blockIds, NibbleArray data, @Nullable NibbleArray blockIdExtension) {
+      for (int i = 0; i < 4096; i++) {
+         int j = i & 15;
+         int k = i >> 8 & 15;
+         int l = i >> 4 & 15;
+         int i1 = blockIdExtension == null ? 0 : blockIdExtension.get(j, k, l);
+         int j1 = i1 << 12 | (blockIds[i] & 255) << 4 | data.get(j, k, l);
+         this.set(i, (IBlockState)Block.BLOCK_STATE_IDS.getByValue(j1));
       }
    }
 

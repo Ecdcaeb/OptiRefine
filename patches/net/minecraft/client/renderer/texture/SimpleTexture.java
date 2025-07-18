@@ -6,6 +6,8 @@ import net.minecraft.client.resources.IResource;
 import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.client.resources.data.TextureMetadataSection;
 import net.minecraft.util.ResourceLocation;
+import net.optifine.EmissiveTextures;
+import net.optifine.shaders.ShadersTex;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -13,36 +15,46 @@ import org.apache.logging.log4j.Logger;
 public class SimpleTexture extends AbstractTexture {
    private static final Logger LOGGER = LogManager.getLogger();
    protected final ResourceLocation textureLocation;
+   public ResourceLocation locationEmissive;
+   public boolean isEmissive;
 
-   public SimpleTexture(ResourceLocation var1) {
-      this.textureLocation = ☃;
+   public SimpleTexture(ResourceLocation textureResourceLocation) {
+      this.textureLocation = textureResourceLocation;
    }
 
    @Override
-   public void loadTexture(IResourceManager var1) throws IOException {
+   public void loadTexture(IResourceManager resourceManager) throws IOException {
       this.deleteGlTexture();
-      IResource ☃ = null;
+      IResource iresource = null;
 
       try {
-         ☃ = ☃.getResource(this.textureLocation);
-         BufferedImage ☃x = TextureUtil.readBufferedImage(☃.getInputStream());
-         boolean ☃xx = false;
-         boolean ☃xxx = false;
-         if (☃.hasMetadata()) {
+         iresource = resourceManager.getResource(this.textureLocation);
+         BufferedImage bufferedimage = TextureUtil.readBufferedImage(iresource.getInputStream());
+         boolean flag = false;
+         boolean flag1 = false;
+         if (iresource.hasMetadata()) {
             try {
-               TextureMetadataSection ☃xxxx = ☃.getMetadata("texture");
-               if (☃xxxx != null) {
-                  ☃xx = ☃xxxx.getTextureBlur();
-                  ☃xxx = ☃xxxx.getTextureClamp();
+               TextureMetadataSection texturemetadatasection = (TextureMetadataSection)iresource.getMetadata("texture");
+               if (texturemetadatasection != null) {
+                  flag = texturemetadatasection.getTextureBlur();
+                  flag1 = texturemetadatasection.getTextureClamp();
                }
             } catch (RuntimeException var10) {
                LOGGER.warn("Failed reading metadata of: {}", this.textureLocation, var10);
             }
          }
 
-         TextureUtil.uploadTextureImageAllocate(this.getGlTextureId(), ☃x, ☃xx, ☃xxx);
+         if (Config.isShaders()) {
+            ShadersTex.loadSimpleTexture(this.getGlTextureId(), bufferedimage, flag, flag1, resourceManager, this.textureLocation, this.getMultiTexID());
+         } else {
+            TextureUtil.uploadTextureImageAllocate(this.getGlTextureId(), bufferedimage, flag, flag1);
+         }
+
+         if (EmissiveTextures.isActive()) {
+            EmissiveTextures.loadTexture(this.textureLocation, this);
+         }
       } finally {
-         IOUtils.closeQuietly(☃);
+         IOUtils.closeQuietly(iresource);
       }
    }
 }

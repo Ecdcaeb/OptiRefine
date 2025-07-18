@@ -10,100 +10,111 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import net.optifine.util.IteratorCache;
 
 public class ClassInheritanceMultiMap<T> extends AbstractSet<T> {
-   private static final Set<Class<?>> ALL_KNOWN = Sets.newHashSet();
+   private static final Set<Class<?>> ALL_KNOWN = Collections.newSetFromMap(new ConcurrentHashMap<>());
    private final Map<Class<?>, List<T>> map = Maps.newHashMap();
    private final Set<Class<?>> knownKeys = Sets.newIdentityHashSet();
    private final Class<T> baseClass;
    private final List<T> values = Lists.newArrayList();
+   public boolean empty;
 
-   public ClassInheritanceMultiMap(Class<T> var1) {
-      this.baseClass = ☃;
-      this.knownKeys.add(☃);
-      this.map.put(☃, this.values);
+   public ClassInheritanceMultiMap(Class<T> baseClassIn) {
+      this.baseClass = baseClassIn;
+      this.knownKeys.add(baseClassIn);
+      this.map.put(baseClassIn, this.values);
 
-      for (Class<?> ☃ : ALL_KNOWN) {
-         this.createLookup(☃);
+      for (Class<?> oclass : ALL_KNOWN) {
+         this.createLookup(oclass);
       }
+
+      this.empty = this.values.size() == 0;
    }
 
-   protected void createLookup(Class<?> var1) {
-      ALL_KNOWN.add(☃);
+   protected void createLookup(Class<?> clazz) {
+      ALL_KNOWN.add(clazz);
+      int count = this.values.size();
 
-      for (T ☃ : this.values) {
-         if (☃.isAssignableFrom(☃.getClass())) {
-            this.addForClass(☃, ☃);
+      for (int i = 0; i < count; i++) {
+         T t = this.values.get(i);
+         if (clazz.isAssignableFrom(t.getClass())) {
+            this.addForClass(t, clazz);
          }
       }
 
-      this.knownKeys.add(☃);
+      this.knownKeys.add(clazz);
    }
 
-   protected Class<?> initializeClassLookup(Class<?> var1) {
-      if (this.baseClass.isAssignableFrom(☃)) {
-         if (!this.knownKeys.contains(☃)) {
-            this.createLookup(☃);
+   protected Class<?> initializeClassLookup(Class<?> clazz) {
+      if (this.baseClass.isAssignableFrom(clazz)) {
+         if (!this.knownKeys.contains(clazz)) {
+            this.createLookup(clazz);
          }
 
-         return ☃;
+         return clazz;
       } else {
-         throw new IllegalArgumentException("Don't know how to search for " + ☃);
+         throw new IllegalArgumentException("Don't know how to search for " + clazz);
       }
    }
 
    @Override
-   public boolean add(T var1) {
-      for (Class<?> ☃ : this.knownKeys) {
-         if (☃.isAssignableFrom(☃.getClass())) {
-            this.addForClass(☃, ☃);
+   public boolean add(T p_add_1_) {
+      for (Class<?> oclass : this.knownKeys) {
+         if (oclass.isAssignableFrom(p_add_1_.getClass())) {
+            this.addForClass(p_add_1_, oclass);
          }
       }
 
+      this.empty = this.values.size() == 0;
       return true;
    }
 
-   private void addForClass(T var1, Class<?> var2) {
-      List<T> ☃ = this.map.get(☃);
-      if (☃ == null) {
-         this.map.put(☃, Lists.newArrayList(new Object[]{☃}));
+   private void addForClass(T value, Class<?> parentClass) {
+      List<T> list = this.map.get(parentClass);
+      if (list == null) {
+         this.map.put(parentClass, Lists.newArrayList(new Object[]{value}));
       } else {
-         ☃.add(☃);
+         list.add(value);
       }
+
+      this.empty = this.values.size() == 0;
    }
 
    @Override
-   public boolean remove(Object var1) {
-      T ☃ = (T)☃;
-      boolean ☃x = false;
+   public boolean remove(Object p_remove_1_) {
+      T t = (T)p_remove_1_;
+      boolean flag = false;
 
-      for (Class<?> ☃xx : this.knownKeys) {
-         if (☃xx.isAssignableFrom(☃.getClass())) {
-            List<T> ☃xxx = this.map.get(☃xx);
-            if (☃xxx != null && ☃xxx.remove(☃)) {
-               ☃x = true;
+      for (Class<?> oclass : this.knownKeys) {
+         if (oclass.isAssignableFrom(t.getClass())) {
+            List<T> list = this.map.get(oclass);
+            if (list != null && list.remove(t)) {
+               flag = true;
             }
          }
       }
 
-      return ☃x;
+      this.empty = this.values.size() == 0;
+      return flag;
    }
 
    @Override
-   public boolean contains(Object var1) {
-      return Iterators.contains(this.getByClass(☃.getClass()).iterator(), ☃);
+   public boolean contains(Object p_contains_1_) {
+      return Iterators.contains(this.getByClass(p_contains_1_.getClass()).iterator(), p_contains_1_);
    }
 
-   public <S> Iterable<S> getByClass(final Class<S> var1) {
+   public <S> Iterable<S> getByClass(final Class<S> clazz) {
       return new Iterable<S>() {
          @Override
          public Iterator<S> iterator() {
-            List<T> ☃ = ClassInheritanceMultiMap.this.map.get(ClassInheritanceMultiMap.this.initializeClassLookup(☃));
-            if (☃ == null) {
+            List<T> list = ClassInheritanceMultiMap.this.map.get(ClassInheritanceMultiMap.this.initializeClassLookup(clazz));
+            if (list == null) {
                return Collections.emptyIterator();
             } else {
-               Iterator<T> ☃x = ☃.iterator();
-               return Iterators.filter(☃x, ☃);
+               Iterator<T> iterator = list.iterator();
+               return Iterators.filter(iterator, clazz);
             }
          }
       };
@@ -111,11 +122,16 @@ public class ClassInheritanceMultiMap<T> extends AbstractSet<T> {
 
    @Override
    public Iterator<T> iterator() {
-      return (Iterator<T>)(this.values.isEmpty() ? Collections.emptyIterator() : Iterators.unmodifiableIterator(this.values.iterator()));
+      return this.values.isEmpty() ? Collections.emptyIterator() : IteratorCache.getReadOnly(this.values);
    }
 
    @Override
    public int size() {
       return this.values.size();
+   }
+
+   @Override
+   public boolean isEmpty() {
+      return this.empty;
    }
 }

@@ -1,9 +1,8 @@
 package net.minecraft.client.renderer.chunk;
 
-import com.google.common.collect.Queues;
+import java.util.ArrayDeque;
 import java.util.BitSet;
 import java.util.EnumSet;
-import java.util.Queue;
 import java.util.Set;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.IntegerCache;
@@ -17,138 +16,138 @@ public class VisGraph {
    private static final int[] INDEX_OF_EDGES = new int[1352];
    private int empty = 4096;
 
-   public void setOpaqueCube(BlockPos var1) {
-      this.bitSet.set(getIndex(☃), true);
+   public void setOpaqueCube(BlockPos pos) {
+      this.bitSet.set(getIndex(pos), true);
       this.empty--;
    }
 
-   private static int getIndex(BlockPos var0) {
-      return getIndex(☃.getX() & 15, ☃.getY() & 15, ☃.getZ() & 15);
+   private static int getIndex(BlockPos pos) {
+      return getIndex(pos.getX() & 15, pos.getY() & 15, pos.getZ() & 15);
    }
 
-   private static int getIndex(int var0, int var1, int var2) {
-      return ☃ << 0 | ☃ << 8 | ☃ << 4;
+   private static int getIndex(int x, int y, int z) {
+      return x << 0 | y << 8 | z << 4;
    }
 
    public SetVisibility computeVisibility() {
-      SetVisibility ☃ = new SetVisibility();
+      SetVisibility setvisibility = new SetVisibility();
       if (4096 - this.empty < 256) {
-         ☃.setAllVisible(true);
+         setvisibility.setAllVisible(true);
       } else if (this.empty == 0) {
-         ☃.setAllVisible(false);
+         setvisibility.setAllVisible(false);
       } else {
-         for (int ☃x : INDEX_OF_EDGES) {
-            if (!this.bitSet.get(☃x)) {
-               ☃.setManyVisible(this.floodFill(☃x));
+         for (int i : INDEX_OF_EDGES) {
+            if (!this.bitSet.get(i)) {
+               setvisibility.setManyVisible(this.floodFill(i));
             }
          }
       }
 
-      return ☃;
+      return setvisibility;
    }
 
-   public Set<EnumFacing> getVisibleFacings(BlockPos var1) {
-      return this.floodFill(getIndex(☃));
+   public Set<EnumFacing> getVisibleFacings(BlockPos pos) {
+      return this.floodFill(getIndex(pos));
    }
 
-   private Set<EnumFacing> floodFill(int var1) {
-      Set<EnumFacing> ☃ = EnumSet.noneOf(EnumFacing.class);
-      Queue<Integer> ☃x = Queues.newArrayDeque();
-      ☃x.add(IntegerCache.getInteger(☃));
-      this.bitSet.set(☃, true);
+   private Set<EnumFacing> floodFill(int pos) {
+      Set<EnumFacing> set = EnumSet.noneOf(EnumFacing.class);
+      ArrayDeque queue = new ArrayDeque(384);
+      queue.add(IntegerCache.getInteger(pos));
+      this.bitSet.set(pos, true);
 
-      while (!☃x.isEmpty()) {
-         int ☃xx = ☃x.poll();
-         this.addEdges(☃xx, ☃);
+      while (!queue.isEmpty()) {
+         int i = (Integer)queue.poll();
+         this.addEdges(i, set);
 
-         for (EnumFacing ☃xxx : EnumFacing.values()) {
-            int ☃xxxx = this.getNeighborIndexAtFace(☃xx, ☃xxx);
-            if (☃xxxx >= 0 && !this.bitSet.get(☃xxxx)) {
-               this.bitSet.set(☃xxxx, true);
-               ☃x.add(IntegerCache.getInteger(☃xxxx));
+         for (EnumFacing enumfacing : EnumFacing.VALUES) {
+            int j = this.getNeighborIndexAtFace(i, enumfacing);
+            if (j >= 0 && !this.bitSet.get(j)) {
+               this.bitSet.set(j, true);
+               queue.add(IntegerCache.getInteger(j));
             }
          }
       }
 
-      return ☃;
+      return set;
    }
 
-   private void addEdges(int var1, Set<EnumFacing> var2) {
-      int ☃ = ☃ >> 0 & 15;
-      if (☃ == 0) {
-         ☃.add(EnumFacing.WEST);
-      } else if (☃ == 15) {
-         ☃.add(EnumFacing.EAST);
+   private void addEdges(int pos, Set<EnumFacing> p_178610_2_) {
+      int i = pos >> 0 & 15;
+      if (i == 0) {
+         p_178610_2_.add(EnumFacing.WEST);
+      } else if (i == 15) {
+         p_178610_2_.add(EnumFacing.EAST);
       }
 
-      int ☃x = ☃ >> 8 & 15;
-      if (☃x == 0) {
-         ☃.add(EnumFacing.DOWN);
-      } else if (☃x == 15) {
-         ☃.add(EnumFacing.UP);
+      int j = pos >> 8 & 15;
+      if (j == 0) {
+         p_178610_2_.add(EnumFacing.DOWN);
+      } else if (j == 15) {
+         p_178610_2_.add(EnumFacing.UP);
       }
 
-      int ☃xx = ☃ >> 4 & 15;
-      if (☃xx == 0) {
-         ☃.add(EnumFacing.NORTH);
-      } else if (☃xx == 15) {
-         ☃.add(EnumFacing.SOUTH);
+      int k = pos >> 4 & 15;
+      if (k == 0) {
+         p_178610_2_.add(EnumFacing.NORTH);
+      } else if (k == 15) {
+         p_178610_2_.add(EnumFacing.SOUTH);
       }
    }
 
-   private int getNeighborIndexAtFace(int var1, EnumFacing var2) {
-      switch (☃) {
+   private int getNeighborIndexAtFace(int pos, EnumFacing facing) {
+      switch (facing) {
          case DOWN:
-            if ((☃ >> 8 & 15) == 0) {
+            if ((pos >> 8 & 15) == 0) {
                return -1;
             }
 
-            return ☃ - DY;
+            return pos - DY;
          case UP:
-            if ((☃ >> 8 & 15) == 15) {
+            if ((pos >> 8 & 15) == 15) {
                return -1;
             }
 
-            return ☃ + DY;
+            return pos + DY;
          case NORTH:
-            if ((☃ >> 4 & 15) == 0) {
+            if ((pos >> 4 & 15) == 0) {
                return -1;
             }
 
-            return ☃ - DZ;
+            return pos - DZ;
          case SOUTH:
-            if ((☃ >> 4 & 15) == 15) {
+            if ((pos >> 4 & 15) == 15) {
                return -1;
             }
 
-            return ☃ + DZ;
+            return pos + DZ;
          case WEST:
-            if ((☃ >> 0 & 15) == 0) {
+            if ((pos >> 0 & 15) == 0) {
                return -1;
             }
 
-            return ☃ - DX;
+            return pos - DX;
          case EAST:
-            if ((☃ >> 0 & 15) == 15) {
+            if ((pos >> 0 & 15) == 15) {
                return -1;
             }
 
-            return ☃ + DX;
+            return pos + DX;
          default:
             return -1;
       }
    }
 
    static {
-      int ☃ = 0;
-      int ☃x = 15;
-      int ☃xx = 0;
+      int i = 0;
+      int j = 15;
+      int k = 0;
 
-      for (int ☃xxx = 0; ☃xxx < 16; ☃xxx++) {
-         for (int ☃xxxx = 0; ☃xxxx < 16; ☃xxxx++) {
-            for (int ☃xxxxx = 0; ☃xxxxx < 16; ☃xxxxx++) {
-               if (☃xxx == 0 || ☃xxx == 15 || ☃xxxx == 0 || ☃xxxx == 15 || ☃xxxxx == 0 || ☃xxxxx == 15) {
-                  INDEX_OF_EDGES[☃xx++] = getIndex(☃xxx, ☃xxxx, ☃xxxxx);
+      for (int l = 0; l < 16; l++) {
+         for (int i1 = 0; i1 < 16; i1++) {
+            for (int j1 = 0; j1 < 16; j1++) {
+               if (l == 0 || l == 15 || i1 == 0 || i1 == 15 || j1 == 0 || j1 == 15) {
+                  INDEX_OF_EDGES[k++] = getIndex(l, i1, j1);
                }
             }
          }

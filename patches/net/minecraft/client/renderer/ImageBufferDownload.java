@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.awt.image.ImageObserver;
 import javax.annotation.Nullable;
 
 public class ImageBufferDownload implements IImageBuffer {
@@ -12,72 +13,79 @@ public class ImageBufferDownload implements IImageBuffer {
    private int imageHeight;
 
    @Nullable
-   @Override
-   public BufferedImage parseUserSkin(BufferedImage var1) {
-      if (☃ == null) {
+   public BufferedImage parseUserSkin(BufferedImage image) {
+      if (image == null) {
          return null;
       } else {
          this.imageWidth = 64;
          this.imageHeight = 64;
-         BufferedImage ☃ = new BufferedImage(this.imageWidth, this.imageHeight, 2);
-         Graphics ☃x = ☃.getGraphics();
-         ☃x.drawImage(☃, 0, 0, null);
-         boolean ☃xx = ☃.getHeight() == 32;
-         if (☃xx) {
-            ☃x.setColor(new Color(0, 0, 0, 0));
-            ☃x.fillRect(0, 32, 64, 32);
-            ☃x.drawImage(☃, 24, 48, 20, 52, 4, 16, 8, 20, null);
-            ☃x.drawImage(☃, 28, 48, 24, 52, 8, 16, 12, 20, null);
-            ☃x.drawImage(☃, 20, 52, 16, 64, 8, 20, 12, 32, null);
-            ☃x.drawImage(☃, 24, 52, 20, 64, 4, 20, 8, 32, null);
-            ☃x.drawImage(☃, 28, 52, 24, 64, 0, 20, 4, 32, null);
-            ☃x.drawImage(☃, 32, 52, 28, 64, 12, 20, 16, 32, null);
-            ☃x.drawImage(☃, 40, 48, 36, 52, 44, 16, 48, 20, null);
-            ☃x.drawImage(☃, 44, 48, 40, 52, 48, 16, 52, 20, null);
-            ☃x.drawImage(☃, 36, 52, 32, 64, 48, 20, 52, 32, null);
-            ☃x.drawImage(☃, 40, 52, 36, 64, 44, 20, 48, 32, null);
-            ☃x.drawImage(☃, 44, 52, 40, 64, 40, 20, 44, 32, null);
-            ☃x.drawImage(☃, 48, 52, 44, 64, 52, 20, 56, 32, null);
+         int srcWidth = image.getWidth();
+         int srcHeight = image.getHeight();
+
+         int k;
+         for (k = 1; this.imageWidth < srcWidth || this.imageHeight < srcHeight; k *= 2) {
+            this.imageWidth *= 2;
+            this.imageHeight *= 2;
          }
 
-         ☃x.dispose();
-         this.imageData = ((DataBufferInt)☃.getRaster().getDataBuffer()).getData();
-         this.setAreaOpaque(0, 0, 32, 16);
-         if (☃xx) {
-            this.setAreaTransparent(32, 0, 64, 32);
+         BufferedImage bufferedimage = new BufferedImage(this.imageWidth, this.imageHeight, 2);
+         Graphics graphics = bufferedimage.getGraphics();
+         graphics.drawImage(image, 0, 0, (ImageObserver)null);
+         boolean flag = image.getHeight() == 32 * k;
+         if (flag) {
+            graphics.setColor(new Color(0, 0, 0, 0));
+            graphics.fillRect(0 * k, 32 * k, 64 * k, 32 * k);
+            graphics.drawImage(bufferedimage, 24 * k, 48 * k, 20 * k, 52 * k, 4 * k, 16 * k, 8 * k, 20 * k, (ImageObserver)null);
+            graphics.drawImage(bufferedimage, 28 * k, 48 * k, 24 * k, 52 * k, 8 * k, 16 * k, 12 * k, 20 * k, (ImageObserver)null);
+            graphics.drawImage(bufferedimage, 20 * k, 52 * k, 16 * k, 64 * k, 8 * k, 20 * k, 12 * k, 32 * k, (ImageObserver)null);
+            graphics.drawImage(bufferedimage, 24 * k, 52 * k, 20 * k, 64 * k, 4 * k, 20 * k, 8 * k, 32 * k, (ImageObserver)null);
+            graphics.drawImage(bufferedimage, 28 * k, 52 * k, 24 * k, 64 * k, 0 * k, 20 * k, 4 * k, 32 * k, (ImageObserver)null);
+            graphics.drawImage(bufferedimage, 32 * k, 52 * k, 28 * k, 64 * k, 12 * k, 20 * k, 16 * k, 32 * k, (ImageObserver)null);
+            graphics.drawImage(bufferedimage, 40 * k, 48 * k, 36 * k, 52 * k, 44 * k, 16 * k, 48 * k, 20 * k, (ImageObserver)null);
+            graphics.drawImage(bufferedimage, 44 * k, 48 * k, 40 * k, 52 * k, 48 * k, 16 * k, 52 * k, 20 * k, (ImageObserver)null);
+            graphics.drawImage(bufferedimage, 36 * k, 52 * k, 32 * k, 64 * k, 48 * k, 20 * k, 52 * k, 32 * k, (ImageObserver)null);
+            graphics.drawImage(bufferedimage, 40 * k, 52 * k, 36 * k, 64 * k, 44 * k, 20 * k, 48 * k, 32 * k, (ImageObserver)null);
+            graphics.drawImage(bufferedimage, 44 * k, 52 * k, 40 * k, 64 * k, 40 * k, 20 * k, 44 * k, 32 * k, (ImageObserver)null);
+            graphics.drawImage(bufferedimage, 48 * k, 52 * k, 44 * k, 64 * k, 52 * k, 20 * k, 56 * k, 32 * k, (ImageObserver)null);
          }
 
-         this.setAreaOpaque(0, 16, 64, 32);
-         this.setAreaOpaque(16, 48, 48, 64);
-         return ☃;
+         graphics.dispose();
+         this.imageData = ((DataBufferInt)bufferedimage.getRaster().getDataBuffer()).getData();
+         this.setAreaOpaque(0 * k, 0 * k, 32 * k, 16 * k);
+         if (flag) {
+            this.setAreaTransparent(32 * k, 0 * k, 64 * k, 32 * k);
+         }
+
+         this.setAreaOpaque(0 * k, 16 * k, 64 * k, 32 * k);
+         this.setAreaOpaque(16 * k, 48 * k, 48 * k, 64 * k);
+         return bufferedimage;
       }
    }
 
-   @Override
    public void skinAvailable() {
    }
 
-   private void setAreaTransparent(int var1, int var2, int var3, int var4) {
-      for (int ☃ = ☃; ☃ < ☃; ☃++) {
-         for (int ☃x = ☃; ☃x < ☃; ☃x++) {
-            int ☃xx = this.imageData[☃ + ☃x * this.imageWidth];
-            if ((☃xx >> 24 & 0xFF) < 128) {
+   private void setAreaTransparent(int x, int y, int width, int height) {
+      for (int i = x; i < width; i++) {
+         for (int j = y; j < height; j++) {
+            int k = this.imageData[i + j * this.imageWidth];
+            if ((k >> 24 & 0xFF) < 128) {
                return;
             }
          }
       }
 
-      for (int ☃ = ☃; ☃ < ☃; ☃++) {
-         for (int ☃xx = ☃; ☃xx < ☃; ☃xx++) {
-            this.imageData[☃ + ☃xx * this.imageWidth] = this.imageData[☃ + ☃xx * this.imageWidth] & 16777215;
+      for (int l = x; l < width; l++) {
+         for (int i1 = y; i1 < height; i1++) {
+            this.imageData[l + i1 * this.imageWidth] = this.imageData[l + i1 * this.imageWidth] & 16777215;
          }
       }
    }
 
-   private void setAreaOpaque(int var1, int var2, int var3, int var4) {
-      for (int ☃ = ☃; ☃ < ☃; ☃++) {
-         for (int ☃x = ☃; ☃x < ☃; ☃x++) {
-            this.imageData[☃ + ☃x * this.imageWidth] = this.imageData[☃ + ☃x * this.imageWidth] | 0xFF000000;
+   private void setAreaOpaque(int x, int y, int width, int height) {
+      for (int i = x; i < width; i++) {
+         for (int j = y; j < height; j++) {
+            this.imageData[i + j * this.imageWidth] = this.imageData[i + j * this.imageWidth] | 0xFF000000;
          }
       }
    }

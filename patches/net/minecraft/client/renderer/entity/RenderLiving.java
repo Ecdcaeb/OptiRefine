@@ -10,155 +10,143 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityHanging;
 import net.minecraft.entity.EntityLiving;
+import net.optifine.shaders.Shaders;
 
 public abstract class RenderLiving<T extends EntityLiving> extends RenderLivingBase<T> {
-   public RenderLiving(RenderManager var1, ModelBase var2, float var3) {
-      super(☃, ☃, ☃);
+   public RenderLiving(RenderManager rendermanagerIn, ModelBase modelbaseIn, float shadowsizeIn) {
+      super(rendermanagerIn, modelbaseIn, shadowsizeIn);
    }
 
-   protected boolean canRenderName(T var1) {
-      return super.canRenderName(☃) && (☃.getAlwaysRenderNameTagForRender() || ☃.hasCustomName() && ☃ == this.renderManager.pointedEntity);
+   protected boolean canRenderName(T entity) {
+      return super.canRenderName(entity) && (entity.getAlwaysRenderNameTagForRender() || entity.hasCustomName() && entity == this.renderManager.pointedEntity);
    }
 
-   public boolean shouldRender(T var1, ICamera var2, double var3, double var5, double var7) {
-      if (super.shouldRender(☃, ☃, ☃, ☃, ☃)) {
+   public boolean shouldRender(T livingEntity, ICamera camera, double camX, double camY, double camZ) {
+      if (super.shouldRender(livingEntity, camera, camX, camY, camZ)) {
          return true;
-      } else if (☃.getLeashed() && ☃.getLeashHolder() != null) {
-         Entity ☃ = ☃.getLeashHolder();
-         return ☃.isBoundingBoxInFrustum(☃.getRenderBoundingBox());
+      } else if (livingEntity.getLeashed() && livingEntity.getLeashHolder() != null) {
+         Entity entity = livingEntity.getLeashHolder();
+         return camera.isBoundingBoxInFrustum(entity.getRenderBoundingBox());
       } else {
          return false;
       }
    }
 
-   public void doRender(T var1, double var2, double var4, double var6, float var8, float var9) {
-      super.doRender(☃, ☃, ☃, ☃, ☃, ☃);
+   public void doRender(T entity, double x, double y, double z, float entityYaw, float partialTicks) {
+      super.doRender(entity, x, y, z, entityYaw, partialTicks);
       if (!this.renderOutlines) {
-         this.renderLeash(☃, ☃, ☃, ☃, ☃, ☃);
+         this.renderLeash(entity, x, y, z, entityYaw, partialTicks);
       }
    }
 
-   public void setLightmap(T var1) {
-      int ☃ = ☃.getBrightnessForRender();
-      int ☃x = ☃ % 65536;
-      int ☃xx = ☃ / 65536;
-      OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, ☃x, ☃xx);
+   public void setLightmap(T entityLivingIn) {
+      int i = entityLivingIn.getBrightnessForRender();
+      int j = i % 65536;
+      int k = i / 65536;
+      OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, j, k);
    }
 
-   private double interpolateValue(double var1, double var3, double var5) {
-      return ☃ + (☃ - ☃) * ☃;
+   private double interpolateValue(double start, double end, double pct) {
+      return start + (end - start) * pct;
    }
 
-   protected void renderLeash(T var1, double var2, double var4, double var6, float var8, float var9) {
-      Entity ☃ = ☃.getLeashHolder();
-      if (☃ != null) {
-         ☃ -= (1.6 - ☃.height) * 0.5;
-         Tessellator ☃x = Tessellator.getInstance();
-         BufferBuilder ☃xx = ☃x.getBuffer();
-         double ☃xxx = this.interpolateValue(☃.prevRotationYaw, ☃.rotationYaw, ☃ * 0.5F) * (float) (Math.PI / 180.0);
-         double ☃xxxx = this.interpolateValue(☃.prevRotationPitch, ☃.rotationPitch, ☃ * 0.5F) * (float) (Math.PI / 180.0);
-         double ☃xxxxx = Math.cos(☃xxx);
-         double ☃xxxxxx = Math.sin(☃xxx);
-         double ☃xxxxxxx = Math.sin(☃xxxx);
-         if (☃ instanceof EntityHanging) {
-            ☃xxxxx = 0.0;
-            ☃xxxxxx = 0.0;
-            ☃xxxxxxx = -1.0;
-         }
-
-         double ☃xxxxxxxx = Math.cos(☃xxxx);
-         double ☃xxxxxxxxx = this.interpolateValue(☃.prevPosX, ☃.posX, ☃) - ☃xxxxx * 0.7 - ☃xxxxxx * 0.5 * ☃xxxxxxxx;
-         double ☃xxxxxxxxxx = this.interpolateValue(☃.prevPosY + ☃.getEyeHeight() * 0.7, ☃.posY + ☃.getEyeHeight() * 0.7, ☃) - ☃xxxxxxx * 0.5 - 0.25;
-         double ☃xxxxxxxxxxx = this.interpolateValue(☃.prevPosZ, ☃.posZ, ☃) - ☃xxxxxx * 0.7 + ☃xxxxx * 0.5 * ☃xxxxxxxx;
-         double ☃xxxxxxxxxxxx = this.interpolateValue(☃.prevRenderYawOffset, ☃.renderYawOffset, ☃) * (float) (Math.PI / 180.0) + (Math.PI / 2);
-         ☃xxxxx = Math.cos(☃xxxxxxxxxxxx) * ☃.width * 0.4;
-         ☃xxxxxx = Math.sin(☃xxxxxxxxxxxx) * ☃.width * 0.4;
-         double ☃xxxxxxxxxxxxx = this.interpolateValue(☃.prevPosX, ☃.posX, ☃) + ☃xxxxx;
-         double ☃xxxxxxxxxxxxxx = this.interpolateValue(☃.prevPosY, ☃.posY, ☃);
-         double ☃xxxxxxxxxxxxxxx = this.interpolateValue(☃.prevPosZ, ☃.posZ, ☃) + ☃xxxxxx;
-         ☃ += ☃xxxxx;
-         ☃ += ☃xxxxxx;
-         double ☃xxxxxxxxxxxxxxxx = (float)(☃xxxxxxxxx - ☃xxxxxxxxxxxxx);
-         double ☃xxxxxxxxxxxxxxxxx = (float)(☃xxxxxxxxxx - ☃xxxxxxxxxxxxxx);
-         double ☃xxxxxxxxxxxxxxxxxx = (float)(☃xxxxxxxxxxx - ☃xxxxxxxxxxxxxxx);
-         GlStateManager.disableTexture2D();
-         GlStateManager.disableLighting();
-         GlStateManager.disableCull();
-         int ☃xxxxxxxxxxxxxxxxxxx = 24;
-         double ☃xxxxxxxxxxxxxxxxxxxx = 0.025;
-         ☃xx.begin(5, DefaultVertexFormats.POSITION_COLOR);
-
-         for (int ☃xxxxxxxxxxxxxxxxxxxxx = 0; ☃xxxxxxxxxxxxxxxxxxxxx <= 24; ☃xxxxxxxxxxxxxxxxxxxxx++) {
-            float ☃xxxxxxxxxxxxxxxxxxxxxx = 0.5F;
-            float ☃xxxxxxxxxxxxxxxxxxxxxxx = 0.4F;
-            float ☃xxxxxxxxxxxxxxxxxxxxxxxx = 0.3F;
-            if (☃xxxxxxxxxxxxxxxxxxxxx % 2 == 0) {
-               ☃xxxxxxxxxxxxxxxxxxxxxx *= 0.7F;
-               ☃xxxxxxxxxxxxxxxxxxxxxxx *= 0.7F;
-               ☃xxxxxxxxxxxxxxxxxxxxxxxx *= 0.7F;
+   protected void renderLeash(T entityLivingIn, double x, double y, double z, float entityYaw, float partialTicks) {
+      if (!Config.isShaders() || !Shaders.isShadowPass) {
+         Entity entity = entityLivingIn.getLeashHolder();
+         if (entity != null) {
+            y -= (1.6 - entityLivingIn.height) * 0.5;
+            Tessellator tessellator = Tessellator.getInstance();
+            BufferBuilder bufferbuilder = tessellator.getBuffer();
+            double d0 = this.interpolateValue(entity.prevRotationYaw, entity.rotationYaw, partialTicks * 0.5F) * (float) (Math.PI / 180.0);
+            double d1 = this.interpolateValue(entity.prevRotationPitch, entity.rotationPitch, partialTicks * 0.5F) * (float) (Math.PI / 180.0);
+            double d2 = Math.cos(d0);
+            double d3 = Math.sin(d0);
+            double d4 = Math.sin(d1);
+            if (entity instanceof EntityHanging) {
+               d2 = 0.0;
+               d3 = 0.0;
+               d4 = -1.0;
             }
 
-            float ☃xxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxxx / 24.0F;
-            ☃xx.pos(
-                  ☃ + ☃xxxxxxxxxxxxxxxx * ☃xxxxxxxxxxxxxxxxxxxxxxxxx + 0.0,
-                  ☃
-                     + ☃xxxxxxxxxxxxxxxxx * (☃xxxxxxxxxxxxxxxxxxxxxxxxx * ☃xxxxxxxxxxxxxxxxxxxxxxxxx + ☃xxxxxxxxxxxxxxxxxxxxxxxxx) * 0.5
-                     + ((24.0F - ☃xxxxxxxxxxxxxxxxxxxxx) / 18.0F + 0.125F),
-                  ☃ + ☃xxxxxxxxxxxxxxxxxx * ☃xxxxxxxxxxxxxxxxxxxxxxxxx
-               )
-               .color(☃xxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxx, 1.0F)
-               .endVertex();
-            ☃xx.pos(
-                  ☃ + ☃xxxxxxxxxxxxxxxx * ☃xxxxxxxxxxxxxxxxxxxxxxxxx + 0.025,
-                  ☃
-                     + ☃xxxxxxxxxxxxxxxxx * (☃xxxxxxxxxxxxxxxxxxxxxxxxx * ☃xxxxxxxxxxxxxxxxxxxxxxxxx + ☃xxxxxxxxxxxxxxxxxxxxxxxxx) * 0.5
-                     + ((24.0F - ☃xxxxxxxxxxxxxxxxxxxxx) / 18.0F + 0.125F)
-                     + 0.025,
-                  ☃ + ☃xxxxxxxxxxxxxxxxxx * ☃xxxxxxxxxxxxxxxxxxxxxxxxx
-               )
-               .color(☃xxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxx, 1.0F)
-               .endVertex();
-         }
-
-         ☃x.draw();
-         ☃xx.begin(5, DefaultVertexFormats.POSITION_COLOR);
-
-         for (int ☃xxxxxxxxxxxxxxxxxxxxx = 0; ☃xxxxxxxxxxxxxxxxxxxxx <= 24; ☃xxxxxxxxxxxxxxxxxxxxx++) {
-            float ☃xxxxxxxxxxxxxxxxxxxxxx = 0.5F;
-            float ☃xxxxxxxxxxxxxxxxxxxxxxx = 0.4F;
-            float ☃xxxxxxxxxxxxxxxxxxxxxxxx = 0.3F;
-            if (☃xxxxxxxxxxxxxxxxxxxxx % 2 == 0) {
-               ☃xxxxxxxxxxxxxxxxxxxxxx *= 0.7F;
-               ☃xxxxxxxxxxxxxxxxxxxxxxx *= 0.7F;
-               ☃xxxxxxxxxxxxxxxxxxxxxxxx *= 0.7F;
+            double d5 = Math.cos(d1);
+            double d6 = this.interpolateValue(entity.prevPosX, entity.posX, partialTicks) - d2 * 0.7 - d3 * 0.5 * d5;
+            double d7 = this.interpolateValue(entity.prevPosY + entity.getEyeHeight() * 0.7, entity.posY + entity.getEyeHeight() * 0.7, partialTicks)
+               - d4 * 0.5
+               - 0.25;
+            double d8 = this.interpolateValue(entity.prevPosZ, entity.posZ, partialTicks) - d3 * 0.7 + d2 * 0.5 * d5;
+            double d9 = this.interpolateValue(entityLivingIn.prevRenderYawOffset, entityLivingIn.renderYawOffset, partialTicks) * (float) (Math.PI / 180.0)
+               + (Math.PI / 2);
+            d2 = Math.cos(d9) * entityLivingIn.width * 0.4;
+            d3 = Math.sin(d9) * entityLivingIn.width * 0.4;
+            double d10 = this.interpolateValue(entityLivingIn.prevPosX, entityLivingIn.posX, partialTicks) + d2;
+            double d11 = this.interpolateValue(entityLivingIn.prevPosY, entityLivingIn.posY, partialTicks);
+            double d12 = this.interpolateValue(entityLivingIn.prevPosZ, entityLivingIn.posZ, partialTicks) + d3;
+            x += d2;
+            z += d3;
+            double d13 = (float)(d6 - d10);
+            double d14 = (float)(d7 - d11);
+            double d15 = (float)(d8 - d12);
+            GlStateManager.disableTexture2D();
+            GlStateManager.disableLighting();
+            GlStateManager.disableCull();
+            if (Config.isShaders()) {
+               Shaders.beginLeash();
             }
 
-            float ☃xxxxxxxxxxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxxxxxx / 24.0F;
-            ☃xx.pos(
-                  ☃ + ☃xxxxxxxxxxxxxxxx * ☃xxxxxxxxxxxxxxxxxxxxxxxxx + 0.0,
-                  ☃
-                     + ☃xxxxxxxxxxxxxxxxx * (☃xxxxxxxxxxxxxxxxxxxxxxxxx * ☃xxxxxxxxxxxxxxxxxxxxxxxxx + ☃xxxxxxxxxxxxxxxxxxxxxxxxx) * 0.5
-                     + ((24.0F - ☃xxxxxxxxxxxxxxxxxxxxx) / 18.0F + 0.125F)
-                     + 0.025,
-                  ☃ + ☃xxxxxxxxxxxxxxxxxx * ☃xxxxxxxxxxxxxxxxxxxxxxxxx
-               )
-               .color(☃xxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxx, 1.0F)
-               .endVertex();
-            ☃xx.pos(
-                  ☃ + ☃xxxxxxxxxxxxxxxx * ☃xxxxxxxxxxxxxxxxxxxxxxxxx + 0.025,
-                  ☃
-                     + ☃xxxxxxxxxxxxxxxxx * (☃xxxxxxxxxxxxxxxxxxxxxxxxx * ☃xxxxxxxxxxxxxxxxxxxxxxxxx + ☃xxxxxxxxxxxxxxxxxxxxxxxxx) * 0.5
-                     + ((24.0F - ☃xxxxxxxxxxxxxxxxxxxxx) / 18.0F + 0.125F),
-                  ☃ + ☃xxxxxxxxxxxxxxxxxx * ☃xxxxxxxxxxxxxxxxxxxxxxxxx + 0.025
-               )
-               .color(☃xxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxxxxxxxxx, 1.0F)
-               .endVertex();
-         }
+            int i = 24;
+            double d16 = 0.025;
+            bufferbuilder.begin(5, DefaultVertexFormats.POSITION_COLOR);
 
-         ☃x.draw();
-         GlStateManager.enableLighting();
-         GlStateManager.enableTexture2D();
-         GlStateManager.enableCull();
+            for (int j = 0; j <= 24; j++) {
+               float f = 0.5F;
+               float f1 = 0.4F;
+               float f2 = 0.3F;
+               if (j % 2 == 0) {
+                  f *= 0.7F;
+                  f1 *= 0.7F;
+                  f2 *= 0.7F;
+               }
+
+               float f3 = j / 24.0F;
+               bufferbuilder.pos(x + d13 * f3 + 0.0, y + d14 * (f3 * f3 + f3) * 0.5 + ((24.0F - j) / 18.0F + 0.125F), z + d15 * f3)
+                  .color(f, f1, f2, 1.0F)
+                  .endVertex();
+               bufferbuilder.pos(x + d13 * f3 + 0.025, y + d14 * (f3 * f3 + f3) * 0.5 + ((24.0F - j) / 18.0F + 0.125F) + 0.025, z + d15 * f3)
+                  .color(f, f1, f2, 1.0F)
+                  .endVertex();
+            }
+
+            tessellator.draw();
+            bufferbuilder.begin(5, DefaultVertexFormats.POSITION_COLOR);
+
+            for (int k = 0; k <= 24; k++) {
+               float f4 = 0.5F;
+               float f5 = 0.4F;
+               float f6 = 0.3F;
+               if (k % 2 == 0) {
+                  f4 *= 0.7F;
+                  f5 *= 0.7F;
+                  f6 *= 0.7F;
+               }
+
+               float f7 = k / 24.0F;
+               bufferbuilder.pos(x + d13 * f7 + 0.0, y + d14 * (f7 * f7 + f7) * 0.5 + ((24.0F - k) / 18.0F + 0.125F) + 0.025, z + d15 * f7)
+                  .color(f4, f5, f6, 1.0F)
+                  .endVertex();
+               bufferbuilder.pos(x + d13 * f7 + 0.025, y + d14 * (f7 * f7 + f7) * 0.5 + ((24.0F - k) / 18.0F + 0.125F), z + d15 * f7 + 0.025)
+                  .color(f4, f5, f6, 1.0F)
+                  .endVertex();
+            }
+
+            tessellator.draw();
+            if (Config.isShaders()) {
+               Shaders.endLeash();
+            }
+
+            GlStateManager.enableLighting();
+            GlStateManager.enableTexture2D();
+            GlStateManager.enableCull();
+         }
       }
    }
 }

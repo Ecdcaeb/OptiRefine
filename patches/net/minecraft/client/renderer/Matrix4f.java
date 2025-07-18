@@ -1,23 +1,23 @@
 package net.minecraft.client.renderer;
 
 public class Matrix4f extends org.lwjgl.util.vector.Matrix4f {
-   public Matrix4f(float[] var1) {
-      this.m00 = ☃[0];
-      this.m01 = ☃[1];
-      this.m02 = ☃[2];
-      this.m03 = ☃[3];
-      this.m10 = ☃[4];
-      this.m11 = ☃[5];
-      this.m12 = ☃[6];
-      this.m13 = ☃[7];
-      this.m20 = ☃[8];
-      this.m21 = ☃[9];
-      this.m22 = ☃[10];
-      this.m23 = ☃[11];
-      this.m30 = ☃[12];
-      this.m31 = ☃[13];
-      this.m32 = ☃[14];
-      this.m33 = ☃[15];
+   public Matrix4f(float[] matrix) {
+      this.m00 = matrix[0];
+      this.m01 = matrix[1];
+      this.m02 = matrix[2];
+      this.m03 = matrix[3];
+      this.m10 = matrix[4];
+      this.m11 = matrix[5];
+      this.m12 = matrix[6];
+      this.m13 = matrix[7];
+      this.m20 = matrix[8];
+      this.m21 = matrix[9];
+      this.m22 = matrix[10];
+      this.m23 = matrix[11];
+      this.m30 = matrix[12];
+      this.m31 = matrix[13];
+      this.m32 = matrix[14];
+      this.m33 = matrix[15];
    }
 
    public Matrix4f() {

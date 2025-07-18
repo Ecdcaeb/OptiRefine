@@ -6,23 +6,23 @@ public class I18n {
    private static final LanguageMap fallbackTranslator = new LanguageMap();
 
    @Deprecated
-   public static String translateToLocal(String var0) {
-      return localizedName.translateKey(☃);
+   public static String translateToLocal(String key) {
+      return localizedName.translateKey(key);
    }
 
    @Deprecated
-   public static String translateToLocalFormatted(String var0, Object... var1) {
-      return localizedName.translateKeyFormat(☃, ☃);
+   public static String translateToLocalFormatted(String key, Object... format) {
+      return localizedName.translateKeyFormat(key, format);
    }
 
    @Deprecated
-   public static String translateToFallback(String var0) {
-      return fallbackTranslator.translateKey(☃);
+   public static String translateToFallback(String key) {
+      return fallbackTranslator.translateKey(key);
    }
 
    @Deprecated
-   public static boolean canTranslate(String var0) {
-      return localizedName.isKeyTranslated(☃);
+   public static boolean canTranslate(String key) {
+      return localizedName.isKeyTranslated(key);
    }
 
    public static long getLastTranslationUpdateTimeInMilliseconds() {

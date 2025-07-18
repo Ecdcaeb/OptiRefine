@@ -12,43 +12,76 @@ import net.minecraft.util.math.MathHelper;
 public class LayerCape implements LayerRenderer<AbstractClientPlayer> {
    private final RenderPlayer playerRenderer;
 
-   public LayerCape(RenderPlayer var1) {
-      this.playerRenderer = ☃;
+   public LayerCape(RenderPlayer playerRendererIn) {
+      this.playerRenderer = playerRendererIn;
    }
 
-   public void doRenderLayer(AbstractClientPlayer var1, float var2, float var3, float var4, float var5, float var6, float var7, float var8) {
-      if (☃.hasPlayerInfo() && !☃.isInvisible() && ☃.isWearing(EnumPlayerModelParts.CAPE) && ☃.getLocationCape() != null) {
-         ItemStack ☃ = ☃.getItemStackFromSlot(EntityEquipmentSlot.CHEST);
-         if (☃.getItem() != Items.ELYTRA) {
+   public void doRenderLayer(
+      AbstractClientPlayer entitylivingbaseIn,
+      float limbSwing,
+      float limbSwingAmount,
+      float partialTicks,
+      float ageInTicks,
+      float netHeadYaw,
+      float headPitch,
+      float scale
+   ) {
+      if (entitylivingbaseIn.hasPlayerInfo()
+         && !entitylivingbaseIn.isInvisible()
+         && entitylivingbaseIn.isWearing(EnumPlayerModelParts.CAPE)
+         && entitylivingbaseIn.getLocationCape() != null) {
+         ItemStack itemstack = entitylivingbaseIn.getItemStackFromSlot(EntityEquipmentSlot.CHEST);
+         if (itemstack.getItem() != Items.ELYTRA) {
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-            this.playerRenderer.bindTexture(☃.getLocationCape());
+            this.playerRenderer.bindTexture(entitylivingbaseIn.getLocationCape());
             GlStateManager.pushMatrix();
             GlStateManager.translate(0.0F, 0.0F, 0.125F);
-            double ☃x = ☃.prevChasingPosX + (☃.chasingPosX - ☃.prevChasingPosX) * ☃ - (☃.prevPosX + (☃.posX - ☃.prevPosX) * ☃);
-            double ☃xx = ☃.prevChasingPosY + (☃.chasingPosY - ☃.prevChasingPosY) * ☃ - (☃.prevPosY + (☃.posY - ☃.prevPosY) * ☃);
-            double ☃xxx = ☃.prevChasingPosZ + (☃.chasingPosZ - ☃.prevChasingPosZ) * ☃ - (☃.prevPosZ + (☃.posZ - ☃.prevPosZ) * ☃);
-            float ☃xxxx = ☃.prevRenderYawOffset + (☃.renderYawOffset - ☃.prevRenderYawOffset) * ☃;
-            double ☃xxxxx = MathHelper.sin(☃xxxx * (float) (Math.PI / 180.0));
-            double ☃xxxxxx = -MathHelper.cos(☃xxxx * (float) (Math.PI / 180.0));
-            float ☃xxxxxxx = (float)☃xx * 10.0F;
-            ☃xxxxxxx = MathHelper.clamp(☃xxxxxxx, -6.0F, 32.0F);
-            float ☃xxxxxxxx = (float)(☃x * ☃xxxxx + ☃xxx * ☃xxxxxx) * 100.0F;
-            float ☃xxxxxxxxx = (float)(☃x * ☃xxxxxx - ☃xxx * ☃xxxxx) * 100.0F;
-            if (☃xxxxxxxx < 0.0F) {
-               ☃xxxxxxxx = 0.0F;
+            double d0 = entitylivingbaseIn.prevChasingPosX
+               + (entitylivingbaseIn.chasingPosX - entitylivingbaseIn.prevChasingPosX) * partialTicks
+               - (entitylivingbaseIn.prevPosX + (entitylivingbaseIn.posX - entitylivingbaseIn.prevPosX) * partialTicks);
+            double d1 = entitylivingbaseIn.prevChasingPosY
+               + (entitylivingbaseIn.chasingPosY - entitylivingbaseIn.prevChasingPosY) * partialTicks
+               - (entitylivingbaseIn.prevPosY + (entitylivingbaseIn.posY - entitylivingbaseIn.prevPosY) * partialTicks);
+            double d2 = entitylivingbaseIn.prevChasingPosZ
+               + (entitylivingbaseIn.chasingPosZ - entitylivingbaseIn.prevChasingPosZ) * partialTicks
+               - (entitylivingbaseIn.prevPosZ + (entitylivingbaseIn.posZ - entitylivingbaseIn.prevPosZ) * partialTicks);
+            float f = entitylivingbaseIn.prevRenderYawOffset + (entitylivingbaseIn.renderYawOffset - entitylivingbaseIn.prevRenderYawOffset) * partialTicks;
+            double d3 = MathHelper.sin(f * (float) (Math.PI / 180.0));
+            double d4 = -MathHelper.cos(f * (float) (Math.PI / 180.0));
+            float f1 = (float)d1 * 10.0F;
+            f1 = MathHelper.clamp(f1, -6.0F, 32.0F);
+            float f2 = (float)(d0 * d3 + d2 * d4) * 100.0F;
+            float f3 = (float)(d0 * d4 - d2 * d3) * 100.0F;
+            if (f2 < 0.0F) {
+               f2 = 0.0F;
             }
 
-            float ☃xxxxxxxxxx = ☃.prevCameraYaw + (☃.cameraYaw - ☃.prevCameraYaw) * ☃;
-            ☃xxxxxxx += MathHelper.sin((☃.prevDistanceWalkedModified + (☃.distanceWalkedModified - ☃.prevDistanceWalkedModified) * ☃) * 6.0F)
+            if (f2 > 165.0F) {
+               f2 = 165.0F;
+            }
+
+            if (f1 < -5.0F) {
+               f1 = -5.0F;
+            }
+
+            float f4 = entitylivingbaseIn.prevCameraYaw + (entitylivingbaseIn.cameraYaw - entitylivingbaseIn.prevCameraYaw) * partialTicks;
+            f1 += MathHelper.sin(
+                  (
+                        entitylivingbaseIn.prevDistanceWalkedModified
+                           + (entitylivingbaseIn.distanceWalkedModified - entitylivingbaseIn.prevDistanceWalkedModified) * partialTicks
+                     )
+                     * 6.0F
+               )
                * 32.0F
-               * ☃xxxxxxxxxx;
-            if (☃.isSneaking()) {
-               ☃xxxxxxx += 25.0F;
+               * f4;
+            if (entitylivingbaseIn.isSneaking()) {
+               f1 += 25.0F;
+               GlStateManager.translate(0.0F, 0.142F, -0.0178F);
             }
 
-            GlStateManager.rotate(6.0F + ☃xxxxxxxx / 2.0F + ☃xxxxxxx, 1.0F, 0.0F, 0.0F);
-            GlStateManager.rotate(☃xxxxxxxxx / 2.0F, 0.0F, 0.0F, 1.0F);
-            GlStateManager.rotate(-☃xxxxxxxxx / 2.0F, 0.0F, 1.0F, 0.0F);
+            GlStateManager.rotate(6.0F + f2 / 2.0F + f1, 1.0F, 0.0F, 0.0F);
+            GlStateManager.rotate(f3 / 2.0F, 0.0F, 0.0F, 1.0F);
+            GlStateManager.rotate(-f3 / 2.0F, 0.0F, 1.0F, 0.0F);
             GlStateManager.rotate(180.0F, 0.0F, 1.0F, 0.0F);
             this.playerRenderer.getMainModel().renderCape(0.0625F);
             GlStateManager.popMatrix();
@@ -56,7 +89,6 @@ public class LayerCape implements LayerRenderer<AbstractClientPlayer> {
       }
    }
 
-   @Override
    public boolean shouldCombineTextures() {
       return false;
    }

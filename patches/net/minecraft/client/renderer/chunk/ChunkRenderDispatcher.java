@@ -7,11 +7,13 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListenableFutureTask;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
@@ -37,24 +39,34 @@ public class ChunkRenderDispatcher {
    private final VertexBufferUploader vertexUploader = new VertexBufferUploader();
    private final Queue<ChunkRenderDispatcher.PendingUpload> queueChunkUploads = Queues.newPriorityQueue();
    private final ChunkRenderWorker renderWorker;
+   private List<RegionRenderCacheBuilder> listPausedBuilders = new ArrayList<>();
 
    public ChunkRenderDispatcher() {
-      int ☃ = Math.max(1, (int)(Runtime.getRuntime().maxMemory() * 0.3) / 10485760);
-      int ☃x = Math.max(1, MathHelper.clamp(Runtime.getRuntime().availableProcessors(), 1, ☃ / 5));
-      this.countRenderBuilders = MathHelper.clamp(☃x * 10, 1, ☃);
-      if (☃x > 1) {
-         for (int ☃xx = 0; ☃xx < ☃x; ☃xx++) {
-            ChunkRenderWorker ☃xxx = new ChunkRenderWorker(this);
-            Thread ☃xxxx = THREAD_FACTORY.newThread(☃xxx);
-            ☃xxxx.start();
-            this.listThreadedWorkers.add(☃xxx);
-            this.listWorkerThreads.add(☃xxxx);
+      this(-1);
+   }
+
+   public ChunkRenderDispatcher(int countRenderBuilders) {
+      int i = Math.max(1, (int)(Runtime.getRuntime().maxMemory() * 0.3) / 10485760);
+      int j = Math.max(1, MathHelper.clamp(Runtime.getRuntime().availableProcessors() - 2, 1, i / 5));
+      if (countRenderBuilders < 0) {
+         this.countRenderBuilders = MathHelper.clamp(j * 8, 1, i);
+      } else {
+         this.countRenderBuilders = countRenderBuilders;
+      }
+
+      if (j > 1) {
+         for (int k = 0; k < j; k++) {
+            ChunkRenderWorker chunkrenderworker = new ChunkRenderWorker(this);
+            Thread thread = THREAD_FACTORY.newThread(chunkrenderworker);
+            thread.start();
+            this.listThreadedWorkers.add(chunkrenderworker);
+            this.listWorkerThreads.add(thread);
          }
       }
 
       this.queueFreeRenderBuilders = Queues.newArrayBlockingQueue(this.countRenderBuilders);
 
-      for (int ☃xx = 0; ☃xx < this.countRenderBuilders; ☃xx++) {
+      for (int l = 0; l < this.countRenderBuilders; l++) {
          this.queueFreeRenderBuilders.add(new RegionRenderCacheBuilder());
       }
 
@@ -67,99 +79,102 @@ public class ChunkRenderDispatcher {
          : String.format("pC: %03d, pU: %1d, aB: %1d", this.queueChunkUpdates.size(), this.queueChunkUploads.size(), this.queueFreeRenderBuilders.size());
    }
 
-   public boolean runChunkUploads(long var1) {
-      boolean ☃ = false;
+   public boolean runChunkUploads(long finishTimeNano) {
+      boolean flag = false;
 
-      boolean ☃x;
+      boolean flag1;
       do {
-         ☃x = false;
+         flag1 = false;
          if (this.listWorkerThreads.isEmpty()) {
-            ChunkCompileTaskGenerator ☃xx = this.queueChunkUpdates.poll();
-            if (☃xx != null) {
+            ChunkCompileTaskGenerator chunkcompiletaskgenerator = this.queueChunkUpdates.poll();
+            if (chunkcompiletaskgenerator != null) {
                try {
-                  this.renderWorker.processTask(☃xx);
-                  ☃x = true;
-               } catch (InterruptedException var8) {
+                  this.renderWorker.processTask(chunkcompiletaskgenerator);
+                  flag1 = true;
+               } catch (InterruptedException var9) {
                   LOGGER.warn("Skipped task due to interrupt");
                }
             }
          }
 
+         ChunkRenderDispatcher.PendingUpload pendingUpload = null;
          synchronized (this.queueChunkUploads) {
-            if (!this.queueChunkUploads.isEmpty()) {
-               this.queueChunkUploads.poll().uploadTask.run();
-               ☃x = true;
-               ☃ = true;
-            }
+            pendingUpload = this.queueChunkUploads.poll();
          }
-      } while (☃ != 0L && ☃x && ☃ >= System.nanoTime());
 
-      return ☃;
+         if (pendingUpload != null) {
+            pendingUpload.uploadTask.run();
+            flag1 = true;
+            flag = true;
+         }
+      } while (finishTimeNano != 0L && flag1 && finishTimeNano >= System.nanoTime());
+
+      return flag;
    }
 
-   public boolean updateChunkLater(RenderChunk var1) {
-      ☃.getLockCompileTask().lock();
+   public boolean updateChunkLater(RenderChunk chunkRenderer) {
+      chunkRenderer.getLockCompileTask().lock();
 
-      boolean var4;
+      boolean flag1;
       try {
-         final ChunkCompileTaskGenerator ☃ = ☃.makeCompileTaskChunk();
-         ☃.addFinishRunnable(new Runnable() {
+         final ChunkCompileTaskGenerator chunkcompiletaskgenerator = chunkRenderer.makeCompileTaskChunk();
+         chunkcompiletaskgenerator.addFinishRunnable(new Runnable() {
             @Override
             public void run() {
-               ChunkRenderDispatcher.this.queueChunkUpdates.remove(☃);
+               ChunkRenderDispatcher.this.queueChunkUpdates.remove(chunkcompiletaskgenerator);
             }
          });
-         boolean ☃x = this.queueChunkUpdates.offer(☃);
-         if (!☃x) {
-            ☃.finish();
+         boolean flag = this.queueChunkUpdates.offer(chunkcompiletaskgenerator);
+         if (!flag) {
+            chunkcompiletaskgenerator.finish();
          }
 
-         var4 = ☃x;
+         flag1 = flag;
       } finally {
-         ☃.getLockCompileTask().unlock();
+         chunkRenderer.getLockCompileTask().unlock();
       }
 
-      return var4;
+      return flag1;
    }
 
-   public boolean updateChunkNow(RenderChunk var1) {
-      ☃.getLockCompileTask().lock();
+   public boolean updateChunkNow(RenderChunk chunkRenderer) {
+      chunkRenderer.getLockCompileTask().lock();
 
-      boolean var3;
+      boolean flag;
       try {
-         ChunkCompileTaskGenerator ☃ = ☃.makeCompileTaskChunk();
+         ChunkCompileTaskGenerator chunkcompiletaskgenerator = chunkRenderer.makeCompileTaskChunk();
 
          try {
-            this.renderWorker.processTask(☃);
-         } catch (InterruptedException var7) {
+            this.renderWorker.processTask(chunkcompiletaskgenerator);
+         } catch (InterruptedException var8) {
          }
 
-         var3 = true;
+         flag = true;
       } finally {
-         ☃.getLockCompileTask().unlock();
+         chunkRenderer.getLockCompileTask().unlock();
       }
 
-      return var3;
+      return flag;
    }
 
    public void stopChunkUpdates() {
       this.clearChunkUpdates();
-      List<RegionRenderCacheBuilder> ☃ = Lists.newArrayList();
+      List<RegionRenderCacheBuilder> list = Lists.newArrayList();
 
-      while (☃.size() != this.countRenderBuilders) {
+      while (list.size() != this.countRenderBuilders) {
          this.runChunkUploads(Long.MAX_VALUE);
 
          try {
-            ☃.add(this.allocateRenderBuilder());
+            list.add(this.allocateRenderBuilder());
          } catch (InterruptedException var3) {
          }
       }
 
-      this.queueFreeRenderBuilders.addAll(☃);
+      this.queueFreeRenderBuilders.addAll(list);
    }
 
-   public void freeRenderBuilder(RegionRenderCacheBuilder var1) {
-      this.queueFreeRenderBuilders.add(☃);
+   public void freeRenderBuilder(RegionRenderCacheBuilder p_178512_1_) {
+      this.queueFreeRenderBuilders.add(p_178512_1_);
    }
 
    public RegionRenderCacheBuilder allocateRenderBuilder() throws InterruptedException {
@@ -170,75 +185,80 @@ public class ChunkRenderDispatcher {
       return this.queueChunkUpdates.take();
    }
 
-   public boolean updateTransparencyLater(RenderChunk var1) {
-      ☃.getLockCompileTask().lock();
+   public boolean updateTransparencyLater(RenderChunk chunkRenderer) {
+      chunkRenderer.getLockCompileTask().lock();
 
-      boolean var3;
+      boolean var4;
       try {
-         final ChunkCompileTaskGenerator ☃ = ☃.makeCompileTaskTransparency();
-         if (☃ == null) {
-            return true;
+         final ChunkCompileTaskGenerator chunkcompiletaskgenerator = chunkRenderer.makeCompileTaskTransparency();
+         if (chunkcompiletaskgenerator != null) {
+            chunkcompiletaskgenerator.addFinishRunnable(new Runnable() {
+               @Override
+               public void run() {
+                  ChunkRenderDispatcher.this.queueChunkUpdates.remove(chunkcompiletaskgenerator);
+               }
+            });
+            return this.queueChunkUpdates.offer(chunkcompiletaskgenerator);
          }
 
-         ☃.addFinishRunnable(new Runnable() {
-            @Override
-            public void run() {
-               ChunkRenderDispatcher.this.queueChunkUpdates.remove(☃);
-            }
-         });
-         var3 = this.queueChunkUpdates.offer(☃);
+         boolean flag = true;
+         var4 = flag;
       } finally {
-         ☃.getLockCompileTask().unlock();
+         chunkRenderer.getLockCompileTask().unlock();
       }
 
-      return var3;
+      return var4;
    }
 
    public ListenableFuture<Object> uploadChunk(
-      final BlockRenderLayer var1, final BufferBuilder var2, final RenderChunk var3, final CompiledChunk var4, final double var5
+      final BlockRenderLayer p_188245_1_,
+      final BufferBuilder p_188245_2_,
+      final RenderChunk p_188245_3_,
+      final CompiledChunk p_188245_4_,
+      final double p_188245_5_
    ) {
       if (Minecraft.getMinecraft().isCallingFromMinecraftThread()) {
          if (OpenGlHelper.useVbo()) {
-            this.uploadVertexBuffer(☃, ☃.getVertexBufferByLayer(☃.ordinal()));
+            this.uploadVertexBuffer(p_188245_2_, p_188245_3_.getVertexBufferByLayer(p_188245_1_.ordinal()));
          } else {
-            this.uploadDisplayList(☃, ((ListedRenderChunk)☃).getDisplayList(☃, ☃), ☃);
+            this.uploadDisplayList(p_188245_2_, ((ListedRenderChunk)p_188245_3_).getDisplayList(p_188245_1_, p_188245_4_), p_188245_3_);
          }
 
-         ☃.setTranslation(0.0, 0.0, 0.0);
+         p_188245_2_.setTranslation(0.0, 0.0, 0.0);
          return Futures.immediateFuture(null);
       } else {
-         ListenableFutureTask<Object> ☃ = ListenableFutureTask.create(new Runnable() {
+         ListenableFutureTask<Object> listenablefuturetask = ListenableFutureTask.create(new Runnable() {
             @Override
             public void run() {
-               ChunkRenderDispatcher.this.uploadChunk(☃, ☃, ☃, ☃, ☃);
+               ChunkRenderDispatcher.this.uploadChunk(p_188245_1_, p_188245_2_, p_188245_3_, p_188245_4_, p_188245_5_);
             }
          }, null);
          synchronized (this.queueChunkUploads) {
-            this.queueChunkUploads.add(new ChunkRenderDispatcher.PendingUpload(☃, ☃));
-            return ☃;
+            this.queueChunkUploads.add(new ChunkRenderDispatcher.PendingUpload(listenablefuturetask, p_188245_5_));
+            return listenablefuturetask;
          }
       }
    }
 
-   private void uploadDisplayList(BufferBuilder var1, int var2, RenderChunk var3) {
-      GlStateManager.glNewList(☃, 4864);
+   private void uploadDisplayList(BufferBuilder vertexBufferIn, int list, RenderChunk chunkRenderer) {
+      GlStateManager.glNewList(list, 4864);
       GlStateManager.pushMatrix();
-      ☃.multModelviewMatrix();
-      this.worldVertexUploader.draw(☃);
+      chunkRenderer.multModelviewMatrix();
+      this.worldVertexUploader.draw(vertexBufferIn);
       GlStateManager.popMatrix();
       GlStateManager.glEndList();
    }
 
-   private void uploadVertexBuffer(BufferBuilder var1, VertexBuffer var2) {
-      this.vertexUploader.setVertexBuffer(☃);
-      this.vertexUploader.draw(☃);
+   private void uploadVertexBuffer(BufferBuilder p_178506_1_, VertexBuffer vertexBufferIn) {
+      this.vertexUploader.setVertexBuffer(vertexBufferIn);
+      this.vertexUploader.draw(p_178506_1_);
    }
 
    public void clearChunkUpdates() {
       while (!this.queueChunkUpdates.isEmpty()) {
-         ChunkCompileTaskGenerator ☃ = this.queueChunkUpdates.poll();
-         if (☃ != null) {
-            ☃.finish();
+         ChunkCompileTaskGenerator chunkcompiletaskgenerator = this.queueChunkUpdates.poll();
+         if (chunkcompiletaskgenerator != null) {
+            chunkcompiletaskgenerator.finish();
          }
       }
    }
@@ -250,14 +270,14 @@ public class ChunkRenderDispatcher {
    public void stopWorkerThreads() {
       this.clearChunkUpdates();
 
-      for (ChunkRenderWorker ☃ : this.listThreadedWorkers) {
-         ☃.notifyToStop();
+      for (ChunkRenderWorker chunkrenderworker : this.listThreadedWorkers) {
+         chunkrenderworker.notifyToStop();
       }
 
-      for (Thread ☃ : this.listWorkerThreads) {
+      for (Thread thread : this.listWorkerThreads) {
          try {
-            ☃.interrupt();
-            ☃.join();
+            thread.interrupt();
+            thread.join();
          } catch (InterruptedException var4) {
             LOGGER.warn("Interrupted whilst waiting for worker to die", var4);
          }
@@ -270,17 +290,35 @@ public class ChunkRenderDispatcher {
       return this.queueFreeRenderBuilders.isEmpty();
    }
 
+   public void pauseChunkUpdates() {
+      while (this.listPausedBuilders.size() != this.countRenderBuilders) {
+         try {
+            this.runChunkUploads(Long.MAX_VALUE);
+            RegionRenderCacheBuilder builder = this.queueFreeRenderBuilders.poll(100L, TimeUnit.MILLISECONDS);
+            if (builder != null) {
+               this.listPausedBuilders.add(builder);
+            }
+         } catch (InterruptedException var2) {
+         }
+      }
+   }
+
+   public void resumeChunkUpdates() {
+      this.queueFreeRenderBuilders.addAll(this.listPausedBuilders);
+      this.listPausedBuilders.clear();
+   }
+
    class PendingUpload implements Comparable<ChunkRenderDispatcher.PendingUpload> {
       private final ListenableFutureTask<Object> uploadTask;
       private final double distanceSq;
 
-      public PendingUpload(ListenableFutureTask<Object> var2, double var3) {
-         this.uploadTask = ☃;
-         this.distanceSq = ☃;
+      public PendingUpload(ListenableFutureTask<Object> uploadTaskIn, double distanceSqIn) {
+         this.uploadTask = uploadTaskIn;
+         this.distanceSq = distanceSqIn;
       }
 
-      public int compareTo(ChunkRenderDispatcher.PendingUpload var1) {
-         return Doubles.compare(this.distanceSq, ☃.distanceSq);
+      public int compareTo(ChunkRenderDispatcher.PendingUpload p_compareTo_1_) {
+         return Doubles.compare(this.distanceSq, p_compareTo_1_.distanceSq);
       }
    }
 }

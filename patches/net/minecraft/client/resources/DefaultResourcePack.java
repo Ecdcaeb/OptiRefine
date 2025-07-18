@@ -14,78 +14,92 @@ import net.minecraft.client.renderer.texture.TextureUtil;
 import net.minecraft.client.resources.data.IMetadataSection;
 import net.minecraft.client.resources.data.MetadataSerializer;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.Util;
+import net.optifine.reflect.ReflectorForge;
 
 public class DefaultResourcePack implements IResourcePack {
    public static final Set<String> DEFAULT_RESOURCE_DOMAINS = ImmutableSet.of("minecraft", "realms");
    private final ResourceIndex resourceIndex;
+   private static final boolean ON_WINDOWS = Util.getOSType() == Util.EnumOS.WINDOWS;
 
-   public DefaultResourcePack(ResourceIndex var1) {
-      this.resourceIndex = ☃;
+   public DefaultResourcePack(ResourceIndex resourceIndexIn) {
+      this.resourceIndex = resourceIndexIn;
    }
 
-   @Override
-   public InputStream getInputStream(ResourceLocation var1) throws IOException {
-      InputStream ☃ = this.getInputStreamAssets(☃);
-      if (☃ != null) {
-         return ☃;
+   public InputStream getInputStream(ResourceLocation location) throws IOException {
+      InputStream inputstream = this.getInputStreamAssets(location);
+      if (inputstream != null) {
+         return inputstream;
       } else {
-         InputStream ☃x = this.getResourceStream(☃);
-         if (☃x != null) {
-            return ☃x;
+         InputStream inputstream1 = this.getResourceStream(location);
+         if (inputstream1 != null) {
+            return inputstream1;
          } else {
-            throw new FileNotFoundException(☃.getPath());
+            throw new FileNotFoundException(location.getPath());
          }
       }
    }
 
    @Nullable
-   public InputStream getInputStreamAssets(ResourceLocation var1) throws FileNotFoundException {
-      File ☃ = this.resourceIndex.getFile(☃);
-      return ☃ != null && ☃.isFile() ? new FileInputStream(☃) : null;
+   public InputStream getInputStreamAssets(ResourceLocation location) throws IOException, FileNotFoundException {
+      File file1 = this.resourceIndex.getFile(location);
+      return file1 != null && file1.isFile() ? new FileInputStream(file1) : null;
    }
 
    @Nullable
-   private InputStream getResourceStream(ResourceLocation var1) {
-      String ☃ = "/assets/" + ☃.getNamespace() + "/" + ☃.getPath();
-
-      try {
-         URL ☃x = DefaultResourcePack.class.getResource(☃);
-         return ☃x != null && FolderResourcePack.validatePath(new File(☃x.getFile()), ☃) ? DefaultResourcePack.class.getResourceAsStream(☃) : null;
-      } catch (IOException var4) {
-         return DefaultResourcePack.class.getResourceAsStream(☃);
+   private InputStream getResourceStream(ResourceLocation location) {
+      String s = "/assets/" + location.getNamespace() + "/" + location.getPath();
+      InputStream is = ReflectorForge.getOptiFineResourceStream(s);
+      if (is != null) {
+         return is;
+      } else {
+         try {
+            URL url = DefaultResourcePack.class.getResource(s);
+            return url != null && this.validatePath(new File(url.getFile()), s) ? DefaultResourcePack.class.getResourceAsStream(s) : null;
+         } catch (IOException var5) {
+            return DefaultResourcePack.class.getResourceAsStream(s);
+         }
       }
    }
 
-   @Override
-   public boolean resourceExists(ResourceLocation var1) {
-      return this.getResourceStream(☃) != null || this.resourceIndex.isFileExisting(☃);
+   public boolean resourceExists(ResourceLocation location) {
+      return this.getResourceStream(location) != null || this.resourceIndex.isFileExisting(location);
    }
 
-   @Override
    public Set<String> getResourceDomains() {
       return DEFAULT_RESOURCE_DOMAINS;
    }
 
    @Nullable
-   @Override
-   public <T extends IMetadataSection> T getPackMetadata(MetadataSerializer var1, String var2) throws IOException {
+   public <T extends IMetadataSection> T getPackMetadata(MetadataSerializer metadataSerializer, String metadataSectionName) throws IOException {
       try {
-         InputStream ☃ = new FileInputStream(this.resourceIndex.getPackMcmeta());
-         return AbstractResourcePack.readMetadata(☃, ☃, ☃);
+         InputStream inputstream = new FileInputStream(this.resourceIndex.getPackMcmeta());
+         return AbstractResourcePack.readMetadata(metadataSerializer, inputstream, metadataSectionName);
       } catch (RuntimeException var4) {
          return null;
-      } catch (FileNotFoundException var5) {
+      } catch (FileNotFoundException var51) {
          return null;
       }
    }
 
-   @Override
    public BufferedImage getPackImage() throws IOException {
       return TextureUtil.readBufferedImage(DefaultResourcePack.class.getResourceAsStream("/" + new ResourceLocation("pack.png").getPath()));
    }
 
-   @Override
    public String getPackName() {
       return "Default";
+   }
+
+   private boolean validatePath(File file, String path) throws IOException {
+      String s = file.getPath();
+      if (s.startsWith("file:")) {
+         if (ON_WINDOWS) {
+            s = s.replace("\\", "/");
+         }
+
+         return s.endsWith(path);
+      } else {
+         return FolderResourcePack.validatePath(file, path);
+      }
    }
 }

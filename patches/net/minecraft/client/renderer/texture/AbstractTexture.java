@@ -1,6 +1,8 @@
 package net.minecraft.client.renderer.texture;
 
 import net.minecraft.client.renderer.GlStateManager;
+import net.optifine.shaders.MultiTexID;
+import net.optifine.shaders.ShadersTex;
 
 public abstract class AbstractTexture implements ITextureObject {
    protected int glTextureId = -1;
@@ -8,29 +10,31 @@ public abstract class AbstractTexture implements ITextureObject {
    protected boolean mipmap;
    protected boolean blurLast;
    protected boolean mipmapLast;
+   public MultiTexID multiTex;
 
-   public void setBlurMipmapDirect(boolean var1, boolean var2) {
-      this.blur = ☃;
-      this.mipmap = ☃;
-      int ☃;
-      int ☃x;
-      if (☃) {
-         ☃ = ☃ ? 9987 : 9729;
-         ☃x = 9729;
+   public void setBlurMipmapDirect(boolean blurIn, boolean mipmapIn) {
+      this.blur = blurIn;
+      this.mipmap = mipmapIn;
+      int i;
+      int j;
+      if (blurIn) {
+         i = mipmapIn ? 9987 : 9729;
+         j = 9729;
       } else {
-         ☃ = ☃ ? 9986 : 9728;
-         ☃x = 9728;
+         i = mipmapIn ? 9986 : 9728;
+         j = 9728;
       }
 
-      GlStateManager.glTexParameteri(3553, 10241, ☃);
-      GlStateManager.glTexParameteri(3553, 10240, ☃x);
+      GlStateManager.bindTexture(this.getGlTextureId());
+      GlStateManager.glTexParameteri(3553, 10241, i);
+      GlStateManager.glTexParameteri(3553, 10240, j);
    }
 
    @Override
-   public void setBlurMipmap(boolean var1, boolean var2) {
+   public void setBlurMipmap(boolean blurIn, boolean mipmapIn) {
       this.blurLast = this.blur;
       this.mipmapLast = this.mipmap;
-      this.setBlurMipmapDirect(☃, ☃);
+      this.setBlurMipmapDirect(blurIn, mipmapIn);
    }
 
    @Override
@@ -48,9 +52,15 @@ public abstract class AbstractTexture implements ITextureObject {
    }
 
    public void deleteGlTexture() {
+      ShadersTex.deleteTextures(this, this.glTextureId);
       if (this.glTextureId != -1) {
          TextureUtil.deleteTexture(this.glTextureId);
          this.glTextureId = -1;
       }
+   }
+
+   @Override
+   public MultiTexID getMultiTexID() {
+      return ShadersTex.getMultiTexID(this);
    }
 }

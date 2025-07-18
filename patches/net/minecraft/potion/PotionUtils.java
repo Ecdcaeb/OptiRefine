@@ -17,207 +17,214 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Tuple;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.translation.I18n;
+import net.optifine.CustomColors;
 
 public class PotionUtils {
-   public static List<PotionEffect> getEffectsFromStack(ItemStack var0) {
-      return getEffectsFromTag(☃.getTagCompound());
+   public static List<PotionEffect> getEffectsFromStack(ItemStack stack) {
+      return getEffectsFromTag(stack.getTagCompound());
    }
 
-   public static List<PotionEffect> mergeEffects(PotionType var0, Collection<PotionEffect> var1) {
-      List<PotionEffect> ☃ = Lists.newArrayList();
-      ☃.addAll(☃.getEffects());
-      ☃.addAll(☃);
-      return ☃;
+   public static List<PotionEffect> mergeEffects(PotionType potionIn, Collection<PotionEffect> effects) {
+      List<PotionEffect> list = Lists.newArrayList();
+      list.addAll(potionIn.getEffects());
+      list.addAll(effects);
+      return list;
    }
 
-   public static List<PotionEffect> getEffectsFromTag(@Nullable NBTTagCompound var0) {
-      List<PotionEffect> ☃ = Lists.newArrayList();
-      ☃.addAll(getPotionTypeFromNBT(☃).getEffects());
-      addCustomPotionEffectToList(☃, ☃);
-      return ☃;
+   public static List<PotionEffect> getEffectsFromTag(@Nullable NBTTagCompound tag) {
+      List<PotionEffect> list = Lists.newArrayList();
+      list.addAll(getPotionTypeFromNBT(tag).getEffects());
+      addCustomPotionEffectToList(tag, list);
+      return list;
    }
 
-   public static List<PotionEffect> getFullEffectsFromItem(ItemStack var0) {
-      return getFullEffectsFromTag(☃.getTagCompound());
+   public static List<PotionEffect> getFullEffectsFromItem(ItemStack itemIn) {
+      return getFullEffectsFromTag(itemIn.getTagCompound());
    }
 
-   public static List<PotionEffect> getFullEffectsFromTag(@Nullable NBTTagCompound var0) {
-      List<PotionEffect> ☃ = Lists.newArrayList();
-      addCustomPotionEffectToList(☃, ☃);
-      return ☃;
+   public static List<PotionEffect> getFullEffectsFromTag(@Nullable NBTTagCompound tag) {
+      List<PotionEffect> list = Lists.newArrayList();
+      addCustomPotionEffectToList(tag, list);
+      return list;
    }
 
-   public static void addCustomPotionEffectToList(@Nullable NBTTagCompound var0, List<PotionEffect> var1) {
-      if (☃ != null && ☃.hasKey("CustomPotionEffects", 9)) {
-         NBTTagList ☃ = ☃.getTagList("CustomPotionEffects", 10);
+   public static void addCustomPotionEffectToList(@Nullable NBTTagCompound tag, List<PotionEffect> effectList) {
+      if (tag != null && tag.hasKey("CustomPotionEffects", 9)) {
+         NBTTagList nbttaglist = tag.getTagList("CustomPotionEffects", 10);
 
-         for (int ☃x = 0; ☃x < ☃.tagCount(); ☃x++) {
-            NBTTagCompound ☃xx = ☃.getCompoundTagAt(☃x);
-            PotionEffect ☃xxx = PotionEffect.readCustomPotionEffectFromNBT(☃xx);
-            if (☃xxx != null) {
-               ☃.add(☃xxx);
+         for (int i = 0; i < nbttaglist.tagCount(); i++) {
+            NBTTagCompound nbttagcompound = nbttaglist.getCompoundTagAt(i);
+            PotionEffect potioneffect = PotionEffect.readCustomPotionEffectFromNBT(nbttagcompound);
+            if (potioneffect != null) {
+               effectList.add(potioneffect);
             }
          }
       }
    }
 
-   public static int getColor(ItemStack var0) {
-      NBTTagCompound ☃ = ☃.getTagCompound();
-      if (☃ != null && ☃.hasKey("CustomPotionColor", 99)) {
-         return ☃.getInteger("CustomPotionColor");
+   public static int getColor(ItemStack p_190932_0_) {
+      NBTTagCompound nbttagcompound = p_190932_0_.getTagCompound();
+      if (nbttagcompound != null && nbttagcompound.hasKey("CustomPotionColor", 99)) {
+         return nbttagcompound.getInteger("CustomPotionColor");
       } else {
-         return getPotionFromItem(☃) == PotionTypes.EMPTY ? 16253176 : getPotionColorFromEffectList(getEffectsFromStack(☃));
+         return getPotionFromItem(p_190932_0_) == PotionTypes.EMPTY ? 16253176 : getPotionColorFromEffectList(getEffectsFromStack(p_190932_0_));
       }
    }
 
-   public static int getPotionColor(PotionType var0) {
-      return ☃ == PotionTypes.EMPTY ? 16253176 : getPotionColorFromEffectList(☃.getEffects());
+   public static int getPotionColor(PotionType potionIn) {
+      return potionIn == PotionTypes.EMPTY ? 16253176 : getPotionColorFromEffectList(potionIn.getEffects());
    }
 
-   public static int getPotionColorFromEffectList(Collection<PotionEffect> var0) {
-      int ☃ = 3694022;
-      if (☃.isEmpty()) {
-         return 3694022;
+   public static int getPotionColorFromEffectList(Collection<PotionEffect> effects) {
+      int i = 3694022;
+      if (effects.isEmpty()) {
+         return Config.isCustomColors() ? CustomColors.getPotionColor(null, i) : 3694022;
       } else {
-         float ☃x = 0.0F;
-         float ☃xx = 0.0F;
-         float ☃xxx = 0.0F;
-         int ☃xxxx = 0;
+         float f = 0.0F;
+         float f1 = 0.0F;
+         float f2 = 0.0F;
+         int j = 0;
 
-         for (PotionEffect ☃xxxxx : ☃) {
-            if (☃xxxxx.doesShowParticles()) {
-               int ☃xxxxxx = ☃xxxxx.getPotion().getLiquidColor();
-               int ☃xxxxxxx = ☃xxxxx.getAmplifier() + 1;
-               ☃x += ☃xxxxxxx * (☃xxxxxx >> 16 & 0xFF) / 255.0F;
-               ☃xx += ☃xxxxxxx * (☃xxxxxx >> 8 & 0xFF) / 255.0F;
-               ☃xxx += ☃xxxxxxx * (☃xxxxxx >> 0 & 0xFF) / 255.0F;
-               ☃xxxx += ☃xxxxxxx;
+         for (PotionEffect potioneffect : effects) {
+            if (potioneffect.doesShowParticles()) {
+               int k = potioneffect.getPotion().getLiquidColor();
+               if (Config.isCustomColors()) {
+                  k = CustomColors.getPotionColor(potioneffect.getPotion(), k);
+               }
+
+               int l = potioneffect.getAmplifier() + 1;
+               f += l * (k >> 16 & 0xFF) / 255.0F;
+               f1 += l * (k >> 8 & 0xFF) / 255.0F;
+               f2 += l * (k >> 0 & 0xFF) / 255.0F;
+               j += l;
             }
          }
 
-         if (☃xxxx == 0) {
+         if (j == 0) {
             return 0;
          } else {
-            ☃x = ☃x / ☃xxxx * 255.0F;
-            ☃xx = ☃xx / ☃xxxx * 255.0F;
-            ☃xxx = ☃xxx / ☃xxxx * 255.0F;
-            return (int)☃x << 16 | (int)☃xx << 8 | (int)☃xxx;
+            f = f / j * 255.0F;
+            f1 = f1 / j * 255.0F;
+            f2 = f2 / j * 255.0F;
+            return (int)f << 16 | (int)f1 << 8 | (int)f2;
          }
       }
    }
 
-   public static PotionType getPotionFromItem(ItemStack var0) {
-      return getPotionTypeFromNBT(☃.getTagCompound());
+   public static PotionType getPotionFromItem(ItemStack itemIn) {
+      return getPotionTypeFromNBT(itemIn.getTagCompound());
    }
 
-   public static PotionType getPotionTypeFromNBT(@Nullable NBTTagCompound var0) {
-      return ☃ == null ? PotionTypes.EMPTY : PotionType.getPotionTypeForName(☃.getString("Potion"));
+   public static PotionType getPotionTypeFromNBT(@Nullable NBTTagCompound tag) {
+      return tag == null ? PotionTypes.EMPTY : PotionType.getPotionTypeForName(tag.getString("Potion"));
    }
 
-   public static ItemStack addPotionToItemStack(ItemStack var0, PotionType var1) {
-      ResourceLocation ☃ = PotionType.REGISTRY.getNameForObject(☃);
-      if (☃ == PotionTypes.EMPTY) {
-         if (☃.hasTagCompound()) {
-            NBTTagCompound ☃x = ☃.getTagCompound();
-            ☃x.removeTag("Potion");
-            if (☃x.isEmpty()) {
-               ☃.setTagCompound(null);
+   public static ItemStack addPotionToItemStack(ItemStack itemIn, PotionType potionIn) {
+      ResourceLocation resourcelocation = (ResourceLocation)PotionType.REGISTRY.getNameForObject(potionIn);
+      if (potionIn == PotionTypes.EMPTY) {
+         if (itemIn.hasTagCompound()) {
+            NBTTagCompound nbttagcompound = itemIn.getTagCompound();
+            nbttagcompound.removeTag("Potion");
+            if (nbttagcompound.isEmpty()) {
+               itemIn.setTagCompound((NBTTagCompound)null);
             }
          }
       } else {
-         NBTTagCompound ☃x = ☃.hasTagCompound() ? ☃.getTagCompound() : new NBTTagCompound();
-         ☃x.setString("Potion", ☃.toString());
-         ☃.setTagCompound(☃x);
+         NBTTagCompound nbttagcompound1 = itemIn.hasTagCompound() ? itemIn.getTagCompound() : new NBTTagCompound();
+         nbttagcompound1.setString("Potion", resourcelocation.toString());
+         itemIn.setTagCompound(nbttagcompound1);
       }
 
-      return ☃;
+      return itemIn;
    }
 
-   public static ItemStack appendEffects(ItemStack var0, Collection<PotionEffect> var1) {
-      if (☃.isEmpty()) {
-         return ☃;
+   public static ItemStack appendEffects(ItemStack itemIn, Collection<PotionEffect> effects) {
+      if (effects.isEmpty()) {
+         return itemIn;
       } else {
-         NBTTagCompound ☃ = (NBTTagCompound)MoreObjects.firstNonNull(☃.getTagCompound(), new NBTTagCompound());
-         NBTTagList ☃x = ☃.getTagList("CustomPotionEffects", 9);
+         NBTTagCompound nbttagcompound = (NBTTagCompound)MoreObjects.firstNonNull(itemIn.getTagCompound(), new NBTTagCompound());
+         NBTTagList nbttaglist = nbttagcompound.getTagList("CustomPotionEffects", 9);
 
-         for (PotionEffect ☃xx : ☃) {
-            ☃x.appendTag(☃xx.writeCustomPotionEffectToNBT(new NBTTagCompound()));
+         for (PotionEffect potioneffect : effects) {
+            nbttaglist.appendTag(potioneffect.writeCustomPotionEffectToNBT(new NBTTagCompound()));
          }
 
-         ☃.setTag("CustomPotionEffects", ☃x);
-         ☃.setTagCompound(☃);
-         return ☃;
+         nbttagcompound.setTag("CustomPotionEffects", nbttaglist);
+         itemIn.setTagCompound(nbttagcompound);
+         return itemIn;
       }
    }
 
-   public static void addPotionTooltip(ItemStack var0, List<String> var1, float var2) {
-      List<PotionEffect> ☃ = getEffectsFromStack(☃);
-      List<Tuple<String, AttributeModifier>> ☃x = Lists.newArrayList();
-      if (☃.isEmpty()) {
-         String ☃xx = I18n.translateToLocal("effect.none").trim();
-         ☃.add(TextFormatting.GRAY + ☃xx);
+   public static void addPotionTooltip(ItemStack itemIn, List<String> lores, float durationFactor) {
+      List<PotionEffect> list = getEffectsFromStack(itemIn);
+      List<Tuple<String, AttributeModifier>> list1 = Lists.newArrayList();
+      if (list.isEmpty()) {
+         String s = I18n.translateToLocal("effect.none").trim();
+         lores.add(TextFormatting.GRAY + s);
       } else {
-         for (PotionEffect ☃xx : ☃) {
-            String ☃xxx = I18n.translateToLocal(☃xx.getEffectName()).trim();
-            Potion ☃xxxx = ☃xx.getPotion();
-            Map<IAttribute, AttributeModifier> ☃xxxxx = ☃xxxx.getAttributeModifierMap();
-            if (!☃xxxxx.isEmpty()) {
-               for (Entry<IAttribute, AttributeModifier> ☃xxxxxx : ☃xxxxx.entrySet()) {
-                  AttributeModifier ☃xxxxxxx = ☃xxxxxx.getValue();
-                  AttributeModifier ☃xxxxxxxx = new AttributeModifier(
-                     ☃xxxxxxx.getName(), ☃xxxx.getAttributeModifierAmount(☃xx.getAmplifier(), ☃xxxxxxx), ☃xxxxxxx.getOperation()
+         for (PotionEffect potioneffect : list) {
+            String s1 = I18n.translateToLocal(potioneffect.getEffectName()).trim();
+            Potion potion = potioneffect.getPotion();
+            Map<IAttribute, AttributeModifier> map = potion.getAttributeModifierMap();
+            if (!map.isEmpty()) {
+               for (Entry<IAttribute, AttributeModifier> entry : map.entrySet()) {
+                  AttributeModifier attributemodifier = entry.getValue();
+                  AttributeModifier attributemodifier1 = new AttributeModifier(
+                     attributemodifier.getName(),
+                     potion.getAttributeModifierAmount(potioneffect.getAmplifier(), attributemodifier),
+                     attributemodifier.getOperation()
                   );
-                  ☃x.add(new Tuple<>(☃xxxxxx.getKey().getName(), ☃xxxxxxxx));
+                  list1.add(new Tuple(entry.getKey().getName(), attributemodifier1));
                }
             }
 
-            if (☃xx.getAmplifier() > 0) {
-               ☃xxx = ☃xxx + " " + I18n.translateToLocal("potion.potency." + ☃xx.getAmplifier()).trim();
+            if (potioneffect.getAmplifier() > 0) {
+               s1 = s1 + " " + I18n.translateToLocal("potion.potency." + potioneffect.getAmplifier()).trim();
             }
 
-            if (☃xx.getDuration() > 20) {
-               ☃xxx = ☃xxx + " (" + Potion.getPotionDurationString(☃xx, ☃) + ")";
+            if (potioneffect.getDuration() > 20) {
+               s1 = s1 + " (" + Potion.getPotionDurationString(potioneffect, durationFactor) + ")";
             }
 
-            if (☃xxxx.isBadEffect()) {
-               ☃.add(TextFormatting.RED + ☃xxx);
+            if (potion.isBadEffect()) {
+               lores.add(TextFormatting.RED + s1);
             } else {
-               ☃.add(TextFormatting.BLUE + ☃xxx);
+               lores.add(TextFormatting.BLUE + s1);
             }
          }
       }
 
-      if (!☃x.isEmpty()) {
-         ☃.add("");
-         ☃.add(TextFormatting.DARK_PURPLE + I18n.translateToLocal("potion.whenDrank"));
+      if (!list1.isEmpty()) {
+         lores.add("");
+         lores.add(TextFormatting.DARK_PURPLE + I18n.translateToLocal("potion.whenDrank"));
 
-         for (Tuple<String, AttributeModifier> ☃xx : ☃x) {
-            AttributeModifier ☃xxxxxx = ☃xx.getSecond();
-            double ☃xxxxxxx = ☃xxxxxx.getAmount();
-            double ☃xxxxxxxx;
-            if (☃xxxxxx.getOperation() != 1 && ☃xxxxxx.getOperation() != 2) {
-               ☃xxxxxxxx = ☃xxxxxx.getAmount();
+         for (Tuple<String, AttributeModifier> tuple : list1) {
+            AttributeModifier attributemodifier2 = (AttributeModifier)tuple.getSecond();
+            double d0 = attributemodifier2.getAmount();
+            double d1;
+            if (attributemodifier2.getOperation() != 1 && attributemodifier2.getOperation() != 2) {
+               d1 = attributemodifier2.getAmount();
             } else {
-               ☃xxxxxxxx = ☃xxxxxx.getAmount() * 100.0;
+               d1 = attributemodifier2.getAmount() * 100.0;
             }
 
-            if (☃xxxxxxx > 0.0) {
-               ☃.add(
+            if (d0 > 0.0) {
+               lores.add(
                   TextFormatting.BLUE
                      + I18n.translateToLocalFormatted(
-                        "attribute.modifier.plus." + ☃xxxxxx.getOperation(),
-                        ItemStack.DECIMALFORMAT.format(☃xxxxxxxx),
-                        I18n.translateToLocal("attribute.name." + ☃xx.getFirst())
+                        "attribute.modifier.plus." + attributemodifier2.getOperation(),
+                        ItemStack.DECIMALFORMAT.format(d1),
+                        I18n.translateToLocal("attribute.name." + (String)tuple.getFirst())
                      )
                );
-            } else if (☃xxxxxxx < 0.0) {
-               ☃xxxxxxxx *= -1.0;
-               ☃.add(
+            } else if (d0 < 0.0) {
+               d1 *= -1.0;
+               lores.add(
                   TextFormatting.RED
                      + I18n.translateToLocalFormatted(
-                        "attribute.modifier.take." + ☃xxxxxx.getOperation(),
-                        ItemStack.DECIMALFORMAT.format(☃xxxxxxxx),
-                        I18n.translateToLocal("attribute.name." + ☃xx.getFirst())
+                        "attribute.modifier.take." + attributemodifier2.getOperation(),
+                        ItemStack.DECIMALFORMAT.format(d1),
+                        I18n.translateToLocal("attribute.name." + (String)tuple.getFirst())
                      )
                );
             }

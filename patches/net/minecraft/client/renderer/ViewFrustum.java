@@ -1,11 +1,17 @@
 package net.minecraft.client.renderer;
 
+import java.util.HashMap;
+import java.util.Map;
 import javax.annotation.Nullable;
 import net.minecraft.client.renderer.chunk.IRenderChunkFactory;
 import net.minecraft.client.renderer.chunk.RenderChunk;
+import net.minecraft.util.BlockRenderLayer;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
+import net.optifine.render.VboRegion;
 
 public class ViewFrustum {
    protected final RenderGlobal renderGlobal;
@@ -14,127 +20,186 @@ public class ViewFrustum {
    protected int countChunksX;
    protected int countChunksZ;
    public RenderChunk[] renderChunks;
+   private Map<ChunkPos, VboRegion[]> mapVboRegions = new HashMap<>();
 
-   public ViewFrustum(World var1, int var2, RenderGlobal var3, IRenderChunkFactory var4) {
-      this.renderGlobal = ☃;
-      this.world = ☃;
-      this.setCountChunksXYZ(☃);
-      this.createRenderChunks(☃);
+   public ViewFrustum(World worldIn, int renderDistanceChunks, RenderGlobal renderGlobalIn, IRenderChunkFactory renderChunkFactory) {
+      this.renderGlobal = renderGlobalIn;
+      this.world = worldIn;
+      this.setCountChunksXYZ(renderDistanceChunks);
+      this.createRenderChunks(renderChunkFactory);
    }
 
-   protected void createRenderChunks(IRenderChunkFactory var1) {
-      int ☃ = this.countChunksX * this.countChunksY * this.countChunksZ;
-      this.renderChunks = new RenderChunk[☃];
-      int ☃x = 0;
+   protected void createRenderChunks(IRenderChunkFactory renderChunkFactory) {
+      int i = this.countChunksX * this.countChunksY * this.countChunksZ;
+      this.renderChunks = new RenderChunk[i];
+      int j = 0;
 
-      for (int ☃xx = 0; ☃xx < this.countChunksX; ☃xx++) {
-         for (int ☃xxx = 0; ☃xxx < this.countChunksY; ☃xxx++) {
-            for (int ☃xxxx = 0; ☃xxxx < this.countChunksZ; ☃xxxx++) {
-               int ☃xxxxx = (☃xxxx * this.countChunksY + ☃xxx) * this.countChunksX + ☃xx;
-               this.renderChunks[☃xxxxx] = ☃.create(this.world, this.renderGlobal, ☃x++);
-               this.renderChunks[☃xxxxx].setPosition(☃xx * 16, ☃xxx * 16, ☃xxxx * 16);
+      for (int k = 0; k < this.countChunksX; k++) {
+         for (int l = 0; l < this.countChunksY; l++) {
+            for (int i1 = 0; i1 < this.countChunksZ; i1++) {
+               int j1 = (i1 * this.countChunksY + l) * this.countChunksX + k;
+               this.renderChunks[j1] = renderChunkFactory.create(this.world, this.renderGlobal, j++);
+               this.renderChunks[j1].setPosition(k * 16, l * 16, i1 * 16);
+               if (Config.isVbo() && Config.isRenderRegions()) {
+                  this.updateVboRegion(this.renderChunks[j1]);
+               }
             }
+         }
+      }
+
+      for (int k = 0; k < this.renderChunks.length; k++) {
+         RenderChunk renderChunk = this.renderChunks[k];
+
+         for (int l = 0; l < EnumFacing.VALUES.length; l++) {
+            EnumFacing facing = EnumFacing.VALUES[l];
+            BlockPos posOffset16 = renderChunk.getBlockPosOffset16(facing);
+            RenderChunk neighbour = this.getRenderChunk(posOffset16);
+            renderChunk.setRenderChunkNeighbour(facing, neighbour);
          }
       }
    }
 
    public void deleteGlResources() {
-      for (RenderChunk ☃ : this.renderChunks) {
-         ☃.deleteGlResources();
+      for (RenderChunk renderchunk : this.renderChunks) {
+         renderchunk.deleteGlResources();
       }
+
+      this.deleteVboRegions();
    }
 
-   protected void setCountChunksXYZ(int var1) {
-      int ☃ = ☃ * 2 + 1;
-      this.countChunksX = ☃;
+   protected void setCountChunksXYZ(int renderDistanceChunks) {
+      int i = renderDistanceChunks * 2 + 1;
+      this.countChunksX = i;
       this.countChunksY = 16;
-      this.countChunksZ = ☃;
+      this.countChunksZ = i;
    }
 
-   public void updateChunkPositions(double var1, double var3) {
-      int ☃ = MathHelper.floor(☃) - 8;
-      int ☃x = MathHelper.floor(☃) - 8;
-      int ☃xx = this.countChunksX * 16;
+   public void updateChunkPositions(double viewEntityX, double viewEntityZ) {
+      int i = MathHelper.floor(viewEntityX) - 8;
+      int j = MathHelper.floor(viewEntityZ) - 8;
+      int k = this.countChunksX * 16;
 
-      for (int ☃xxx = 0; ☃xxx < this.countChunksX; ☃xxx++) {
-         int ☃xxxx = this.getBaseCoordinate(☃, ☃xx, ☃xxx);
+      for (int l = 0; l < this.countChunksX; l++) {
+         int i1 = this.getBaseCoordinate(i, k, l);
 
-         for (int ☃xxxxx = 0; ☃xxxxx < this.countChunksZ; ☃xxxxx++) {
-            int ☃xxxxxx = this.getBaseCoordinate(☃x, ☃xx, ☃xxxxx);
+         for (int j1 = 0; j1 < this.countChunksZ; j1++) {
+            int k1 = this.getBaseCoordinate(j, k, j1);
 
-            for (int ☃xxxxxxx = 0; ☃xxxxxxx < this.countChunksY; ☃xxxxxxx++) {
-               int ☃xxxxxxxx = ☃xxxxxxx * 16;
-               RenderChunk ☃xxxxxxxxx = this.renderChunks[(☃xxxxx * this.countChunksY + ☃xxxxxxx) * this.countChunksX + ☃xxx];
-               ☃xxxxxxxxx.setPosition(☃xxxx, ☃xxxxxxxx, ☃xxxxxx);
+            for (int l1 = 0; l1 < this.countChunksY; l1++) {
+               int i2 = l1 * 16;
+               RenderChunk renderchunk = this.renderChunks[(j1 * this.countChunksY + l1) * this.countChunksX + l];
+               renderchunk.setPosition(i1, i2, k1);
             }
          }
       }
    }
 
-   private int getBaseCoordinate(int var1, int var2, int var3) {
-      int ☃ = ☃ * 16;
-      int ☃x = ☃ - ☃ + ☃ / 2;
-      if (☃x < 0) {
-         ☃x -= ☃ - 1;
+   private int getBaseCoordinate(int p_178157_1_, int p_178157_2_, int p_178157_3_) {
+      int i = p_178157_3_ * 16;
+      int j = i - p_178157_1_ + p_178157_2_ / 2;
+      if (j < 0) {
+         j -= p_178157_2_ - 1;
       }
 
-      return ☃ - ☃x / ☃ * ☃;
+      return i - j / p_178157_2_ * p_178157_2_;
    }
 
-   public void markBlocksForUpdate(int var1, int var2, int var3, int var4, int var5, int var6, boolean var7) {
-      int ☃ = MathHelper.intFloorDiv(☃, 16);
-      int ☃x = MathHelper.intFloorDiv(☃, 16);
-      int ☃xx = MathHelper.intFloorDiv(☃, 16);
-      int ☃xxx = MathHelper.intFloorDiv(☃, 16);
-      int ☃xxxx = MathHelper.intFloorDiv(☃, 16);
-      int ☃xxxxx = MathHelper.intFloorDiv(☃, 16);
+   public void markBlocksForUpdate(int minX, int minY, int minZ, int maxX, int maxY, int maxZ, boolean updateImmediately) {
+      int i = MathHelper.intFloorDiv(minX, 16);
+      int j = MathHelper.intFloorDiv(minY, 16);
+      int k = MathHelper.intFloorDiv(minZ, 16);
+      int l = MathHelper.intFloorDiv(maxX, 16);
+      int i1 = MathHelper.intFloorDiv(maxY, 16);
+      int j1 = MathHelper.intFloorDiv(maxZ, 16);
 
-      for (int ☃xxxxxx = ☃; ☃xxxxxx <= ☃xxx; ☃xxxxxx++) {
-         int ☃xxxxxxx = ☃xxxxxx % this.countChunksX;
-         if (☃xxxxxxx < 0) {
-            ☃xxxxxxx += this.countChunksX;
+      for (int k1 = i; k1 <= l; k1++) {
+         int l1 = k1 % this.countChunksX;
+         if (l1 < 0) {
+            l1 += this.countChunksX;
          }
 
-         for (int ☃xxxxxxxx = ☃x; ☃xxxxxxxx <= ☃xxxx; ☃xxxxxxxx++) {
-            int ☃xxxxxxxxx = ☃xxxxxxxx % this.countChunksY;
-            if (☃xxxxxxxxx < 0) {
-               ☃xxxxxxxxx += this.countChunksY;
+         for (int i2 = j; i2 <= i1; i2++) {
+            int j2 = i2 % this.countChunksY;
+            if (j2 < 0) {
+               j2 += this.countChunksY;
             }
 
-            for (int ☃xxxxxxxxxx = ☃xx; ☃xxxxxxxxxx <= ☃xxxxx; ☃xxxxxxxxxx++) {
-               int ☃xxxxxxxxxxx = ☃xxxxxxxxxx % this.countChunksZ;
-               if (☃xxxxxxxxxxx < 0) {
-                  ☃xxxxxxxxxxx += this.countChunksZ;
+            for (int k2 = k; k2 <= j1; k2++) {
+               int l2 = k2 % this.countChunksZ;
+               if (l2 < 0) {
+                  l2 += this.countChunksZ;
                }
 
-               int ☃xxxxxxxxxxxx = (☃xxxxxxxxxxx * this.countChunksY + ☃xxxxxxxxx) * this.countChunksX + ☃xxxxxxx;
-               RenderChunk ☃xxxxxxxxxxxxx = this.renderChunks[☃xxxxxxxxxxxx];
-               ☃xxxxxxxxxxxxx.setNeedsUpdate(☃);
+               int i3 = (l2 * this.countChunksY + j2) * this.countChunksX + l1;
+               RenderChunk renderchunk = this.renderChunks[i3];
+               renderchunk.setNeedsUpdate(updateImmediately);
             }
          }
       }
    }
 
    @Nullable
-   protected RenderChunk getRenderChunk(BlockPos var1) {
-      int ☃ = MathHelper.intFloorDiv(☃.getX(), 16);
-      int ☃x = MathHelper.intFloorDiv(☃.getY(), 16);
-      int ☃xx = MathHelper.intFloorDiv(☃.getZ(), 16);
-      if (☃x >= 0 && ☃x < this.countChunksY) {
-         ☃ %= this.countChunksX;
-         if (☃ < 0) {
-            ☃ += this.countChunksX;
+   public RenderChunk getRenderChunk(BlockPos pos) {
+      int i = pos.getX() >> 4;
+      int j = pos.getY() >> 4;
+      int k = pos.getZ() >> 4;
+      if (j >= 0 && j < this.countChunksY) {
+         i %= this.countChunksX;
+         if (i < 0) {
+            i += this.countChunksX;
          }
 
-         ☃xx %= this.countChunksZ;
-         if (☃xx < 0) {
-            ☃xx += this.countChunksZ;
+         k %= this.countChunksZ;
+         if (k < 0) {
+            k += this.countChunksZ;
          }
 
-         int ☃xxx = (☃xx * this.countChunksY + ☃x) * this.countChunksX + ☃;
-         return this.renderChunks[☃xxx];
+         int l = (k * this.countChunksY + j) * this.countChunksX + i;
+         return this.renderChunks[l];
       } else {
          return null;
       }
+   }
+
+   private void updateVboRegion(RenderChunk renderChunk) {
+      BlockPos pos = renderChunk.getPosition();
+      int rx = pos.getX() >> 8 << 8;
+      int rz = pos.getZ() >> 8 << 8;
+      ChunkPos cp = new ChunkPos(rx, rz);
+      BlockRenderLayer[] layers = BlockRenderLayer.values();
+      VboRegion[] regions = this.mapVboRegions.get(cp);
+      if (regions == null) {
+         regions = new VboRegion[layers.length];
+
+         for (int ix = 0; ix < layers.length; ix++) {
+            regions[ix] = new VboRegion(layers[ix]);
+         }
+
+         this.mapVboRegions.put(cp, regions);
+      }
+
+      for (int ix = 0; ix < layers.length; ix++) {
+         VboRegion vr = regions[ix];
+         if (vr != null) {
+            renderChunk.getVertexBufferByLayer(ix).setVboRegion(vr);
+         }
+      }
+   }
+
+   public void deleteVboRegions() {
+      for (ChunkPos cp : this.mapVboRegions.keySet()) {
+         VboRegion[] vboRegions = this.mapVboRegions.get(cp);
+
+         for (int i = 0; i < vboRegions.length; i++) {
+            VboRegion vboRegion = vboRegions[i];
+            if (vboRegion != null) {
+               vboRegion.deleteGlBuffers();
+            }
+
+            vboRegions[i] = null;
+         }
+      }
+
+      this.mapVboRegions.clear();
    }
 }

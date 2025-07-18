@@ -16,180 +16,209 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.scoreboard.ScorePlayerTeam;
+import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.EnumBlockRenderType;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
+import net.optifine.entity.model.IEntityRenderer;
+import net.optifine.shaders.Shaders;
 
-public abstract class Render<T extends Entity> {
+public abstract class Render<T extends Entity> implements IEntityRenderer {
    private static final ResourceLocation SHADOW_TEXTURES = new ResourceLocation("textures/misc/shadow.png");
    protected final RenderManager renderManager;
-   protected float shadowSize;
+   public float shadowSize;
    protected float shadowOpaque = 1.0F;
    protected boolean renderOutlines;
+   private Class entityClass = null;
+   private ResourceLocation locationTextureCustom = null;
 
-   protected Render(RenderManager var1) {
-      this.renderManager = ☃;
+   protected Render(RenderManager renderManager) {
+      this.renderManager = renderManager;
    }
 
-   public void setRenderOutlines(boolean var1) {
-      this.renderOutlines = ☃;
+   public void setRenderOutlines(boolean renderOutlinesIn) {
+      this.renderOutlines = renderOutlinesIn;
    }
 
-   public boolean shouldRender(T var1, ICamera var2, double var3, double var5, double var7) {
-      AxisAlignedBB ☃ = ☃.getRenderBoundingBox().grow(0.5);
-      if (☃.hasNaN() || ☃.getAverageEdgeLength() == 0.0) {
-         ☃ = new AxisAlignedBB(☃.posX - 2.0, ☃.posY - 2.0, ☃.posZ - 2.0, ☃.posX + 2.0, ☃.posY + 2.0, ☃.posZ + 2.0);
+   public boolean shouldRender(T livingEntity, ICamera camera, double camX, double camY, double camZ) {
+      AxisAlignedBB axisalignedbb = livingEntity.getRenderBoundingBox().grow(0.5);
+      if (axisalignedbb.hasNaN() || axisalignedbb.getAverageEdgeLength() == 0.0) {
+         axisalignedbb = new AxisAlignedBB(
+            livingEntity.posX - 2.0,
+            livingEntity.posY - 2.0,
+            livingEntity.posZ - 2.0,
+            livingEntity.posX + 2.0,
+            livingEntity.posY + 2.0,
+            livingEntity.posZ + 2.0
+         );
       }
 
-      return ☃.isInRangeToRender3d(☃, ☃, ☃) && (☃.ignoreFrustumCheck || ☃.isBoundingBoxInFrustum(☃));
+      return livingEntity.isInRangeToRender3d(camX, camY, camZ) && (livingEntity.ignoreFrustumCheck || camera.isBoundingBoxInFrustum(axisalignedbb));
    }
 
-   public void doRender(T var1, double var2, double var4, double var6, float var8, float var9) {
+   public void doRender(T entity, double x, double y, double z, float entityYaw, float partialTicks) {
       if (!this.renderOutlines) {
-         this.renderName(☃, ☃, ☃, ☃);
+         this.renderName(entity, x, y, z);
       }
    }
 
-   protected int getTeamColor(T var1) {
-      int ☃ = 16777215;
-      ScorePlayerTeam ☃x = (ScorePlayerTeam)☃.getTeam();
-      if (☃x != null) {
-         String ☃xx = FontRenderer.getFormatFromString(☃x.getPrefix());
-         if (☃xx.length() >= 2) {
-            ☃ = this.getFontRendererFromRenderManager().getColorCode(☃xx.charAt(1));
+   protected int getTeamColor(T entityIn) {
+      int i = 16777215;
+      ScorePlayerTeam scoreplayerteam = (ScorePlayerTeam)entityIn.getTeam();
+      if (scoreplayerteam != null) {
+         String s = FontRenderer.getFormatFromString(scoreplayerteam.getPrefix());
+         if (s.length() >= 2) {
+            i = this.getFontRendererFromRenderManager().getColorCode(s.charAt(1));
          }
       }
 
-      return ☃;
+      return i;
    }
 
-   protected void renderName(T var1, double var2, double var4, double var6) {
-      if (this.canRenderName(☃)) {
-         this.renderLivingLabel(☃, ☃.getDisplayName().getFormattedText(), ☃, ☃, ☃, 64);
+   protected void renderName(T entity, double x, double y, double z) {
+      if (this.canRenderName(entity)) {
+         this.renderLivingLabel(entity, entity.getDisplayName().getFormattedText(), x, y, z, 64);
       }
    }
 
-   protected boolean canRenderName(T var1) {
-      return ☃.getAlwaysRenderNameTagForRender() && ☃.hasCustomName();
+   protected boolean canRenderName(T entity) {
+      return entity.getAlwaysRenderNameTagForRender() && entity.hasCustomName();
    }
 
-   protected void renderEntityName(T var1, double var2, double var4, double var6, String var8, double var9) {
-      this.renderLivingLabel(☃, ☃, ☃, ☃, ☃, 64);
+   protected void renderEntityName(T entityIn, double x, double y, double z, String name, double distanceSq) {
+      this.renderLivingLabel(entityIn, name, x, y, z, 64);
    }
 
    @Nullable
    protected abstract ResourceLocation getEntityTexture(T var1);
 
-   protected boolean bindEntityTexture(T var1) {
-      ResourceLocation ☃ = this.getEntityTexture(☃);
-      if (☃ == null) {
+   protected boolean bindEntityTexture(T entity) {
+      ResourceLocation resourcelocation = this.getEntityTexture(entity);
+      if (this.locationTextureCustom != null) {
+         resourcelocation = this.locationTextureCustom;
+      }
+
+      if (resourcelocation == null) {
          return false;
       } else {
-         this.bindTexture(☃);
+         this.bindTexture(resourcelocation);
          return true;
       }
    }
 
-   public void bindTexture(ResourceLocation var1) {
-      this.renderManager.renderEngine.bindTexture(☃);
+   public void bindTexture(ResourceLocation location) {
+      this.renderManager.renderEngine.bindTexture(location);
    }
 
-   private void renderEntityOnFire(Entity var1, double var2, double var4, double var6, float var8) {
+   private void renderEntityOnFire(Entity entity, double x, double y, double z, float partialTicks) {
       GlStateManager.disableLighting();
-      TextureMap ☃ = Minecraft.getMinecraft().getTextureMapBlocks();
-      TextureAtlasSprite ☃x = ☃.getAtlasSprite("minecraft:blocks/fire_layer_0");
-      TextureAtlasSprite ☃xx = ☃.getAtlasSprite("minecraft:blocks/fire_layer_1");
+      TextureMap texturemap = Minecraft.getMinecraft().getTextureMapBlocks();
+      TextureAtlasSprite textureatlassprite = texturemap.getAtlasSprite("minecraft:blocks/fire_layer_0");
+      TextureAtlasSprite textureatlassprite1 = texturemap.getAtlasSprite("minecraft:blocks/fire_layer_1");
       GlStateManager.pushMatrix();
-      GlStateManager.translate((float)☃, (float)☃, (float)☃);
-      float ☃xxx = ☃.width * 1.4F;
-      GlStateManager.scale(☃xxx, ☃xxx, ☃xxx);
-      Tessellator ☃xxxx = Tessellator.getInstance();
-      BufferBuilder ☃xxxxx = ☃xxxx.getBuffer();
-      float ☃xxxxxx = 0.5F;
-      float ☃xxxxxxx = 0.0F;
-      float ☃xxxxxxxx = ☃.height / ☃xxx;
-      float ☃xxxxxxxxx = (float)(☃.posY - ☃.getEntityBoundingBox().minY);
+      GlStateManager.translate((float)x, (float)y, (float)z);
+      float f = entity.width * 1.4F;
+      GlStateManager.scale(f, f, f);
+      Tessellator tessellator = Tessellator.getInstance();
+      BufferBuilder bufferbuilder = tessellator.getBuffer();
+      float f1 = 0.5F;
+      float f2 = 0.0F;
+      float f3 = entity.height / f;
+      float f4 = (float)(entity.posY - entity.getEntityBoundingBox().minY);
       GlStateManager.rotate(-this.renderManager.playerViewY, 0.0F, 1.0F, 0.0F);
-      GlStateManager.translate(0.0F, 0.0F, -0.3F + (int)☃xxxxxxxx * 0.02F);
+      GlStateManager.translate(0.0F, 0.0F, -0.3F + (int)f3 * 0.02F);
       GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-      float ☃xxxxxxxxxx = 0.0F;
-      int ☃xxxxxxxxxxx = 0;
-      ☃xxxxx.begin(7, DefaultVertexFormats.POSITION_TEX);
-
-      while (☃xxxxxxxx > 0.0F) {
-         TextureAtlasSprite ☃xxxxxxxxxxxx = ☃xxxxxxxxxxx % 2 == 0 ? ☃x : ☃xx;
-         this.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
-         float ☃xxxxxxxxxxxxx = ☃xxxxxxxxxxxx.getMinU();
-         float ☃xxxxxxxxxxxxxx = ☃xxxxxxxxxxxx.getMinV();
-         float ☃xxxxxxxxxxxxxxx = ☃xxxxxxxxxxxx.getMaxU();
-         float ☃xxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxx.getMaxV();
-         if (☃xxxxxxxxxxx / 2 % 2 == 0) {
-            float ☃xxxxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxx;
-            ☃xxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxx;
-            ☃xxxxxxxxxxxxx = ☃xxxxxxxxxxxxxxxxx;
-         }
-
-         ☃xxxxx.pos(☃xxxxxx - 0.0F, 0.0F - ☃xxxxxxxxx, ☃xxxxxxxxxx).tex(☃xxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxx).endVertex();
-         ☃xxxxx.pos(-☃xxxxxx - 0.0F, 0.0F - ☃xxxxxxxxx, ☃xxxxxxxxxx).tex(☃xxxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxx).endVertex();
-         ☃xxxxx.pos(-☃xxxxxx - 0.0F, 1.4F - ☃xxxxxxxxx, ☃xxxxxxxxxx).tex(☃xxxxxxxxxxxxx, ☃xxxxxxxxxxxxxx).endVertex();
-         ☃xxxxx.pos(☃xxxxxx - 0.0F, 1.4F - ☃xxxxxxxxx, ☃xxxxxxxxxx).tex(☃xxxxxxxxxxxxxxx, ☃xxxxxxxxxxxxxx).endVertex();
-         ☃xxxxxxxx -= 0.45F;
-         ☃xxxxxxxxx -= 0.45F;
-         ☃xxxxxx *= 0.9F;
-         ☃xxxxxxxxxx += 0.03F;
-         ☃xxxxxxxxxxx++;
+      float f5 = 0.0F;
+      int i = 0;
+      boolean multitexture = Config.isMultiTexture();
+      if (multitexture) {
+         bufferbuilder.setBlockLayer(BlockRenderLayer.SOLID);
       }
 
-      ☃xxxx.draw();
+      bufferbuilder.begin(7, DefaultVertexFormats.POSITION_TEX);
+
+      while (f3 > 0.0F) {
+         TextureAtlasSprite textureatlassprite2 = i % 2 == 0 ? textureatlassprite : textureatlassprite1;
+         bufferbuilder.setSprite(textureatlassprite2);
+         this.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
+         float f6 = textureatlassprite2.getMinU();
+         float f7 = textureatlassprite2.getMinV();
+         float f8 = textureatlassprite2.getMaxU();
+         float f9 = textureatlassprite2.getMaxV();
+         if (i / 2 % 2 == 0) {
+            float f10 = f8;
+            f8 = f6;
+            f6 = f10;
+         }
+
+         bufferbuilder.pos(f1 - 0.0F, 0.0F - f4, f5).tex(f8, f9).endVertex();
+         bufferbuilder.pos(-f1 - 0.0F, 0.0F - f4, f5).tex(f6, f9).endVertex();
+         bufferbuilder.pos(-f1 - 0.0F, 1.4F - f4, f5).tex(f6, f7).endVertex();
+         bufferbuilder.pos(f1 - 0.0F, 1.4F - f4, f5).tex(f8, f7).endVertex();
+         f3 -= 0.45F;
+         f4 -= 0.45F;
+         f1 *= 0.9F;
+         f5 += 0.03F;
+         i++;
+      }
+
+      tessellator.draw();
+      if (multitexture) {
+         bufferbuilder.setBlockLayer(null);
+         GlStateManager.bindCurrentTexture();
+      }
+
       GlStateManager.popMatrix();
       GlStateManager.enableLighting();
    }
 
-   private void renderShadow(Entity var1, double var2, double var4, double var6, float var8, float var9) {
-      GlStateManager.enableBlend();
-      GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
-      this.renderManager.renderEngine.bindTexture(SHADOW_TEXTURES);
-      World ☃ = this.getWorldFromRenderManager();
-      GlStateManager.depthMask(false);
-      float ☃x = this.shadowSize;
-      if (☃ instanceof EntityLiving) {
-         EntityLiving ☃xx = (EntityLiving)☃;
-         ☃x *= ☃xx.getRenderSizeModifier();
-         if (☃xx.isChild()) {
-            ☃x *= 0.5F;
+   private void renderShadow(Entity entityIn, double x, double y, double z, float shadowAlpha, float partialTicks) {
+      if (!Config.isShaders() || !Shaders.shouldSkipDefaultShadow) {
+         GlStateManager.enableBlend();
+         GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+         this.renderManager.renderEngine.bindTexture(SHADOW_TEXTURES);
+         World world = this.getWorldFromRenderManager();
+         GlStateManager.depthMask(false);
+         float f = this.shadowSize;
+         if (entityIn instanceof EntityLiving) {
+            EntityLiving entityliving = (EntityLiving)entityIn;
+            f *= entityliving.getRenderSizeModifier();
+            if (entityliving.isChild()) {
+               f *= 0.5F;
+            }
          }
-      }
 
-      double ☃xx = ☃.lastTickPosX + (☃.posX - ☃.lastTickPosX) * ☃;
-      double ☃xxx = ☃.lastTickPosY + (☃.posY - ☃.lastTickPosY) * ☃;
-      double ☃xxxx = ☃.lastTickPosZ + (☃.posZ - ☃.lastTickPosZ) * ☃;
-      int ☃xxxxx = MathHelper.floor(☃xx - ☃x);
-      int ☃xxxxxx = MathHelper.floor(☃xx + ☃x);
-      int ☃xxxxxxx = MathHelper.floor(☃xxx - ☃x);
-      int ☃xxxxxxxx = MathHelper.floor(☃xxx);
-      int ☃xxxxxxxxx = MathHelper.floor(☃xxxx - ☃x);
-      int ☃xxxxxxxxxx = MathHelper.floor(☃xxxx + ☃x);
-      double ☃xxxxxxxxxxx = ☃ - ☃xx;
-      double ☃xxxxxxxxxxxx = ☃ - ☃xxx;
-      double ☃xxxxxxxxxxxxx = ☃ - ☃xxxx;
-      Tessellator ☃xxxxxxxxxxxxxx = Tessellator.getInstance();
-      BufferBuilder ☃xxxxxxxxxxxxxxx = ☃xxxxxxxxxxxxxx.getBuffer();
-      ☃xxxxxxxxxxxxxxx.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
+         double d5 = entityIn.lastTickPosX + (entityIn.posX - entityIn.lastTickPosX) * partialTicks;
+         double d0 = entityIn.lastTickPosY + (entityIn.posY - entityIn.lastTickPosY) * partialTicks;
+         double d1 = entityIn.lastTickPosZ + (entityIn.posZ - entityIn.lastTickPosZ) * partialTicks;
+         int i = MathHelper.floor(d5 - f);
+         int j = MathHelper.floor(d5 + f);
+         int k = MathHelper.floor(d0 - f);
+         int l = MathHelper.floor(d0);
+         int i1 = MathHelper.floor(d1 - f);
+         int j1 = MathHelper.floor(d1 + f);
+         double d2 = x - d5;
+         double d3 = y - d0;
+         double d4 = z - d1;
+         Tessellator tessellator = Tessellator.getInstance();
+         BufferBuilder bufferbuilder = tessellator.getBuffer();
+         bufferbuilder.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
 
-      for (BlockPos ☃xxxxxxxxxxxxxxxx : BlockPos.getAllInBoxMutable(new BlockPos(☃xxxxx, ☃xxxxxxx, ☃xxxxxxxxx), new BlockPos(☃xxxxxx, ☃xxxxxxxx, ☃xxxxxxxxxx))) {
-         IBlockState ☃xxxxxxxxxxxxxxxxx = ☃.getBlockState(☃xxxxxxxxxxxxxxxx.down());
-         if (☃xxxxxxxxxxxxxxxxx.getRenderType() != EnumBlockRenderType.INVISIBLE && ☃.getLightFromNeighbors(☃xxxxxxxxxxxxxxxx) > 3) {
-            this.renderShadowSingle(☃xxxxxxxxxxxxxxxxx, ☃, ☃, ☃, ☃xxxxxxxxxxxxxxxx, ☃, ☃x, ☃xxxxxxxxxxx, ☃xxxxxxxxxxxx, ☃xxxxxxxxxxxxx);
+         for (BlockPos blockpos : BlockPos.getAllInBoxMutable(new BlockPos(i, k, i1), new BlockPos(j, l, j1))) {
+            IBlockState iblockstate = world.getBlockState(blockpos.down());
+            if (iblockstate.i() != EnumBlockRenderType.INVISIBLE && world.getLightFromNeighbors(blockpos) > 3) {
+               this.renderShadowSingle(iblockstate, x, y, z, blockpos, shadowAlpha, f, d2, d3, d4);
+            }
          }
-      }
 
-      ☃xxxxxxxxxxxxxx.draw();
-      GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-      GlStateManager.disableBlend();
-      GlStateManager.depthMask(true);
+         tessellator.draw();
+         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+         GlStateManager.disableBlend();
+         GlStateManager.depthMask(true);
+      }
    }
 
    private World getWorldFromRenderManager() {
@@ -197,83 +226,94 @@ public abstract class Render<T extends Entity> {
    }
 
    private void renderShadowSingle(
-      IBlockState var1, double var2, double var4, double var6, BlockPos var8, float var9, float var10, double var11, double var13, double var15
+      IBlockState state,
+      double p_188299_2_,
+      double p_188299_4_,
+      double p_188299_6_,
+      BlockPos p_188299_8_,
+      float p_188299_9_,
+      float p_188299_10_,
+      double p_188299_11_,
+      double p_188299_13_,
+      double p_188299_15_
    ) {
-      if (☃.isFullCube()) {
-         Tessellator ☃ = Tessellator.getInstance();
-         BufferBuilder ☃x = ☃.getBuffer();
-         double ☃xx = (☃ - (☃ - (☃.getY() + ☃)) / 2.0) * 0.5 * this.getWorldFromRenderManager().getLightBrightness(☃);
-         if (!(☃xx < 0.0)) {
-            if (☃xx > 1.0) {
-               ☃xx = 1.0;
+      if (state.g()) {
+         Tessellator tessellator = Tessellator.getInstance();
+         BufferBuilder bufferbuilder = tessellator.getBuffer();
+         double d0 = (p_188299_9_ - (p_188299_4_ - (p_188299_8_.getY() + p_188299_13_)) / 2.0)
+            * 0.5
+            * this.getWorldFromRenderManager().getLightBrightness(p_188299_8_);
+         if (d0 >= 0.0) {
+            if (d0 > 1.0) {
+               d0 = 1.0;
             }
 
-            AxisAlignedBB ☃xxx = ☃.getBoundingBox(this.getWorldFromRenderManager(), ☃);
-            double ☃xxxx = ☃.getX() + ☃xxx.minX + ☃;
-            double ☃xxxxx = ☃.getX() + ☃xxx.maxX + ☃;
-            double ☃xxxxxx = ☃.getY() + ☃xxx.minY + ☃ + 0.015625;
-            double ☃xxxxxxx = ☃.getZ() + ☃xxx.minZ + ☃;
-            double ☃xxxxxxxx = ☃.getZ() + ☃xxx.maxZ + ☃;
-            float ☃xxxxxxxxx = (float)((☃ - ☃xxxx) / 2.0 / ☃ + 0.5);
-            float ☃xxxxxxxxxx = (float)((☃ - ☃xxxxx) / 2.0 / ☃ + 0.5);
-            float ☃xxxxxxxxxxx = (float)((☃ - ☃xxxxxxx) / 2.0 / ☃ + 0.5);
-            float ☃xxxxxxxxxxxx = (float)((☃ - ☃xxxxxxxx) / 2.0 / ☃ + 0.5);
-            ☃x.pos(☃xxxx, ☃xxxxxx, ☃xxxxxxx).tex(☃xxxxxxxxx, ☃xxxxxxxxxxx).color(1.0F, 1.0F, 1.0F, (float)☃xx).endVertex();
-            ☃x.pos(☃xxxx, ☃xxxxxx, ☃xxxxxxxx).tex(☃xxxxxxxxx, ☃xxxxxxxxxxxx).color(1.0F, 1.0F, 1.0F, (float)☃xx).endVertex();
-            ☃x.pos(☃xxxxx, ☃xxxxxx, ☃xxxxxxxx).tex(☃xxxxxxxxxx, ☃xxxxxxxxxxxx).color(1.0F, 1.0F, 1.0F, (float)☃xx).endVertex();
-            ☃x.pos(☃xxxxx, ☃xxxxxx, ☃xxxxxxx).tex(☃xxxxxxxxxx, ☃xxxxxxxxxxx).color(1.0F, 1.0F, 1.0F, (float)☃xx).endVertex();
+            AxisAlignedBB axisalignedbb = state.e(this.getWorldFromRenderManager(), p_188299_8_);
+            double d1 = p_188299_8_.getX() + axisalignedbb.minX + p_188299_11_;
+            double d2 = p_188299_8_.getX() + axisalignedbb.maxX + p_188299_11_;
+            double d3 = p_188299_8_.getY() + axisalignedbb.minY + p_188299_13_ + 0.015625;
+            double d4 = p_188299_8_.getZ() + axisalignedbb.minZ + p_188299_15_;
+            double d5 = p_188299_8_.getZ() + axisalignedbb.maxZ + p_188299_15_;
+            float f = (float)((p_188299_2_ - d1) / 2.0 / p_188299_10_ + 0.5);
+            float f1 = (float)((p_188299_2_ - d2) / 2.0 / p_188299_10_ + 0.5);
+            float f2 = (float)((p_188299_6_ - d4) / 2.0 / p_188299_10_ + 0.5);
+            float f3 = (float)((p_188299_6_ - d5) / 2.0 / p_188299_10_ + 0.5);
+            bufferbuilder.pos(d1, d3, d4).tex(f, f2).color(1.0F, 1.0F, 1.0F, (float)d0).endVertex();
+            bufferbuilder.pos(d1, d3, d5).tex(f, f3).color(1.0F, 1.0F, 1.0F, (float)d0).endVertex();
+            bufferbuilder.pos(d2, d3, d5).tex(f1, f3).color(1.0F, 1.0F, 1.0F, (float)d0).endVertex();
+            bufferbuilder.pos(d2, d3, d4).tex(f1, f2).color(1.0F, 1.0F, 1.0F, (float)d0).endVertex();
          }
       }
    }
 
-   public static void renderOffsetAABB(AxisAlignedBB var0, double var1, double var3, double var5) {
+   public static void renderOffsetAABB(AxisAlignedBB boundingBox, double x, double y, double z) {
       GlStateManager.disableTexture2D();
-      Tessellator ☃ = Tessellator.getInstance();
-      BufferBuilder ☃x = ☃.getBuffer();
+      Tessellator tessellator = Tessellator.getInstance();
+      BufferBuilder bufferbuilder = tessellator.getBuffer();
       GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-      ☃x.setTranslation(☃, ☃, ☃);
-      ☃x.begin(7, DefaultVertexFormats.POSITION_NORMAL);
-      ☃x.pos(☃.minX, ☃.maxY, ☃.minZ).normal(0.0F, 0.0F, -1.0F).endVertex();
-      ☃x.pos(☃.maxX, ☃.maxY, ☃.minZ).normal(0.0F, 0.0F, -1.0F).endVertex();
-      ☃x.pos(☃.maxX, ☃.minY, ☃.minZ).normal(0.0F, 0.0F, -1.0F).endVertex();
-      ☃x.pos(☃.minX, ☃.minY, ☃.minZ).normal(0.0F, 0.0F, -1.0F).endVertex();
-      ☃x.pos(☃.minX, ☃.minY, ☃.maxZ).normal(0.0F, 0.0F, 1.0F).endVertex();
-      ☃x.pos(☃.maxX, ☃.minY, ☃.maxZ).normal(0.0F, 0.0F, 1.0F).endVertex();
-      ☃x.pos(☃.maxX, ☃.maxY, ☃.maxZ).normal(0.0F, 0.0F, 1.0F).endVertex();
-      ☃x.pos(☃.minX, ☃.maxY, ☃.maxZ).normal(0.0F, 0.0F, 1.0F).endVertex();
-      ☃x.pos(☃.minX, ☃.minY, ☃.minZ).normal(0.0F, -1.0F, 0.0F).endVertex();
-      ☃x.pos(☃.maxX, ☃.minY, ☃.minZ).normal(0.0F, -1.0F, 0.0F).endVertex();
-      ☃x.pos(☃.maxX, ☃.minY, ☃.maxZ).normal(0.0F, -1.0F, 0.0F).endVertex();
-      ☃x.pos(☃.minX, ☃.minY, ☃.maxZ).normal(0.0F, -1.0F, 0.0F).endVertex();
-      ☃x.pos(☃.minX, ☃.maxY, ☃.maxZ).normal(0.0F, 1.0F, 0.0F).endVertex();
-      ☃x.pos(☃.maxX, ☃.maxY, ☃.maxZ).normal(0.0F, 1.0F, 0.0F).endVertex();
-      ☃x.pos(☃.maxX, ☃.maxY, ☃.minZ).normal(0.0F, 1.0F, 0.0F).endVertex();
-      ☃x.pos(☃.minX, ☃.maxY, ☃.minZ).normal(0.0F, 1.0F, 0.0F).endVertex();
-      ☃x.pos(☃.minX, ☃.minY, ☃.maxZ).normal(-1.0F, 0.0F, 0.0F).endVertex();
-      ☃x.pos(☃.minX, ☃.maxY, ☃.maxZ).normal(-1.0F, 0.0F, 0.0F).endVertex();
-      ☃x.pos(☃.minX, ☃.maxY, ☃.minZ).normal(-1.0F, 0.0F, 0.0F).endVertex();
-      ☃x.pos(☃.minX, ☃.minY, ☃.minZ).normal(-1.0F, 0.0F, 0.0F).endVertex();
-      ☃x.pos(☃.maxX, ☃.minY, ☃.minZ).normal(1.0F, 0.0F, 0.0F).endVertex();
-      ☃x.pos(☃.maxX, ☃.maxY, ☃.minZ).normal(1.0F, 0.0F, 0.0F).endVertex();
-      ☃x.pos(☃.maxX, ☃.maxY, ☃.maxZ).normal(1.0F, 0.0F, 0.0F).endVertex();
-      ☃x.pos(☃.maxX, ☃.minY, ☃.maxZ).normal(1.0F, 0.0F, 0.0F).endVertex();
-      ☃.draw();
-      ☃x.setTranslation(0.0, 0.0, 0.0);
+      bufferbuilder.setTranslation(x, y, z);
+      bufferbuilder.begin(7, DefaultVertexFormats.POSITION_NORMAL);
+      bufferbuilder.pos(boundingBox.minX, boundingBox.maxY, boundingBox.minZ).normal(0.0F, 0.0F, -1.0F).endVertex();
+      bufferbuilder.pos(boundingBox.maxX, boundingBox.maxY, boundingBox.minZ).normal(0.0F, 0.0F, -1.0F).endVertex();
+      bufferbuilder.pos(boundingBox.maxX, boundingBox.minY, boundingBox.minZ).normal(0.0F, 0.0F, -1.0F).endVertex();
+      bufferbuilder.pos(boundingBox.minX, boundingBox.minY, boundingBox.minZ).normal(0.0F, 0.0F, -1.0F).endVertex();
+      bufferbuilder.pos(boundingBox.minX, boundingBox.minY, boundingBox.maxZ).normal(0.0F, 0.0F, 1.0F).endVertex();
+      bufferbuilder.pos(boundingBox.maxX, boundingBox.minY, boundingBox.maxZ).normal(0.0F, 0.0F, 1.0F).endVertex();
+      bufferbuilder.pos(boundingBox.maxX, boundingBox.maxY, boundingBox.maxZ).normal(0.0F, 0.0F, 1.0F).endVertex();
+      bufferbuilder.pos(boundingBox.minX, boundingBox.maxY, boundingBox.maxZ).normal(0.0F, 0.0F, 1.0F).endVertex();
+      bufferbuilder.pos(boundingBox.minX, boundingBox.minY, boundingBox.minZ).normal(0.0F, -1.0F, 0.0F).endVertex();
+      bufferbuilder.pos(boundingBox.maxX, boundingBox.minY, boundingBox.minZ).normal(0.0F, -1.0F, 0.0F).endVertex();
+      bufferbuilder.pos(boundingBox.maxX, boundingBox.minY, boundingBox.maxZ).normal(0.0F, -1.0F, 0.0F).endVertex();
+      bufferbuilder.pos(boundingBox.minX, boundingBox.minY, boundingBox.maxZ).normal(0.0F, -1.0F, 0.0F).endVertex();
+      bufferbuilder.pos(boundingBox.minX, boundingBox.maxY, boundingBox.maxZ).normal(0.0F, 1.0F, 0.0F).endVertex();
+      bufferbuilder.pos(boundingBox.maxX, boundingBox.maxY, boundingBox.maxZ).normal(0.0F, 1.0F, 0.0F).endVertex();
+      bufferbuilder.pos(boundingBox.maxX, boundingBox.maxY, boundingBox.minZ).normal(0.0F, 1.0F, 0.0F).endVertex();
+      bufferbuilder.pos(boundingBox.minX, boundingBox.maxY, boundingBox.minZ).normal(0.0F, 1.0F, 0.0F).endVertex();
+      bufferbuilder.pos(boundingBox.minX, boundingBox.minY, boundingBox.maxZ).normal(-1.0F, 0.0F, 0.0F).endVertex();
+      bufferbuilder.pos(boundingBox.minX, boundingBox.maxY, boundingBox.maxZ).normal(-1.0F, 0.0F, 0.0F).endVertex();
+      bufferbuilder.pos(boundingBox.minX, boundingBox.maxY, boundingBox.minZ).normal(-1.0F, 0.0F, 0.0F).endVertex();
+      bufferbuilder.pos(boundingBox.minX, boundingBox.minY, boundingBox.minZ).normal(-1.0F, 0.0F, 0.0F).endVertex();
+      bufferbuilder.pos(boundingBox.maxX, boundingBox.minY, boundingBox.minZ).normal(1.0F, 0.0F, 0.0F).endVertex();
+      bufferbuilder.pos(boundingBox.maxX, boundingBox.maxY, boundingBox.minZ).normal(1.0F, 0.0F, 0.0F).endVertex();
+      bufferbuilder.pos(boundingBox.maxX, boundingBox.maxY, boundingBox.maxZ).normal(1.0F, 0.0F, 0.0F).endVertex();
+      bufferbuilder.pos(boundingBox.maxX, boundingBox.minY, boundingBox.maxZ).normal(1.0F, 0.0F, 0.0F).endVertex();
+      tessellator.draw();
+      bufferbuilder.setTranslation(0.0, 0.0, 0.0);
       GlStateManager.enableTexture2D();
    }
 
-   public void doRenderShadowAndFire(Entity var1, double var2, double var4, double var6, float var8, float var9) {
+   public void doRenderShadowAndFire(Entity entityIn, double x, double y, double z, float yaw, float partialTicks) {
       if (this.renderManager.options != null) {
-         if (this.renderManager.options.entityShadows && this.shadowSize > 0.0F && !☃.isInvisible() && this.renderManager.isRenderShadow()) {
-            double ☃ = this.renderManager.getDistanceToCamera(☃.posX, ☃.posY, ☃.posZ);
-            float ☃x = (float)((1.0 - ☃ / 256.0) * this.shadowOpaque);
-            if (☃x > 0.0F) {
-               this.renderShadow(☃, ☃, ☃, ☃, ☃x, ☃);
+         if (this.renderManager.options.entityShadows && this.shadowSize > 0.0F && !entityIn.isInvisible() && this.renderManager.isRenderShadow()) {
+            double d0 = this.renderManager.getDistanceToCamera(entityIn.posX, entityIn.posY, entityIn.posZ);
+            float f = (float)((1.0 - d0 / 256.0) * this.shadowOpaque);
+            if (f > 0.0F) {
+               this.renderShadow(entityIn, x, y, z, f, partialTicks);
             }
          }
 
-         if (☃.canRenderOnFire() && (!(☃ instanceof EntityPlayer) || !((EntityPlayer)☃).isSpectator())) {
-            this.renderEntityOnFire(☃, ☃, ☃, ☃, ☃);
+         if (entityIn.canRenderOnFire() && (!(entityIn instanceof EntityPlayer) || !((EntityPlayer)entityIn).isSpectator())) {
+            this.renderEntityOnFire(entityIn, x, y, z, partialTicks);
          }
       }
    }
@@ -282,16 +322,16 @@ public abstract class Render<T extends Entity> {
       return this.renderManager.getFontRenderer();
    }
 
-   protected void renderLivingLabel(T var1, String var2, double var3, double var5, double var7, int var9) {
-      double ☃ = ☃.getDistanceSq(this.renderManager.renderViewEntity);
-      if (!(☃ > ☃ * ☃)) {
-         boolean ☃x = ☃.isSneaking();
-         float ☃xx = this.renderManager.playerViewY;
-         float ☃xxx = this.renderManager.playerViewX;
-         boolean ☃xxxx = this.renderManager.options.thirdPersonView == 2;
-         float ☃xxxxx = ☃.height + 0.5F - (☃x ? 0.25F : 0.0F);
-         int ☃xxxxxx = "deadmau5".equals(☃) ? -10 : 0;
-         EntityRenderer.drawNameplate(this.getFontRendererFromRenderManager(), ☃, (float)☃, (float)☃ + ☃xxxxx, (float)☃, ☃xxxxxx, ☃xx, ☃xxx, ☃xxxx, ☃x);
+   protected void renderLivingLabel(T entityIn, String str, double x, double y, double z, int maxDistance) {
+      double d0 = entityIn.getDistanceSq(this.renderManager.renderViewEntity);
+      if (d0 <= maxDistance * maxDistance) {
+         boolean flag = entityIn.isSneaking();
+         float f = this.renderManager.playerViewY;
+         float f1 = this.renderManager.playerViewX;
+         boolean flag1 = this.renderManager.options.thirdPersonView == 2;
+         float f2 = entityIn.height + 0.5F - (flag ? 0.25F : 0.0F);
+         int i = "deadmau5".equals(str) ? -10 : 0;
+         EntityRenderer.drawNameplate(this.getFontRendererFromRenderManager(), str, (float)x, (float)y + f2, (float)z, i, f, f1, flag1, flag);
       }
    }
 
@@ -303,6 +343,22 @@ public abstract class Render<T extends Entity> {
       return false;
    }
 
-   public void renderMultipass(T var1, double var2, double var4, double var6, float var8, float var9) {
+   public void renderMultipass(T p_188300_1_, double p_188300_2_, double p_188300_4_, double p_188300_6_, float p_188300_8_, float p_188300_9_) {
+   }
+
+   public Class getEntityClass() {
+      return this.entityClass;
+   }
+
+   public void setEntityClass(Class entityClass) {
+      this.entityClass = entityClass;
+   }
+
+   public ResourceLocation getLocationTextureCustom() {
+      return this.locationTextureCustom;
+   }
+
+   public void setLocationTextureCustom(ResourceLocation locationTextureCustom) {
+      this.locationTextureCustom = locationTextureCustom;
    }
 }

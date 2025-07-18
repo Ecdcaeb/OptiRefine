@@ -1,6 +1,7 @@
 package net.minecraft.client.renderer.tileentity;
 
 import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
@@ -10,8 +11,9 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
+import net.optifine.entity.model.IEntityRenderer;
 
-public abstract class TileEntitySpecialRenderer<T extends TileEntity> {
+public abstract class TileEntitySpecialRenderer<T extends TileEntity> implements IEntityRenderer {
    protected static final ResourceLocation[] DESTROY_STAGES = new ResourceLocation[]{
       new ResourceLocation("textures/blocks/destroy_stage_0.png"),
       new ResourceLocation("textures/blocks/destroy_stage_1.png"),
@@ -25,19 +27,23 @@ public abstract class TileEntitySpecialRenderer<T extends TileEntity> {
       new ResourceLocation("textures/blocks/destroy_stage_9.png")
    };
    protected TileEntityRendererDispatcher rendererDispatcher;
+   private Class tileEntityClass = null;
+   private ResourceLocation locationTextureCustom = null;
 
-   public void render(T var1, double var2, double var4, double var6, float var8, int var9, float var10) {
-      ITextComponent ☃ = ☃.getDisplayName();
-      if (☃ != null && this.rendererDispatcher.cameraHitResult != null && ☃.getPos().equals(this.rendererDispatcher.cameraHitResult.getBlockPos())) {
+   public void render(T te, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
+      ITextComponent itextcomponent = te.getDisplayName();
+      if (itextcomponent != null
+         && this.rendererDispatcher.cameraHitResult != null
+         && te.getPos().equals(this.rendererDispatcher.cameraHitResult.getBlockPos())) {
          this.setLightmapDisabled(true);
-         this.drawNameplate(☃, ☃.getFormattedText(), ☃, ☃, ☃, 12);
+         this.drawNameplate(te, itextcomponent.getFormattedText(), x, y, z, 12);
          this.setLightmapDisabled(false);
       }
    }
 
-   protected void setLightmapDisabled(boolean var1) {
+   protected void setLightmapDisabled(boolean disabled) {
       GlStateManager.setActiveTexture(OpenGlHelper.lightmapTexUnit);
-      if (☃) {
+      if (disabled) {
          GlStateManager.disableTexture2D();
       } else {
          GlStateManager.enableTexture2D();
@@ -46,10 +52,10 @@ public abstract class TileEntitySpecialRenderer<T extends TileEntity> {
       GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
    }
 
-   protected void bindTexture(ResourceLocation var1) {
-      TextureManager ☃ = this.rendererDispatcher.renderEngine;
-      if (☃ != null) {
-         ☃.bindTexture(☃);
+   protected void bindTexture(ResourceLocation location) {
+      TextureManager texturemanager = this.rendererDispatcher.renderEngine;
+      if (texturemanager != null) {
+         texturemanager.bindTexture(location);
       }
    }
 
@@ -57,26 +63,45 @@ public abstract class TileEntitySpecialRenderer<T extends TileEntity> {
       return this.rendererDispatcher.world;
    }
 
-   public void setRendererDispatcher(TileEntityRendererDispatcher var1) {
-      this.rendererDispatcher = ☃;
+   public void setRendererDispatcher(TileEntityRendererDispatcher rendererDispatcherIn) {
+      this.rendererDispatcher = rendererDispatcherIn;
    }
 
    public FontRenderer getFontRenderer() {
       return this.rendererDispatcher.getFontRenderer();
    }
 
-   public boolean isGlobalRenderer(T var1) {
+   public boolean isGlobalRenderer(T te) {
       return false;
    }
 
-   protected void drawNameplate(T var1, String var2, double var3, double var5, double var7, int var9) {
-      Entity ☃ = this.rendererDispatcher.entity;
-      double ☃x = ☃.getDistanceSq(☃.posX, ☃.posY, ☃.posZ);
-      if (!(☃x > ☃ * ☃)) {
-         float ☃xx = this.rendererDispatcher.entityYaw;
-         float ☃xxx = this.rendererDispatcher.entityPitch;
-         boolean ☃xxxx = false;
-         EntityRenderer.drawNameplate(this.getFontRenderer(), ☃, (float)☃ + 0.5F, (float)☃ + 1.5F, (float)☃ + 0.5F, 0, ☃xx, ☃xxx, false, false);
+   protected void drawNameplate(T te, String str, double x, double y, double z, int maxDistance) {
+      Entity entity = this.rendererDispatcher.entity;
+      double d0 = te.getDistanceSq(entity.posX, entity.posY, entity.posZ);
+      if (d0 <= maxDistance * maxDistance) {
+         float f = this.rendererDispatcher.entityYaw;
+         float f1 = this.rendererDispatcher.entityPitch;
+         boolean flag = false;
+         EntityRenderer.drawNameplate(this.getFontRenderer(), str, (float)x + 0.5F, (float)y + 1.5F, (float)z + 0.5F, 0, f, f1, false, false);
       }
+   }
+
+   public void renderTileEntityFast(T te, double x, double y, double z, float partialTicks, int destroyStage, float partial, BufferBuilder buffer) {
+   }
+
+   public Class getEntityClass() {
+      return this.tileEntityClass;
+   }
+
+   public void setEntityClass(Class tileEntityClass) {
+      this.tileEntityClass = tileEntityClass;
+   }
+
+   public ResourceLocation getLocationTextureCustom() {
+      return this.locationTextureCustom;
+   }
+
+   public void setLocationTextureCustom(ResourceLocation locationTextureCustom) {
+      this.locationTextureCustom = locationTextureCustom;
    }
 }

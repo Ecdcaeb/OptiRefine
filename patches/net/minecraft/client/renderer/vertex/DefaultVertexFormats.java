@@ -1,8 +1,20 @@
 package net.minecraft.client.renderer.vertex;
 
+import java.lang.reflect.Field;
+import net.minecraft.client.renderer.vertex.VertexFormatElement.EnumType;
+import net.minecraft.client.renderer.vertex.VertexFormatElement.EnumUsage;
+import net.optifine.reflect.ReflectorClass;
+import net.optifine.reflect.ReflectorField;
+import net.optifine.shaders.SVertexFormat;
+
 public class DefaultVertexFormats {
-   public static final VertexFormat BLOCK = new VertexFormat();
-   public static final VertexFormat ITEM = new VertexFormat();
+   public static VertexFormat BLOCK = new VertexFormat();
+   public static VertexFormat ITEM = new VertexFormat();
+   private static final VertexFormat BLOCK_VANILLA = BLOCK;
+   private static final VertexFormat ITEM_VANILLA = ITEM;
+   public static ReflectorClass Attributes = new ReflectorClass("net.minecraftforge.client.model.Attributes");
+   public static ReflectorField Attributes_DEFAULT_BAKED_FORMAT = new ReflectorField(Attributes, "DEFAULT_BAKED_FORMAT");
+   private static final VertexFormat FORGE_BAKED = SVertexFormat.duplicate((VertexFormat)getFieldValue(Attributes_DEFAULT_BAKED_FORMAT));
    public static final VertexFormat OLDMODEL_POSITION_TEX_NORMAL = new VertexFormat();
    public static final VertexFormat PARTICLE_POSITION_TEX_COLOR_LMAP = new VertexFormat();
    public static final VertexFormat POSITION = new VertexFormat();
@@ -13,14 +25,38 @@ public class DefaultVertexFormats {
    public static final VertexFormat POSITION_TEX_NORMAL = new VertexFormat();
    public static final VertexFormat POSITION_TEX_LMAP_COLOR = new VertexFormat();
    public static final VertexFormat POSITION_TEX_COLOR_NORMAL = new VertexFormat();
-   public static final VertexFormatElement POSITION_3F = new VertexFormatElement(
-      0, VertexFormatElement.EnumType.FLOAT, VertexFormatElement.EnumUsage.POSITION, 3
-   );
-   public static final VertexFormatElement COLOR_4UB = new VertexFormatElement(0, VertexFormatElement.EnumType.UBYTE, VertexFormatElement.EnumUsage.COLOR, 4);
-   public static final VertexFormatElement TEX_2F = new VertexFormatElement(0, VertexFormatElement.EnumType.FLOAT, VertexFormatElement.EnumUsage.UV, 2);
-   public static final VertexFormatElement TEX_2S = new VertexFormatElement(1, VertexFormatElement.EnumType.SHORT, VertexFormatElement.EnumUsage.UV, 2);
-   public static final VertexFormatElement NORMAL_3B = new VertexFormatElement(0, VertexFormatElement.EnumType.BYTE, VertexFormatElement.EnumUsage.NORMAL, 3);
-   public static final VertexFormatElement PADDING_1B = new VertexFormatElement(0, VertexFormatElement.EnumType.BYTE, VertexFormatElement.EnumUsage.PADDING, 1);
+   public static final VertexFormatElement POSITION_3F = new VertexFormatElement(0, EnumType.FLOAT, EnumUsage.POSITION, 3);
+   public static final VertexFormatElement COLOR_4UB = new VertexFormatElement(0, EnumType.UBYTE, EnumUsage.COLOR, 4);
+   public static final VertexFormatElement TEX_2F = new VertexFormatElement(0, EnumType.FLOAT, EnumUsage.UV, 2);
+   public static final VertexFormatElement TEX_2S = new VertexFormatElement(1, EnumType.SHORT, EnumUsage.UV, 2);
+   public static final VertexFormatElement NORMAL_3B = new VertexFormatElement(0, EnumType.BYTE, EnumUsage.NORMAL, 3);
+   public static final VertexFormatElement PADDING_1B = new VertexFormatElement(0, EnumType.BYTE, EnumUsage.PADDING, 1);
+
+   public static void updateVertexFormats() {
+      if (Config.isShaders()) {
+         BLOCK = SVertexFormat.makeDefVertexFormatBlock();
+         ITEM = SVertexFormat.makeDefVertexFormatItem();
+         if (Attributes_DEFAULT_BAKED_FORMAT.exists()) {
+            SVertexFormat.setDefBakedFormat((VertexFormat)Attributes_DEFAULT_BAKED_FORMAT.getValue());
+         }
+      } else {
+         BLOCK = BLOCK_VANILLA;
+         ITEM = ITEM_VANILLA;
+         if (Attributes_DEFAULT_BAKED_FORMAT.exists()) {
+            SVertexFormat.copy(FORGE_BAKED, (VertexFormat)Attributes_DEFAULT_BAKED_FORMAT.getValue());
+         }
+      }
+   }
+
+   public static Object getFieldValue(ReflectorField refField) {
+      try {
+         Field field = refField.getTargetField();
+         return field == null ? null : field.get(null);
+      } catch (Throwable var3) {
+         var3.printStackTrace();
+         return null;
+      }
+   }
 
    static {
       BLOCK.addElement(POSITION_3F);

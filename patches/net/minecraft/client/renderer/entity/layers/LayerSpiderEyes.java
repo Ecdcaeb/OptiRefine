@@ -6,44 +6,56 @@ import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.entity.RenderSpider;
 import net.minecraft.entity.monster.EntitySpider;
 import net.minecraft.util.ResourceLocation;
+import net.optifine.shaders.Shaders;
 
 public class LayerSpiderEyes<T extends EntitySpider> implements LayerRenderer<T> {
    private static final ResourceLocation SPIDER_EYES = new ResourceLocation("textures/entity/spider_eyes.png");
    private final RenderSpider<T> spiderRenderer;
 
-   public LayerSpiderEyes(RenderSpider<T> var1) {
-      this.spiderRenderer = ☃;
+   public LayerSpiderEyes(RenderSpider<T> spiderRendererIn) {
+      this.spiderRenderer = spiderRendererIn;
    }
 
-   public void doRenderLayer(T var1, float var2, float var3, float var4, float var5, float var6, float var7, float var8) {
-      this.spiderRenderer.bindTexture(SPIDER_EYES);
+   public void doRenderLayer(
+      T entitylivingbaseIn, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch, float scale
+   ) {
+      this.spiderRenderer.a(SPIDER_EYES);
       GlStateManager.enableBlend();
       GlStateManager.disableAlpha();
       GlStateManager.blendFunc(GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE);
-      if (☃.isInvisible()) {
+      if (entitylivingbaseIn.isInvisible()) {
          GlStateManager.depthMask(false);
       } else {
          GlStateManager.depthMask(true);
       }
 
-      int ☃ = 61680;
-      int ☃x = ☃ % 65536;
-      int ☃xx = ☃ / 65536;
-      OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, ☃x, ☃xx);
+      int i = 61680;
+      int j = i % 65536;
+      int k = i / 65536;
+      OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, j, k);
       GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
       Minecraft.getMinecraft().entityRenderer.setupFogColor(true);
-      this.spiderRenderer.getMainModel().render(☃, ☃, ☃, ☃, ☃, ☃, ☃);
+      if (Config.isShaders()) {
+         Shaders.beginSpiderEyes();
+      }
+
+      Config.getRenderGlobal().renderOverlayEyes = true;
+      this.spiderRenderer.b().render(entitylivingbaseIn, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scale);
+      Config.getRenderGlobal().renderOverlayEyes = false;
+      if (Config.isShaders()) {
+         Shaders.endSpiderEyes();
+      }
+
       Minecraft.getMinecraft().entityRenderer.setupFogColor(false);
-      ☃ = ☃.getBrightnessForRender();
-      ☃x = ☃ % 65536;
-      ☃xx = ☃ / 65536;
-      OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, ☃x, ☃xx);
-      this.spiderRenderer.setLightmap(☃);
+      i = entitylivingbaseIn.getBrightnessForRender();
+      j = i % 65536;
+      k = i / 65536;
+      OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, j, k);
+      this.spiderRenderer.c(entitylivingbaseIn);
       GlStateManager.disableBlend();
       GlStateManager.enableAlpha();
    }
 
-   @Override
    public boolean shouldCombineTextures() {
       return false;
    }

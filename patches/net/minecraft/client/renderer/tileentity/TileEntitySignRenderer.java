@@ -2,51 +2,56 @@ package net.minecraft.client.renderer.tileentity;
 
 import java.util.List;
 import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiUtilRenderComponents;
 import net.minecraft.client.model.ModelSign;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.entity.Entity;
 import net.minecraft.init.Blocks;
 import net.minecraft.tileentity.TileEntitySign;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
+import net.optifine.CustomColors;
+import net.optifine.shaders.Shaders;
 
 public class TileEntitySignRenderer extends TileEntitySpecialRenderer<TileEntitySign> {
    private static final ResourceLocation SIGN_TEXTURE = new ResourceLocation("textures/entity/sign.png");
    private final ModelSign model = new ModelSign();
+   private static double textRenderDistanceSq = 4096.0;
 
-   public void render(TileEntitySign var1, double var2, double var4, double var6, float var8, int var9, float var10) {
-      Block ☃ = ☃.getBlockType();
+   public void render(TileEntitySign te, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
+      Block block = te.x();
       GlStateManager.pushMatrix();
-      float ☃x = 0.6666667F;
-      if (☃ == Blocks.STANDING_SIGN) {
-         GlStateManager.translate((float)☃ + 0.5F, (float)☃ + 0.5F, (float)☃ + 0.5F);
-         float ☃xx = ☃.getBlockMetadata() * 360 / 16.0F;
-         GlStateManager.rotate(-☃xx, 0.0F, 1.0F, 0.0F);
+      float f = 0.6666667F;
+      if (block == Blocks.STANDING_SIGN) {
+         GlStateManager.translate((float)x + 0.5F, (float)y + 0.5F, (float)z + 0.5F);
+         float f1 = te.v() * 360 / 16.0F;
+         GlStateManager.rotate(-f1, 0.0F, 1.0F, 0.0F);
          this.model.signStick.showModel = true;
       } else {
-         int ☃xx = ☃.getBlockMetadata();
-         float ☃xxx = 0.0F;
-         if (☃xx == 2) {
-            ☃xxx = 180.0F;
+         int k = te.v();
+         float f2 = 0.0F;
+         if (k == 2) {
+            f2 = 180.0F;
          }
 
-         if (☃xx == 4) {
-            ☃xxx = 90.0F;
+         if (k == 4) {
+            f2 = 90.0F;
          }
 
-         if (☃xx == 5) {
-            ☃xxx = -90.0F;
+         if (k == 5) {
+            f2 = -90.0F;
          }
 
-         GlStateManager.translate((float)☃ + 0.5F, (float)☃ + 0.5F, (float)☃ + 0.5F);
-         GlStateManager.rotate(-☃xxx, 0.0F, 1.0F, 0.0F);
+         GlStateManager.translate((float)x + 0.5F, (float)y + 0.5F, (float)z + 0.5F);
+         GlStateManager.rotate(-f2, 0.0F, 1.0F, 0.0F);
          GlStateManager.translate(0.0F, -0.3125F, -0.4375F);
          this.model.signStick.showModel = false;
       }
 
-      if (☃ >= 0) {
-         this.bindTexture(DESTROY_STAGES[☃]);
+      if (destroyStage >= 0) {
+         this.bindTexture(DESTROY_STAGES[destroyStage]);
          GlStateManager.matrixMode(5890);
          GlStateManager.pushMatrix();
          GlStateManager.scale(4.0F, 2.0F, 1.0F);
@@ -61,24 +66,30 @@ public class TileEntitySignRenderer extends TileEntitySpecialRenderer<TileEntity
       GlStateManager.scale(0.6666667F, -0.6666667F, -0.6666667F);
       this.model.renderSign();
       GlStateManager.popMatrix();
-      FontRenderer ☃xxxx = this.getFontRenderer();
-      float ☃xxxxx = 0.010416667F;
-      GlStateManager.translate(0.0F, 0.33333334F, 0.046666667F);
-      GlStateManager.scale(0.010416667F, -0.010416667F, 0.010416667F);
-      GlStateManager.glNormal3f(0.0F, 0.0F, -0.010416667F);
-      GlStateManager.depthMask(false);
-      int ☃xxxxxx = 0;
-      if (☃ < 0) {
-         for (int ☃xxxxxxx = 0; ☃xxxxxxx < ☃.signText.length; ☃xxxxxxx++) {
-            if (☃.signText[☃xxxxxxx] != null) {
-               ITextComponent ☃xxxxxxxx = ☃.signText[☃xxxxxxx];
-               List<ITextComponent> ☃xxxxxxxxx = GuiUtilRenderComponents.splitText(☃xxxxxxxx, 90, ☃xxxx, false, true);
-               String ☃xxxxxxxxxx = ☃xxxxxxxxx != null && !☃xxxxxxxxx.isEmpty() ? ☃xxxxxxxxx.get(0).getFormattedText() : "";
-               if (☃xxxxxxx == ☃.lineBeingEdited) {
-                  ☃xxxxxxxxxx = "> " + ☃xxxxxxxxxx + " <";
-                  ☃xxxx.drawString(☃xxxxxxxxxx, -☃xxxx.getStringWidth(☃xxxxxxxxxx) / 2, ☃xxxxxxx * 10 - ☃.signText.length * 5, 0);
-               } else {
-                  ☃xxxx.drawString(☃xxxxxxxxxx, -☃xxxx.getStringWidth(☃xxxxxxxxxx) / 2, ☃xxxxxxx * 10 - ☃.signText.length * 5, 0);
+      if (isRenderText(te)) {
+         FontRenderer fontrenderer = this.getFontRenderer();
+         float f3 = 0.010416667F;
+         GlStateManager.translate(0.0F, 0.33333334F, 0.046666667F);
+         GlStateManager.scale(0.010416667F, -0.010416667F, 0.010416667F);
+         GlStateManager.glNormal3f(0.0F, 0.0F, -0.010416667F);
+         GlStateManager.depthMask(false);
+         int i = 0;
+         if (Config.isCustomColors()) {
+            i = CustomColors.getSignTextColor(i);
+         }
+
+         if (destroyStage < 0) {
+            for (int j = 0; j < te.signText.length; j++) {
+               if (te.signText[j] != null) {
+                  ITextComponent itextcomponent = te.signText[j];
+                  List<ITextComponent> list = GuiUtilRenderComponents.splitText(itextcomponent, 90, fontrenderer, false, true);
+                  String s = list != null && !list.isEmpty() ? list.get(0).getFormattedText() : "";
+                  if (j == te.lineBeingEdited) {
+                     s = "> " + s + " <";
+                     fontrenderer.drawString(s, -fontrenderer.getStringWidth(s) / 2, j * 10 - te.signText.length * 5, i);
+                  } else {
+                     fontrenderer.drawString(s, -fontrenderer.getStringWidth(s) / 2, j * 10 - te.signText.length * 5, i);
+                  }
                }
             }
          }
@@ -87,10 +98,33 @@ public class TileEntitySignRenderer extends TileEntitySpecialRenderer<TileEntity
       GlStateManager.depthMask(true);
       GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
       GlStateManager.popMatrix();
-      if (☃ >= 0) {
+      if (destroyStage >= 0) {
          GlStateManager.matrixMode(5890);
          GlStateManager.popMatrix();
          GlStateManager.matrixMode(5888);
       }
+   }
+
+   private static boolean isRenderText(TileEntitySign tileEntity) {
+      if (Shaders.isShadowPass) {
+         return false;
+      } else {
+         if (!Config.zoomMode && tileEntity.lineBeingEdited < 0) {
+            Entity viewEntity = Config.getMinecraft().getRenderViewEntity();
+            double distSq = tileEntity.a(viewEntity.posX, viewEntity.posY, viewEntity.posZ);
+            if (distSq > textRenderDistanceSq) {
+               return false;
+            }
+         }
+
+         return true;
+      }
+   }
+
+   public static void updateTextRenderDistance() {
+      Minecraft mc = Config.getMinecraft();
+      double fov = Config.limit(mc.gameSettings.fovSetting, 1.0F, 120.0F);
+      double textRenderDistance = Math.max(1.5 * mc.displayHeight / fov, 16.0);
+      textRenderDistanceSq = textRenderDistance * textRenderDistance;
    }
 }

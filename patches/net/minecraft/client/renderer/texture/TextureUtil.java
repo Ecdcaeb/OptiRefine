@@ -12,6 +12,8 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.IResource;
 import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.util.ResourceLocation;
+import net.optifine.Mipmaps;
+import net.optifine.reflect.Reflector;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -23,312 +25,302 @@ public class TextureUtil {
    public static final int[] MISSING_TEXTURE_DATA = MISSING_TEXTURE.getTextureData();
    private static final float[] COLOR_GAMMAS;
    private static final int[] MIPMAP_BUFFER;
+   private static int[] dataArray = new int[4194304];
 
-   private static float getColorGamma(int var0) {
-      return COLOR_GAMMAS[☃ & 0xFF];
+   private static float getColorGamma(int p_188543_0_) {
+      return COLOR_GAMMAS[p_188543_0_ & 0xFF];
    }
 
    public static int glGenTextures() {
       return GlStateManager.generateTexture();
    }
 
-   public static void deleteTexture(int var0) {
-      GlStateManager.deleteTexture(☃);
+   public static void deleteTexture(int textureId) {
+      GlStateManager.deleteTexture(textureId);
    }
 
-   public static int uploadTextureImage(int var0, BufferedImage var1) {
-      return uploadTextureImageAllocate(☃, ☃, false, false);
+   public static int uploadTextureImage(int textureId, BufferedImage texture) {
+      return uploadTextureImageAllocate(textureId, texture, false, false);
    }
 
-   public static void uploadTexture(int var0, int[] var1, int var2, int var3) {
-      bindTexture(☃);
-      uploadTextureSub(0, ☃, ☃, ☃, 0, 0, false, false, false);
+   public static void uploadTexture(int textureId, int[] p_110988_1_, int p_110988_2_, int p_110988_3_) {
+      bindTexture(textureId);
+      uploadTextureSub(0, p_110988_1_, p_110988_2_, p_110988_3_, 0, 0, false, false, false);
    }
 
-   public static int[][] generateMipmapData(int var0, int var1, int[][] var2) {
-      int[][] ☃ = new int[☃ + 1][];
-      ☃[0] = ☃[0];
-      if (☃ > 0) {
-         boolean ☃x = false;
+   public static int[][] generateMipmapData(int p_147949_0_, int p_147949_1_, int[][] p_147949_2_) {
+      int[][] aint = new int[p_147949_0_ + 1][];
+      aint[0] = p_147949_2_[0];
+      if (p_147949_0_ > 0) {
+         boolean flag = false;
 
-         for (int ☃xx = 0; ☃xx < ☃.length; ☃xx++) {
-            if (☃[0][☃xx] >> 24 == 0) {
-               ☃x = true;
+         for (int i = 0; i < p_147949_2_[0].length; i++) {
+            if (p_147949_2_[0][i] >> 24 == 0) {
+               flag = true;
                break;
             }
          }
 
-         for (int ☃xxx = 1; ☃xxx <= ☃; ☃xxx++) {
-            if (☃[☃xxx] != null) {
-               ☃[☃xxx] = ☃[☃xxx];
+         for (int l1 = 1; l1 <= p_147949_0_; l1++) {
+            if (p_147949_2_[l1] != null) {
+               aint[l1] = p_147949_2_[l1];
             } else {
-               int[] ☃xxxx = ☃[☃xxx - 1];
-               int[] ☃xxxxx = new int[☃xxxx.length >> 2];
-               int ☃xxxxxx = ☃ >> ☃xxx;
-               int ☃xxxxxxx = ☃xxxxx.length / ☃xxxxxx;
-               int ☃xxxxxxxx = ☃xxxxxx << 1;
+               int[] aint1 = aint[l1 - 1];
+               int[] aint2 = new int[aint1.length >> 2];
+               int j = p_147949_1_ >> l1;
+               int k = aint2.length / j;
+               int l = j << 1;
 
-               for (int ☃xxxxxxxxx = 0; ☃xxxxxxxxx < ☃xxxxxx; ☃xxxxxxxxx++) {
-                  for (int ☃xxxxxxxxxx = 0; ☃xxxxxxxxxx < ☃xxxxxxx; ☃xxxxxxxxxx++) {
-                     int ☃xxxxxxxxxxx = 2 * (☃xxxxxxxxx + ☃xxxxxxxxxx * ☃xxxxxxxx);
-                     ☃xxxxx[☃xxxxxxxxx + ☃xxxxxxxxxx * ☃xxxxxx] = blendColors(
-                        ☃xxxx[☃xxxxxxxxxxx + 0], ☃xxxx[☃xxxxxxxxxxx + 1], ☃xxxx[☃xxxxxxxxxxx + 0 + ☃xxxxxxxx], ☃xxxx[☃xxxxxxxxxxx + 1 + ☃xxxxxxxx], ☃x
-                     );
+               for (int i1 = 0; i1 < j; i1++) {
+                  for (int j1 = 0; j1 < k; j1++) {
+                     int k1 = 2 * (i1 + j1 * l);
+                     aint2[i1 + j1 * j] = blendColors(aint1[k1 + 0], aint1[k1 + 1], aint1[k1 + 0 + l], aint1[k1 + 1 + l], flag);
                   }
                }
 
-               ☃[☃xxx] = ☃xxxxx;
+               aint[l1] = aint2;
             }
          }
       }
 
-      return ☃;
+      return aint;
    }
 
-   private static int blendColors(int var0, int var1, int var2, int var3, boolean var4) {
-      if (☃) {
-         MIPMAP_BUFFER[0] = ☃;
-         MIPMAP_BUFFER[1] = ☃;
-         MIPMAP_BUFFER[2] = ☃;
-         MIPMAP_BUFFER[3] = ☃;
-         float ☃ = 0.0F;
-         float ☃x = 0.0F;
-         float ☃xx = 0.0F;
-         float ☃xxx = 0.0F;
+   private static int blendColors(int p_147943_0_, int p_147943_1_, int p_147943_2_, int p_147943_3_, boolean p_147943_4_) {
+      return Mipmaps.alphaBlend(p_147943_0_, p_147943_1_, p_147943_2_, p_147943_3_);
+   }
 
-         for (int ☃xxxx = 0; ☃xxxx < 4; ☃xxxx++) {
-            if (MIPMAP_BUFFER[☃xxxx] >> 24 != 0) {
-               ☃ += getColorGamma(MIPMAP_BUFFER[☃xxxx] >> 24);
-               ☃x += getColorGamma(MIPMAP_BUFFER[☃xxxx] >> 16);
-               ☃xx += getColorGamma(MIPMAP_BUFFER[☃xxxx] >> 8);
-               ☃xxx += getColorGamma(MIPMAP_BUFFER[☃xxxx] >> 0);
-            }
-         }
+   private static int blendColorComponent(int p_147944_0_, int p_147944_1_, int p_147944_2_, int p_147944_3_, int p_147944_4_) {
+      float f = getColorGamma(p_147944_0_ >> p_147944_4_);
+      float f1 = getColorGamma(p_147944_1_ >> p_147944_4_);
+      float f2 = getColorGamma(p_147944_2_ >> p_147944_4_);
+      float f3 = getColorGamma(p_147944_3_ >> p_147944_4_);
+      float f4 = (float)((float)Math.pow((f + f1 + f2 + f3) * 0.25, 0.45454545454545453));
+      return (int)(f4 * 255.0);
+   }
 
-         ☃ /= 4.0F;
-         ☃x /= 4.0F;
-         ☃xx /= 4.0F;
-         ☃xxx /= 4.0F;
-         int ☃xxxxx = (int)(Math.pow(☃, 0.45454545454545453) * 255.0);
-         int ☃xxxxxx = (int)(Math.pow(☃x, 0.45454545454545453) * 255.0);
-         int ☃xxxxxxx = (int)(Math.pow(☃xx, 0.45454545454545453) * 255.0);
-         int ☃xxxxxxxx = (int)(Math.pow(☃xxx, 0.45454545454545453) * 255.0);
-         if (☃xxxxx < 96) {
-            ☃xxxxx = 0;
-         }
-
-         return ☃xxxxx << 24 | ☃xxxxxx << 16 | ☃xxxxxxx << 8 | ☃xxxxxxxx;
-      } else {
-         int ☃ = blendColorComponent(☃, ☃, ☃, ☃, 24);
-         int ☃x = blendColorComponent(☃, ☃, ☃, ☃, 16);
-         int ☃xx = blendColorComponent(☃, ☃, ☃, ☃, 8);
-         int ☃xxx = blendColorComponent(☃, ☃, ☃, ☃, 0);
-         return ☃ << 24 | ☃x << 16 | ☃xx << 8 | ☃xxx;
+   public static void uploadTextureMipmap(
+      int[][] p_147955_0_, int p_147955_1_, int p_147955_2_, int p_147955_3_, int p_147955_4_, boolean p_147955_5_, boolean p_147955_6_
+   ) {
+      for (int i = 0; i < p_147955_0_.length; i++) {
+         int[] aint = p_147955_0_[i];
+         uploadTextureSub(i, aint, p_147955_1_ >> i, p_147955_2_ >> i, p_147955_3_ >> i, p_147955_4_ >> i, p_147955_5_, p_147955_6_, p_147955_0_.length > 1);
       }
    }
 
-   private static int blendColorComponent(int var0, int var1, int var2, int var3, int var4) {
-      float ☃ = getColorGamma(☃ >> ☃);
-      float ☃x = getColorGamma(☃ >> ☃);
-      float ☃xx = getColorGamma(☃ >> ☃);
-      float ☃xxx = getColorGamma(☃ >> ☃);
-      float ☃xxxx = (float)((float)Math.pow((☃ + ☃x + ☃xx + ☃xxx) * 0.25, 0.45454545454545453));
-      return (int)(☃xxxx * 255.0);
-   }
+   private static void uploadTextureSub(
+      int p_147947_0_,
+      int[] p_147947_1_,
+      int p_147947_2_,
+      int p_147947_3_,
+      int p_147947_4_,
+      int p_147947_5_,
+      boolean p_147947_6_,
+      boolean p_147947_7_,
+      boolean p_147947_8_
+   ) {
+      int i = 4194304 / p_147947_2_;
+      setTextureBlurMipmap(p_147947_6_, p_147947_8_);
+      setTextureClamped(p_147947_7_);
+      int j = 0;
 
-   public static void uploadTextureMipmap(int[][] var0, int var1, int var2, int var3, int var4, boolean var5, boolean var6) {
-      for (int ☃ = 0; ☃ < ☃.length; ☃++) {
-         int[] ☃x = ☃[☃];
-         uploadTextureSub(☃, ☃x, ☃ >> ☃, ☃ >> ☃, ☃ >> ☃, ☃ >> ☃, ☃, ☃, ☃.length > 1);
+      while (j < p_147947_2_ * p_147947_3_) {
+         int k = j / p_147947_2_;
+         int l = Math.min(i, p_147947_3_ - k);
+         int i1 = p_147947_2_ * l;
+         copyToBufferPos(p_147947_1_, j, i1);
+         GlStateManager.glTexSubImage2D(3553, p_147947_0_, p_147947_4_, p_147947_5_ + k, p_147947_2_, l, 32993, 33639, DATA_BUFFER);
+         j += p_147947_2_ * l;
       }
    }
 
-   private static void uploadTextureSub(int var0, int[] var1, int var2, int var3, int var4, int var5, boolean var6, boolean var7, boolean var8) {
-      int ☃ = 4194304 / ☃;
-      setTextureBlurMipmap(☃, ☃);
-      setTextureClamped(☃);
-      int ☃x = 0;
+   public static int uploadTextureImageAllocate(int textureId, BufferedImage texture, boolean blur, boolean clamp) {
+      allocateTexture(textureId, texture.getWidth(), texture.getHeight());
+      return uploadTextureImageSub(textureId, texture, 0, 0, blur, clamp);
+   }
 
-      while (☃x < ☃ * ☃) {
-         int ☃xx = ☃x / ☃;
-         int ☃xxx = Math.min(☃, ☃ - ☃xx);
-         int ☃xxxx = ☃ * ☃xxx;
-         copyToBufferPos(☃, ☃x, ☃xxxx);
-         GlStateManager.glTexSubImage2D(3553, ☃, ☃, ☃ + ☃xx, ☃, ☃xxx, 32993, 33639, DATA_BUFFER);
-         ☃x += ☃ * ☃xxx;
+   public static void allocateTexture(int textureId, int width, int height) {
+      allocateTextureImpl(textureId, 0, width, height);
+   }
+
+   public static void allocateTextureImpl(int glTextureId, int mipmapLevels, int width, int height) {
+      Object monitor = TextureUtil.class;
+      if (Reflector.SplashScreen.exists()) {
+         monitor = Reflector.SplashScreen.getTargetClass();
       }
-   }
 
-   public static int uploadTextureImageAllocate(int var0, BufferedImage var1, boolean var2, boolean var3) {
-      allocateTexture(☃, ☃.getWidth(), ☃.getHeight());
-      return uploadTextureImageSub(☃, ☃, 0, 0, ☃, ☃);
-   }
+      synchronized (monitor) {
+         deleteTexture(glTextureId);
+         bindTexture(glTextureId);
+      }
 
-   public static void allocateTexture(int var0, int var1, int var2) {
-      allocateTextureImpl(☃, 0, ☃, ☃);
-   }
-
-   public static void allocateTextureImpl(int var0, int var1, int var2, int var3) {
-      deleteTexture(☃);
-      bindTexture(☃);
-      if (☃ >= 0) {
-         GlStateManager.glTexParameteri(3553, 33085, ☃);
+      if (mipmapLevels >= 0) {
+         GlStateManager.glTexParameteri(3553, 33085, mipmapLevels);
          GlStateManager.glTexParameteri(3553, 33082, 0);
-         GlStateManager.glTexParameteri(3553, 33083, ☃);
+         GlStateManager.glTexParameteri(3553, 33083, mipmapLevels);
          GlStateManager.glTexParameterf(3553, 34049, 0.0F);
       }
 
-      for (int ☃ = 0; ☃ <= ☃; ☃++) {
-         GlStateManager.glTexImage2D(3553, ☃, 6408, ☃ >> ☃, ☃ >> ☃, 0, 32993, 33639, null);
+      for (int i = 0; i <= mipmapLevels; i++) {
+         GlStateManager.glTexImage2D(3553, i, 6408, width >> i, height >> i, 0, 32993, 33639, (IntBuffer)null);
       }
    }
 
-   public static int uploadTextureImageSub(int var0, BufferedImage var1, int var2, int var3, boolean var4, boolean var5) {
-      bindTexture(☃);
-      uploadTextureImageSubImpl(☃, ☃, ☃, ☃, ☃);
-      return ☃;
+   public static int uploadTextureImageSub(int textureId, BufferedImage p_110995_1_, int p_110995_2_, int p_110995_3_, boolean p_110995_4_, boolean p_110995_5_) {
+      bindTexture(textureId);
+      uploadTextureImageSubImpl(p_110995_1_, p_110995_2_, p_110995_3_, p_110995_4_, p_110995_5_);
+      return textureId;
    }
 
-   private static void uploadTextureImageSubImpl(BufferedImage var0, int var1, int var2, boolean var3, boolean var4) {
-      int ☃ = ☃.getWidth();
-      int ☃x = ☃.getHeight();
-      int ☃xx = 4194304 / ☃;
-      int[] ☃xxx = new int[☃xx * ☃];
-      setTextureBlurred(☃);
-      setTextureClamped(☃);
+   private static void uploadTextureImageSubImpl(BufferedImage p_110993_0_, int p_110993_1_, int p_110993_2_, boolean p_110993_3_, boolean p_110993_4_) {
+      int i = p_110993_0_.getWidth();
+      int j = p_110993_0_.getHeight();
+      int k = 4194304 / i;
+      int[] aint = dataArray;
+      setTextureBlurred(p_110993_3_);
+      setTextureClamped(p_110993_4_);
 
-      for (int ☃xxxx = 0; ☃xxxx < ☃ * ☃x; ☃xxxx += ☃ * ☃xx) {
-         int ☃xxxxx = ☃xxxx / ☃;
-         int ☃xxxxxx = Math.min(☃xx, ☃x - ☃xxxxx);
-         int ☃xxxxxxx = ☃ * ☃xxxxxx;
-         ☃.getRGB(0, ☃xxxxx, ☃, ☃xxxxxx, ☃xxx, 0, ☃);
-         copyToBuffer(☃xxx, ☃xxxxxxx);
-         GlStateManager.glTexSubImage2D(3553, 0, ☃, ☃ + ☃xxxxx, ☃, ☃xxxxxx, 32993, 33639, DATA_BUFFER);
+      for (int l = 0; l < i * j; l += i * k) {
+         int i1 = l / i;
+         int j1 = Math.min(k, j - i1);
+         int k1 = i * j1;
+         p_110993_0_.getRGB(0, i1, i, j1, aint, 0, i);
+         copyToBuffer(aint, k1);
+         GlStateManager.glTexSubImage2D(3553, 0, p_110993_1_, p_110993_2_ + i1, i, j1, 32993, 33639, DATA_BUFFER);
       }
    }
 
-   private static void setTextureClamped(boolean var0) {
-      if (☃) {
-         GlStateManager.glTexParameteri(3553, 10242, 10496);
-         GlStateManager.glTexParameteri(3553, 10243, 10496);
+   public static void setTextureClamped(boolean p_110997_0_) {
+      if (p_110997_0_) {
+         GlStateManager.glTexParameteri(3553, 10242, 33071);
+         GlStateManager.glTexParameteri(3553, 10243, 33071);
       } else {
          GlStateManager.glTexParameteri(3553, 10242, 10497);
          GlStateManager.glTexParameteri(3553, 10243, 10497);
       }
    }
 
-   private static void setTextureBlurred(boolean var0) {
-      setTextureBlurMipmap(☃, false);
+   private static void setTextureBlurred(boolean p_147951_0_) {
+      setTextureBlurMipmap(p_147951_0_, false);
    }
 
-   private static void setTextureBlurMipmap(boolean var0, boolean var1) {
-      if (☃) {
-         GlStateManager.glTexParameteri(3553, 10241, ☃ ? 9987 : 9729);
+   public static void setTextureBlurMipmap(boolean p_147954_0_, boolean p_147954_1_) {
+      if (p_147954_0_) {
+         GlStateManager.glTexParameteri(3553, 10241, p_147954_1_ ? 9987 : 9729);
          GlStateManager.glTexParameteri(3553, 10240, 9729);
       } else {
-         GlStateManager.glTexParameteri(3553, 10241, ☃ ? 9986 : 9728);
+         int mipmapType = Config.getMipmapType();
+         GlStateManager.glTexParameteri(3553, 10241, p_147954_1_ ? mipmapType : 9728);
          GlStateManager.glTexParameteri(3553, 10240, 9728);
       }
    }
 
-   private static void copyToBuffer(int[] var0, int var1) {
-      copyToBufferPos(☃, 0, ☃);
+   private static void copyToBuffer(int[] p_110990_0_, int p_110990_1_) {
+      copyToBufferPos(p_110990_0_, 0, p_110990_1_);
    }
 
-   private static void copyToBufferPos(int[] var0, int var1, int var2) {
-      int[] ☃ = ☃;
+   private static void copyToBufferPos(int[] p_110994_0_, int p_110994_1_, int p_110994_2_) {
+      int[] aint = p_110994_0_;
       if (Minecraft.getMinecraft().gameSettings.anaglyph) {
-         ☃ = updateAnaglyph(☃);
+         aint = updateAnaglyph(p_110994_0_);
       }
 
       ((Buffer)DATA_BUFFER).clear();
-      DATA_BUFFER.put(☃, ☃, ☃);
-      ((Buffer)DATA_BUFFER).position(0).limit(☃);
+      DATA_BUFFER.put(aint, p_110994_1_, p_110994_2_);
+      ((Buffer)DATA_BUFFER).position(0).limit(p_110994_2_);
    }
 
-   static void bindTexture(int var0) {
-      GlStateManager.bindTexture(☃);
+   static void bindTexture(int p_94277_0_) {
+      GlStateManager.bindTexture(p_94277_0_);
    }
 
-   public static int[] readImageData(IResourceManager var0, ResourceLocation var1) throws IOException {
-      IResource ☃ = null;
+   public static int[] readImageData(IResourceManager resourceManager, ResourceLocation imageLocation) throws IOException {
+      IResource iresource = null;
 
-      int[] var7;
+      Object i;
       try {
-         ☃ = ☃.getResource(☃);
-         BufferedImage ☃x = readBufferedImage(☃.getInputStream());
-         int ☃xx = ☃x.getWidth();
-         int ☃xxx = ☃x.getHeight();
-         int[] ☃xxxx = new int[☃xx * ☃xxx];
-         ☃x.getRGB(0, 0, ☃xx, ☃xxx, ☃xxxx, 0, ☃xx);
-         var7 = ☃xxxx;
+         iresource = resourceManager.getResource(imageLocation);
+         BufferedImage bufferedimage = readBufferedImage(iresource.getInputStream());
+         if (bufferedimage != null) {
+            int ix = bufferedimage.getWidth();
+            int j = bufferedimage.getHeight();
+            int[] aint = new int[ix * j];
+            bufferedimage.getRGB(0, 0, ix, j, aint, 0, ix);
+            return aint;
+         }
+
+         i = null;
       } finally {
-         IOUtils.closeQuietly(☃);
+         IOUtils.closeQuietly(iresource);
       }
 
-      return var7;
+      return (int[])i;
    }
 
-   public static BufferedImage readBufferedImage(InputStream var0) throws IOException {
-      BufferedImage var1;
-      try {
-         var1 = ImageIO.read(☃);
-      } finally {
-         IOUtils.closeQuietly(☃);
+   public static BufferedImage readBufferedImage(InputStream imageStream) throws IOException {
+      if (imageStream == null) {
+         return null;
+      } else {
+         BufferedImage bufferedimage;
+         try {
+            bufferedimage = ImageIO.read(imageStream);
+         } finally {
+            IOUtils.closeQuietly(imageStream);
+         }
+
+         return bufferedimage;
+      }
+   }
+
+   public static int[] updateAnaglyph(int[] p_110985_0_) {
+      int[] aint = new int[p_110985_0_.length];
+
+      for (int i = 0; i < p_110985_0_.length; i++) {
+         aint[i] = anaglyphColor(p_110985_0_[i]);
       }
 
-      return var1;
+      return aint;
    }
 
-   public static int[] updateAnaglyph(int[] var0) {
-      int[] ☃ = new int[☃.length];
-
-      for (int ☃x = 0; ☃x < ☃.length; ☃x++) {
-         ☃[☃x] = anaglyphColor(☃[☃x]);
-      }
-
-      return ☃;
+   public static int anaglyphColor(int p_177054_0_) {
+      int i = p_177054_0_ >> 24 & 0xFF;
+      int j = p_177054_0_ >> 16 & 0xFF;
+      int k = p_177054_0_ >> 8 & 0xFF;
+      int l = p_177054_0_ & 0xFF;
+      int i1 = (j * 30 + k * 59 + l * 11) / 100;
+      int j1 = (j * 30 + k * 70) / 100;
+      int k1 = (j * 30 + l * 70) / 100;
+      return i << 24 | i1 << 16 | j1 << 8 | k1;
    }
 
-   public static int anaglyphColor(int var0) {
-      int ☃ = ☃ >> 24 & 0xFF;
-      int ☃x = ☃ >> 16 & 0xFF;
-      int ☃xx = ☃ >> 8 & 0xFF;
-      int ☃xxx = ☃ & 0xFF;
-      int ☃xxxx = (☃x * 30 + ☃xx * 59 + ☃xxx * 11) / 100;
-      int ☃xxxxx = (☃x * 30 + ☃xx * 70) / 100;
-      int ☃xxxxxx = (☃x * 30 + ☃xxx * 70) / 100;
-      return ☃ << 24 | ☃xxxx << 16 | ☃xxxxx << 8 | ☃xxxxxx;
-   }
+   public static void processPixelValues(int[] p_147953_0_, int p_147953_1_, int p_147953_2_) {
+      int[] aint = new int[p_147953_1_];
+      int i = p_147953_2_ / 2;
 
-   public static void processPixelValues(int[] var0, int var1, int var2) {
-      int[] ☃ = new int[☃];
-      int ☃x = ☃ / 2;
-
-      for (int ☃xx = 0; ☃xx < ☃x; ☃xx++) {
-         System.arraycopy(☃, ☃xx * ☃, ☃, 0, ☃);
-         System.arraycopy(☃, (☃ - 1 - ☃xx) * ☃, ☃, ☃xx * ☃, ☃);
-         System.arraycopy(☃, 0, ☃, (☃ - 1 - ☃xx) * ☃, ☃);
+      for (int j = 0; j < i; j++) {
+         System.arraycopy(p_147953_0_, j * p_147953_1_, aint, 0, p_147953_1_);
+         System.arraycopy(p_147953_0_, (p_147953_2_ - 1 - j) * p_147953_1_, p_147953_0_, j * p_147953_1_, p_147953_1_);
+         System.arraycopy(aint, 0, p_147953_0_, (p_147953_2_ - 1 - j) * p_147953_1_, p_147953_1_);
       }
    }
 
    static {
-      int ☃ = -16777216;
-      int ☃x = -524040;
-      int[] ☃xx = new int[]{-524040, -524040, -524040, -524040, -524040, -524040, -524040, -524040};
-      int[] ☃xxx = new int[]{-16777216, -16777216, -16777216, -16777216, -16777216, -16777216, -16777216, -16777216};
-      int ☃xxxx = ☃xx.length;
+      int i = -16777216;
+      int j = -524040;
+      int[] aint = new int[]{-524040, -524040, -524040, -524040, -524040, -524040, -524040, -524040};
+      int[] aint1 = new int[]{-16777216, -16777216, -16777216, -16777216, -16777216, -16777216, -16777216, -16777216};
+      int k = aint.length;
 
-      for (int ☃xxxxx = 0; ☃xxxxx < 16; ☃xxxxx++) {
-         System.arraycopy(☃xxxxx < ☃xxxx ? ☃xx : ☃xxx, 0, MISSING_TEXTURE_DATA, 16 * ☃xxxxx, ☃xxxx);
-         System.arraycopy(☃xxxxx < ☃xxxx ? ☃xxx : ☃xx, 0, MISSING_TEXTURE_DATA, 16 * ☃xxxxx + ☃xxxx, ☃xxxx);
+      for (int l = 0; l < 16; l++) {
+         System.arraycopy(l < k ? aint : aint1, 0, MISSING_TEXTURE_DATA, 16 * l, k);
+         System.arraycopy(l < k ? aint1 : aint, 0, MISSING_TEXTURE_DATA, 16 * l + k, k);
       }
 
       MISSING_TEXTURE.updateDynamicTexture();
       COLOR_GAMMAS = new float[256];
 
-      for (int ☃xxxxx = 0; ☃xxxxx < COLOR_GAMMAS.length; ☃xxxxx++) {
-         COLOR_GAMMAS[☃xxxxx] = (float)Math.pow(☃xxxxx / 255.0F, 2.2);
+      for (int i1 = 0; i1 < COLOR_GAMMAS.length; i1++) {
+         COLOR_GAMMAS[i1] = (float)Math.pow(i1 / 255.0F, 2.2);
       }
 
       MIPMAP_BUFFER = new int[4];

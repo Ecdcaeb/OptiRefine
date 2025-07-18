@@ -4,57 +4,64 @@ import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.math.Vec3d;
+import net.optifine.shaders.SVertexFormat;
 
 public class TexturedQuad {
    public PositionTextureVertex[] vertexPositions;
    public int nVertices;
    private boolean invertNormal;
 
-   public TexturedQuad(PositionTextureVertex[] var1) {
-      this.vertexPositions = ☃;
-      this.nVertices = ☃.length;
+   public TexturedQuad(PositionTextureVertex[] vertices) {
+      this.vertexPositions = vertices;
+      this.nVertices = vertices.length;
    }
 
-   public TexturedQuad(PositionTextureVertex[] var1, int var2, int var3, int var4, int var5, float var6, float var7) {
-      this(☃);
-      float ☃ = 0.0F / ☃;
-      float ☃x = 0.0F / ☃;
-      ☃[0] = ☃[0].setTexturePosition(☃ / ☃ - ☃, ☃ / ☃ + ☃x);
-      ☃[1] = ☃[1].setTexturePosition(☃ / ☃ + ☃, ☃ / ☃ + ☃x);
-      ☃[2] = ☃[2].setTexturePosition(☃ / ☃ + ☃, ☃ / ☃ - ☃x);
-      ☃[3] = ☃[3].setTexturePosition(☃ / ☃ - ☃, ☃ / ☃ - ☃x);
+   public TexturedQuad(
+      PositionTextureVertex[] vertices, int texcoordU1, int texcoordV1, int texcoordU2, int texcoordV2, float textureWidth, float textureHeight
+   ) {
+      this(vertices);
+      float f = 0.0F / textureWidth;
+      float f1 = 0.0F / textureHeight;
+      vertices[0] = vertices[0].setTexturePosition(texcoordU2 / textureWidth - f, texcoordV1 / textureHeight + f1);
+      vertices[1] = vertices[1].setTexturePosition(texcoordU1 / textureWidth + f, texcoordV1 / textureHeight + f1);
+      vertices[2] = vertices[2].setTexturePosition(texcoordU1 / textureWidth + f, texcoordV2 / textureHeight - f1);
+      vertices[3] = vertices[3].setTexturePosition(texcoordU2 / textureWidth - f, texcoordV2 / textureHeight - f1);
    }
 
    public void flipFace() {
-      PositionTextureVertex[] ☃ = new PositionTextureVertex[this.vertexPositions.length];
+      PositionTextureVertex[] apositiontexturevertex = new PositionTextureVertex[this.vertexPositions.length];
 
-      for (int ☃x = 0; ☃x < this.vertexPositions.length; ☃x++) {
-         ☃[☃x] = this.vertexPositions[this.vertexPositions.length - ☃x - 1];
+      for (int i = 0; i < this.vertexPositions.length; i++) {
+         apositiontexturevertex[i] = this.vertexPositions[this.vertexPositions.length - i - 1];
       }
 
-      this.vertexPositions = ☃;
+      this.vertexPositions = apositiontexturevertex;
    }
 
-   public void draw(BufferBuilder var1, float var2) {
-      Vec3d ☃ = this.vertexPositions[1].vector3D.subtractReverse(this.vertexPositions[0].vector3D);
-      Vec3d ☃x = this.vertexPositions[1].vector3D.subtractReverse(this.vertexPositions[2].vector3D);
-      Vec3d ☃xx = ☃x.crossProduct(☃).normalize();
-      float ☃xxx = (float)☃xx.x;
-      float ☃xxxx = (float)☃xx.y;
-      float ☃xxxxx = (float)☃xx.z;
+   public void draw(BufferBuilder renderer, float scale) {
+      Vec3d vec3d = this.vertexPositions[1].vector3D.subtractReverse(this.vertexPositions[0].vector3D);
+      Vec3d vec3d1 = this.vertexPositions[1].vector3D.subtractReverse(this.vertexPositions[2].vector3D);
+      Vec3d vec3d2 = vec3d1.crossProduct(vec3d).normalize();
+      float f = (float)vec3d2.x;
+      float f1 = (float)vec3d2.y;
+      float f2 = (float)vec3d2.z;
       if (this.invertNormal) {
-         ☃xxx = -☃xxx;
-         ☃xxxx = -☃xxxx;
-         ☃xxxxx = -☃xxxxx;
+         f = -f;
+         f1 = -f1;
+         f2 = -f2;
       }
 
-      ☃.begin(7, DefaultVertexFormats.OLDMODEL_POSITION_TEX_NORMAL);
+      if (Config.isShaders()) {
+         renderer.begin(7, SVertexFormat.defVertexFormatTextured);
+      } else {
+         renderer.begin(7, DefaultVertexFormats.OLDMODEL_POSITION_TEX_NORMAL);
+      }
 
-      for (int ☃xxxxxx = 0; ☃xxxxxx < 4; ☃xxxxxx++) {
-         PositionTextureVertex ☃xxxxxxx = this.vertexPositions[☃xxxxxx];
-         ☃.pos(☃xxxxxxx.vector3D.x * ☃, ☃xxxxxxx.vector3D.y * ☃, ☃xxxxxxx.vector3D.z * ☃)
-            .tex(☃xxxxxxx.texturePositionX, ☃xxxxxxx.texturePositionY)
-            .normal(☃xxx, ☃xxxx, ☃xxxxx)
+      for (int i = 0; i < 4; i++) {
+         PositionTextureVertex positiontexturevertex = this.vertexPositions[i];
+         renderer.pos(positiontexturevertex.vector3D.x * scale, positiontexturevertex.vector3D.y * scale, positiontexturevertex.vector3D.z * scale)
+            .tex(positiontexturevertex.texturePositionX, positiontexturevertex.texturePositionY)
+            .normal(f, f1, f2)
             .endVertex();
       }
 

@@ -2,310 +2,390 @@ package net.minecraft.client.renderer.block.model;
 
 import javax.annotation.Nullable;
 import net.minecraft.client.renderer.EnumFaceDirection;
+import net.minecraft.client.renderer.EnumFaceDirection.Constants;
+import net.minecraft.client.renderer.EnumFaceDirection.VertexInformation;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3i;
+import net.minecraftforge.common.model.ITransformation;
+import net.optifine.model.BlockModelUtils;
+import net.optifine.reflect.Reflector;
+import net.optifine.shaders.Shaders;
 import org.lwjgl.util.vector.Matrix4f;
 import org.lwjgl.util.vector.Vector3f;
 import org.lwjgl.util.vector.Vector4f;
 
 public class FaceBakery {
    private static final float SCALE_ROTATION_22_5 = 1.0F / (float)Math.cos((float) (Math.PI / 8)) - 1.0F;
-   private static final float SCALE_ROTATION_GENERAL = 1.0F / (float)Math.cos((float) (Math.PI / 4)) - 1.0F;
+   private static final float SCALE_ROTATION_GENERAL = 1.0F / (float)Math.cos(Math.PI / 4) - 1.0F;
    private static final FaceBakery.Rotation[] UV_ROTATIONS = new FaceBakery.Rotation[ModelRotation.values().length * EnumFacing.values().length];
    private static final FaceBakery.Rotation UV_ROTATION_0 = new FaceBakery.Rotation() {
       @Override
-      BlockFaceUV makeRotatedUV(float var1, float var2, float var3, float var4) {
-         return new BlockFaceUV(new float[]{☃, ☃, ☃, ☃}, 0);
+      BlockFaceUV makeRotatedUV(float p_188007_1_, float p_188007_2_, float p_188007_3_, float p_188007_4_) {
+         return new BlockFaceUV(new float[]{p_188007_1_, p_188007_2_, p_188007_3_, p_188007_4_}, 0);
       }
    };
    private static final FaceBakery.Rotation UV_ROTATION_270 = new FaceBakery.Rotation() {
       @Override
-      BlockFaceUV makeRotatedUV(float var1, float var2, float var3, float var4) {
-         return new BlockFaceUV(new float[]{☃, 16.0F - ☃, ☃, 16.0F - ☃}, 270);
+      BlockFaceUV makeRotatedUV(float p_188007_1_, float p_188007_2_, float p_188007_3_, float p_188007_4_) {
+         return new BlockFaceUV(new float[]{p_188007_4_, 16.0F - p_188007_1_, p_188007_2_, 16.0F - p_188007_3_}, 270);
       }
    };
    private static final FaceBakery.Rotation UV_ROTATION_INVERSE = new FaceBakery.Rotation() {
       @Override
-      BlockFaceUV makeRotatedUV(float var1, float var2, float var3, float var4) {
-         return new BlockFaceUV(new float[]{16.0F - ☃, 16.0F - ☃, 16.0F - ☃, 16.0F - ☃}, 0);
+      BlockFaceUV makeRotatedUV(float p_188007_1_, float p_188007_2_, float p_188007_3_, float p_188007_4_) {
+         return new BlockFaceUV(new float[]{16.0F - p_188007_1_, 16.0F - p_188007_2_, 16.0F - p_188007_3_, 16.0F - p_188007_4_}, 0);
       }
    };
    private static final FaceBakery.Rotation UV_ROTATION_90 = new FaceBakery.Rotation() {
       @Override
-      BlockFaceUV makeRotatedUV(float var1, float var2, float var3, float var4) {
-         return new BlockFaceUV(new float[]{16.0F - ☃, ☃, 16.0F - ☃, ☃}, 90);
+      BlockFaceUV makeRotatedUV(float p_188007_1_, float p_188007_2_, float p_188007_3_, float p_188007_4_) {
+         return new BlockFaceUV(new float[]{16.0F - p_188007_2_, p_188007_3_, 16.0F - p_188007_4_, p_188007_1_}, 90);
       }
    };
 
    public BakedQuad makeBakedQuad(
-      Vector3f var1,
-      Vector3f var2,
-      BlockPartFace var3,
-      TextureAtlasSprite var4,
-      EnumFacing var5,
-      ModelRotation var6,
-      @Nullable BlockPartRotation var7,
-      boolean var8,
-      boolean var9
+      Vector3f posFrom,
+      Vector3f posTo,
+      BlockPartFace face,
+      TextureAtlasSprite sprite,
+      EnumFacing facing,
+      ModelRotation modelRotationIn,
+      @Nullable BlockPartRotation partRotation,
+      boolean uvLocked,
+      boolean shade
    ) {
-      BlockFaceUV ☃ = ☃.blockFaceUV;
-      if (☃) {
-         ☃ = this.applyUVLock(☃.blockFaceUV, ☃, ☃);
-      }
-
-      int[] ☃x = this.makeQuadVertexData(☃, ☃, ☃, this.getPositionsDiv16(☃, ☃), ☃, ☃, ☃);
-      EnumFacing ☃xx = getFacingFromVertexData(☃x);
-      if (☃ == null) {
-         this.applyFacing(☃x, ☃xx);
-      }
-
-      return new BakedQuad(☃x, ☃.tintIndex, ☃xx, ☃);
+      return this.makeBakedQuad(posFrom, posTo, face, sprite, facing, (ITransformation)modelRotationIn, partRotation, uvLocked, shade);
    }
 
-   private BlockFaceUV applyUVLock(BlockFaceUV var1, EnumFacing var2, ModelRotation var3) {
-      return UV_ROTATIONS[getIndex(☃, ☃)].rotateUV(☃);
+   public BakedQuad makeBakedQuad(
+      Vector3f posFrom,
+      Vector3f posTo,
+      BlockPartFace face,
+      TextureAtlasSprite sprite,
+      EnumFacing facing,
+      ITransformation modelRotationIn,
+      BlockPartRotation partRotation,
+      boolean uvLocked,
+      boolean shade
+   ) {
+      BlockFaceUV blockfaceuv = face.blockFaceUV;
+      if (uvLocked) {
+         if (Reflector.ForgeHooksClient_applyUVLock.exists()) {
+            blockfaceuv = (BlockFaceUV)Reflector.call(Reflector.ForgeHooksClient_applyUVLock, new Object[]{face.blockFaceUV, facing, modelRotationIn});
+         } else {
+            blockfaceuv = this.applyUVLock(face.blockFaceUV, facing, (ModelRotation)modelRotationIn);
+         }
+      }
+
+      boolean quadShade = shade && !Reflector.ForgeHooksClient_fillNormal.exists();
+      int[] aint = this.makeQuadVertexData(blockfaceuv, sprite, facing, this.getPositionsDiv16(posFrom, posTo), modelRotationIn, partRotation, quadShade);
+      EnumFacing enumfacing = getFacingFromVertexData(aint);
+      if (partRotation == null) {
+         this.applyFacing(aint, enumfacing);
+      }
+
+      if (Reflector.ForgeHooksClient_fillNormal.exists()) {
+         Reflector.call(Reflector.ForgeHooksClient_fillNormal, new Object[]{aint, enumfacing});
+         return new BakedQuad(aint, face.tintIndex, enumfacing, sprite, shade, DefaultVertexFormats.ITEM);
+      } else {
+         return new BakedQuad(aint, face.tintIndex, enumfacing, sprite);
+      }
+   }
+
+   private BlockFaceUV applyUVLock(BlockFaceUV p_188010_1_, EnumFacing p_188010_2_, ModelRotation p_188010_3_) {
+      return UV_ROTATIONS[getIndex(p_188010_3_, p_188010_2_)].rotateUV(p_188010_1_);
    }
 
    private int[] makeQuadVertexData(
-      BlockFaceUV var1, TextureAtlasSprite var2, EnumFacing var3, float[] var4, ModelRotation var5, @Nullable BlockPartRotation var6, boolean var7
+      BlockFaceUV uvs,
+      TextureAtlasSprite sprite,
+      EnumFacing orientation,
+      float[] p_188012_4_,
+      ITransformation rotationIn,
+      @Nullable BlockPartRotation partRotation,
+      boolean shade
    ) {
-      int[] ☃ = new int[28];
-
-      for (int ☃x = 0; ☃x < 4; ☃x++) {
-         this.fillVertexData(☃, ☃x, ☃, ☃, ☃, ☃, ☃, ☃, ☃);
+      int vertexSize = 28;
+      if (Config.isShaders()) {
+         vertexSize = 56;
       }
 
-      return ☃;
+      int[] aint = new int[vertexSize];
+
+      for (int i = 0; i < 4; i++) {
+         this.fillVertexData(aint, i, orientation, uvs, p_188012_4_, sprite, rotationIn, partRotation, shade);
+      }
+
+      return aint;
    }
 
-   private int getFaceShadeColor(EnumFacing var1) {
-      float ☃ = this.getFaceBrightness(☃);
-      int ☃x = MathHelper.clamp((int)(☃ * 255.0F), 0, 255);
-      return 0xFF000000 | ☃x << 16 | ☃x << 8 | ☃x;
+   private int getFaceShadeColor(EnumFacing facing) {
+      float f = getFaceBrightness(facing);
+      int i = MathHelper.clamp((int)(f * 255.0F), 0, 255);
+      return 0xFF000000 | i << 16 | i << 8 | i;
    }
 
-   private float getFaceBrightness(EnumFacing var1) {
-      switch (☃) {
+   public static float getFaceBrightness(EnumFacing facing) {
+      switch (facing) {
          case DOWN:
+            if (Config.isShaders()) {
+               return Shaders.blockLightLevel05;
+            }
+
             return 0.5F;
          case UP:
             return 1.0F;
          case NORTH:
          case SOUTH:
+            if (Config.isShaders()) {
+               return Shaders.blockLightLevel08;
+            }
+
             return 0.8F;
          case WEST:
          case EAST:
+            if (Config.isShaders()) {
+               return Shaders.blockLightLevel06;
+            }
+
             return 0.6F;
          default:
             return 1.0F;
       }
    }
 
-   private float[] getPositionsDiv16(Vector3f var1, Vector3f var2) {
-      float[] ☃ = new float[EnumFacing.values().length];
-      ☃[EnumFaceDirection.Constants.WEST_INDEX] = ☃.x / 16.0F;
-      ☃[EnumFaceDirection.Constants.DOWN_INDEX] = ☃.y / 16.0F;
-      ☃[EnumFaceDirection.Constants.NORTH_INDEX] = ☃.z / 16.0F;
-      ☃[EnumFaceDirection.Constants.EAST_INDEX] = ☃.x / 16.0F;
-      ☃[EnumFaceDirection.Constants.UP_INDEX] = ☃.y / 16.0F;
-      ☃[EnumFaceDirection.Constants.SOUTH_INDEX] = ☃.z / 16.0F;
-      return ☃;
+   private float[] getPositionsDiv16(Vector3f pos1, Vector3f pos2) {
+      float[] afloat = new float[EnumFacing.values().length];
+      afloat[Constants.WEST_INDEX] = pos1.x / 16.0F;
+      afloat[Constants.DOWN_INDEX] = pos1.y / 16.0F;
+      afloat[Constants.NORTH_INDEX] = pos1.z / 16.0F;
+      afloat[Constants.EAST_INDEX] = pos2.x / 16.0F;
+      afloat[Constants.UP_INDEX] = pos2.y / 16.0F;
+      afloat[Constants.SOUTH_INDEX] = pos2.z / 16.0F;
+      return afloat;
    }
 
    private void fillVertexData(
-      int[] var1,
-      int var2,
-      EnumFacing var3,
-      BlockFaceUV var4,
-      float[] var5,
-      TextureAtlasSprite var6,
-      ModelRotation var7,
-      @Nullable BlockPartRotation var8,
-      boolean var9
+      int[] p_188015_1_,
+      int p_188015_2_,
+      EnumFacing p_188015_3_,
+      BlockFaceUV p_188015_4_,
+      float[] p_188015_5_,
+      TextureAtlasSprite p_188015_6_,
+      ITransformation p_188015_7_,
+      @Nullable BlockPartRotation p_188015_8_,
+      boolean p_188015_9_
    ) {
-      EnumFacing ☃ = ☃.rotateFace(☃);
-      int ☃x = ☃ ? this.getFaceShadeColor(☃) : -1;
-      EnumFaceDirection.VertexInformation ☃xx = EnumFaceDirection.getFacing(☃).getVertexInformation(☃);
-      Vector3f ☃xxx = new Vector3f(☃[☃xx.xIndex], ☃[☃xx.yIndex], ☃[☃xx.zIndex]);
-      this.rotatePart(☃xxx, ☃);
-      int ☃xxxx = this.rotateVertex(☃xxx, ☃, ☃, ☃);
-      this.storeVertexData(☃, ☃xxxx, ☃, ☃xxx, ☃x, ☃, ☃);
+      EnumFacing enumfacing = p_188015_7_.rotate(p_188015_3_);
+      int i = p_188015_9_ ? this.getFaceShadeColor(enumfacing) : -1;
+      VertexInformation enumfacedirection$vertexinformation = EnumFaceDirection.getFacing(p_188015_3_).getVertexInformation(p_188015_2_);
+      Vector3f vector3f = new Vector3f(
+         p_188015_5_[enumfacedirection$vertexinformation.xIndex],
+         p_188015_5_[enumfacedirection$vertexinformation.yIndex],
+         p_188015_5_[enumfacedirection$vertexinformation.zIndex]
+      );
+      this.rotatePart(vector3f, p_188015_8_);
+      int j = this.rotateVertex(vector3f, p_188015_3_, p_188015_2_, p_188015_7_);
+      BlockModelUtils.snapVertexPosition(vector3f);
+      this.storeVertexData(p_188015_1_, j, p_188015_2_, vector3f, i, p_188015_6_, p_188015_4_);
    }
 
-   private void storeVertexData(int[] var1, int var2, int var3, Vector3f var4, int var5, TextureAtlasSprite var6, BlockFaceUV var7) {
-      int ☃ = ☃ * 7;
-      ☃[☃] = Float.floatToRawIntBits(☃.x);
-      ☃[☃ + 1] = Float.floatToRawIntBits(☃.y);
-      ☃[☃ + 2] = Float.floatToRawIntBits(☃.z);
-      ☃[☃ + 3] = ☃;
-      ☃[☃ + 4] = Float.floatToRawIntBits(☃.getInterpolatedU(☃.getVertexU(☃)));
-      ☃[☃ + 4 + 1] = Float.floatToRawIntBits(☃.getInterpolatedV(☃.getVertexV(☃)));
+   private void storeVertexData(
+      int[] faceData, int storeIndex, int vertexIndex, Vector3f position, int shadeColor, TextureAtlasSprite sprite, BlockFaceUV faceUV
+   ) {
+      int step = faceData.length / 4;
+      int i = storeIndex * step;
+      faceData[i] = Float.floatToRawIntBits(position.x);
+      faceData[i + 1] = Float.floatToRawIntBits(position.y);
+      faceData[i + 2] = Float.floatToRawIntBits(position.z);
+      faceData[i + 3] = shadeColor;
+      faceData[i + 4] = Float.floatToRawIntBits(
+         sprite.getInterpolatedU(faceUV.getVertexU(vertexIndex) * 0.999 + faceUV.getVertexU((vertexIndex + 2) % 4) * 0.001)
+      );
+      faceData[i + 4 + 1] = Float.floatToRawIntBits(
+         sprite.getInterpolatedV(faceUV.getVertexV(vertexIndex) * 0.999 + faceUV.getVertexV((vertexIndex + 2) % 4) * 0.001)
+      );
    }
 
-   private void rotatePart(Vector3f var1, @Nullable BlockPartRotation var2) {
-      if (☃ != null) {
-         Matrix4f ☃ = this.getMatrixIdentity();
-         Vector3f ☃x = new Vector3f(0.0F, 0.0F, 0.0F);
-         switch (☃.axis) {
+   private void rotatePart(Vector3f p_178407_1_, @Nullable BlockPartRotation partRotation) {
+      if (partRotation != null) {
+         Matrix4f matrix4f = this.getMatrixIdentity();
+         Vector3f vector3f = new Vector3f(0.0F, 0.0F, 0.0F);
+         switch (partRotation.axis) {
             case X:
-               Matrix4f.rotate(☃.angle * (float) (Math.PI / 180.0), new Vector3f(1.0F, 0.0F, 0.0F), ☃, ☃);
-               ☃x.set(0.0F, 1.0F, 1.0F);
+               Matrix4f.rotate(partRotation.angle * (float) (Math.PI / 180.0), new Vector3f(1.0F, 0.0F, 0.0F), matrix4f, matrix4f);
+               vector3f.set(0.0F, 1.0F, 1.0F);
                break;
             case Y:
-               Matrix4f.rotate(☃.angle * (float) (Math.PI / 180.0), new Vector3f(0.0F, 1.0F, 0.0F), ☃, ☃);
-               ☃x.set(1.0F, 0.0F, 1.0F);
+               Matrix4f.rotate(partRotation.angle * (float) (Math.PI / 180.0), new Vector3f(0.0F, 1.0F, 0.0F), matrix4f, matrix4f);
+               vector3f.set(1.0F, 0.0F, 1.0F);
                break;
             case Z:
-               Matrix4f.rotate(☃.angle * (float) (Math.PI / 180.0), new Vector3f(0.0F, 0.0F, 1.0F), ☃, ☃);
-               ☃x.set(1.0F, 1.0F, 0.0F);
+               Matrix4f.rotate(partRotation.angle * (float) (Math.PI / 180.0), new Vector3f(0.0F, 0.0F, 1.0F), matrix4f, matrix4f);
+               vector3f.set(1.0F, 1.0F, 0.0F);
          }
 
-         if (☃.rescale) {
-            if (Math.abs(☃.angle) == 22.5F) {
-               ☃x.scale(SCALE_ROTATION_22_5);
+         if (partRotation.rescale) {
+            if (Math.abs(partRotation.angle) == 22.5F) {
+               vector3f.scale(SCALE_ROTATION_22_5);
             } else {
-               ☃x.scale(SCALE_ROTATION_GENERAL);
+               vector3f.scale(SCALE_ROTATION_GENERAL);
             }
 
-            Vector3f.add(☃x, new Vector3f(1.0F, 1.0F, 1.0F), ☃x);
+            Vector3f.add(vector3f, new Vector3f(1.0F, 1.0F, 1.0F), vector3f);
          } else {
-            ☃x.set(1.0F, 1.0F, 1.0F);
+            vector3f.set(1.0F, 1.0F, 1.0F);
          }
 
-         this.rotateScale(☃, new Vector3f(☃.origin), ☃, ☃x);
+         this.rotateScale(p_178407_1_, new Vector3f(partRotation.origin), matrix4f, vector3f);
       }
    }
 
-   public int rotateVertex(Vector3f var1, EnumFacing var2, int var3, ModelRotation var4) {
-      if (☃ == ModelRotation.X0_Y0) {
-         return ☃;
+   public int rotateVertex(Vector3f p_188011_1_, EnumFacing p_188011_2_, int p_188011_3_, ModelRotation p_188011_4_) {
+      return this.rotateVertex(p_188011_1_, p_188011_2_, p_188011_3_, (ITransformation)p_188011_4_);
+   }
+
+   public int rotateVertex(Vector3f position, EnumFacing facing, int vertexIndex, ITransformation modelRotationIn) {
+      if (modelRotationIn == ModelRotation.X0_Y0) {
+         return vertexIndex;
       } else {
-         this.rotateScale(☃, new Vector3f(0.5F, 0.5F, 0.5F), ☃.matrix(), new Vector3f(1.0F, 1.0F, 1.0F));
-         return ☃.rotateVertex(☃, ☃);
+         if (Reflector.ForgeHooksClient_transform.exists()) {
+            Reflector.call(Reflector.ForgeHooksClient_transform, new Object[]{position, modelRotationIn.getMatrix()});
+         } else {
+            this.rotateScale(position, new Vector3f(0.5F, 0.5F, 0.5F), ((ModelRotation)modelRotationIn).matrix(), new Vector3f(1.0F, 1.0F, 1.0F));
+         }
+
+         return modelRotationIn.rotate(facing, vertexIndex);
       }
    }
 
-   private void rotateScale(Vector3f var1, Vector3f var2, Matrix4f var3, Vector3f var4) {
-      Vector4f ☃ = new Vector4f(☃.x - ☃.x, ☃.y - ☃.y, ☃.z - ☃.z, 1.0F);
-      Matrix4f.transform(☃, ☃, ☃);
-      ☃.x = ☃.x * ☃.x;
-      ☃.y = ☃.y * ☃.y;
-      ☃.z = ☃.z * ☃.z;
-      ☃.set(☃.x + ☃.x, ☃.y + ☃.y, ☃.z + ☃.z);
+   private void rotateScale(Vector3f position, Vector3f rotationOrigin, Matrix4f rotationMatrix, Vector3f scale) {
+      Vector4f vector4f = new Vector4f(position.x - rotationOrigin.x, position.y - rotationOrigin.y, position.z - rotationOrigin.z, 1.0F);
+      Matrix4f.transform(rotationMatrix, vector4f, vector4f);
+      vector4f.x = vector4f.x * scale.x;
+      vector4f.y = vector4f.y * scale.y;
+      vector4f.z = vector4f.z * scale.z;
+      position.set(vector4f.x + rotationOrigin.x, vector4f.y + rotationOrigin.y, vector4f.z + rotationOrigin.z);
    }
 
    private Matrix4f getMatrixIdentity() {
-      Matrix4f ☃ = new Matrix4f();
-      ☃.setIdentity();
-      return ☃;
+      Matrix4f matrix4f = new Matrix4f();
+      matrix4f.setIdentity();
+      return matrix4f;
    }
 
-   public static EnumFacing getFacingFromVertexData(int[] var0) {
-      Vector3f ☃ = new Vector3f(Float.intBitsToFloat(☃[0]), Float.intBitsToFloat(☃[1]), Float.intBitsToFloat(☃[2]));
-      Vector3f ☃x = new Vector3f(Float.intBitsToFloat(☃[7]), Float.intBitsToFloat(☃[8]), Float.intBitsToFloat(☃[9]));
-      Vector3f ☃xx = new Vector3f(Float.intBitsToFloat(☃[14]), Float.intBitsToFloat(☃[15]), Float.intBitsToFloat(☃[16]));
-      Vector3f ☃xxx = new Vector3f();
-      Vector3f ☃xxxx = new Vector3f();
-      Vector3f ☃xxxxx = new Vector3f();
-      Vector3f.sub(☃, ☃x, ☃xxx);
-      Vector3f.sub(☃xx, ☃x, ☃xxxx);
-      Vector3f.cross(☃xxxx, ☃xxx, ☃xxxxx);
-      float ☃xxxxxx = (float)Math.sqrt(☃xxxxx.x * ☃xxxxx.x + ☃xxxxx.y * ☃xxxxx.y + ☃xxxxx.z * ☃xxxxx.z);
-      ☃xxxxx.x /= ☃xxxxxx;
-      ☃xxxxx.y /= ☃xxxxxx;
-      ☃xxxxx.z /= ☃xxxxxx;
-      EnumFacing ☃xxxxxxx = null;
-      float ☃xxxxxxxx = 0.0F;
+   public static EnumFacing getFacingFromVertexData(int[] faceData) {
+      int step = faceData.length / 4;
+      int step2 = step * 2;
+      Vector3f vector3f = new Vector3f(Float.intBitsToFloat(faceData[0]), Float.intBitsToFloat(faceData[1]), Float.intBitsToFloat(faceData[2]));
+      Vector3f vector3f1 = new Vector3f(
+         Float.intBitsToFloat(faceData[step]), Float.intBitsToFloat(faceData[step + 1]), Float.intBitsToFloat(faceData[step + 2])
+      );
+      Vector3f vector3f2 = new Vector3f(
+         Float.intBitsToFloat(faceData[step2]), Float.intBitsToFloat(faceData[step2 + 1]), Float.intBitsToFloat(faceData[step2 + 2])
+      );
+      Vector3f vector3f3 = new Vector3f();
+      Vector3f vector3f4 = new Vector3f();
+      Vector3f vector3f5 = new Vector3f();
+      Vector3f.sub(vector3f, vector3f1, vector3f3);
+      Vector3f.sub(vector3f2, vector3f1, vector3f4);
+      Vector3f.cross(vector3f4, vector3f3, vector3f5);
+      float f = (float)Math.sqrt(vector3f5.x * vector3f5.x + vector3f5.y * vector3f5.y + vector3f5.z * vector3f5.z);
+      vector3f5.x /= f;
+      vector3f5.y /= f;
+      vector3f5.z /= f;
+      EnumFacing enumfacing = null;
+      float f1 = 0.0F;
 
-      for (EnumFacing ☃xxxxxxxxx : EnumFacing.values()) {
-         Vec3i ☃xxxxxxxxxx = ☃xxxxxxxxx.getDirectionVec();
-         Vector3f ☃xxxxxxxxxxx = new Vector3f(☃xxxxxxxxxx.getX(), ☃xxxxxxxxxx.getY(), ☃xxxxxxxxxx.getZ());
-         float ☃xxxxxxxxxxxx = Vector3f.dot(☃xxxxx, ☃xxxxxxxxxxx);
-         if (☃xxxxxxxxxxxx >= 0.0F && ☃xxxxxxxxxxxx > ☃xxxxxxxx) {
-            ☃xxxxxxxx = ☃xxxxxxxxxxxx;
-            ☃xxxxxxx = ☃xxxxxxxxx;
+      for (EnumFacing enumfacing1 : EnumFacing.values()) {
+         Vec3i vec3i = enumfacing1.getDirectionVec();
+         Vector3f vector3f6 = new Vector3f(vec3i.getX(), vec3i.getY(), vec3i.getZ());
+         float f2 = Vector3f.dot(vector3f5, vector3f6);
+         if (f2 >= 0.0F && f2 > f1) {
+            f1 = f2;
+            enumfacing = enumfacing1;
          }
       }
 
-      return ☃xxxxxxx == null ? EnumFacing.UP : ☃xxxxxxx;
+      return enumfacing == null ? EnumFacing.UP : enumfacing;
    }
 
-   private void applyFacing(int[] var1, EnumFacing var2) {
-      int[] ☃ = new int[☃.length];
-      System.arraycopy(☃, 0, ☃, 0, ☃.length);
-      float[] ☃x = new float[EnumFacing.values().length];
-      ☃x[EnumFaceDirection.Constants.WEST_INDEX] = 999.0F;
-      ☃x[EnumFaceDirection.Constants.DOWN_INDEX] = 999.0F;
-      ☃x[EnumFaceDirection.Constants.NORTH_INDEX] = 999.0F;
-      ☃x[EnumFaceDirection.Constants.EAST_INDEX] = -999.0F;
-      ☃x[EnumFaceDirection.Constants.UP_INDEX] = -999.0F;
-      ☃x[EnumFaceDirection.Constants.SOUTH_INDEX] = -999.0F;
+   private void applyFacing(int[] p_178408_1_, EnumFacing p_178408_2_) {
+      int[] aint = new int[p_178408_1_.length];
+      System.arraycopy(p_178408_1_, 0, aint, 0, p_178408_1_.length);
+      float[] afloat = new float[EnumFacing.values().length];
+      afloat[Constants.WEST_INDEX] = 999.0F;
+      afloat[Constants.DOWN_INDEX] = 999.0F;
+      afloat[Constants.NORTH_INDEX] = 999.0F;
+      afloat[Constants.EAST_INDEX] = -999.0F;
+      afloat[Constants.UP_INDEX] = -999.0F;
+      afloat[Constants.SOUTH_INDEX] = -999.0F;
+      int step = p_178408_1_.length / 4;
 
-      for (int ☃xx = 0; ☃xx < 4; ☃xx++) {
-         int ☃xxx = 7 * ☃xx;
-         float ☃xxxx = Float.intBitsToFloat(☃[☃xxx]);
-         float ☃xxxxx = Float.intBitsToFloat(☃[☃xxx + 1]);
-         float ☃xxxxxx = Float.intBitsToFloat(☃[☃xxx + 2]);
-         if (☃xxxx < ☃x[EnumFaceDirection.Constants.WEST_INDEX]) {
-            ☃x[EnumFaceDirection.Constants.WEST_INDEX] = ☃xxxx;
+      for (int i = 0; i < 4; i++) {
+         int j = step * i;
+         float f = Float.intBitsToFloat(aint[j]);
+         float f1 = Float.intBitsToFloat(aint[j + 1]);
+         float f2 = Float.intBitsToFloat(aint[j + 2]);
+         if (f < afloat[Constants.WEST_INDEX]) {
+            afloat[Constants.WEST_INDEX] = f;
          }
 
-         if (☃xxxxx < ☃x[EnumFaceDirection.Constants.DOWN_INDEX]) {
-            ☃x[EnumFaceDirection.Constants.DOWN_INDEX] = ☃xxxxx;
+         if (f1 < afloat[Constants.DOWN_INDEX]) {
+            afloat[Constants.DOWN_INDEX] = f1;
          }
 
-         if (☃xxxxxx < ☃x[EnumFaceDirection.Constants.NORTH_INDEX]) {
-            ☃x[EnumFaceDirection.Constants.NORTH_INDEX] = ☃xxxxxx;
+         if (f2 < afloat[Constants.NORTH_INDEX]) {
+            afloat[Constants.NORTH_INDEX] = f2;
          }
 
-         if (☃xxxx > ☃x[EnumFaceDirection.Constants.EAST_INDEX]) {
-            ☃x[EnumFaceDirection.Constants.EAST_INDEX] = ☃xxxx;
+         if (f > afloat[Constants.EAST_INDEX]) {
+            afloat[Constants.EAST_INDEX] = f;
          }
 
-         if (☃xxxxx > ☃x[EnumFaceDirection.Constants.UP_INDEX]) {
-            ☃x[EnumFaceDirection.Constants.UP_INDEX] = ☃xxxxx;
+         if (f1 > afloat[Constants.UP_INDEX]) {
+            afloat[Constants.UP_INDEX] = f1;
          }
 
-         if (☃xxxxxx > ☃x[EnumFaceDirection.Constants.SOUTH_INDEX]) {
-            ☃x[EnumFaceDirection.Constants.SOUTH_INDEX] = ☃xxxxxx;
+         if (f2 > afloat[Constants.SOUTH_INDEX]) {
+            afloat[Constants.SOUTH_INDEX] = f2;
          }
       }
 
-      EnumFaceDirection ☃xx = EnumFaceDirection.getFacing(☃);
+      EnumFaceDirection enumfacedirection = EnumFaceDirection.getFacing(p_178408_2_);
 
-      for (int ☃xxxxxxx = 0; ☃xxxxxxx < 4; ☃xxxxxxx++) {
-         int ☃xxxxxxxx = 7 * ☃xxxxxxx;
-         EnumFaceDirection.VertexInformation ☃xxxxxxxxx = ☃xx.getVertexInformation(☃xxxxxxx);
-         float ☃xxxxxxxxxx = ☃x[☃xxxxxxxxx.xIndex];
-         float ☃xxxxxxxxxxx = ☃x[☃xxxxxxxxx.yIndex];
-         float ☃xxxxxxxxxxxx = ☃x[☃xxxxxxxxx.zIndex];
-         ☃[☃xxxxxxxx] = Float.floatToRawIntBits(☃xxxxxxxxxx);
-         ☃[☃xxxxxxxx + 1] = Float.floatToRawIntBits(☃xxxxxxxxxxx);
-         ☃[☃xxxxxxxx + 2] = Float.floatToRawIntBits(☃xxxxxxxxxxxx);
+      for (int i1 = 0; i1 < 4; i1++) {
+         int j1 = step * i1;
+         VertexInformation enumfacedirection$vertexinformation = enumfacedirection.getVertexInformation(i1);
+         float f8 = afloat[enumfacedirection$vertexinformation.xIndex];
+         float f3 = afloat[enumfacedirection$vertexinformation.yIndex];
+         float f4 = afloat[enumfacedirection$vertexinformation.zIndex];
+         p_178408_1_[j1] = Float.floatToRawIntBits(f8);
+         p_178408_1_[j1 + 1] = Float.floatToRawIntBits(f3);
+         p_178408_1_[j1 + 2] = Float.floatToRawIntBits(f4);
 
-         for (int ☃xxxxxxxxxxxxx = 0; ☃xxxxxxxxxxxxx < 4; ☃xxxxxxxxxxxxx++) {
-            int ☃xxxxxxxxxxxxxx = 7 * ☃xxxxxxxxxxxxx;
-            float ☃xxxxxxxxxxxxxxx = Float.intBitsToFloat(☃[☃xxxxxxxxxxxxxx]);
-            float ☃xxxxxxxxxxxxxxxx = Float.intBitsToFloat(☃[☃xxxxxxxxxxxxxx + 1]);
-            float ☃xxxxxxxxxxxxxxxxx = Float.intBitsToFloat(☃[☃xxxxxxxxxxxxxx + 2]);
-            if (MathHelper.epsilonEquals(☃xxxxxxxxxx, ☃xxxxxxxxxxxxxxx)
-               && MathHelper.epsilonEquals(☃xxxxxxxxxxx, ☃xxxxxxxxxxxxxxxx)
-               && MathHelper.epsilonEquals(☃xxxxxxxxxxxx, ☃xxxxxxxxxxxxxxxxx)) {
-               ☃[☃xxxxxxxx + 4] = ☃[☃xxxxxxxxxxxxxx + 4];
-               ☃[☃xxxxxxxx + 4 + 1] = ☃[☃xxxxxxxxxxxxxx + 4 + 1];
+         for (int k = 0; k < 4; k++) {
+            int l = step * k;
+            float f5 = Float.intBitsToFloat(aint[l]);
+            float f6 = Float.intBitsToFloat(aint[l + 1]);
+            float f7 = Float.intBitsToFloat(aint[l + 2]);
+            if (MathHelper.epsilonEquals(f8, f5) && MathHelper.epsilonEquals(f3, f6) && MathHelper.epsilonEquals(f4, f7)) {
+               p_178408_1_[j1 + 4] = aint[l + 4];
+               p_178408_1_[j1 + 4 + 1] = aint[l + 4 + 1];
             }
          }
       }
    }
 
-   private static void addUvRotation(ModelRotation var0, EnumFacing var1, FaceBakery.Rotation var2) {
-      UV_ROTATIONS[getIndex(☃, ☃)] = ☃;
+   private static void addUvRotation(ModelRotation p_188013_0_, EnumFacing p_188013_1_, FaceBakery.Rotation p_188013_2_) {
+      UV_ROTATIONS[getIndex(p_188013_0_, p_188013_1_)] = p_188013_2_;
    }
 
-   private static int getIndex(ModelRotation var0, EnumFacing var1) {
-      return ModelRotation.values().length * ☃.ordinal() + ☃.ordinal();
+   private static int getIndex(ModelRotation p_188014_0_, EnumFacing p_188014_1_) {
+      return ModelRotation.values().length * p_188014_1_.ordinal() + p_188014_0_.ordinal();
    }
 
    static {
@@ -411,12 +491,12 @@ public class FaceBakery {
       private Rotation() {
       }
 
-      public BlockFaceUV rotateUV(BlockFaceUV var1) {
-         float ☃ = ☃.getVertexU(☃.getVertexRotatedRev(0));
-         float ☃x = ☃.getVertexV(☃.getVertexRotatedRev(0));
-         float ☃xx = ☃.getVertexU(☃.getVertexRotatedRev(2));
-         float ☃xxx = ☃.getVertexV(☃.getVertexRotatedRev(2));
-         return this.makeRotatedUV(☃, ☃x, ☃xx, ☃xxx);
+      public BlockFaceUV rotateUV(BlockFaceUV p_188006_1_) {
+         float f = p_188006_1_.getVertexU(p_188006_1_.getVertexRotatedRev(0));
+         float f1 = p_188006_1_.getVertexV(p_188006_1_.getVertexRotatedRev(0));
+         float f2 = p_188006_1_.getVertexU(p_188006_1_.getVertexRotatedRev(2));
+         float f3 = p_188006_1_.getVertexV(p_188006_1_.getVertexRotatedRev(2));
+         return this.makeRotatedUV(f, f1, f2, f3);
       }
 
       abstract BlockFaceUV makeRotatedUV(float var1, float var2, float var3, float var4);

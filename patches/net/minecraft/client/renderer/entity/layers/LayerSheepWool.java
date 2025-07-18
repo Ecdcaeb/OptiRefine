@@ -6,45 +6,59 @@ import net.minecraft.client.renderer.entity.RenderSheep;
 import net.minecraft.entity.passive.EntitySheep;
 import net.minecraft.item.EnumDyeColor;
 import net.minecraft.util.ResourceLocation;
+import net.optifine.CustomColors;
 
 public class LayerSheepWool implements LayerRenderer<EntitySheep> {
    private static final ResourceLocation TEXTURE = new ResourceLocation("textures/entity/sheep/sheep_fur.png");
    private final RenderSheep sheepRenderer;
-   private final ModelSheep1 sheepModel = new ModelSheep1();
+   public ModelSheep1 sheepModel = new ModelSheep1();
 
-   public LayerSheepWool(RenderSheep var1) {
-      this.sheepRenderer = ☃;
+   public LayerSheepWool(RenderSheep sheepRendererIn) {
+      this.sheepRenderer = sheepRendererIn;
    }
 
-   public void doRenderLayer(EntitySheep var1, float var2, float var3, float var4, float var5, float var6, float var7, float var8) {
-      if (!☃.getSheared() && !☃.isInvisible()) {
+   public void doRenderLayer(
+      EntitySheep entitylivingbaseIn,
+      float limbSwing,
+      float limbSwingAmount,
+      float partialTicks,
+      float ageInTicks,
+      float netHeadYaw,
+      float headPitch,
+      float scale
+   ) {
+      if (!entitylivingbaseIn.getSheared() && !entitylivingbaseIn.isInvisible()) {
          this.sheepRenderer.bindTexture(TEXTURE);
-         if (☃.hasCustomName() && "jeb_".equals(☃.getCustomNameTag())) {
-            int ☃ = 25;
-            int ☃x = ☃.ticksExisted / 25 + ☃.getEntityId();
-            int ☃xx = EnumDyeColor.values().length;
-            int ☃xxx = ☃x % ☃xx;
-            int ☃xxxx = (☃x + 1) % ☃xx;
-            float ☃xxxxx = (☃.ticksExisted % 25 + ☃) / 25.0F;
-            float[] ☃xxxxxx = EntitySheep.getDyeRgb(EnumDyeColor.byMetadata(☃xxx));
-            float[] ☃xxxxxxx = EntitySheep.getDyeRgb(EnumDyeColor.byMetadata(☃xxxx));
-            GlStateManager.color(
-               ☃xxxxxx[0] * (1.0F - ☃xxxxx) + ☃xxxxxxx[0] * ☃xxxxx,
-               ☃xxxxxx[1] * (1.0F - ☃xxxxx) + ☃xxxxxxx[1] * ☃xxxxx,
-               ☃xxxxxx[2] * (1.0F - ☃xxxxx) + ☃xxxxxxx[2] * ☃xxxxx
-            );
+         if (entitylivingbaseIn.hasCustomName() && "jeb_".equals(entitylivingbaseIn.getCustomNameTag())) {
+            int i1 = 25;
+            int i = entitylivingbaseIn.ticksExisted / 25 + entitylivingbaseIn.getEntityId();
+            int j = EnumDyeColor.values().length;
+            int k = i % j;
+            int l = (i + 1) % j;
+            float f = (entitylivingbaseIn.ticksExisted % 25 + partialTicks) / 25.0F;
+            float[] afloat1 = EntitySheep.getDyeRgb(EnumDyeColor.byMetadata(k));
+            float[] afloat2 = EntitySheep.getDyeRgb(EnumDyeColor.byMetadata(l));
+            if (Config.isCustomColors()) {
+               afloat1 = CustomColors.getSheepColors(EnumDyeColor.byMetadata(k), afloat1);
+               afloat2 = CustomColors.getSheepColors(EnumDyeColor.byMetadata(l), afloat2);
+            }
+
+            GlStateManager.color(afloat1[0] * (1.0F - f) + afloat2[0] * f, afloat1[1] * (1.0F - f) + afloat2[1] * f, afloat1[2] * (1.0F - f) + afloat2[2] * f);
          } else {
-            float[] ☃ = EntitySheep.getDyeRgb(☃.getFleeceColor());
-            GlStateManager.color(☃[0], ☃[1], ☃[2]);
+            float[] afloat = EntitySheep.getDyeRgb(entitylivingbaseIn.getFleeceColor());
+            if (Config.isCustomColors()) {
+               afloat = CustomColors.getSheepColors(entitylivingbaseIn.getFleeceColor(), afloat);
+            }
+
+            GlStateManager.color(afloat[0], afloat[1], afloat[2]);
          }
 
-         this.sheepModel.setModelAttributes(this.sheepRenderer.getMainModel());
-         this.sheepModel.setLivingAnimations(☃, ☃, ☃, ☃);
-         this.sheepModel.render(☃, ☃, ☃, ☃, ☃, ☃, ☃);
+         this.sheepModel.setModelAttributes(this.sheepRenderer.b());
+         this.sheepModel.setLivingAnimations(entitylivingbaseIn, limbSwing, limbSwingAmount, partialTicks);
+         this.sheepModel.render(entitylivingbaseIn, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scale);
       }
    }
 
-   @Override
    public boolean shouldCombineTextures() {
       return true;
    }

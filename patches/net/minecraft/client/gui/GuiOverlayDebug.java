@@ -3,6 +3,7 @@ package net.minecraft.client.gui;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.UnmodifiableIterator;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map.Entry;
 import net.minecraft.block.Block;
@@ -12,34 +13,44 @@ import net.minecraft.client.ClientBrandRetriever;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
+import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.FrameTimer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.util.math.RayTraceResult.Type;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.WorldType;
 import net.minecraft.world.chunk.Chunk;
+import net.optifine.SmartAnimations;
+import net.optifine.TextureAnimations;
+import net.optifine.reflect.Reflector;
+import net.optifine.util.MemoryMonitor;
+import net.optifine.util.NativeMemory;
 import org.lwjgl.opengl.Display;
 
 public class GuiOverlayDebug extends Gui {
    private final Minecraft mc;
    private final FontRenderer fontRenderer;
+   private String debugOF = null;
+   private List<String> debugInfoLeft = null;
+   private List<String> debugInfoRight = null;
+   private long updateInfoLeftTimeMs = 0L;
+   private long updateInfoRightTimeMs = 0L;
 
-   public GuiOverlayDebug(Minecraft var1) {
-      this.mc = ☃;
-      this.fontRenderer = ☃.fontRenderer;
+   public GuiOverlayDebug(Minecraft mc) {
+      this.mc = mc;
+      this.fontRenderer = mc.fontRenderer;
    }
 
-   public void renderDebugInfo(ScaledResolution var1) {
+   public void renderDebugInfo(ScaledResolution scaledResolutionIn) {
       this.mc.profiler.startSection("debug");
       GlStateManager.pushMatrix();
       this.renderDebugInfoLeft();
-      this.renderDebugInfoRight(☃);
+      this.renderDebugInfoRight(scaledResolutionIn);
       GlStateManager.popMatrix();
       if (this.mc.gameSettings.showLagometer) {
          this.renderLagometer();
@@ -49,49 +60,105 @@ public class GuiOverlayDebug extends Gui {
    }
 
    protected void renderDebugInfoLeft() {
-      List<String> ☃ = this.call();
-      ☃.add("");
-      ☃.add(
-         "Debug: Pie [shift]: "
-            + (this.mc.gameSettings.showDebugProfilerChart ? "visible" : "hidden")
-            + " FPS [alt]: "
-            + (this.mc.gameSettings.showLagometer ? "visible" : "hidden")
-      );
-      ☃.add("For help: press F3 + Q");
+      List<String> list = this.debugInfoLeft;
+      if (list == null || System.currentTimeMillis() > this.updateInfoLeftTimeMs) {
+         list = this.call();
+         list.add("");
+         list.add(
+            "Debug: Pie [shift]: "
+               + (this.mc.gameSettings.showDebugProfilerChart ? "visible" : "hidden")
+               + " FPS [alt]: "
+               + (this.mc.gameSettings.showLagometer ? "visible" : "hidden")
+         );
+         list.add("For help: press F3 + Q");
+         this.debugInfoLeft = list;
+         this.updateInfoLeftTimeMs = System.currentTimeMillis() + 100L;
+      }
 
-      for (int ☃x = 0; ☃x < ☃.size(); ☃x++) {
-         String ☃xx = ☃.get(☃x);
-         if (!Strings.isNullOrEmpty(☃xx)) {
-            int ☃xxx = this.fontRenderer.FONT_HEIGHT;
-            int ☃xxxx = this.fontRenderer.getStringWidth(☃xx);
-            int ☃xxxxx = 2;
-            int ☃xxxxxx = 2 + ☃xxx * ☃x;
-            drawRect(1, ☃xxxxxx - 1, 2 + ☃xxxx + 1, ☃xxxxxx + ☃xxx - 1, -1873784752);
-            this.fontRenderer.drawString(☃xx, 2, ☃xxxxxx, 14737632);
+      for (int i = 0; i < list.size(); i++) {
+         String s = list.get(i);
+         if (!Strings.isNullOrEmpty(s)) {
+            int j = this.fontRenderer.FONT_HEIGHT;
+            int k = this.fontRenderer.getStringWidth(s);
+            int l = 2;
+            int i1 = 2 + j * i;
+            drawRect(1, i1 - 1, 2 + k + 1, i1 + j - 1, -1873784752);
+            this.fontRenderer.drawString(s, 2, i1, 14737632);
          }
       }
    }
 
-   protected void renderDebugInfoRight(ScaledResolution var1) {
-      List<String> ☃ = this.getDebugInfoRight();
+   protected void renderDebugInfoRight(ScaledResolution scaledRes) {
+      List<String> list = this.debugInfoRight;
+      if (list == null || System.currentTimeMillis() > this.updateInfoRightTimeMs) {
+         list = this.getDebugInfoRight();
+         this.debugInfoRight = list;
+         this.updateInfoRightTimeMs = System.currentTimeMillis() + 100L;
+      }
 
-      for (int ☃x = 0; ☃x < ☃.size(); ☃x++) {
-         String ☃xx = ☃.get(☃x);
-         if (!Strings.isNullOrEmpty(☃xx)) {
-            int ☃xxx = this.fontRenderer.FONT_HEIGHT;
-            int ☃xxxx = this.fontRenderer.getStringWidth(☃xx);
-            int ☃xxxxx = ☃.getScaledWidth() - 2 - ☃xxxx;
-            int ☃xxxxxx = 2 + ☃xxx * ☃x;
-            drawRect(☃xxxxx - 1, ☃xxxxxx - 1, ☃xxxxx + ☃xxxx + 1, ☃xxxxxx + ☃xxx - 1, -1873784752);
-            this.fontRenderer.drawString(☃xx, ☃xxxxx, ☃xxxxxx, 14737632);
+      for (int i = 0; i < list.size(); i++) {
+         String s = list.get(i);
+         if (!Strings.isNullOrEmpty(s)) {
+            int j = this.fontRenderer.FONT_HEIGHT;
+            int k = this.fontRenderer.getStringWidth(s);
+            int l = scaledRes.getScaledWidth() - 2 - k;
+            int i1 = 2 + j * i;
+            drawRect(l - 1, i1 - 1, l + k + 1, i1 + j - 1, -1873784752);
+            this.fontRenderer.drawString(s, l, i1, 14737632);
          }
       }
    }
 
    protected List<String> call() {
-      BlockPos ☃ = new BlockPos(
+      BlockPos blockpos = new BlockPos(
          this.mc.getRenderViewEntity().posX, this.mc.getRenderViewEntity().getEntityBoundingBox().minY, this.mc.getRenderViewEntity().posZ
       );
+      if (this.mc.debug != this.debugOF) {
+         StringBuffer sb = new StringBuffer(this.mc.debug);
+         int fpsMin = Config.getFpsMin();
+         int posFps = this.mc.debug.indexOf(" fps ");
+         if (posFps >= 0) {
+            sb.insert(posFps, "/" + fpsMin);
+         }
+
+         if (Config.isSmoothFps()) {
+            sb.append(" sf");
+         }
+
+         if (Config.isFastRender()) {
+            sb.append(" fr");
+         }
+
+         if (Config.isAnisotropicFiltering()) {
+            sb.append(" af");
+         }
+
+         if (Config.isAntialiasing()) {
+            sb.append(" aa");
+         }
+
+         if (Config.isRenderRegions()) {
+            sb.append(" reg");
+         }
+
+         if (Config.isShaders()) {
+            sb.append(" sh");
+         }
+
+         this.mc.debug = sb.toString();
+         this.debugOF = this.mc.debug;
+      }
+
+      StringBuilder sbx = new StringBuilder();
+      TextureMap tm = Config.getTextureMap();
+      sbx.append(", A: ");
+      if (SmartAnimations.isActive()) {
+         sbx.append(tm.getCountAnimationsActive() + TextureAnimations.getCountAnimationsActive());
+         sbx.append("/");
+      }
+
+      sbx.append(tm.getCountAnimations() + TextureAnimations.getCountAnimations());
+      String ofInfo = sbx.toString();
       if (this.mc.isReducedDebug()) {
          return Lists.newArrayList(
             new String[]{
@@ -99,31 +166,31 @@ public class GuiOverlayDebug extends Gui {
                this.mc.debug,
                this.mc.renderGlobal.getDebugInfoRenders(),
                this.mc.renderGlobal.getDebugInfoEntities(),
-               "P: " + this.mc.effectRenderer.getStatistics() + ". T: " + this.mc.world.getDebugLoadedEntities(),
+               "P: " + this.mc.effectRenderer.getStatistics() + ". T: " + this.mc.world.getDebugLoadedEntities() + ofInfo,
                this.mc.world.getProviderName(),
                "",
-               String.format("Chunk-relative: %d %d %d", ☃.getX() & 15, ☃.getY() & 15, ☃.getZ() & 15)
+               String.format("Chunk-relative: %d %d %d", blockpos.getX() & 15, blockpos.getY() & 15, blockpos.getZ() & 15)
             }
          );
       } else {
-         Entity ☃x = this.mc.getRenderViewEntity();
-         EnumFacing ☃xx = ☃x.getHorizontalFacing();
-         String ☃xxx = "Invalid";
-         switch (☃xx) {
+         Entity entity = this.mc.getRenderViewEntity();
+         EnumFacing enumfacing = entity.getHorizontalFacing();
+         String s = "Invalid";
+         switch (enumfacing) {
             case NORTH:
-               ☃xxx = "Towards negative Z";
+               s = "Towards negative Z";
                break;
             case SOUTH:
-               ☃xxx = "Towards positive Z";
+               s = "Towards positive Z";
                break;
             case WEST:
-               ☃xxx = "Towards negative X";
+               s = "Towards negative X";
                break;
             case EAST:
-               ☃xxx = "Towards positive X";
+               s = "Towards positive X";
          }
 
-         List<String> ☃x = Lists.newArrayList(
+         List<String> list = Lists.newArrayList(
             new String[]{
                "Minecraft 1.12.2 ("
                   + this.mc.getVersion()
@@ -134,7 +201,7 @@ public class GuiOverlayDebug extends Gui {
                this.mc.debug,
                this.mc.renderGlobal.getDebugInfoRenders(),
                this.mc.renderGlobal.getDebugInfoEntities(),
-               "P: " + this.mc.effectRenderer.getStatistics() + ". T: " + this.mc.world.getDebugLoadedEntities(),
+               "P: " + this.mc.effectRenderer.getStatistics() + ". T: " + this.mc.world.getDebugLoadedEntities() + ofInfo,
                this.mc.world.getProviderName(),
                "",
                String.format(
@@ -143,72 +210,83 @@ public class GuiOverlayDebug extends Gui {
                   this.mc.getRenderViewEntity().getEntityBoundingBox().minY,
                   this.mc.getRenderViewEntity().posZ
                ),
-               String.format("Block: %d %d %d", ☃.getX(), ☃.getY(), ☃.getZ()),
-               String.format("Chunk: %d %d %d in %d %d %d", ☃.getX() & 15, ☃.getY() & 15, ☃.getZ() & 15, ☃.getX() >> 4, ☃.getY() >> 4, ☃.getZ() >> 4),
-               String.format("Facing: %s (%s) (%.1f / %.1f)", ☃xx, ☃xxx, MathHelper.wrapDegrees(☃x.rotationYaw), MathHelper.wrapDegrees(☃x.rotationPitch))
+               String.format("Block: %d %d %d", blockpos.getX(), blockpos.getY(), blockpos.getZ()),
+               String.format(
+                  "Chunk: %d %d %d in %d %d %d",
+                  blockpos.getX() & 15,
+                  blockpos.getY() & 15,
+                  blockpos.getZ() & 15,
+                  blockpos.getX() >> 4,
+                  blockpos.getY() >> 4,
+                  blockpos.getZ() >> 4
+               ),
+               String.format(
+                  "Facing: %s (%s) (%.1f / %.1f)", enumfacing, s, MathHelper.wrapDegrees(entity.rotationYaw), MathHelper.wrapDegrees(entity.rotationPitch)
+               )
             }
          );
          if (this.mc.world != null) {
-            Chunk ☃xx = this.mc.world.getChunk(☃);
-            if (!this.mc.world.isBlockLoaded(☃) || ☃.getY() < 0 || ☃.getY() >= 256) {
-               ☃x.add("Outside of world...");
-            } else if (!☃xx.isEmpty()) {
-               ☃x.add("Biome: " + ☃xx.getBiome(☃, this.mc.world.getBiomeProvider()).getBiomeName());
-               ☃x.add(
+            Chunk chunk = this.mc.world.getChunk(blockpos);
+            if (!this.mc.world.isBlockLoaded(blockpos) || blockpos.getY() < 0 || blockpos.getY() >= 256) {
+               list.add("Outside of world...");
+            } else if (!chunk.isEmpty()) {
+               list.add("Biome: " + chunk.getBiome(blockpos, this.mc.world.getBiomeProvider()).getBiomeName());
+               list.add(
                   "Light: "
-                     + ☃xx.getLightSubtracted(☃, 0)
+                     + chunk.getLightSubtracted(blockpos, 0)
                      + " ("
-                     + ☃xx.getLightFor(EnumSkyBlock.SKY, ☃)
+                     + chunk.getLightFor(EnumSkyBlock.SKY, blockpos)
                      + " sky, "
-                     + ☃xx.getLightFor(EnumSkyBlock.BLOCK, ☃)
+                     + chunk.getLightFor(EnumSkyBlock.BLOCK, blockpos)
                      + " block)"
                );
-               DifficultyInstance ☃xxx = this.mc.world.getDifficultyForLocation(☃);
+               DifficultyInstance difficultyinstance = this.mc.world.getDifficultyForLocation(blockpos);
                if (this.mc.isIntegratedServerRunning() && this.mc.getIntegratedServer() != null) {
-                  EntityPlayerMP ☃xxxx = this.mc.getIntegratedServer().getPlayerList().getPlayerByUUID(this.mc.player.getUniqueID());
-                  if (☃xxxx != null) {
-                     ☃xxx = ☃xxxx.world.getDifficultyForLocation(new BlockPos(☃xxxx));
+                  EntityPlayerMP entityplayermp = this.mc.getIntegratedServer().getPlayerList().getPlayerByUUID(this.mc.player.getUniqueID());
+                  if (entityplayermp != null) {
+                     DifficultyInstance difficultyServer = this.mc.getIntegratedServer().getDifficultyAsync(entityplayermp.world, new BlockPos(entityplayermp));
+                     if (difficultyServer != null) {
+                        difficultyinstance = difficultyServer;
+                     }
                   }
                }
 
-               ☃x.add(
+               list.add(
                   String.format(
                      "Local Difficulty: %.2f // %.2f (Day %d)",
-                     ☃xxx.getAdditionalDifficulty(),
-                     ☃xxx.getClampedAdditionalDifficulty(),
+                     difficultyinstance.getAdditionalDifficulty(),
+                     difficultyinstance.getClampedAdditionalDifficulty(),
                      this.mc.world.getWorldTime() / 24000L
                   )
                );
             } else {
-               ☃x.add("Waiting for chunk...");
+               list.add("Waiting for chunk...");
             }
          }
 
          if (this.mc.entityRenderer != null && this.mc.entityRenderer.isShaderActive()) {
-            ☃x.add("Shader: " + this.mc.entityRenderer.getShaderGroup().getShaderGroupName());
+            list.add("Shader: " + this.mc.entityRenderer.getShaderGroup().getShaderGroupName());
          }
 
-         if (this.mc.objectMouseOver != null && this.mc.objectMouseOver.typeOfHit == RayTraceResult.Type.BLOCK && this.mc.objectMouseOver.getBlockPos() != null
-            )
-          {
-            BlockPos ☃xx = this.mc.objectMouseOver.getBlockPos();
-            ☃x.add(String.format("Looking at: %d %d %d", ☃xx.getX(), ☃xx.getY(), ☃xx.getZ()));
+         if (this.mc.objectMouseOver != null && this.mc.objectMouseOver.typeOfHit == Type.BLOCK && this.mc.objectMouseOver.getBlockPos() != null) {
+            BlockPos blockpos1 = this.mc.objectMouseOver.getBlockPos();
+            list.add(String.format("Looking at: %d %d %d", blockpos1.getX(), blockpos1.getY(), blockpos1.getZ()));
          }
 
-         return ☃x;
+         return list;
       }
    }
 
    protected <T extends Comparable<T>> List<String> getDebugInfoRight() {
-      long ☃ = Runtime.getRuntime().maxMemory();
-      long ☃x = Runtime.getRuntime().totalMemory();
-      long ☃xx = Runtime.getRuntime().freeMemory();
-      long ☃xxx = ☃x - ☃xx;
-      List<String> ☃xxxx = Lists.newArrayList(
+      long i = Runtime.getRuntime().maxMemory();
+      long j = Runtime.getRuntime().totalMemory();
+      long k = Runtime.getRuntime().freeMemory();
+      long l = j - k;
+      List<String> list = Lists.newArrayList(
          new String[]{
             String.format("Java: %s %dbit", System.getProperty("java.version"), this.mc.isJava64bit() ? 64 : 32),
-            String.format("Mem: % 2d%% %03d/%03dMB", ☃xxx * 100L / ☃, bytesToMb(☃xxx), bytesToMb(☃)),
-            String.format("Allocated: % 2d%% %03dMB", ☃x * 100L / ☃, bytesToMb(☃x)),
+            String.format("Mem: % 2d%% %03d/%03dMB", l * 100L / i, bytesToMb(l), bytesToMb(i)),
+            String.format("Allocated: % 2d%% %03dMB", j * 100L / i, bytesToMb(j)),
             "",
             String.format("CPU: %s", OpenGlHelper.getCpu()),
             "",
@@ -217,97 +295,76 @@ public class GuiOverlayDebug extends Gui {
             GlStateManager.glGetString(7938)
          }
       );
+      long bufferAllocated = NativeMemory.getBufferAllocated();
+      long bufferMaximum = NativeMemory.getBufferMaximum();
+      String strNative = "Native: " + bytesToMb(bufferAllocated) + "/" + bytesToMb(bufferMaximum) + "MB";
+      list.add(4, strNative);
+      list.set(5, "GC: " + MemoryMonitor.getAllocationRateMb() + "MB/s");
+      if (Reflector.FMLCommonHandler_getBrandings.exists()) {
+         Object instance = Reflector.call(Reflector.FMLCommonHandler_instance, new Object[0]);
+         list.add("");
+         list.addAll((Collection<? extends String>)Reflector.call(instance, Reflector.FMLCommonHandler_getBrandings, new Object[]{false}));
+      }
+
       if (this.mc.isReducedDebug()) {
-         return ☃xxxx;
+         return list;
       } else {
-         if (this.mc.objectMouseOver != null && this.mc.objectMouseOver.typeOfHit == RayTraceResult.Type.BLOCK && this.mc.objectMouseOver.getBlockPos() != null
-            )
-          {
-            BlockPos ☃xxxxx = this.mc.objectMouseOver.getBlockPos();
-            IBlockState ☃xxxxxx = this.mc.world.getBlockState(☃xxxxx);
+         if (this.mc.objectMouseOver != null && this.mc.objectMouseOver.typeOfHit == Type.BLOCK && this.mc.objectMouseOver.getBlockPos() != null) {
+            BlockPos blockpos = this.mc.objectMouseOver.getBlockPos();
+            IBlockState iblockstate = this.mc.world.getBlockState(blockpos);
             if (this.mc.world.getWorldType() != WorldType.DEBUG_ALL_BLOCK_STATES) {
-               ☃xxxxxx = ☃xxxxxx.getActualState(this.mc.world, ☃xxxxx);
+               iblockstate = iblockstate.c(this.mc.world, blockpos);
             }
 
-            ☃xxxx.add("");
-            ☃xxxx.add(String.valueOf(Block.REGISTRY.getNameForObject(☃xxxxxx.getBlock())));
-            UnmodifiableIterator var12 = ☃xxxxxx.getProperties().entrySet().iterator();
+            list.add("");
+            list.add(String.valueOf(Block.REGISTRY.getNameForObject(iblockstate.getBlock())));
+            UnmodifiableIterator unmodifiableiterator = iblockstate.getProperties().entrySet().iterator();
 
-            while (var12.hasNext()) {
-               Entry<IProperty<?>, Comparable<?>> ☃xxxxxxx = (Entry<IProperty<?>, Comparable<?>>)var12.next();
-               IProperty<T> ☃xxxxxxxx = (IProperty<T>)☃xxxxxxx.getKey();
-               T ☃xxxxxxxxx = (T)☃xxxxxxx.getValue();
-               String ☃xxxxxxxxxx = ☃xxxxxxxx.getName(☃xxxxxxxxx);
-               if (Boolean.TRUE.equals(☃xxxxxxxxx)) {
-                  ☃xxxxxxxxxx = TextFormatting.GREEN + ☃xxxxxxxxxx;
-               } else if (Boolean.FALSE.equals(☃xxxxxxxxx)) {
-                  ☃xxxxxxxxxx = TextFormatting.RED + ☃xxxxxxxxxx;
+            while (unmodifiableiterator.hasNext()) {
+               Entry<IProperty<?>, Comparable<?>> entry = (Entry<IProperty<?>, Comparable<?>>)unmodifiableiterator.next();
+               IProperty<T> iproperty = (IProperty<T>)entry.getKey();
+               T t = (T)entry.getValue();
+               String s = iproperty.getName(t);
+               if (Boolean.TRUE.equals(t)) {
+                  s = TextFormatting.GREEN + s;
+               } else if (Boolean.FALSE.equals(t)) {
+                  s = TextFormatting.RED + s;
                }
 
-               ☃xxxx.add(☃xxxxxxxx.getName() + ": " + ☃xxxxxxxxxx);
+               list.add(iproperty.getName() + ": " + s);
             }
          }
 
-         return ☃xxxx;
+         return list;
       }
    }
 
    private void renderLagometer() {
-      GlStateManager.disableDepth();
-      FrameTimer ☃ = this.mc.getFrameTimer();
-      int ☃x = ☃.getLastIndex();
-      int ☃xx = ☃.getIndex();
-      long[] ☃xxx = ☃.getFrames();
-      ScaledResolution ☃xxxx = new ScaledResolution(this.mc);
-      int ☃xxxxx = ☃x;
-      int ☃xxxxxx = 0;
-      drawRect(0, ☃xxxx.getScaledHeight() - 60, 240, ☃xxxx.getScaledHeight(), -1873784752);
-
-      while (☃xxxxx != ☃xx) {
-         int ☃xxxxxxx = ☃.getLagometerValue(☃xxx[☃xxxxx], 30);
-         int ☃xxxxxxxx = this.getFrameColor(MathHelper.clamp(☃xxxxxxx, 0, 60), 0, 30, 60);
-         this.drawVerticalLine(☃xxxxxx, ☃xxxx.getScaledHeight(), ☃xxxx.getScaledHeight() - ☃xxxxxxx, ☃xxxxxxxx);
-         ☃xxxxxx++;
-         ☃xxxxx = ☃.parseIndex(☃xxxxx + 1);
-      }
-
-      drawRect(1, ☃xxxx.getScaledHeight() - 30 + 1, 14, ☃xxxx.getScaledHeight() - 30 + 10, -1873784752);
-      this.fontRenderer.drawString("60", 2, ☃xxxx.getScaledHeight() - 30 + 2, 14737632);
-      this.drawHorizontalLine(0, 239, ☃xxxx.getScaledHeight() - 30, -1);
-      drawRect(1, ☃xxxx.getScaledHeight() - 60 + 1, 14, ☃xxxx.getScaledHeight() - 60 + 10, -1873784752);
-      this.fontRenderer.drawString("30", 2, ☃xxxx.getScaledHeight() - 60 + 2, 14737632);
-      this.drawHorizontalLine(0, 239, ☃xxxx.getScaledHeight() - 60, -1);
-      this.drawHorizontalLine(0, 239, ☃xxxx.getScaledHeight() - 1, -1);
-      this.drawVerticalLine(0, ☃xxxx.getScaledHeight() - 60, ☃xxxx.getScaledHeight(), -1);
-      this.drawVerticalLine(239, ☃xxxx.getScaledHeight() - 60, ☃xxxx.getScaledHeight(), -1);
-      if (this.mc.gameSettings.limitFramerate <= 120) {
-         this.drawHorizontalLine(0, 239, ☃xxxx.getScaledHeight() - 60 + this.mc.gameSettings.limitFramerate / 2, -16711681);
-      }
-
-      GlStateManager.enableDepth();
    }
 
-   private int getFrameColor(int var1, int var2, int var3, int var4) {
-      return ☃ < ☃ ? this.blendColors(-16711936, -256, (float)☃ / ☃) : this.blendColors(-256, -65536, (float)(☃ - ☃) / (☃ - ☃));
+   private int getFrameColor(int p_181552_1_, int p_181552_2_, int p_181552_3_, int p_181552_4_) {
+      return p_181552_1_ < p_181552_3_
+         ? this.blendColors(-16711936, -256, (float)p_181552_1_ / p_181552_3_)
+         : this.blendColors(-256, -65536, (float)(p_181552_1_ - p_181552_3_) / (p_181552_4_ - p_181552_3_));
    }
 
-   private int blendColors(int var1, int var2, float var3) {
-      int ☃ = ☃ >> 24 & 0xFF;
-      int ☃x = ☃ >> 16 & 0xFF;
-      int ☃xx = ☃ >> 8 & 0xFF;
-      int ☃xxx = ☃ & 0xFF;
-      int ☃xxxx = ☃ >> 24 & 0xFF;
-      int ☃xxxxx = ☃ >> 16 & 0xFF;
-      int ☃xxxxxx = ☃ >> 8 & 0xFF;
-      int ☃xxxxxxx = ☃ & 0xFF;
-      int ☃xxxxxxxx = MathHelper.clamp((int)(☃ + (☃xxxx - ☃) * ☃), 0, 255);
-      int ☃xxxxxxxxx = MathHelper.clamp((int)(☃x + (☃xxxxx - ☃x) * ☃), 0, 255);
-      int ☃xxxxxxxxxx = MathHelper.clamp((int)(☃xx + (☃xxxxxx - ☃xx) * ☃), 0, 255);
-      int ☃xxxxxxxxxxx = MathHelper.clamp((int)(☃xxx + (☃xxxxxxx - ☃xxx) * ☃), 0, 255);
-      return ☃xxxxxxxx << 24 | ☃xxxxxxxxx << 16 | ☃xxxxxxxxxx << 8 | ☃xxxxxxxxxxx;
+   private int blendColors(int p_181553_1_, int p_181553_2_, float p_181553_3_) {
+      int i = p_181553_1_ >> 24 & 0xFF;
+      int j = p_181553_1_ >> 16 & 0xFF;
+      int k = p_181553_1_ >> 8 & 0xFF;
+      int l = p_181553_1_ & 0xFF;
+      int i1 = p_181553_2_ >> 24 & 0xFF;
+      int j1 = p_181553_2_ >> 16 & 0xFF;
+      int k1 = p_181553_2_ >> 8 & 0xFF;
+      int l1 = p_181553_2_ & 0xFF;
+      int i2 = MathHelper.clamp((int)(i + (i1 - i) * p_181553_3_), 0, 255);
+      int j2 = MathHelper.clamp((int)(j + (j1 - j) * p_181553_3_), 0, 255);
+      int k2 = MathHelper.clamp((int)(k + (k1 - k) * p_181553_3_), 0, 255);
+      int l2 = MathHelper.clamp((int)(l + (l1 - l) * p_181553_3_), 0, 255);
+      return i2 << 24 | j2 << 16 | k2 << 8 | l2;
    }
 
-   private static long bytesToMb(long var0) {
-      return ☃ / 1024L / 1024L;
+   private static long bytesToMb(long bytes) {
+      return bytes / 1024L / 1024L;
    }
 }

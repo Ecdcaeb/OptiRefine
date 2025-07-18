@@ -6,6 +6,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
+import net.minecraft.client.renderer.GlStateManager;
+import net.optifine.Lagometer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -16,116 +18,165 @@ public class Profiler {
    public boolean profilingEnabled;
    private String profilingSection = "";
    private final Map<String, Long> profilingMap = Maps.newHashMap();
+   public boolean profilerGlobalEnabled = true;
+   private boolean profilerLocalEnabled = this.profilerGlobalEnabled;
+   private static final String SCHEDULED_EXECUTABLES = "scheduledExecutables";
+   private static final String TICK = "tick";
+   private static final String PRE_RENDER_ERRORS = "preRenderErrors";
+   private static final String RENDER = "render";
+   private static final String DISPLAY = "display";
+   private static final int HASH_SCHEDULED_EXECUTABLES = "scheduledExecutables".hashCode();
+   private static final int HASH_TICK = "tick".hashCode();
+   private static final int HASH_PRE_RENDER_ERRORS = "preRenderErrors".hashCode();
+   private static final int HASH_RENDER = "render".hashCode();
+   private static final int HASH_DISPLAY = "display".hashCode();
 
    public void clearProfiling() {
       this.profilingMap.clear();
       this.profilingSection = "";
       this.sectionList.clear();
+      this.profilerLocalEnabled = this.profilerGlobalEnabled;
    }
 
-   public void startSection(String var1) {
-      if (this.profilingEnabled) {
-         if (!this.profilingSection.isEmpty()) {
-            this.profilingSection = this.profilingSection + ".";
+   public void startSection(String name) {
+      if (Lagometer.isActive()) {
+         int hashName = name.hashCode();
+         if (hashName == HASH_SCHEDULED_EXECUTABLES && name.equals("scheduledExecutables")) {
+            Lagometer.timerScheduledExecutables.start();
+         } else if (hashName == HASH_TICK && name.equals("tick") && Config.isMinecraftThread()) {
+            Lagometer.timerScheduledExecutables.end();
+            Lagometer.timerTick.start();
+         } else if (hashName == HASH_PRE_RENDER_ERRORS && name.equals("preRenderErrors")) {
+            Lagometer.timerTick.end();
          }
+      }
 
-         this.profilingSection = this.profilingSection + ☃;
-         this.sectionList.add(this.profilingSection);
-         this.timestampList.add(System.nanoTime());
+      if (Config.isFastRender()) {
+         int hashName = name.hashCode();
+         if (hashName == HASH_RENDER && name.equals("render")) {
+            GlStateManager.clearEnabled = false;
+         } else if (hashName == HASH_DISPLAY && name.equals("display")) {
+            GlStateManager.clearEnabled = true;
+         }
+      }
+
+      if (this.profilerLocalEnabled) {
+         if (this.profilingEnabled) {
+            if (!this.profilingSection.isEmpty()) {
+               this.profilingSection = this.profilingSection + ".";
+            }
+
+            this.profilingSection = this.profilingSection + name;
+            this.sectionList.add(this.profilingSection);
+            this.timestampList.add(System.nanoTime());
+         }
       }
    }
 
-   public void func_194340_a(Supplier<String> var1) {
-      if (this.profilingEnabled) {
-         this.startSection(☃.get());
+   public void func_194340_a(Supplier<String> p_194340_1_) {
+      if (this.profilerLocalEnabled) {
+         if (this.profilingEnabled) {
+            this.startSection(p_194340_1_.get());
+         }
       }
    }
 
    public void endSection() {
-      if (this.profilingEnabled) {
-         long ☃ = System.nanoTime();
-         long ☃x = this.timestampList.remove(this.timestampList.size() - 1);
-         this.sectionList.remove(this.sectionList.size() - 1);
-         long ☃xx = ☃ - ☃x;
-         if (this.profilingMap.containsKey(this.profilingSection)) {
-            this.profilingMap.put(this.profilingSection, this.profilingMap.get(this.profilingSection) + ☃xx);
-         } else {
-            this.profilingMap.put(this.profilingSection, ☃xx);
-         }
+      if (this.profilerLocalEnabled) {
+         if (this.profilingEnabled) {
+            long i = System.nanoTime();
+            long j = this.timestampList.remove(this.timestampList.size() - 1);
+            this.sectionList.remove(this.sectionList.size() - 1);
+            long k = i - j;
+            if (this.profilingMap.containsKey(this.profilingSection)) {
+               this.profilingMap.put(this.profilingSection, this.profilingMap.get(this.profilingSection) + k);
+            } else {
+               this.profilingMap.put(this.profilingSection, k);
+            }
 
-         if (☃xx > 100000000L) {
-            LOGGER.warn("Something's taking too long! '{}' took aprox {} ms", this.profilingSection, ☃xx / 1000000.0);
-         }
+            if (k > 100000000L) {
+               LOGGER.warn("Something's taking too long! '{}' took aprox {} ms", this.profilingSection, k / 1000000.0);
+            }
 
-         this.profilingSection = this.sectionList.isEmpty() ? "" : this.sectionList.get(this.sectionList.size() - 1);
+            this.profilingSection = this.sectionList.isEmpty() ? "" : this.sectionList.get(this.sectionList.size() - 1);
+         }
       }
    }
 
-   public List<Profiler.Result> getProfilingData(String var1) {
+   public List<Profiler.Result> getProfilingData(String profilerName) {
       if (!this.profilingEnabled) {
          return Collections.emptyList();
       } else {
-         String ☃ = ☃;
-         long ☃x = this.profilingMap.containsKey("root") ? this.profilingMap.get("root") : 0L;
-         long ☃xx = this.profilingMap.containsKey(☃) ? this.profilingMap.get(☃) : -1L;
-         List<Profiler.Result> ☃xxx = Lists.newArrayList();
-         if (!☃.isEmpty()) {
-            ☃ = ☃ + ".";
+         long i = this.profilingMap.containsKey("root") ? this.profilingMap.get("root") : 0L;
+         long j = this.profilingMap.containsKey(profilerName) ? this.profilingMap.get(profilerName) : -1L;
+         List<Profiler.Result> list = Lists.newArrayList();
+         if (!profilerName.isEmpty()) {
+            profilerName = profilerName + ".";
          }
 
-         long ☃xxxx = 0L;
+         long k = 0L;
 
-         for (String ☃xxxxx : this.profilingMap.keySet()) {
-            if (☃xxxxx.length() > ☃.length() && ☃xxxxx.startsWith(☃) && ☃xxxxx.indexOf(".", ☃.length() + 1) < 0) {
-               ☃xxxx += this.profilingMap.get(☃xxxxx);
+         for (String s : this.profilingMap.keySet()) {
+            if (s.length() > profilerName.length() && s.startsWith(profilerName) && s.indexOf(".", profilerName.length() + 1) < 0) {
+               k += this.profilingMap.get(s);
             }
          }
 
-         float ☃xxxxxx = (float)☃xxxx;
-         if (☃xxxx < ☃xx) {
-            ☃xxxx = ☃xx;
+         float f = (float)k;
+         if (k < j) {
+            k = j;
          }
 
-         if (☃x < ☃xxxx) {
-            ☃x = ☃xxxx;
+         if (i < k) {
+            i = k;
          }
 
-         for (String ☃xxxxxxx : this.profilingMap.keySet()) {
-            if (☃xxxxxxx.length() > ☃.length() && ☃xxxxxxx.startsWith(☃) && ☃xxxxxxx.indexOf(".", ☃.length() + 1) < 0) {
-               long ☃xxxxxxxx = this.profilingMap.get(☃xxxxxxx);
-               double ☃xxxxxxxxx = ☃xxxxxxxx * 100.0 / ☃xxxx;
-               double ☃xxxxxxxxxx = ☃xxxxxxxx * 100.0 / ☃x;
-               String ☃xxxxxxxxxxx = ☃xxxxxxx.substring(☃.length());
-               ☃xxx.add(new Profiler.Result(☃xxxxxxxxxxx, ☃xxxxxxxxx, ☃xxxxxxxxxx));
+         for (String s1 : this.profilingMap.keySet()) {
+            if (s1.length() > profilerName.length() && s1.startsWith(profilerName) && s1.indexOf(".", profilerName.length() + 1) < 0) {
+               long l = this.profilingMap.get(s1);
+               double d0 = l * 100.0 / k;
+               double d1 = l * 100.0 / i;
+               String s2 = s1.substring(profilerName.length());
+               list.add(new Profiler.Result(s2, d0, d1));
             }
          }
 
-         for (String ☃xxxxxxxx : this.profilingMap.keySet()) {
-            this.profilingMap.put(☃xxxxxxxx, this.profilingMap.get(☃xxxxxxxx) * 999L / 1000L);
+         for (String s3 : this.profilingMap.keySet()) {
+            this.profilingMap.put(s3, this.profilingMap.get(s3) * 950L / 1000L);
          }
 
-         if ((float)☃xxxx > ☃xxxxxx) {
-            ☃xxx.add(new Profiler.Result("unspecified", ((float)☃xxxx - ☃xxxxxx) * 100.0 / ☃xxxx, ((float)☃xxxx - ☃xxxxxx) * 100.0 / ☃x));
+         if ((float)k > f) {
+            list.add(new Profiler.Result("unspecified", ((float)k - f) * 100.0 / k, ((float)k - f) * 100.0 / i));
          }
 
-         Collections.sort(☃xxx);
-         ☃xxx.add(0, new Profiler.Result(☃, 100.0, ☃xxxx * 100.0 / ☃x));
-         return ☃xxx;
+         Collections.sort(list);
+         list.add(0, new Profiler.Result(profilerName, 100.0, k * 100.0 / i));
+         return list;
       }
    }
 
-   public void endStartSection(String var1) {
-      this.endSection();
-      this.startSection(☃);
+   public void endStartSection(String name) {
+      if (this.profilerLocalEnabled) {
+         this.endSection();
+         this.startSection(name);
+      }
    }
 
-   public void func_194339_b(Supplier<String> var1) {
-      this.endSection();
-      this.func_194340_a(☃);
+   public void func_194339_b(Supplier<String> p_194339_1_) {
+      if (this.profilerLocalEnabled) {
+         this.endSection();
+         this.func_194340_a(p_194339_1_);
+      }
    }
 
    public String getNameOfLastSection() {
       return this.sectionList.isEmpty() ? "[UNKNOWN]" : this.sectionList.get(this.sectionList.size() - 1);
+   }
+
+   public void startSection(Class<?> profiledClass) {
+      if (this.profilingEnabled) {
+         this.startSection(profiledClass.getSimpleName());
+      }
    }
 
    public static final class Result implements Comparable<Profiler.Result> {
@@ -133,17 +184,17 @@ public class Profiler {
       public double totalUsePercentage;
       public String profilerName;
 
-      public Result(String var1, double var2, double var4) {
-         this.profilerName = ☃;
-         this.usePercentage = ☃;
-         this.totalUsePercentage = ☃;
+      public Result(String profilerName, double usePercentage, double totalUsePercentage) {
+         this.profilerName = profilerName;
+         this.usePercentage = usePercentage;
+         this.totalUsePercentage = totalUsePercentage;
       }
 
-      public int compareTo(Profiler.Result var1) {
-         if (☃.usePercentage < this.usePercentage) {
+      public int compareTo(Profiler.Result p_compareTo_1_) {
+         if (p_compareTo_1_.usePercentage < this.usePercentage) {
             return -1;
          } else {
-            return ☃.usePercentage > this.usePercentage ? 1 : ☃.profilerName.compareTo(this.profilerName);
+            return p_compareTo_1_.usePercentage > this.usePercentage ? 1 : p_compareTo_1_.profilerName.compareTo(this.profilerName);
          }
       }
 

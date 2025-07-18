@@ -3,14 +3,19 @@ package net.minecraft.client.renderer.vertex;
 import java.nio.ByteBuffer;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
+import net.optifine.render.VboRange;
+import net.optifine.render.VboRegion;
 
 public class VertexBuffer {
    private int glBufferId;
    private final VertexFormat vertexFormat;
    private int count;
+   private VboRegion vboRegion;
+   private VboRange vboRange;
+   private int drawMode;
 
-   public VertexBuffer(VertexFormat var1) {
-      this.vertexFormat = ☃;
+   public VertexBuffer(VertexFormat vertexFormatIn) {
+      this.vertexFormat = vertexFormatIn;
       this.glBufferId = OpenGlHelper.glGenBuffers();
    }
 
@@ -18,15 +23,27 @@ public class VertexBuffer {
       OpenGlHelper.glBindBuffer(OpenGlHelper.GL_ARRAY_BUFFER, this.glBufferId);
    }
 
-   public void bufferData(ByteBuffer var1) {
-      this.bindBuffer();
-      OpenGlHelper.glBufferData(OpenGlHelper.GL_ARRAY_BUFFER, ☃, 35044);
-      this.unbindBuffer();
-      this.count = ☃.limit() / this.vertexFormat.getSize();
+   public void bufferData(ByteBuffer data) {
+      if (this.vboRegion != null) {
+         this.vboRegion.bufferData(data, this.vboRange);
+      } else {
+         this.bindBuffer();
+         OpenGlHelper.glBufferData(OpenGlHelper.GL_ARRAY_BUFFER, data, 35044);
+         this.unbindBuffer();
+         this.count = data.limit() / this.vertexFormat.getSize();
+      }
    }
 
-   public void drawArrays(int var1) {
-      GlStateManager.glDrawArrays(☃, 0, this.count);
+   public void drawArrays(int mode) {
+      if (this.drawMode > 0) {
+         mode = this.drawMode;
+      }
+
+      if (this.vboRegion != null) {
+         this.vboRegion.drawArrays(mode, this.vboRange);
+      } else {
+         GlStateManager.glDrawArrays(mode, 0, this.count);
+      }
    }
 
    public void unbindBuffer() {
@@ -38,5 +55,29 @@ public class VertexBuffer {
          OpenGlHelper.glDeleteBuffers(this.glBufferId);
          this.glBufferId = -1;
       }
+   }
+
+   public void setVboRegion(VboRegion vboRegion) {
+      if (vboRegion != null) {
+         this.deleteGlBuffers();
+         this.vboRegion = vboRegion;
+         this.vboRange = new VboRange();
+      }
+   }
+
+   public VboRegion getVboRegion() {
+      return this.vboRegion;
+   }
+
+   public VboRange getVboRange() {
+      return this.vboRange;
+   }
+
+   public int getDrawMode() {
+      return this.drawMode;
+   }
+
+   public void setDrawMode(int drawMode) {
+      this.drawMode = drawMode;
    }
 }

@@ -1,56 +1,60 @@
 package net.minecraft.world.gen.layer;
 
 public class GenLayerZoom extends GenLayer {
-   public GenLayerZoom(long var1, GenLayer var3) {
-      super(☃);
-      super.parent = ☃;
+   public GenLayerZoom(long p_i2134_1_, GenLayer p_i2134_3_) {
+      super(p_i2134_1_);
+      super.parent = p_i2134_3_;
    }
 
-   @Override
-   public int[] getInts(int var1, int var2, int var3, int var4) {
-      int ☃ = ☃ >> 1;
-      int ☃x = ☃ >> 1;
-      int ☃xx = (☃ >> 1) + 2;
-      int ☃xxx = (☃ >> 1) + 2;
-      int[] ☃xxxx = this.parent.getInts(☃, ☃x, ☃xx, ☃xxx);
-      int ☃xxxxx = ☃xx - 1 << 1;
-      int ☃xxxxxx = ☃xxx - 1 << 1;
-      int[] ☃xxxxxxx = IntCache.getIntCache(☃xxxxx * ☃xxxxxx);
+   public int[] getInts(int areaX, int areaY, int areaWidth, int areaHeight) {
+      int i = areaX >> 1;
+      int j = areaY >> 1;
+      int k = (areaWidth >> 1) + 2;
+      int l = (areaHeight >> 1) + 2;
+      int[] aint = this.parent.getInts(i, j, k, l);
+      int i1 = k - 1 << 1;
+      int j1 = l - 1 << 1;
+      int[] aint1 = IntCache.getIntCache(i1 * j1);
 
-      for (int ☃xxxxxxxx = 0; ☃xxxxxxxx < ☃xxx - 1; ☃xxxxxxxx++) {
-         int ☃xxxxxxxxx = (☃xxxxxxxx << 1) * ☃xxxxx;
-         int ☃xxxxxxxxxx = 0;
-         int ☃xxxxxxxxxxx = ☃xxxx[☃xxxxxxxxxx + 0 + (☃xxxxxxxx + 0) * ☃xx];
+      for (int k1 = 0; k1 < l - 1; k1++) {
+         int l1 = (k1 << 1) * i1;
+         int i2 = 0;
+         int j2 = aint[i2 + 0 + (k1 + 0) * k];
 
-         for (int ☃xxxxxxxxxxxx = ☃xxxx[☃xxxxxxxxxx + 0 + (☃xxxxxxxx + 1) * ☃xx]; ☃xxxxxxxxxx < ☃xx - 1; ☃xxxxxxxxxx++) {
-            this.initChunkSeed(☃xxxxxxxxxx + ☃ << 1, ☃xxxxxxxx + ☃x << 1);
-            int ☃xxxxxxxxxxxxx = ☃xxxx[☃xxxxxxxxxx + 1 + (☃xxxxxxxx + 0) * ☃xx];
-            int ☃xxxxxxxxxxxxxx = ☃xxxx[☃xxxxxxxxxx + 1 + (☃xxxxxxxx + 1) * ☃xx];
-            ☃xxxxxxx[☃xxxxxxxxx] = ☃xxxxxxxxxxx;
-            ☃xxxxxxx[☃xxxxxxxxx++ + ☃xxxxx] = this.selectRandom(new int[]{☃xxxxxxxxxxx, ☃xxxxxxxxxxxx});
-            ☃xxxxxxx[☃xxxxxxxxx] = this.selectRandom(new int[]{☃xxxxxxxxxxx, ☃xxxxxxxxxxxxx});
-            ☃xxxxxxx[☃xxxxxxxxx++ + ☃xxxxx] = this.selectModeOrRandom(☃xxxxxxxxxxx, ☃xxxxxxxxxxxxx, ☃xxxxxxxxxxxx, ☃xxxxxxxxxxxxxx);
-            ☃xxxxxxxxxxx = ☃xxxxxxxxxxxxx;
-            ☃xxxxxxxxxxxx = ☃xxxxxxxxxxxxxx;
+         for (int k2 = aint[i2 + 0 + (k1 + 1) * k]; i2 < k - 1; i2++) {
+            this.initChunkSeed(i2 + i << 1, k1 + j << 1);
+            int l2 = aint[i2 + 1 + (k1 + 0) * k];
+            int i3 = aint[i2 + 1 + (k1 + 1) * k];
+            aint1[l1] = j2;
+            aint1[l1++ + i1] = this.selectRandom2(j2, k2);
+            aint1[l1] = this.selectRandom2(j2, l2);
+            aint1[l1++ + i1] = this.selectModeOrRandom(j2, l2, k2, i3);
+            j2 = l2;
+            k2 = i3;
          }
       }
 
-      int[] ☃xxxxxxxx = IntCache.getIntCache(☃ * ☃);
+      int[] aint2 = IntCache.getIntCache(areaWidth * areaHeight);
 
-      for (int ☃xxxxxxxxx = 0; ☃xxxxxxxxx < ☃; ☃xxxxxxxxx++) {
-         System.arraycopy(☃xxxxxxx, (☃xxxxxxxxx + (☃ & 1)) * ☃xxxxx + (☃ & 1), ☃xxxxxxxx, ☃xxxxxxxxx * ☃, ☃);
+      for (int j3 = 0; j3 < areaHeight; j3++) {
+         System.arraycopy(aint1, (j3 + (areaY & 1)) * i1 + (areaX & 1), aint2, j3 * areaWidth, areaWidth);
       }
 
-      return ☃xxxxxxxx;
+      return aint2;
    }
 
-   public static GenLayer magnify(long var0, GenLayer var2, int var3) {
-      GenLayer ☃ = ☃;
+   public static GenLayer magnify(long p_75915_0_, GenLayer p_75915_2_, int p_75915_3_) {
+      GenLayer genlayer = p_75915_2_;
 
-      for (int ☃x = 0; ☃x < ☃; ☃x++) {
-         ☃ = new GenLayerZoom(☃ + ☃x, ☃);
+      for (int i = 0; i < p_75915_3_; i++) {
+         genlayer = new GenLayerZoom(p_75915_0_ + i, genlayer);
       }
 
-      return ☃;
+      return genlayer;
+   }
+
+   protected int selectRandom2(int i0, int i1) {
+      int index = this.nextInt(2);
+      return index == 0 ? i0 : i1;
    }
 }

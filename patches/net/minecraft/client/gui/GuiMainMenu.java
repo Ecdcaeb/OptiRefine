@@ -1,5 +1,6 @@
 package net.minecraft.client.gui;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Runnables;
 import java.io.BufferedReader;
@@ -29,6 +30,9 @@ import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.WorldServerDemo;
 import net.minecraft.world.storage.ISaveFormat;
 import net.minecraft.world.storage.WorldInfo;
+import net.optifine.CustomPanorama;
+import net.optifine.CustomPanoramaProperties;
+import net.optifine.reflect.Reflector;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -72,32 +76,34 @@ public class GuiMainMenu extends GuiScreen {
    private GuiScreen realmsNotification;
    private int widthCopyright;
    private int widthCopyrightRest;
+   private GuiButton modButton;
+   private GuiScreen modUpdateNotification;
 
    public GuiMainMenu() {
       this.splashText = "missingno";
-      IResource ☃ = null;
+      IResource iresource = null;
 
       try {
-         List<String> ☃x = Lists.newArrayList();
-         ☃ = Minecraft.getMinecraft().getResourceManager().getResource(SPLASH_TEXTS);
-         BufferedReader ☃xx = new BufferedReader(new InputStreamReader(☃.getInputStream(), StandardCharsets.UTF_8));
+         List<String> list = Lists.newArrayList();
+         iresource = Minecraft.getMinecraft().getResourceManager().getResource(SPLASH_TEXTS);
+         BufferedReader bufferedreader = new BufferedReader(new InputStreamReader(iresource.getInputStream(), StandardCharsets.UTF_8));
 
-         String ☃xxx;
-         while ((☃xxx = ☃xx.readLine()) != null) {
-            ☃xxx = ☃xxx.trim();
-            if (!☃xxx.isEmpty()) {
-               ☃x.add(☃xxx);
+         String s;
+         while ((s = bufferedreader.readLine()) != null) {
+            s = s.trim();
+            if (!s.isEmpty()) {
+               list.add(s);
             }
          }
 
-         if (!☃x.isEmpty()) {
+         if (!list.isEmpty()) {
             do {
-               this.splashText = ☃x.get(RANDOM.nextInt(☃x.size()));
+               this.splashText = list.get(RANDOM.nextInt(list.size()));
             } while (this.splashText.hashCode() == 125780783);
          }
       } catch (IOException var8) {
       } finally {
-         IOUtils.closeQuietly(☃);
+         IOUtils.closeQuietly(iresource);
       }
 
       this.minceraftRoll = RANDOM.nextFloat();
@@ -113,63 +119,59 @@ public class GuiMainMenu extends GuiScreen {
       return Minecraft.getMinecraft().gameSettings.getOptionOrdinalValue(GameSettings.Options.REALMS_NOTIFICATIONS) && this.realmsNotification != null;
    }
 
-   @Override
    public void updateScreen() {
       if (this.areRealmsNotificationsEnabled()) {
          this.realmsNotification.updateScreen();
       }
    }
 
-   @Override
    public boolean doesGuiPauseGame() {
       return false;
    }
 
-   @Override
-   protected void keyTyped(char var1, int var2) {
+   protected void keyTyped(char typedChar, int keyCode) throws IOException {
    }
 
-   @Override
    public void initGui() {
       this.viewportTexture = new DynamicTexture(256, 256);
       this.backgroundTexture = this.mc.getTextureManager().getDynamicTextureLocation("background", this.viewportTexture);
       this.widthCopyright = this.fontRenderer.getStringWidth("Copyright Mojang AB. Do not distribute!");
       this.widthCopyrightRest = this.width - this.widthCopyright - 2;
-      Calendar ☃ = Calendar.getInstance();
-      ☃.setTime(new Date());
-      if (☃.get(2) + 1 == 12 && ☃.get(5) == 24) {
+      Calendar calendar = Calendar.getInstance();
+      calendar.setTime(new Date());
+      if (calendar.get(2) + 1 == 12 && calendar.get(5) == 24) {
          this.splashText = "Merry X-mas!";
-      } else if (☃.get(2) + 1 == 1 && ☃.get(5) == 1) {
+      } else if (calendar.get(2) + 1 == 1 && calendar.get(5) == 1) {
          this.splashText = "Happy new year!";
-      } else if (☃.get(2) + 1 == 10 && ☃.get(5) == 31) {
+      } else if (calendar.get(2) + 1 == 10 && calendar.get(5) == 31) {
          this.splashText = "OOoooOOOoooo! Spooky!";
       }
 
-      int ☃x = 24;
-      int ☃xx = this.height / 4 + 48;
+      int i = 24;
+      int j = this.height / 4 + 48;
       if (this.mc.isDemo()) {
-         this.addDemoButtons(☃xx, 24);
+         this.addDemoButtons(j, 24);
       } else {
-         this.addSingleplayerMultiplayerButtons(☃xx, 24);
+         this.addSingleplayerMultiplayerButtons(j, 24);
       }
 
-      this.buttonList.add(new GuiButton(0, this.width / 2 - 100, ☃xx + 72 + 12, 98, 20, I18n.format("menu.options")));
-      this.buttonList.add(new GuiButton(4, this.width / 2 + 2, ☃xx + 72 + 12, 98, 20, I18n.format("menu.quit")));
-      this.buttonList.add(new GuiButtonLanguage(5, this.width / 2 - 124, ☃xx + 72 + 12));
+      this.buttonList.add(new GuiButton(0, this.width / 2 - 100, j + 72 + 12, 98, 20, I18n.format("menu.options")));
+      this.buttonList.add(new GuiButton(4, this.width / 2 + 2, j + 72 + 12, 98, 20, I18n.format("menu.quit")));
+      this.buttonList.add(new GuiButtonLanguage(5, this.width / 2 - 124, j + 72 + 12));
       synchronized (this.threadLock) {
          this.openGLWarning1Width = this.fontRenderer.getStringWidth(this.openGLWarning1);
          this.openGLWarning2Width = this.fontRenderer.getStringWidth(this.openGLWarning2);
-         int ☃xxx = Math.max(this.openGLWarning1Width, this.openGLWarning2Width);
-         this.openGLWarningX1 = (this.width - ☃xxx) / 2;
-         this.openGLWarningY1 = this.buttonList.get(0).y - 24;
-         this.openGLWarningX2 = this.openGLWarningX1 + ☃xxx;
+         int k = Math.max(this.openGLWarning1Width, this.openGLWarning2Width);
+         this.openGLWarningX1 = (this.width - k) / 2;
+         this.openGLWarningY1 = ((GuiButton)this.buttonList.get(0)).y - 24;
+         this.openGLWarningX2 = this.openGLWarningX1 + k;
          this.openGLWarningY2 = this.openGLWarningY1 + 24;
       }
 
       this.mc.setConnectedToRealms(false);
       if (Minecraft.getMinecraft().gameSettings.getOptionOrdinalValue(GameSettings.Options.REALMS_NOTIFICATIONS) && !this.hasCheckedForRealmsNotification) {
-         RealmsBridge ☃xxx = new RealmsBridge();
-         this.realmsNotification = ☃xxx.getNotificationScreen(this);
+         RealmsBridge realmsbridge = new RealmsBridge();
+         this.realmsNotification = realmsbridge.getNotificationScreen(this);
          this.hasCheckedForRealmsNotification = true;
       }
 
@@ -177,64 +179,78 @@ public class GuiMainMenu extends GuiScreen {
          this.realmsNotification.setGuiSize(this.width, this.height);
          this.realmsNotification.initGui();
       }
+
+      if (Reflector.NotificationModUpdateScreen_init.exists()) {
+         this.modUpdateNotification = (GuiScreen)Reflector.call(Reflector.NotificationModUpdateScreen_init, new Object[]{this, this.modButton});
+      }
    }
 
-   private void addSingleplayerMultiplayerButtons(int var1, int var2) {
-      this.buttonList.add(new GuiButton(1, this.width / 2 - 100, ☃, I18n.format("menu.singleplayer")));
-      this.buttonList.add(new GuiButton(2, this.width / 2 - 100, ☃ + ☃ * 1, I18n.format("menu.multiplayer")));
-      this.realmsButton = this.addButton(new GuiButton(14, this.width / 2 - 100, ☃ + ☃ * 2, I18n.format("menu.online")));
+   private void addSingleplayerMultiplayerButtons(int p_73969_1_, int p_73969_2_) {
+      this.buttonList.add(new GuiButton(1, this.width / 2 - 100, p_73969_1_, I18n.format("menu.singleplayer")));
+      this.buttonList.add(new GuiButton(2, this.width / 2 - 100, p_73969_1_ + p_73969_2_ * 1, I18n.format("menu.multiplayer")));
+      if (Reflector.GuiModList_Constructor.exists()) {
+         this.realmsButton = this.addButton(
+            new GuiButton(14, this.width / 2 + 2, p_73969_1_ + p_73969_2_ * 2, 98, 20, I18n.format("menu.online").replace("Minecraft", "").trim())
+         );
+         this.buttonList.add(this.modButton = new GuiButton(6, this.width / 2 - 100, p_73969_1_ + p_73969_2_ * 2, 98, 20, I18n.format("fml.menu.mods")));
+      } else {
+         this.realmsButton = this.addButton(new GuiButton(14, this.width / 2 - 100, p_73969_1_ + p_73969_2_ * 2, I18n.format("menu.online")));
+      }
    }
 
-   private void addDemoButtons(int var1, int var2) {
-      this.buttonList.add(new GuiButton(11, this.width / 2 - 100, ☃, I18n.format("menu.playdemo")));
-      this.buttonResetDemo = this.addButton(new GuiButton(12, this.width / 2 - 100, ☃ + ☃ * 1, I18n.format("menu.resetdemo")));
-      ISaveFormat ☃ = this.mc.getSaveLoader();
-      WorldInfo ☃x = ☃.getWorldInfo("Demo_World");
-      if (☃x == null) {
+   private void addDemoButtons(int p_73972_1_, int p_73972_2_) {
+      this.buttonList.add(new GuiButton(11, this.width / 2 - 100, p_73972_1_, I18n.format("menu.playdemo")));
+      this.buttonResetDemo = this.addButton(new GuiButton(12, this.width / 2 - 100, p_73972_1_ + p_73972_2_ * 1, I18n.format("menu.resetdemo")));
+      ISaveFormat isaveformat = this.mc.getSaveLoader();
+      WorldInfo worldinfo = isaveformat.getWorldInfo("Demo_World");
+      if (worldinfo == null) {
          this.buttonResetDemo.enabled = false;
       }
    }
 
-   @Override
-   protected void actionPerformed(GuiButton var1) {
-      if (☃.id == 0) {
+   protected void actionPerformed(GuiButton button) throws IOException {
+      if (button.id == 0) {
          this.mc.displayGuiScreen(new GuiOptions(this, this.mc.gameSettings));
       }
 
-      if (☃.id == 5) {
+      if (button.id == 5) {
          this.mc.displayGuiScreen(new GuiLanguage(this, this.mc.gameSettings, this.mc.getLanguageManager()));
       }
 
-      if (☃.id == 1) {
+      if (button.id == 1) {
          this.mc.displayGuiScreen(new GuiWorldSelection(this));
       }
 
-      if (☃.id == 2) {
+      if (button.id == 2) {
          this.mc.displayGuiScreen(new GuiMultiplayer(this));
       }
 
-      if (☃.id == 14 && this.realmsButton.visible) {
+      if (button.id == 14 && this.realmsButton.visible) {
          this.switchToRealms();
       }
 
-      if (☃.id == 4) {
+      if (button.id == 4) {
          this.mc.shutdown();
       }
 
-      if (☃.id == 11) {
+      if (button.id == 6 && Reflector.GuiModList_Constructor.exists()) {
+         this.mc.displayGuiScreen((GuiScreen)Reflector.newInstance(Reflector.GuiModList_Constructor, new Object[]{this}));
+      }
+
+      if (button.id == 11) {
          this.mc.launchIntegratedServer("Demo_World", "Demo_World", WorldServerDemo.DEMO_WORLD_SETTINGS);
       }
 
-      if (☃.id == 12) {
-         ISaveFormat ☃ = this.mc.getSaveLoader();
-         WorldInfo ☃x = ☃.getWorldInfo("Demo_World");
-         if (☃x != null) {
+      if (button.id == 12) {
+         ISaveFormat isaveformat = this.mc.getSaveLoader();
+         WorldInfo worldinfo = isaveformat.getWorldInfo("Demo_World");
+         if (worldinfo != null) {
             this.mc
                .displayGuiScreen(
                   new GuiYesNo(
                      this,
                      I18n.format("selectWorld.deleteQuestion"),
-                     "'" + ☃x.getWorldName() + "' " + I18n.format("selectWorld.deleteWarning"),
+                     "'" + worldinfo.getWorldName() + "' " + I18n.format("selectWorld.deleteWarning"),
                      I18n.format("selectWorld.deleteButton"),
                      I18n.format("gui.cancel"),
                      12
@@ -245,25 +261,24 @@ public class GuiMainMenu extends GuiScreen {
    }
 
    private void switchToRealms() {
-      RealmsBridge ☃ = new RealmsBridge();
-      ☃.switchToRealms(this);
+      RealmsBridge realmsbridge = new RealmsBridge();
+      realmsbridge.switchToRealms(this);
    }
 
-   @Override
-   public void confirmClicked(boolean var1, int var2) {
-      if (☃ && ☃ == 12) {
-         ISaveFormat ☃ = this.mc.getSaveLoader();
-         ☃.flushCache();
-         ☃.deleteWorldDirectory("Demo_World");
+   public void confirmClicked(boolean result, int id) {
+      if (result && id == 12) {
+         ISaveFormat isaveformat = this.mc.getSaveLoader();
+         isaveformat.flushCache();
+         isaveformat.deleteWorldDirectory("Demo_World");
          this.mc.displayGuiScreen(this);
-      } else if (☃ == 12) {
+      } else if (id == 12) {
          this.mc.displayGuiScreen(this);
-      } else if (☃ == 13) {
-         if (☃) {
+      } else if (id == 13) {
+         if (result) {
             try {
-               Class<?> ☃ = Class.forName("java.awt.Desktop");
-               Object ☃x = ☃.getMethod("getDesktop").invoke(null);
-               ☃.getMethod("browse", URI.class).invoke(☃x, new URI(this.openGLWarningLink));
+               Class<?> oclass = Class.forName("java.awt.Desktop");
+               Object object = oclass.getMethod("getDesktop").invoke(null);
+               oclass.getMethod("browse", URI.class).invoke(object, new URI(this.openGLWarningLink));
             } catch (Throwable var5) {
                LOGGER.error("Couldn't open link", var5);
             }
@@ -273,9 +288,9 @@ public class GuiMainMenu extends GuiScreen {
       }
    }
 
-   private void drawPanorama(int var1, int var2, float var3) {
-      Tessellator ☃ = Tessellator.getInstance();
-      BufferBuilder ☃x = ☃.getBuffer();
+   private void drawPanorama(int mouseX, int mouseY, float partialTicks) {
+      Tessellator tessellator = Tessellator.getInstance();
+      BufferBuilder bufferbuilder = tessellator.getBuffer();
       GlStateManager.matrixMode(5889);
       GlStateManager.pushMatrix();
       GlStateManager.loadIdentity();
@@ -293,48 +308,58 @@ public class GuiMainMenu extends GuiScreen {
       GlStateManager.tryBlendFuncSeparate(
          GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO
       );
-      int ☃xx = 8;
+      int i = 8;
+      int blurCount1 = 64;
+      CustomPanoramaProperties cpp = CustomPanorama.getCustomPanoramaProperties();
+      if (cpp != null) {
+         blurCount1 = cpp.getBlur1();
+      }
 
-      for (int ☃xxx = 0; ☃xxx < 64; ☃xxx++) {
+      for (int j = 0; j < blurCount1; j++) {
          GlStateManager.pushMatrix();
-         float ☃xxxx = (☃xxx % 8 / 8.0F - 0.5F) / 64.0F;
-         float ☃xxxxx = (☃xxx / 8 / 8.0F - 0.5F) / 64.0F;
-         float ☃xxxxxx = 0.0F;
-         GlStateManager.translate(☃xxxx, ☃xxxxx, 0.0F);
+         float f = (j % 8 / 8.0F - 0.5F) / 64.0F;
+         float f1 = (j / 8 / 8.0F - 0.5F) / 64.0F;
+         float f2 = 0.0F;
+         GlStateManager.translate(f, f1, 0.0F);
          GlStateManager.rotate(MathHelper.sin(this.panoramaTimer / 400.0F) * 25.0F + 20.0F, 1.0F, 0.0F, 0.0F);
          GlStateManager.rotate(-this.panoramaTimer * 0.1F, 0.0F, 1.0F, 0.0F);
 
-         for (int ☃xxxxxxx = 0; ☃xxxxxxx < 6; ☃xxxxxxx++) {
+         for (int k = 0; k < 6; k++) {
             GlStateManager.pushMatrix();
-            if (☃xxxxxxx == 1) {
+            if (k == 1) {
                GlStateManager.rotate(90.0F, 0.0F, 1.0F, 0.0F);
             }
 
-            if (☃xxxxxxx == 2) {
+            if (k == 2) {
                GlStateManager.rotate(180.0F, 0.0F, 1.0F, 0.0F);
             }
 
-            if (☃xxxxxxx == 3) {
+            if (k == 3) {
                GlStateManager.rotate(-90.0F, 0.0F, 1.0F, 0.0F);
             }
 
-            if (☃xxxxxxx == 4) {
+            if (k == 4) {
                GlStateManager.rotate(90.0F, 1.0F, 0.0F, 0.0F);
             }
 
-            if (☃xxxxxxx == 5) {
+            if (k == 5) {
                GlStateManager.rotate(-90.0F, 1.0F, 0.0F, 0.0F);
             }
 
-            this.mc.getTextureManager().bindTexture(TITLE_PANORAMA_PATHS[☃xxxxxxx]);
-            ☃x.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
-            int ☃xxxxxxxx = 255 / (☃xxx + 1);
-            float ☃xxxxxxxxx = 0.0F;
-            ☃x.pos(-1.0, -1.0, 1.0).tex(0.0, 0.0).color(255, 255, 255, ☃xxxxxxxx).endVertex();
-            ☃x.pos(1.0, -1.0, 1.0).tex(1.0, 0.0).color(255, 255, 255, ☃xxxxxxxx).endVertex();
-            ☃x.pos(1.0, 1.0, 1.0).tex(1.0, 1.0).color(255, 255, 255, ☃xxxxxxxx).endVertex();
-            ☃x.pos(-1.0, 1.0, 1.0).tex(0.0, 1.0).color(255, 255, 255, ☃xxxxxxxx).endVertex();
-            ☃.draw();
+            ResourceLocation[] panoramaLocations = TITLE_PANORAMA_PATHS;
+            if (cpp != null) {
+               panoramaLocations = cpp.getPanoramaLocations();
+            }
+
+            this.mc.getTextureManager().bindTexture(panoramaLocations[k]);
+            bufferbuilder.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
+            int l = 255 / (j + 1);
+            float f3 = 0.0F;
+            bufferbuilder.pos(-1.0, -1.0, 1.0).tex(0.0, 0.0).color(255, 255, 255, l).endVertex();
+            bufferbuilder.pos(1.0, -1.0, 1.0).tex(1.0, 0.0).color(255, 255, 255, l).endVertex();
+            bufferbuilder.pos(1.0, 1.0, 1.0).tex(1.0, 1.0).color(255, 255, 255, l).endVertex();
+            bufferbuilder.pos(-1.0, 1.0, 1.0).tex(0.0, 1.0).color(255, 255, 255, l).endVertex();
+            tessellator.draw();
             GlStateManager.popMatrix();
          }
 
@@ -342,7 +367,7 @@ public class GuiMainMenu extends GuiScreen {
          GlStateManager.colorMask(true, true, true, false);
       }
 
-      ☃x.setTranslation(0.0, 0.0, 0.0);
+      bufferbuilder.setTranslation(0.0, 0.0, 0.0);
       GlStateManager.colorMask(true, true, true, true);
       GlStateManager.matrixMode(5889);
       GlStateManager.popMatrix();
@@ -363,143 +388,193 @@ public class GuiMainMenu extends GuiScreen {
          GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO
       );
       GlStateManager.colorMask(true, true, true, false);
-      Tessellator ☃ = Tessellator.getInstance();
-      BufferBuilder ☃x = ☃.getBuffer();
-      ☃x.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
+      Tessellator tessellator = Tessellator.getInstance();
+      BufferBuilder bufferbuilder = tessellator.getBuffer();
+      bufferbuilder.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
       GlStateManager.disableAlpha();
-      int ☃xx = 3;
-
-      for (int ☃xxx = 0; ☃xxx < 3; ☃xxx++) {
-         float ☃xxxx = 1.0F / (☃xxx + 1);
-         int ☃xxxxx = this.width;
-         int ☃xxxxxx = this.height;
-         float ☃xxxxxxx = (☃xxx - 1) / 256.0F;
-         ☃x.pos(☃xxxxx, ☃xxxxxx, this.zLevel).tex(0.0F + ☃xxxxxxx, 1.0).color(1.0F, 1.0F, 1.0F, ☃xxxx).endVertex();
-         ☃x.pos(☃xxxxx, 0.0, this.zLevel).tex(1.0F + ☃xxxxxxx, 1.0).color(1.0F, 1.0F, 1.0F, ☃xxxx).endVertex();
-         ☃x.pos(0.0, 0.0, this.zLevel).tex(1.0F + ☃xxxxxxx, 0.0).color(1.0F, 1.0F, 1.0F, ☃xxxx).endVertex();
-         ☃x.pos(0.0, ☃xxxxxx, this.zLevel).tex(0.0F + ☃xxxxxxx, 0.0).color(1.0F, 1.0F, 1.0F, ☃xxxx).endVertex();
+      int i = 3;
+      int blurCount2 = 3;
+      CustomPanoramaProperties cpp = CustomPanorama.getCustomPanoramaProperties();
+      if (cpp != null) {
+         blurCount2 = cpp.getBlur2();
       }
 
-      ☃.draw();
+      for (int j = 0; j < blurCount2; j++) {
+         float f = 1.0F / (j + 1);
+         int k = this.width;
+         int l = this.height;
+         float f1 = (j - 1) / 256.0F;
+         bufferbuilder.pos(k, l, this.e).tex(0.0F + f1, 1.0).color(1.0F, 1.0F, 1.0F, f).endVertex();
+         bufferbuilder.pos(k, 0.0, this.e).tex(1.0F + f1, 1.0).color(1.0F, 1.0F, 1.0F, f).endVertex();
+         bufferbuilder.pos(0.0, 0.0, this.e).tex(1.0F + f1, 0.0).color(1.0F, 1.0F, 1.0F, f).endVertex();
+         bufferbuilder.pos(0.0, l, this.e).tex(0.0F + f1, 0.0).color(1.0F, 1.0F, 1.0F, f).endVertex();
+      }
+
+      tessellator.draw();
       GlStateManager.enableAlpha();
       GlStateManager.colorMask(true, true, true, true);
    }
 
-   private void renderSkybox(int var1, int var2, float var3) {
+   private void renderSkybox(int mouseX, int mouseY, float partialTicks) {
       this.mc.getFramebuffer().unbindFramebuffer();
       GlStateManager.viewport(0, 0, 256, 256);
-      this.drawPanorama(☃, ☃, ☃);
+      this.drawPanorama(mouseX, mouseY, partialTicks);
       this.rotateAndBlurSkybox();
-      this.rotateAndBlurSkybox();
-      this.rotateAndBlurSkybox();
-      this.rotateAndBlurSkybox();
-      this.rotateAndBlurSkybox();
-      this.rotateAndBlurSkybox();
-      this.rotateAndBlurSkybox();
+      int blurCount3 = 3;
+      CustomPanoramaProperties cpp = CustomPanorama.getCustomPanoramaProperties();
+      if (cpp != null) {
+         blurCount3 = cpp.getBlur3();
+      }
+
+      for (int i = 0; i < blurCount3; i++) {
+         this.rotateAndBlurSkybox();
+         this.rotateAndBlurSkybox();
+      }
+
       this.mc.getFramebuffer().bindFramebuffer(true);
       GlStateManager.viewport(0, 0, this.mc.displayWidth, this.mc.displayHeight);
-      float ☃ = 120.0F / (this.width > this.height ? this.width : this.height);
-      float ☃x = this.height * ☃ / 256.0F;
-      float ☃xx = this.width * ☃ / 256.0F;
-      int ☃xxx = this.width;
-      int ☃xxxx = this.height;
-      Tessellator ☃xxxxx = Tessellator.getInstance();
-      BufferBuilder ☃xxxxxx = ☃xxxxx.getBuffer();
-      ☃xxxxxx.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
-      ☃xxxxxx.pos(0.0, ☃xxxx, this.zLevel).tex(0.5F - ☃x, 0.5F + ☃xx).color(1.0F, 1.0F, 1.0F, 1.0F).endVertex();
-      ☃xxxxxx.pos(☃xxx, ☃xxxx, this.zLevel).tex(0.5F - ☃x, 0.5F - ☃xx).color(1.0F, 1.0F, 1.0F, 1.0F).endVertex();
-      ☃xxxxxx.pos(☃xxx, 0.0, this.zLevel).tex(0.5F + ☃x, 0.5F - ☃xx).color(1.0F, 1.0F, 1.0F, 1.0F).endVertex();
-      ☃xxxxxx.pos(0.0, 0.0, this.zLevel).tex(0.5F + ☃x, 0.5F + ☃xx).color(1.0F, 1.0F, 1.0F, 1.0F).endVertex();
-      ☃xxxxx.draw();
+      float f = 120.0F / (this.width > this.height ? this.width : this.height);
+      float f1 = this.height * f / 256.0F;
+      float f2 = this.width * f / 256.0F;
+      int i = this.width;
+      int j = this.height;
+      Tessellator tessellator = Tessellator.getInstance();
+      BufferBuilder bufferbuilder = tessellator.getBuffer();
+      bufferbuilder.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
+      bufferbuilder.pos(0.0, j, this.e).tex(0.5F - f1, 0.5F + f2).color(1.0F, 1.0F, 1.0F, 1.0F).endVertex();
+      bufferbuilder.pos(i, j, this.e).tex(0.5F - f1, 0.5F - f2).color(1.0F, 1.0F, 1.0F, 1.0F).endVertex();
+      bufferbuilder.pos(i, 0.0, this.e).tex(0.5F + f1, 0.5F - f2).color(1.0F, 1.0F, 1.0F, 1.0F).endVertex();
+      bufferbuilder.pos(0.0, 0.0, this.e).tex(0.5F + f1, 0.5F + f2).color(1.0F, 1.0F, 1.0F, 1.0F).endVertex();
+      tessellator.draw();
    }
 
-   @Override
-   public void drawScreen(int var1, int var2, float var3) {
-      this.panoramaTimer += ☃;
+   public void drawScreen(int mouseX, int mouseY, float partialTicks) {
+      this.panoramaTimer += partialTicks;
       GlStateManager.disableAlpha();
-      this.renderSkybox(☃, ☃, ☃);
+      this.renderSkybox(mouseX, mouseY, partialTicks);
       GlStateManager.enableAlpha();
-      int ☃ = 274;
-      int ☃x = this.width / 2 - 137;
-      int ☃xx = 30;
-      this.drawGradientRect(0, 0, this.width, this.height, -2130706433, 16777215);
-      this.drawGradientRect(0, 0, this.width, this.height, 0, Integer.MIN_VALUE);
+      int i = 274;
+      int j = this.width / 2 - 137;
+      int k = 30;
+      int overlay1Top = -2130706433;
+      int overlay1Bottom = 16777215;
+      int overlay2Top = 0;
+      int overlay2Bottom = Integer.MIN_VALUE;
+      CustomPanoramaProperties cpp = CustomPanorama.getCustomPanoramaProperties();
+      if (cpp != null) {
+         overlay1Top = cpp.getOverlay1Top();
+         overlay1Bottom = cpp.getOverlay1Bottom();
+         overlay2Top = cpp.getOverlay2Top();
+         overlay2Bottom = cpp.getOverlay2Bottom();
+      }
+
+      if (overlay1Top != 0 || overlay1Bottom != 0) {
+         this.a(0, 0, this.width, this.height, overlay1Top, overlay1Bottom);
+      }
+
+      if (overlay2Top != 0 || overlay2Bottom != 0) {
+         this.a(0, 0, this.width, this.height, overlay2Top, overlay2Bottom);
+      }
+
       this.mc.getTextureManager().bindTexture(MINECRAFT_TITLE_TEXTURES);
       GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
       if (this.minceraftRoll < 1.0E-4) {
-         this.drawTexturedModalRect(☃x + 0, 30, 0, 0, 99, 44);
-         this.drawTexturedModalRect(☃x + 99, 30, 129, 0, 27, 44);
-         this.drawTexturedModalRect(☃x + 99 + 26, 30, 126, 0, 3, 44);
-         this.drawTexturedModalRect(☃x + 99 + 26 + 3, 30, 99, 0, 26, 44);
-         this.drawTexturedModalRect(☃x + 155, 30, 0, 45, 155, 44);
+         this.b(j + 0, 30, 0, 0, 99, 44);
+         this.b(j + 99, 30, 129, 0, 27, 44);
+         this.b(j + 99 + 26, 30, 126, 0, 3, 44);
+         this.b(j + 99 + 26 + 3, 30, 99, 0, 26, 44);
+         this.b(j + 155, 30, 0, 45, 155, 44);
       } else {
-         this.drawTexturedModalRect(☃x + 0, 30, 0, 0, 155, 44);
-         this.drawTexturedModalRect(☃x + 155, 30, 0, 45, 155, 44);
+         this.b(j + 0, 30, 0, 0, 155, 44);
+         this.b(j + 155, 30, 0, 45, 155, 44);
       }
 
       this.mc.getTextureManager().bindTexture(field_194400_H);
-      drawModalRectWithCustomSizedTexture(☃x + 88, 67, 0.0F, 0.0F, 98, 14, 128.0F, 16.0F);
+      a(j + 88, 67, 0.0F, 0.0F, 98, 14, 128.0F, 16.0F);
+      if (Reflector.ForgeHooksClient_renderMainMenu.exists()) {
+         this.splashText = Reflector.callString(
+            Reflector.ForgeHooksClient_renderMainMenu, new Object[]{this, this.fontRenderer, this.width, this.height, this.splashText}
+         );
+      }
+
       GlStateManager.pushMatrix();
       GlStateManager.translate((float)(this.width / 2 + 90), 70.0F, 0.0F);
       GlStateManager.rotate(-20.0F, 0.0F, 0.0F, 1.0F);
-      float ☃xxx = 1.8F - MathHelper.abs(MathHelper.sin((float)(Minecraft.getSystemTime() % 1000L) / 1000.0F * (float) (Math.PI * 2)) * 0.1F);
-      ☃xxx = ☃xxx * 100.0F / (this.fontRenderer.getStringWidth(this.splashText) + 32);
-      GlStateManager.scale(☃xxx, ☃xxx, ☃xxx);
-      this.drawCenteredString(this.fontRenderer, this.splashText, 0, -8, -256);
+      float f = 1.8F - MathHelper.abs(MathHelper.sin((float)(Minecraft.getSystemTime() % 1000L) / 1000.0F * (float) (Math.PI * 2)) * 0.1F);
+      f = f * 100.0F / (this.fontRenderer.getStringWidth(this.splashText) + 32);
+      GlStateManager.scale(f, f, f);
+      this.a(this.fontRenderer, this.splashText, 0, -8, -256);
       GlStateManager.popMatrix();
-      String ☃xxxx = "Minecraft 1.12.2";
+      String s = "Minecraft 1.12.2";
       if (this.mc.isDemo()) {
-         ☃xxxx = ☃xxxx + " Demo";
+         s = s + " Demo";
       } else {
-         ☃xxxx = ☃xxxx + ("release".equalsIgnoreCase(this.mc.getVersionType()) ? "" : "/" + this.mc.getVersionType());
+         s = s + ("release".equalsIgnoreCase(this.mc.getVersionType()) ? "" : "/" + this.mc.getVersionType());
       }
 
-      this.drawString(this.fontRenderer, ☃xxxx, 2, this.height - 10, -1);
-      this.drawString(this.fontRenderer, "Copyright Mojang AB. Do not distribute!", this.widthCopyrightRest, this.height - 10, -1);
-      if (☃ > this.widthCopyrightRest && ☃ < this.widthCopyrightRest + this.widthCopyright && ☃ > this.height - 10 && ☃ < this.height && Mouse.isInsideWindow()
-         )
-       {
-         drawRect(this.widthCopyrightRest, this.height - 1, this.widthCopyrightRest + this.widthCopyright, this.height, -1);
+      if (Reflector.FMLCommonHandler_getBrandings.exists()) {
+         Object instance = Reflector.call(Reflector.FMLCommonHandler_instance, new Object[0]);
+         List<String> brandings = Lists.reverse((List)Reflector.call(instance, Reflector.FMLCommonHandler_getBrandings, new Object[]{true}));
+
+         for (int brdline = 0; brdline < brandings.size(); brdline++) {
+            String brd = brandings.get(brdline);
+            if (!Strings.isNullOrEmpty(brd)) {
+               this.c(this.fontRenderer, brd, 2, this.height - (10 + brdline * (this.fontRenderer.FONT_HEIGHT + 1)), 16777215);
+            }
+         }
+      } else {
+         this.c(this.fontRenderer, s, 2, this.height - 10, -1);
+      }
+
+      this.c(this.fontRenderer, "Copyright Mojang AB. Do not distribute!", this.widthCopyrightRest, this.height - 10, -1);
+      if (mouseX > this.widthCopyrightRest
+         && mouseX < this.widthCopyrightRest + this.widthCopyright
+         && mouseY > this.height - 10
+         && mouseY < this.height
+         && Mouse.isInsideWindow()) {
+         a(this.widthCopyrightRest, this.height - 1, this.widthCopyrightRest + this.widthCopyright, this.height, -1);
       }
 
       if (this.openGLWarning1 != null && !this.openGLWarning1.isEmpty()) {
-         drawRect(this.openGLWarningX1 - 2, this.openGLWarningY1 - 2, this.openGLWarningX2 + 2, this.openGLWarningY2 - 1, 1428160512);
-         this.drawString(this.fontRenderer, this.openGLWarning1, this.openGLWarningX1, this.openGLWarningY1, -1);
-         this.drawString(this.fontRenderer, this.openGLWarning2, (this.width - this.openGLWarning2Width) / 2, this.buttonList.get(0).y - 12, -1);
+         a(this.openGLWarningX1 - 2, this.openGLWarningY1 - 2, this.openGLWarningX2 + 2, this.openGLWarningY2 - 1, 1428160512);
+         this.c(this.fontRenderer, this.openGLWarning1, this.openGLWarningX1, this.openGLWarningY1, -1);
+         this.c(this.fontRenderer, this.openGLWarning2, (this.width - this.openGLWarning2Width) / 2, ((GuiButton)this.buttonList.get(0)).y - 12, -1);
       }
 
-      super.drawScreen(☃, ☃, ☃);
+      super.drawScreen(mouseX, mouseY, partialTicks);
       if (this.areRealmsNotificationsEnabled()) {
-         this.realmsNotification.drawScreen(☃, ☃, ☃);
+         this.realmsNotification.drawScreen(mouseX, mouseY, partialTicks);
+      }
+
+      if (this.modUpdateNotification != null) {
+         this.modUpdateNotification.drawScreen(mouseX, mouseY, partialTicks);
       }
    }
 
-   @Override
-   protected void mouseClicked(int var1, int var2, int var3) {
-      super.mouseClicked(☃, ☃, ☃);
+   protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
+      super.mouseClicked(mouseX, mouseY, mouseButton);
       synchronized (this.threadLock) {
          if (!this.openGLWarning1.isEmpty()
             && !StringUtils.isNullOrEmpty(this.openGLWarningLink)
-            && ☃ >= this.openGLWarningX1
-            && ☃ <= this.openGLWarningX2
-            && ☃ >= this.openGLWarningY1
-            && ☃ <= this.openGLWarningY2) {
-            GuiConfirmOpenLink ☃ = new GuiConfirmOpenLink(this, this.openGLWarningLink, 13, true);
-            ☃.disableSecurityWarning();
-            this.mc.displayGuiScreen(☃);
+            && mouseX >= this.openGLWarningX1
+            && mouseX <= this.openGLWarningX2
+            && mouseY >= this.openGLWarningY1
+            && mouseY <= this.openGLWarningY2) {
+            GuiConfirmOpenLink guiconfirmopenlink = new GuiConfirmOpenLink(this, this.openGLWarningLink, 13, true);
+            guiconfirmopenlink.disableSecurityWarning();
+            this.mc.displayGuiScreen(guiconfirmopenlink);
          }
       }
 
       if (this.areRealmsNotificationsEnabled()) {
-         this.realmsNotification.mouseClicked(☃, ☃, ☃);
+         this.realmsNotification.mouseClicked(mouseX, mouseY, mouseButton);
       }
 
-      if (☃ > this.widthCopyrightRest && ☃ < this.widthCopyrightRest + this.widthCopyright && ☃ > this.height - 10 && ☃ < this.height) {
+      if (mouseX > this.widthCopyrightRest && mouseX < this.widthCopyrightRest + this.widthCopyright && mouseY > this.height - 10 && mouseY < this.height) {
          this.mc.displayGuiScreen(new GuiWinGame(false, Runnables.doNothing()));
       }
    }
 
-   @Override
    public void onGuiClosed() {
       if (this.realmsNotification != null) {
          this.realmsNotification.onGuiClosed();

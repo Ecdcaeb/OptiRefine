@@ -12,23 +12,26 @@ public class Frustum implements ICamera {
       this(ClippingHelperImpl.getInstance());
    }
 
-   public Frustum(ClippingHelper var1) {
-      this.clippingHelper = ☃;
+   public Frustum(ClippingHelper clippingHelperIn) {
+      this.clippingHelper = clippingHelperIn;
    }
 
-   @Override
-   public void setPosition(double var1, double var3, double var5) {
-      this.x = ☃;
-      this.y = ☃;
-      this.z = ☃;
+   public void setPosition(double xIn, double yIn, double zIn) {
+      this.x = xIn;
+      this.y = yIn;
+      this.z = zIn;
    }
 
-   public boolean isBoxInFrustum(double var1, double var3, double var5, double var7, double var9, double var11) {
-      return this.clippingHelper.isBoxInFrustum(☃ - this.x, ☃ - this.y, ☃ - this.z, ☃ - this.x, ☃ - this.y, ☃ - this.z);
+   public boolean isBoxInFrustum(double p_78548_1_, double p_78548_3_, double p_78548_5_, double p_78548_7_, double p_78548_9_, double p_78548_11_) {
+      return this.clippingHelper
+         .isBoxInFrustum(p_78548_1_ - this.x, p_78548_3_ - this.y, p_78548_5_ - this.z, p_78548_7_ - this.x, p_78548_9_ - this.y, p_78548_11_ - this.z);
    }
 
-   @Override
-   public boolean isBoundingBoxInFrustum(AxisAlignedBB var1) {
-      return this.isBoxInFrustum(☃.minX, ☃.minY, ☃.minZ, ☃.maxX, ☃.maxY, ☃.maxZ);
+   public boolean isBoundingBoxInFrustum(AxisAlignedBB p_78546_1_) {
+      return this.isBoxInFrustum(p_78546_1_.minX, p_78546_1_.minY, p_78546_1_.minZ, p_78546_1_.maxX, p_78546_1_.maxY, p_78546_1_.maxZ);
+   }
+
+   public boolean isBoxInFrustumFully(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
+      return this.clippingHelper.isBoxInFrustumFully(minX - this.x, minY - this.y, minZ - this.z, maxX - this.x, maxY - this.y, maxZ - this.z);
    }
 }

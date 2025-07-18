@@ -1,60 +1,83 @@
 package net.minecraft.client.renderer.chunk;
 
-import java.util.BitSet;
 import java.util.Set;
 import net.minecraft.util.EnumFacing;
 
 public class SetVisibility {
    private static final int COUNT_FACES = EnumFacing.values().length;
-   private final BitSet bitSet = new BitSet(COUNT_FACES * COUNT_FACES);
+   private long bits;
 
-   public void setManyVisible(Set<EnumFacing> var1) {
-      for (EnumFacing ☃ : ☃) {
-         for (EnumFacing ☃x : ☃) {
-            this.setVisible(☃, ☃x, true);
+   public void setManyVisible(Set<EnumFacing> facing) {
+      for (EnumFacing enumfacing : facing) {
+         for (EnumFacing enumfacing1 : facing) {
+            this.setVisible(enumfacing, enumfacing1, true);
          }
       }
    }
 
-   public void setVisible(EnumFacing var1, EnumFacing var2, boolean var3) {
-      this.bitSet.set(☃.ordinal() + ☃.ordinal() * COUNT_FACES, ☃);
-      this.bitSet.set(☃.ordinal() + ☃.ordinal() * COUNT_FACES, ☃);
+   public void setVisible(EnumFacing facing, EnumFacing facing2, boolean p_178619_3_) {
+      this.setBit(facing.ordinal() + facing2.ordinal() * COUNT_FACES, p_178619_3_);
+      this.setBit(facing2.ordinal() + facing.ordinal() * COUNT_FACES, p_178619_3_);
    }
 
-   public void setAllVisible(boolean var1) {
-      this.bitSet.set(0, this.bitSet.size(), ☃);
+   public void setAllVisible(boolean visible) {
+      if (visible) {
+         this.bits = -1L;
+      } else {
+         this.bits = 0L;
+      }
    }
 
-   public boolean isVisible(EnumFacing var1, EnumFacing var2) {
-      return this.bitSet.get(☃.ordinal() + ☃.ordinal() * COUNT_FACES);
+   public boolean isVisible(EnumFacing facing, EnumFacing facing2) {
+      return this.getBit(facing.ordinal() + facing2.ordinal() * COUNT_FACES);
    }
 
    @Override
    public String toString() {
-      StringBuilder ☃ = new StringBuilder();
-      ☃.append(' ');
+      StringBuilder stringbuilder = new StringBuilder();
+      stringbuilder.append(' ');
 
-      for (EnumFacing ☃x : EnumFacing.values()) {
-         ☃.append(' ').append(☃x.toString().toUpperCase().charAt(0));
+      for (EnumFacing enumfacing : EnumFacing.values()) {
+         stringbuilder.append(' ').append(enumfacing.toString().toUpperCase().charAt(0));
       }
 
-      ☃.append('\n');
+      stringbuilder.append('\n');
 
-      for (EnumFacing ☃x : EnumFacing.values()) {
-         ☃.append(☃x.toString().toUpperCase().charAt(0));
+      for (EnumFacing enumfacing2 : EnumFacing.values()) {
+         stringbuilder.append(enumfacing2.toString().toUpperCase().charAt(0));
 
-         for (EnumFacing ☃xx : EnumFacing.values()) {
-            if (☃x == ☃xx) {
-               ☃.append("  ");
+         for (EnumFacing enumfacing1 : EnumFacing.values()) {
+            if (enumfacing2 == enumfacing1) {
+               stringbuilder.append("  ");
             } else {
-               boolean ☃xxx = this.isVisible(☃x, ☃xx);
-               ☃.append(' ').append((char)(☃xxx ? 'Y' : 'n'));
+               boolean flag = this.isVisible(enumfacing2, enumfacing1);
+               stringbuilder.append(' ').append((char)(flag ? 'Y' : 'n'));
             }
          }
 
-         ☃.append('\n');
+         stringbuilder.append('\n');
       }
 
-      return ☃.toString();
+      return stringbuilder.toString();
+   }
+
+   private boolean getBit(int i) {
+      return (this.bits & 1 << i) != 0L;
+   }
+
+   private void setBit(int i, boolean on) {
+      if (on) {
+         this.setBit(i);
+      } else {
+         this.clearBit(i);
+      }
+   }
+
+   private void setBit(int i) {
+      this.bits |= 1 << i;
+   }
+
+   private void clearBit(int i) {
+      this.bits &= ~(1 << i);
    }
 }

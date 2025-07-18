@@ -3,23 +3,11 @@ package net.minecraft.client.renderer;
 import java.util.List;
 import javax.annotation.Nullable;
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockDirt;
-import net.minecraft.block.BlockDoublePlant;
-import net.minecraft.block.BlockFlower;
-import net.minecraft.block.BlockHugeMushroom;
-import net.minecraft.block.BlockPlanks;
-import net.minecraft.block.BlockPrismarine;
-import net.minecraft.block.BlockQuartz;
-import net.minecraft.block.BlockRedSandstone;
-import net.minecraft.block.BlockSand;
-import net.minecraft.block.BlockSandStone;
-import net.minecraft.block.BlockSilverfish;
-import net.minecraft.block.BlockStone;
-import net.minecraft.block.BlockStoneBrick;
-import net.minecraft.block.BlockStoneSlab;
-import net.minecraft.block.BlockStoneSlabNew;
-import net.minecraft.block.BlockTallGrass;
-import net.minecraft.block.BlockWall;
+import net.minecraft.block.BlockDirt.DirtType;
+import net.minecraft.block.BlockDoublePlant.EnumPlantType;
+import net.minecraft.block.BlockFlower.EnumFlowerType;
+import net.minecraft.block.BlockWall.EnumType;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.FontRenderer;
@@ -29,6 +17,7 @@ import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.block.model.ItemTransformVec3f;
 import net.minecraft.client.renderer.block.model.ModelManager;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
+import net.minecraft.client.renderer.block.model.ItemCameraTransforms.TransformType;
 import net.minecraft.client.renderer.color.ItemColors;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.renderer.texture.TextureMap;
@@ -45,15 +34,22 @@ import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.EnumDyeColor;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemFishFood;
 import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntityStructure;
+import net.minecraft.item.ItemFishFood.FishType;
+import net.minecraft.tileentity.TileEntityStructure.Mode;
+import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ReportedException;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.World;
+import net.optifine.CustomColors;
+import net.optifine.CustomItems;
+import net.optifine.reflect.Reflector;
+import net.optifine.reflect.ReflectorForge;
+import net.optifine.shaders.Shaders;
+import net.optifine.shaders.ShadersRender;
 
 public class RenderItem implements IResourceManagerReloadListener {
    private static final ResourceLocation RES_ITEM_GLINT = new ResourceLocation("textures/misc/enchanted_item_glint.png");
@@ -62,67 +58,112 @@ public class RenderItem implements IResourceManagerReloadListener {
    private final ItemModelMesher itemModelMesher;
    private final TextureManager textureManager;
    private final ItemColors itemColors;
+   private ResourceLocation modelLocation = null;
+   private boolean renderItemGui = false;
+   public ModelManager modelManager = null;
+   private boolean renderModelHasEmissive = false;
+   private boolean renderModelEmissive = false;
+   private boolean forgeAllowEmissiveItems = Reflector.getFieldValueBoolean(Reflector.ForgeModContainer_allowEmissiveItems, false);
 
-   public RenderItem(TextureManager var1, ModelManager var2, ItemColors var3) {
-      this.textureManager = ☃;
-      this.itemModelMesher = new ItemModelMesher(☃);
+   public RenderItem(TextureManager p_i46552_1_, ModelManager p_i46552_2_, ItemColors p_i46552_3_) {
+      this.textureManager = p_i46552_1_;
+      this.modelManager = p_i46552_2_;
+      if (Reflector.ItemModelMesherForge_Constructor.exists()) {
+         this.itemModelMesher = (ItemModelMesher)Reflector.newInstance(Reflector.ItemModelMesherForge_Constructor, new Object[]{p_i46552_2_});
+      } else {
+         this.itemModelMesher = new ItemModelMesher(p_i46552_2_);
+      }
+
       this.registerItems();
-      this.itemColors = ☃;
+      this.itemColors = p_i46552_3_;
    }
 
    public ItemModelMesher getItemModelMesher() {
       return this.itemModelMesher;
    }
 
-   protected void registerItem(Item var1, int var2, String var3) {
-      this.itemModelMesher.register(☃, ☃, new ModelResourceLocation(☃, "inventory"));
+   protected void registerItem(Item itm, int subType, String identifier) {
+      this.itemModelMesher.register(itm, subType, new ModelResourceLocation(identifier, "inventory"));
    }
 
-   protected void registerBlock(Block var1, int var2, String var3) {
-      this.registerItem(Item.getItemFromBlock(☃), ☃, ☃);
+   protected void registerBlock(Block blk, int subType, String identifier) {
+      this.registerItem(Item.getItemFromBlock(blk), subType, identifier);
    }
 
-   private void registerBlock(Block var1, String var2) {
-      this.registerBlock(☃, 0, ☃);
+   private void registerBlock(Block blk, String identifier) {
+      this.registerBlock(blk, 0, identifier);
    }
 
-   private void registerItem(Item var1, String var2) {
-      this.registerItem(☃, 0, ☃);
+   private void registerItem(Item itm, String identifier) {
+      this.registerItem(itm, 0, identifier);
    }
 
-   private void renderModel(IBakedModel var1, ItemStack var2) {
-      this.renderModel(☃, -1, ☃);
+   private void renderModel(IBakedModel model, ItemStack stack) {
+      this.renderModel(model, -1, stack);
    }
 
-   private void renderModel(IBakedModel var1, int var2) {
-      this.renderModel(☃, ☃, ItemStack.EMPTY);
+   public void renderModel(IBakedModel model, int color) {
+      this.renderModel(model, color, ItemStack.EMPTY);
    }
 
-   private void renderModel(IBakedModel var1, int var2, ItemStack var3) {
-      Tessellator ☃ = Tessellator.getInstance();
-      BufferBuilder ☃x = ☃.getBuffer();
-      ☃x.begin(7, DefaultVertexFormats.ITEM);
-
-      for (EnumFacing ☃xx : EnumFacing.values()) {
-         this.renderQuads(☃x, ☃.getQuads(null, ☃xx, 0L), ☃, ☃);
+   private void renderModel(IBakedModel model, int color, ItemStack stack) {
+      Tessellator tessellator = Tessellator.getInstance();
+      BufferBuilder bufferbuilder = tessellator.getBuffer();
+      boolean renderTextureMap = Minecraft.getMinecraft().getTextureMapBlocks().isTextureBound();
+      boolean multiTexture = Config.isMultiTexture() && renderTextureMap;
+      if (multiTexture) {
+         bufferbuilder.setBlockLayer(BlockRenderLayer.SOLID);
       }
 
-      this.renderQuads(☃x, ☃.getQuads(null, null, 0L), ☃, ☃);
-      ☃.draw();
+      bufferbuilder.begin(7, DefaultVertexFormats.ITEM);
+
+      for (EnumFacing enumfacing : EnumFacing.VALUES) {
+         this.renderQuads(bufferbuilder, model.getQuads((IBlockState)null, enumfacing, 0L), color, stack);
+      }
+
+      this.renderQuads(bufferbuilder, model.getQuads((IBlockState)null, (EnumFacing)null, 0L), color, stack);
+      tessellator.draw();
+      if (multiTexture) {
+         bufferbuilder.setBlockLayer(null);
+         GlStateManager.bindCurrentTexture();
+      }
    }
 
-   public void renderItem(ItemStack var1, IBakedModel var2) {
-      if (!☃.isEmpty()) {
+   public void renderItem(ItemStack stack, IBakedModel model) {
+      if (!stack.isEmpty()) {
          GlStateManager.pushMatrix();
          GlStateManager.translate(-0.5F, -0.5F, -0.5F);
-         if (☃.isBuiltInRenderer()) {
+         if (model.isBuiltInRenderer()) {
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
             GlStateManager.enableRescaleNormal();
-            TileEntityItemStackRenderer.instance.renderByItem(☃);
+            if (Reflector.ForgeItem_getTileEntityItemStackRenderer.exists()) {
+               TileEntityItemStackRenderer teisr = (TileEntityItemStackRenderer)Reflector.call(
+                  stack.getItem(), Reflector.ForgeItem_getTileEntityItemStackRenderer, new Object[0]
+               );
+               teisr.renderByItem(stack);
+            } else {
+               TileEntityItemStackRenderer.instance.renderByItem(stack);
+            }
          } else {
-            this.renderModel(☃, ☃);
-            if (☃.hasEffect()) {
-               this.renderEffect(☃);
+            if (Config.isCustomItems()) {
+               model = CustomItems.getCustomItemModel(stack, model, this.modelLocation, false);
+               this.modelLocation = null;
+            }
+
+            this.renderModelHasEmissive = false;
+            this.renderModel(model, stack);
+            if (this.renderModelHasEmissive) {
+               float lightMapX = OpenGlHelper.lastBrightnessX;
+               float lightMapY = OpenGlHelper.lastBrightnessY;
+               OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240.0F, lightMapY);
+               this.renderModelEmissive = true;
+               this.renderModel(model, stack);
+               this.renderModelEmissive = false;
+               OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, lightMapX, lightMapY);
+            }
+
+            if (stack.hasEffect() && (!Config.isCustomItems() || !CustomItems.renderCustomEffect(this, stack, model))) {
+               this.renderEffect(model);
             }
          }
 
@@ -130,98 +171,149 @@ public class RenderItem implements IResourceManagerReloadListener {
       }
    }
 
-   private void renderEffect(IBakedModel var1) {
-      GlStateManager.depthMask(false);
-      GlStateManager.depthFunc(514);
-      GlStateManager.disableLighting();
-      GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_COLOR, GlStateManager.DestFactor.ONE);
-      this.textureManager.bindTexture(RES_ITEM_GLINT);
-      GlStateManager.matrixMode(5890);
-      GlStateManager.pushMatrix();
-      GlStateManager.scale(8.0F, 8.0F, 8.0F);
-      float ☃ = (float)(Minecraft.getSystemTime() % 3000L) / 3000.0F / 8.0F;
-      GlStateManager.translate(☃, 0.0F, 0.0F);
-      GlStateManager.rotate(-50.0F, 0.0F, 0.0F, 1.0F);
-      this.renderModel(☃, -8372020);
-      GlStateManager.popMatrix();
-      GlStateManager.pushMatrix();
-      GlStateManager.scale(8.0F, 8.0F, 8.0F);
-      float ☃x = (float)(Minecraft.getSystemTime() % 4873L) / 4873.0F / 8.0F;
-      GlStateManager.translate(-☃x, 0.0F, 0.0F);
-      GlStateManager.rotate(10.0F, 0.0F, 0.0F, 1.0F);
-      this.renderModel(☃, -8372020);
-      GlStateManager.popMatrix();
-      GlStateManager.matrixMode(5888);
-      GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
-      GlStateManager.enableLighting();
-      GlStateManager.depthFunc(515);
-      GlStateManager.depthMask(true);
-      this.textureManager.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
-   }
-
-   private void putQuadNormal(BufferBuilder var1, BakedQuad var2) {
-      Vec3i ☃ = ☃.getFace().getDirectionVec();
-      ☃.putNormal(☃.getX(), ☃.getY(), ☃.getZ());
-   }
-
-   private void renderQuad(BufferBuilder var1, BakedQuad var2, int var3) {
-      ☃.addVertexData(☃.getVertexData());
-      ☃.putColor4(☃);
-      this.putQuadNormal(☃, ☃);
-   }
-
-   private void renderQuads(BufferBuilder var1, List<BakedQuad> var2, int var3, ItemStack var4) {
-      boolean ☃ = ☃ == -1 && !☃.isEmpty();
-      int ☃x = 0;
-
-      for (int ☃xx = ☃.size(); ☃x < ☃xx; ☃x++) {
-         BakedQuad ☃xxx = ☃.get(☃x);
-         int ☃xxxx = ☃;
-         if (☃ && ☃xxx.hasTintIndex()) {
-            ☃xxxx = this.itemColors.colorMultiplier(☃, ☃xxx.getTintIndex());
-            if (EntityRenderer.anaglyphEnable) {
-               ☃xxxx = TextureUtil.anaglyphColor(☃xxxx);
+   private void renderEffect(IBakedModel model) {
+      if (!Config.isCustomItems() || CustomItems.isUseGlint()) {
+         if (!Config.isShaders() || !Shaders.isShadowPass) {
+            GlStateManager.depthMask(false);
+            GlStateManager.depthFunc(514);
+            GlStateManager.disableLighting();
+            GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_COLOR, GlStateManager.DestFactor.ONE);
+            this.textureManager.bindTexture(RES_ITEM_GLINT);
+            if (Config.isShaders() && !this.renderItemGui) {
+               ShadersRender.renderEnchantedGlintBegin();
             }
 
-            ☃xxxx |= -16777216;
+            GlStateManager.matrixMode(5890);
+            GlStateManager.pushMatrix();
+            GlStateManager.scale(8.0F, 8.0F, 8.0F);
+            float f = (float)(Minecraft.getSystemTime() % 3000L) / 3000.0F / 8.0F;
+            GlStateManager.translate(f, 0.0F, 0.0F);
+            GlStateManager.rotate(-50.0F, 0.0F, 0.0F, 1.0F);
+            this.renderModel(model, -8372020);
+            GlStateManager.popMatrix();
+            GlStateManager.pushMatrix();
+            GlStateManager.scale(8.0F, 8.0F, 8.0F);
+            float f1 = (float)(Minecraft.getSystemTime() % 4873L) / 4873.0F / 8.0F;
+            GlStateManager.translate(-f1, 0.0F, 0.0F);
+            GlStateManager.rotate(10.0F, 0.0F, 0.0F, 1.0F);
+            this.renderModel(model, -8372020);
+            GlStateManager.popMatrix();
+            GlStateManager.matrixMode(5888);
+            GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+            GlStateManager.enableLighting();
+            GlStateManager.depthFunc(515);
+            GlStateManager.depthMask(true);
+            this.textureManager.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
+            if (Config.isShaders() && !this.renderItemGui) {
+               ShadersRender.renderEnchantedGlintEnd();
+            }
+         }
+      }
+   }
+
+   private void putQuadNormal(BufferBuilder renderer, BakedQuad quad) {
+      Vec3i vec3i = quad.getFace().getDirectionVec();
+      renderer.putNormal(vec3i.getX(), vec3i.getY(), vec3i.getZ());
+   }
+
+   private void renderQuad(BufferBuilder renderer, BakedQuad quad, int color) {
+      if (this.renderModelEmissive) {
+         if (quad.getQuadEmissive() == null) {
+            return;
          }
 
-         this.renderQuad(☃, ☃xxx, ☃xxxx);
+         quad = quad.getQuadEmissive();
+      } else if (quad.getQuadEmissive() != null) {
+         this.renderModelHasEmissive = true;
       }
-   }
 
-   public boolean shouldRenderItemIn3D(ItemStack var1) {
-      IBakedModel ☃ = this.itemModelMesher.getItemModel(☃);
-      return ☃ == null ? false : ☃.isGui3d();
-   }
-
-   public void renderItem(ItemStack var1, ItemCameraTransforms.TransformType var2) {
-      if (!☃.isEmpty()) {
-         IBakedModel ☃ = this.getItemModelWithOverrides(☃, null, null);
-         this.renderItemModel(☃, ☃, ☃, false);
-      }
-   }
-
-   public IBakedModel getItemModelWithOverrides(ItemStack var1, @Nullable World var2, @Nullable EntityLivingBase var3) {
-      IBakedModel ☃ = this.itemModelMesher.getItemModel(☃);
-      Item ☃x = ☃.getItem();
-      if (☃x != null && ☃x.hasCustomProperties()) {
-         ResourceLocation ☃xx = ☃.getOverrides().applyOverride(☃, ☃, ☃);
-         return ☃xx == null ? ☃ : this.itemModelMesher.getModelManager().getModel(new ModelResourceLocation(☃xx, "inventory"));
+      if (renderer.isMultiTexture()) {
+         renderer.addVertexData(quad.getVertexDataSingle());
       } else {
-         return ☃;
+         renderer.addVertexData(quad.getVertexData());
+      }
+
+      renderer.putSprite(quad.getSprite());
+      if (Reflector.ForgeHooksClient_putQuadColor.exists()) {
+         Reflector.call(Reflector.ForgeHooksClient_putQuadColor, new Object[]{renderer, quad, color});
+      } else {
+         renderer.putColor4(color);
+      }
+
+      this.putQuadNormal(renderer, quad);
+   }
+
+   private void renderQuads(BufferBuilder renderer, List<BakedQuad> quads, int color, ItemStack stack) {
+      boolean flag = color == -1 && !stack.isEmpty();
+      int i = 0;
+
+      for (int j = quads.size(); i < j; i++) {
+         BakedQuad bakedquad = quads.get(i);
+         int k = color;
+         if (flag && bakedquad.hasTintIndex()) {
+            k = this.itemColors.colorMultiplier(stack, bakedquad.getTintIndex());
+            if (Config.isCustomColors()) {
+               k = CustomColors.getColorFromItemStack(stack, bakedquad.getTintIndex(), k);
+            }
+
+            if (EntityRenderer.anaglyphEnable) {
+               k = TextureUtil.anaglyphColor(k);
+            }
+
+            k |= -16777216;
+         }
+
+         this.renderQuad(renderer, bakedquad, k);
       }
    }
 
-   public void renderItem(ItemStack var1, EntityLivingBase var2, ItemCameraTransforms.TransformType var3, boolean var4) {
-      if (!☃.isEmpty() && ☃ != null) {
-         IBakedModel ☃ = this.getItemModelWithOverrides(☃, ☃.world, ☃);
-         this.renderItemModel(☃, ☃, ☃, ☃);
+   public boolean shouldRenderItemIn3D(ItemStack stack) {
+      IBakedModel ibakedmodel = this.itemModelMesher.getItemModel(stack);
+      return ibakedmodel == null ? false : ibakedmodel.isGui3d();
+   }
+
+   public void renderItem(ItemStack stack, TransformType cameraTransformType) {
+      if (!stack.isEmpty()) {
+         IBakedModel ibakedmodel = this.getItemModelWithOverrides(stack, (World)null, (EntityLivingBase)null);
+         this.renderItemModel(stack, ibakedmodel, cameraTransformType, false);
       }
    }
 
-   protected void renderItemModel(ItemStack var1, IBakedModel var2, ItemCameraTransforms.TransformType var3, boolean var4) {
-      if (!☃.isEmpty()) {
+   public IBakedModel getItemModelWithOverrides(ItemStack stack, @Nullable World worldIn, @Nullable EntityLivingBase entitylivingbaseIn) {
+      IBakedModel ibakedmodel = this.itemModelMesher.getItemModel(stack);
+      Item item = stack.getItem();
+      if (Config.isCustomItems()) {
+         if (item != null && item.hasCustomProperties()) {
+            this.modelLocation = ibakedmodel.getOverrides().applyOverride(stack, worldIn, entitylivingbaseIn);
+         }
+
+         IBakedModel modelFull = CustomItems.getCustomItemModel(stack, ibakedmodel, this.modelLocation, true);
+         if (modelFull != ibakedmodel) {
+            return modelFull;
+         }
+      }
+
+      if (Reflector.ModelLoader_getInventoryVariant.exists()) {
+         return ibakedmodel.getOverrides().handleItemState(ibakedmodel, stack, worldIn, entitylivingbaseIn);
+      } else if (item != null && item.hasCustomProperties()) {
+         ResourceLocation resourcelocation = ibakedmodel.getOverrides().applyOverride(stack, worldIn, entitylivingbaseIn);
+         return resourcelocation == null
+            ? ibakedmodel
+            : this.itemModelMesher.getModelManager().getModel(new ModelResourceLocation(resourcelocation, "inventory"));
+      } else {
+         return ibakedmodel;
+      }
+   }
+
+   public void renderItem(ItemStack stack, EntityLivingBase entitylivingbaseIn, TransformType transform, boolean leftHanded) {
+      if (!stack.isEmpty() && entitylivingbaseIn != null) {
+         IBakedModel ibakedmodel = this.getItemModelWithOverrides(stack, entitylivingbaseIn.world, entitylivingbaseIn);
+         this.renderItemModel(stack, ibakedmodel, transform, leftHanded);
+      }
+   }
+
+   protected void renderItemModel(ItemStack stack, IBakedModel bakedmodel, TransformType transform, boolean leftHanded) {
+      if (!stack.isEmpty()) {
          this.textureManager.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
          this.textureManager.getTexture(TextureMap.LOCATION_BLOCKS_TEXTURE).setBlurMipmap(false, false);
          GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
@@ -235,13 +327,19 @@ public class RenderItem implements IResourceManagerReloadListener {
             GlStateManager.DestFactor.ZERO
          );
          GlStateManager.pushMatrix();
-         ItemCameraTransforms ☃ = ☃.getItemCameraTransforms();
-         ItemCameraTransforms.applyTransformSide(☃.getTransform(☃), ☃);
-         if (this.isThereOneNegativeScale(☃.getTransform(☃))) {
-            GlStateManager.cullFace(GlStateManager.CullFace.FRONT);
+         if (Reflector.ForgeHooksClient_handleCameraTransforms.exists()) {
+            bakedmodel = (IBakedModel)Reflector.call(Reflector.ForgeHooksClient_handleCameraTransforms, new Object[]{bakedmodel, transform, leftHanded});
+         } else {
+            ItemCameraTransforms itemcameratransforms = bakedmodel.getItemCameraTransforms();
+            ItemCameraTransforms.applyTransformSide(itemcameratransforms.getTransform(transform), leftHanded);
+            if (this.isThereOneNegativeScale(itemcameratransforms.getTransform(transform))) {
+               GlStateManager.cullFace(GlStateManager.CullFace.FRONT);
+            }
          }
 
-         this.renderItem(☃, ☃);
+         CustomItems.setRenderOffHand(leftHanded);
+         this.renderItem(stack, bakedmodel);
+         CustomItems.setRenderOffHand(false);
          GlStateManager.cullFace(GlStateManager.CullFace.BACK);
          GlStateManager.popMatrix();
          GlStateManager.disableRescaleNormal();
@@ -251,15 +349,16 @@ public class RenderItem implements IResourceManagerReloadListener {
       }
    }
 
-   private boolean isThereOneNegativeScale(ItemTransformVec3f var1) {
-      return ☃.scale.x < 0.0F ^ ☃.scale.y < 0.0F ^ ☃.scale.z < 0.0F;
+   private boolean isThereOneNegativeScale(ItemTransformVec3f itemTranformVec) {
+      return itemTranformVec.scale.x < 0.0F ^ itemTranformVec.scale.y < 0.0F ^ itemTranformVec.scale.z < 0.0F;
    }
 
-   public void renderItemIntoGUI(ItemStack var1, int var2, int var3) {
-      this.renderItemModelIntoGUI(☃, ☃, ☃, this.getItemModelWithOverrides(☃, null, null));
+   public void renderItemIntoGUI(ItemStack stack, int x, int y) {
+      this.renderItemModelIntoGUI(stack, x, y, this.getItemModelWithOverrides(stack, (World)null, (EntityLivingBase)null));
    }
 
-   protected void renderItemModelIntoGUI(ItemStack var1, int var2, int var3, IBakedModel var4) {
+   protected void renderItemModelIntoGUI(ItemStack stack, int x, int y, IBakedModel bakedmodel) {
+      this.renderItemGui = true;
       GlStateManager.pushMatrix();
       this.textureManager.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
       this.textureManager.getTexture(TextureMap.LOCATION_BLOCKS_TEXTURE).setBlurMipmap(false, false);
@@ -269,100 +368,133 @@ public class RenderItem implements IResourceManagerReloadListener {
       GlStateManager.enableBlend();
       GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
       GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-      this.setupGuiTransform(☃, ☃, ☃.isGui3d());
-      ☃.getItemCameraTransforms().applyTransform(ItemCameraTransforms.TransformType.GUI);
-      this.renderItem(☃, ☃);
+      this.setupGuiTransform(x, y, bakedmodel.isGui3d());
+      if (Reflector.ForgeHooksClient_handleCameraTransforms.exists()) {
+         bakedmodel = (IBakedModel)Reflector.call(Reflector.ForgeHooksClient_handleCameraTransforms, new Object[]{bakedmodel, TransformType.GUI, false});
+      } else {
+         bakedmodel.getItemCameraTransforms().applyTransform(TransformType.GUI);
+      }
+
+      this.renderItem(stack, bakedmodel);
       GlStateManager.disableAlpha();
       GlStateManager.disableRescaleNormal();
       GlStateManager.disableLighting();
       GlStateManager.popMatrix();
       this.textureManager.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
       this.textureManager.getTexture(TextureMap.LOCATION_BLOCKS_TEXTURE).restoreLastBlurMipmap();
+      this.renderItemGui = false;
    }
 
-   private void setupGuiTransform(int var1, int var2, boolean var3) {
-      GlStateManager.translate((float)☃, (float)☃, 100.0F + this.zLevel);
+   private void setupGuiTransform(int xPosition, int yPosition, boolean isGui3d) {
+      GlStateManager.translate((float)xPosition, (float)yPosition, 100.0F + this.zLevel);
       GlStateManager.translate(8.0F, 8.0F, 0.0F);
       GlStateManager.scale(1.0F, -1.0F, 1.0F);
       GlStateManager.scale(16.0F, 16.0F, 16.0F);
-      if (☃) {
+      if (isGui3d) {
          GlStateManager.enableLighting();
       } else {
          GlStateManager.disableLighting();
       }
    }
 
-   public void renderItemAndEffectIntoGUI(ItemStack var1, int var2, int var3) {
-      this.renderItemAndEffectIntoGUI(Minecraft.getMinecraft().player, ☃, ☃, ☃);
+   public void renderItemAndEffectIntoGUI(ItemStack stack, int xPosition, int yPosition) {
+      this.renderItemAndEffectIntoGUI(Minecraft.getMinecraft().player, stack, xPosition, yPosition);
    }
 
-   public void renderItemAndEffectIntoGUI(@Nullable EntityLivingBase var1, final ItemStack var2, int var3, int var4) {
-      if (!☃.isEmpty()) {
+   public void renderItemAndEffectIntoGUI(@Nullable EntityLivingBase p_184391_1_, final ItemStack p_184391_2_, int p_184391_3_, int p_184391_4_) {
+      if (!p_184391_2_.isEmpty()) {
          this.zLevel += 50.0F;
 
          try {
-            this.renderItemModelIntoGUI(☃, ☃, ☃, this.getItemModelWithOverrides(☃, null, ☃));
+            this.renderItemModelIntoGUI(p_184391_2_, p_184391_3_, p_184391_4_, this.getItemModelWithOverrides(p_184391_2_, (World)null, p_184391_1_));
          } catch (Throwable var8) {
-            CrashReport ☃ = CrashReport.makeCrashReport(var8, "Rendering item");
-            CrashReportCategory ☃x = ☃.makeCategory("Item being rendered");
-            ☃x.addDetail("Item Type", new ICrashReportDetail<String>() {
+            CrashReport crashreport = CrashReport.makeCrashReport(var8, "Rendering item");
+            CrashReportCategory crashreportcategory = crashreport.makeCategory("Item being rendered");
+            crashreportcategory.addDetail("Item Type", new ICrashReportDetail<String>() {
                public String call() throws Exception {
-                  return String.valueOf(☃.getItem());
+                  return String.valueOf(p_184391_2_.getItem());
                }
             });
-            ☃x.addDetail("Item Aux", new ICrashReportDetail<String>() {
+            if (Reflector.IForgeRegistryEntry_Impl_getRegistryName.exists()) {
+               crashreportcategory.addDetail("Registry Name", ReflectorForge.getDetailItemRegistryName(p_184391_2_.getItem()));
+            }
+
+            crashreportcategory.addDetail("Item Aux", new ICrashReportDetail<String>() {
                public String call() throws Exception {
-                  return String.valueOf(☃.getMetadata());
+                  return String.valueOf(p_184391_2_.getMetadata());
                }
             });
-            ☃x.addDetail("Item NBT", new ICrashReportDetail<String>() {
+            crashreportcategory.addDetail("Item NBT", new ICrashReportDetail<String>() {
                public String call() throws Exception {
-                  return String.valueOf(☃.getTagCompound());
+                  return String.valueOf(p_184391_2_.getTagCompound());
                }
             });
-            ☃x.addDetail("Item Foil", new ICrashReportDetail<String>() {
+            crashreportcategory.addDetail("Item Foil", new ICrashReportDetail<String>() {
                public String call() throws Exception {
-                  return String.valueOf(☃.hasEffect());
+                  return String.valueOf(p_184391_2_.hasEffect());
                }
             });
-            throw new ReportedException(☃);
+            throw new ReportedException(crashreport);
          }
 
          this.zLevel -= 50.0F;
       }
    }
 
-   public void renderItemOverlays(FontRenderer var1, ItemStack var2, int var3, int var4) {
-      this.renderItemOverlayIntoGUI(☃, ☃, ☃, ☃, null);
+   public void renderItemOverlays(FontRenderer fr, ItemStack stack, int xPosition, int yPosition) {
+      this.renderItemOverlayIntoGUI(fr, stack, xPosition, yPosition, (String)null);
    }
 
-   public void renderItemOverlayIntoGUI(FontRenderer var1, ItemStack var2, int var3, int var4, @Nullable String var5) {
-      if (!☃.isEmpty()) {
-         if (☃.getCount() != 1 || ☃ != null) {
-            String ☃ = ☃ == null ? String.valueOf(☃.getCount()) : ☃;
+   public void renderItemOverlayIntoGUI(FontRenderer fr, ItemStack stack, int xPosition, int yPosition, @Nullable String text) {
+      if (!stack.isEmpty()) {
+         if (stack.getCount() != 1 || text != null) {
+            String s = text == null ? String.valueOf(stack.getCount()) : text;
             GlStateManager.disableLighting();
             GlStateManager.disableDepth();
             GlStateManager.disableBlend();
-            ☃.drawStringWithShadow(☃, ☃ + 19 - 2 - ☃.getStringWidth(☃), ☃ + 6 + 3, 16777215);
+            fr.drawStringWithShadow(s, xPosition + 19 - 2 - fr.getStringWidth(s), yPosition + 6 + 3, 16777215);
             GlStateManager.enableLighting();
             GlStateManager.enableDepth();
+            GlStateManager.enableBlend();
          }
 
-         if (☃.isItemDamaged()) {
+         if (ReflectorForge.isItemDamaged(stack)) {
             GlStateManager.disableLighting();
             GlStateManager.disableDepth();
             GlStateManager.disableTexture2D();
             GlStateManager.disableAlpha();
             GlStateManager.disableBlend();
-            Tessellator ☃ = Tessellator.getInstance();
-            BufferBuilder ☃x = ☃.getBuffer();
-            float ☃xx = ☃.getItemDamage();
-            float ☃xxx = ☃.getMaxDamage();
-            float ☃xxxx = Math.max(0.0F, (☃xxx - ☃xx) / ☃xxx);
-            int ☃xxxxx = Math.round(13.0F - ☃xx * 13.0F / ☃xxx);
-            int ☃xxxxxx = MathHelper.hsvToRGB(☃xxxx / 3.0F, 1.0F, 1.0F);
-            this.draw(☃x, ☃ + 2, ☃ + 13, 13, 2, 0, 0, 0, 255);
-            this.draw(☃x, ☃ + 2, ☃ + 13, ☃xxxxx, 1, ☃xxxxxx >> 16 & 0xFF, ☃xxxxxx >> 8 & 0xFF, ☃xxxxxx & 0xFF, 255);
+            Tessellator tessellator = Tessellator.getInstance();
+            BufferBuilder bufferbuilder = tessellator.getBuffer();
+            float f = stack.getItemDamage();
+            float f1 = stack.getMaxDamage();
+            float f2 = Math.max(0.0F, (f1 - f) / f1);
+            int i = Math.round(13.0F - f * 13.0F / f1);
+            int j = MathHelper.hsvToRGB(f2 / 3.0F, 1.0F, 1.0F);
+            if (Reflector.ForgeItem_getDurabilityForDisplay.exists() && Reflector.ForgeItem_getRGBDurabilityForDisplay.exists()) {
+               double health = Reflector.callDouble(stack.getItem(), Reflector.ForgeItem_getDurabilityForDisplay, new Object[]{stack});
+               int rgbfordisplay = Reflector.callInt(stack.getItem(), Reflector.ForgeItem_getRGBDurabilityForDisplay, new Object[]{stack});
+               i = Math.round(13.0F - (float)health * 13.0F);
+               j = rgbfordisplay;
+            }
+
+            if (Config.isCustomColors()) {
+               j = CustomColors.getDurabilityColor(f2, j);
+            }
+
+            if (Reflector.ForgeItem_getDurabilityForDisplay.exists() && Reflector.ForgeItem_getRGBDurabilityForDisplay.exists()) {
+               double health = Reflector.callDouble(stack.getItem(), Reflector.ForgeItem_getDurabilityForDisplay, new Object[]{stack});
+               int rgbfordisplay = Reflector.callInt(stack.getItem(), Reflector.ForgeItem_getRGBDurabilityForDisplay, new Object[]{stack});
+               i = Math.round(13.0F - (float)health * 13.0F);
+               j = rgbfordisplay;
+            }
+
+            if (Config.isCustomColors()) {
+               j = CustomColors.getDurabilityColor(f2, j);
+            }
+
+            this.draw(bufferbuilder, xPosition + 2, yPosition + 13, 13, 2, 0, 0, 0, 255);
+            this.draw(bufferbuilder, xPosition + 2, yPosition + 13, i, 1, j >> 16 & 0xFF, j >> 8 & 0xFF, j & 0xFF, 255);
             GlStateManager.enableBlend();
             GlStateManager.enableAlpha();
             GlStateManager.enableTexture2D();
@@ -370,15 +502,17 @@ public class RenderItem implements IResourceManagerReloadListener {
             GlStateManager.enableDepth();
          }
 
-         EntityPlayerSP ☃ = Minecraft.getMinecraft().player;
-         float ☃x = ☃ == null ? 0.0F : ☃.getCooldownTracker().getCooldown(☃.getItem(), Minecraft.getMinecraft().getRenderPartialTicks());
-         if (☃x > 0.0F) {
+         EntityPlayerSP entityplayersp = Minecraft.getMinecraft().player;
+         float f3 = entityplayersp == null
+            ? 0.0F
+            : entityplayersp.getCooldownTracker().getCooldown(stack.getItem(), Minecraft.getMinecraft().getRenderPartialTicks());
+         if (f3 > 0.0F) {
             GlStateManager.disableLighting();
             GlStateManager.disableDepth();
             GlStateManager.disableTexture2D();
-            Tessellator ☃xx = Tessellator.getInstance();
-            BufferBuilder ☃xxx = ☃xx.getBuffer();
-            this.draw(☃xxx, ☃, ☃ + MathHelper.floor(16.0F * (1.0F - ☃x)), 16, MathHelper.ceil(16.0F * ☃x), 255, 255, 255, 127);
+            Tessellator tessellator1 = Tessellator.getInstance();
+            BufferBuilder bufferbuilder1 = tessellator1.getBuffer();
+            this.draw(bufferbuilder1, xPosition, yPosition + MathHelper.floor(16.0F * (1.0F - f3)), 16, MathHelper.ceil(16.0F * f3), 255, 255, 255, 127);
             GlStateManager.enableTexture2D();
             GlStateManager.enableLighting();
             GlStateManager.enableDepth();
@@ -386,12 +520,12 @@ public class RenderItem implements IResourceManagerReloadListener {
       }
    }
 
-   private void draw(BufferBuilder var1, int var2, int var3, int var4, int var5, int var6, int var7, int var8, int var9) {
-      ☃.begin(7, DefaultVertexFormats.POSITION_COLOR);
-      ☃.pos(☃ + 0, ☃ + 0, 0.0).color(☃, ☃, ☃, ☃).endVertex();
-      ☃.pos(☃ + 0, ☃ + ☃, 0.0).color(☃, ☃, ☃, ☃).endVertex();
-      ☃.pos(☃ + ☃, ☃ + ☃, 0.0).color(☃, ☃, ☃, ☃).endVertex();
-      ☃.pos(☃ + ☃, ☃ + 0, 0.0).color(☃, ☃, ☃, ☃).endVertex();
+   private void draw(BufferBuilder renderer, int x, int y, int width, int height, int red, int green, int blue, int alpha) {
+      renderer.begin(7, DefaultVertexFormats.POSITION_COLOR);
+      renderer.pos(x + 0, y + 0, 0.0).color(red, green, blue, alpha).endVertex();
+      renderer.pos(x + 0, y + height, 0.0).color(red, green, blue, alpha).endVertex();
+      renderer.pos(x + width, y + height, 0.0).color(red, green, blue, alpha).endVertex();
+      renderer.pos(x + width, y + 0, 0.0).color(red, green, blue, alpha).endVertex();
       Tessellator.getInstance().draw();
    }
 
@@ -415,70 +549,70 @@ public class RenderItem implements IResourceManagerReloadListener {
       this.registerBlock(Blocks.CARPET, EnumDyeColor.SILVER.getMetadata(), "silver_carpet");
       this.registerBlock(Blocks.CARPET, EnumDyeColor.WHITE.getMetadata(), "white_carpet");
       this.registerBlock(Blocks.CARPET, EnumDyeColor.YELLOW.getMetadata(), "yellow_carpet");
-      this.registerBlock(Blocks.COBBLESTONE_WALL, BlockWall.EnumType.MOSSY.getMetadata(), "mossy_cobblestone_wall");
-      this.registerBlock(Blocks.COBBLESTONE_WALL, BlockWall.EnumType.NORMAL.getMetadata(), "cobblestone_wall");
-      this.registerBlock(Blocks.DIRT, BlockDirt.DirtType.COARSE_DIRT.getMetadata(), "coarse_dirt");
-      this.registerBlock(Blocks.DIRT, BlockDirt.DirtType.DIRT.getMetadata(), "dirt");
-      this.registerBlock(Blocks.DIRT, BlockDirt.DirtType.PODZOL.getMetadata(), "podzol");
-      this.registerBlock(Blocks.DOUBLE_PLANT, BlockDoublePlant.EnumPlantType.FERN.getMeta(), "double_fern");
-      this.registerBlock(Blocks.DOUBLE_PLANT, BlockDoublePlant.EnumPlantType.GRASS.getMeta(), "double_grass");
-      this.registerBlock(Blocks.DOUBLE_PLANT, BlockDoublePlant.EnumPlantType.PAEONIA.getMeta(), "paeonia");
-      this.registerBlock(Blocks.DOUBLE_PLANT, BlockDoublePlant.EnumPlantType.ROSE.getMeta(), "double_rose");
-      this.registerBlock(Blocks.DOUBLE_PLANT, BlockDoublePlant.EnumPlantType.SUNFLOWER.getMeta(), "sunflower");
-      this.registerBlock(Blocks.DOUBLE_PLANT, BlockDoublePlant.EnumPlantType.SYRINGA.getMeta(), "syringa");
-      this.registerBlock(Blocks.LEAVES, BlockPlanks.EnumType.BIRCH.getMetadata(), "birch_leaves");
-      this.registerBlock(Blocks.LEAVES, BlockPlanks.EnumType.JUNGLE.getMetadata(), "jungle_leaves");
-      this.registerBlock(Blocks.LEAVES, BlockPlanks.EnumType.OAK.getMetadata(), "oak_leaves");
-      this.registerBlock(Blocks.LEAVES, BlockPlanks.EnumType.SPRUCE.getMetadata(), "spruce_leaves");
-      this.registerBlock(Blocks.LEAVES2, BlockPlanks.EnumType.ACACIA.getMetadata() - 4, "acacia_leaves");
-      this.registerBlock(Blocks.LEAVES2, BlockPlanks.EnumType.DARK_OAK.getMetadata() - 4, "dark_oak_leaves");
-      this.registerBlock(Blocks.LOG, BlockPlanks.EnumType.BIRCH.getMetadata(), "birch_log");
-      this.registerBlock(Blocks.LOG, BlockPlanks.EnumType.JUNGLE.getMetadata(), "jungle_log");
-      this.registerBlock(Blocks.LOG, BlockPlanks.EnumType.OAK.getMetadata(), "oak_log");
-      this.registerBlock(Blocks.LOG, BlockPlanks.EnumType.SPRUCE.getMetadata(), "spruce_log");
-      this.registerBlock(Blocks.LOG2, BlockPlanks.EnumType.ACACIA.getMetadata() - 4, "acacia_log");
-      this.registerBlock(Blocks.LOG2, BlockPlanks.EnumType.DARK_OAK.getMetadata() - 4, "dark_oak_log");
-      this.registerBlock(Blocks.MONSTER_EGG, BlockSilverfish.EnumType.CHISELED_STONEBRICK.getMetadata(), "chiseled_brick_monster_egg");
-      this.registerBlock(Blocks.MONSTER_EGG, BlockSilverfish.EnumType.COBBLESTONE.getMetadata(), "cobblestone_monster_egg");
-      this.registerBlock(Blocks.MONSTER_EGG, BlockSilverfish.EnumType.CRACKED_STONEBRICK.getMetadata(), "cracked_brick_monster_egg");
-      this.registerBlock(Blocks.MONSTER_EGG, BlockSilverfish.EnumType.MOSSY_STONEBRICK.getMetadata(), "mossy_brick_monster_egg");
-      this.registerBlock(Blocks.MONSTER_EGG, BlockSilverfish.EnumType.STONE.getMetadata(), "stone_monster_egg");
-      this.registerBlock(Blocks.MONSTER_EGG, BlockSilverfish.EnumType.STONEBRICK.getMetadata(), "stone_brick_monster_egg");
-      this.registerBlock(Blocks.PLANKS, BlockPlanks.EnumType.ACACIA.getMetadata(), "acacia_planks");
-      this.registerBlock(Blocks.PLANKS, BlockPlanks.EnumType.BIRCH.getMetadata(), "birch_planks");
-      this.registerBlock(Blocks.PLANKS, BlockPlanks.EnumType.DARK_OAK.getMetadata(), "dark_oak_planks");
-      this.registerBlock(Blocks.PLANKS, BlockPlanks.EnumType.JUNGLE.getMetadata(), "jungle_planks");
-      this.registerBlock(Blocks.PLANKS, BlockPlanks.EnumType.OAK.getMetadata(), "oak_planks");
-      this.registerBlock(Blocks.PLANKS, BlockPlanks.EnumType.SPRUCE.getMetadata(), "spruce_planks");
-      this.registerBlock(Blocks.PRISMARINE, BlockPrismarine.EnumType.BRICKS.getMetadata(), "prismarine_bricks");
-      this.registerBlock(Blocks.PRISMARINE, BlockPrismarine.EnumType.DARK.getMetadata(), "dark_prismarine");
-      this.registerBlock(Blocks.PRISMARINE, BlockPrismarine.EnumType.ROUGH.getMetadata(), "prismarine");
-      this.registerBlock(Blocks.QUARTZ_BLOCK, BlockQuartz.EnumType.CHISELED.getMetadata(), "chiseled_quartz_block");
-      this.registerBlock(Blocks.QUARTZ_BLOCK, BlockQuartz.EnumType.DEFAULT.getMetadata(), "quartz_block");
-      this.registerBlock(Blocks.QUARTZ_BLOCK, BlockQuartz.EnumType.LINES_Y.getMetadata(), "quartz_column");
-      this.registerBlock(Blocks.RED_FLOWER, BlockFlower.EnumFlowerType.ALLIUM.getMeta(), "allium");
-      this.registerBlock(Blocks.RED_FLOWER, BlockFlower.EnumFlowerType.BLUE_ORCHID.getMeta(), "blue_orchid");
-      this.registerBlock(Blocks.RED_FLOWER, BlockFlower.EnumFlowerType.HOUSTONIA.getMeta(), "houstonia");
-      this.registerBlock(Blocks.RED_FLOWER, BlockFlower.EnumFlowerType.ORANGE_TULIP.getMeta(), "orange_tulip");
-      this.registerBlock(Blocks.RED_FLOWER, BlockFlower.EnumFlowerType.OXEYE_DAISY.getMeta(), "oxeye_daisy");
-      this.registerBlock(Blocks.RED_FLOWER, BlockFlower.EnumFlowerType.PINK_TULIP.getMeta(), "pink_tulip");
-      this.registerBlock(Blocks.RED_FLOWER, BlockFlower.EnumFlowerType.POPPY.getMeta(), "poppy");
-      this.registerBlock(Blocks.RED_FLOWER, BlockFlower.EnumFlowerType.RED_TULIP.getMeta(), "red_tulip");
-      this.registerBlock(Blocks.RED_FLOWER, BlockFlower.EnumFlowerType.WHITE_TULIP.getMeta(), "white_tulip");
-      this.registerBlock(Blocks.SAND, BlockSand.EnumType.RED_SAND.getMetadata(), "red_sand");
-      this.registerBlock(Blocks.SAND, BlockSand.EnumType.SAND.getMetadata(), "sand");
-      this.registerBlock(Blocks.SANDSTONE, BlockSandStone.EnumType.CHISELED.getMetadata(), "chiseled_sandstone");
-      this.registerBlock(Blocks.SANDSTONE, BlockSandStone.EnumType.DEFAULT.getMetadata(), "sandstone");
-      this.registerBlock(Blocks.SANDSTONE, BlockSandStone.EnumType.SMOOTH.getMetadata(), "smooth_sandstone");
-      this.registerBlock(Blocks.RED_SANDSTONE, BlockRedSandstone.EnumType.CHISELED.getMetadata(), "chiseled_red_sandstone");
-      this.registerBlock(Blocks.RED_SANDSTONE, BlockRedSandstone.EnumType.DEFAULT.getMetadata(), "red_sandstone");
-      this.registerBlock(Blocks.RED_SANDSTONE, BlockRedSandstone.EnumType.SMOOTH.getMetadata(), "smooth_red_sandstone");
-      this.registerBlock(Blocks.SAPLING, BlockPlanks.EnumType.ACACIA.getMetadata(), "acacia_sapling");
-      this.registerBlock(Blocks.SAPLING, BlockPlanks.EnumType.BIRCH.getMetadata(), "birch_sapling");
-      this.registerBlock(Blocks.SAPLING, BlockPlanks.EnumType.DARK_OAK.getMetadata(), "dark_oak_sapling");
-      this.registerBlock(Blocks.SAPLING, BlockPlanks.EnumType.JUNGLE.getMetadata(), "jungle_sapling");
-      this.registerBlock(Blocks.SAPLING, BlockPlanks.EnumType.OAK.getMetadata(), "oak_sapling");
-      this.registerBlock(Blocks.SAPLING, BlockPlanks.EnumType.SPRUCE.getMetadata(), "spruce_sapling");
+      this.registerBlock(Blocks.COBBLESTONE_WALL, EnumType.MOSSY.getMetadata(), "mossy_cobblestone_wall");
+      this.registerBlock(Blocks.COBBLESTONE_WALL, EnumType.NORMAL.getMetadata(), "cobblestone_wall");
+      this.registerBlock(Blocks.DIRT, DirtType.COARSE_DIRT.getMetadata(), "coarse_dirt");
+      this.registerBlock(Blocks.DIRT, DirtType.DIRT.getMetadata(), "dirt");
+      this.registerBlock(Blocks.DIRT, DirtType.PODZOL.getMetadata(), "podzol");
+      this.registerBlock(Blocks.DOUBLE_PLANT, EnumPlantType.FERN.getMeta(), "double_fern");
+      this.registerBlock(Blocks.DOUBLE_PLANT, EnumPlantType.GRASS.getMeta(), "double_grass");
+      this.registerBlock(Blocks.DOUBLE_PLANT, EnumPlantType.PAEONIA.getMeta(), "paeonia");
+      this.registerBlock(Blocks.DOUBLE_PLANT, EnumPlantType.ROSE.getMeta(), "double_rose");
+      this.registerBlock(Blocks.DOUBLE_PLANT, EnumPlantType.SUNFLOWER.getMeta(), "sunflower");
+      this.registerBlock(Blocks.DOUBLE_PLANT, EnumPlantType.SYRINGA.getMeta(), "syringa");
+      this.registerBlock(Blocks.LEAVES, net.minecraft.block.BlockPlanks.EnumType.BIRCH.getMetadata(), "birch_leaves");
+      this.registerBlock(Blocks.LEAVES, net.minecraft.block.BlockPlanks.EnumType.JUNGLE.getMetadata(), "jungle_leaves");
+      this.registerBlock(Blocks.LEAVES, net.minecraft.block.BlockPlanks.EnumType.OAK.getMetadata(), "oak_leaves");
+      this.registerBlock(Blocks.LEAVES, net.minecraft.block.BlockPlanks.EnumType.SPRUCE.getMetadata(), "spruce_leaves");
+      this.registerBlock(Blocks.LEAVES2, net.minecraft.block.BlockPlanks.EnumType.ACACIA.getMetadata() - 4, "acacia_leaves");
+      this.registerBlock(Blocks.LEAVES2, net.minecraft.block.BlockPlanks.EnumType.DARK_OAK.getMetadata() - 4, "dark_oak_leaves");
+      this.registerBlock(Blocks.LOG, net.minecraft.block.BlockPlanks.EnumType.BIRCH.getMetadata(), "birch_log");
+      this.registerBlock(Blocks.LOG, net.minecraft.block.BlockPlanks.EnumType.JUNGLE.getMetadata(), "jungle_log");
+      this.registerBlock(Blocks.LOG, net.minecraft.block.BlockPlanks.EnumType.OAK.getMetadata(), "oak_log");
+      this.registerBlock(Blocks.LOG, net.minecraft.block.BlockPlanks.EnumType.SPRUCE.getMetadata(), "spruce_log");
+      this.registerBlock(Blocks.LOG2, net.minecraft.block.BlockPlanks.EnumType.ACACIA.getMetadata() - 4, "acacia_log");
+      this.registerBlock(Blocks.LOG2, net.minecraft.block.BlockPlanks.EnumType.DARK_OAK.getMetadata() - 4, "dark_oak_log");
+      this.registerBlock(Blocks.MONSTER_EGG, net.minecraft.block.BlockSilverfish.EnumType.CHISELED_STONEBRICK.getMetadata(), "chiseled_brick_monster_egg");
+      this.registerBlock(Blocks.MONSTER_EGG, net.minecraft.block.BlockSilverfish.EnumType.COBBLESTONE.getMetadata(), "cobblestone_monster_egg");
+      this.registerBlock(Blocks.MONSTER_EGG, net.minecraft.block.BlockSilverfish.EnumType.CRACKED_STONEBRICK.getMetadata(), "cracked_brick_monster_egg");
+      this.registerBlock(Blocks.MONSTER_EGG, net.minecraft.block.BlockSilverfish.EnumType.MOSSY_STONEBRICK.getMetadata(), "mossy_brick_monster_egg");
+      this.registerBlock(Blocks.MONSTER_EGG, net.minecraft.block.BlockSilverfish.EnumType.STONE.getMetadata(), "stone_monster_egg");
+      this.registerBlock(Blocks.MONSTER_EGG, net.minecraft.block.BlockSilverfish.EnumType.STONEBRICK.getMetadata(), "stone_brick_monster_egg");
+      this.registerBlock(Blocks.PLANKS, net.minecraft.block.BlockPlanks.EnumType.ACACIA.getMetadata(), "acacia_planks");
+      this.registerBlock(Blocks.PLANKS, net.minecraft.block.BlockPlanks.EnumType.BIRCH.getMetadata(), "birch_planks");
+      this.registerBlock(Blocks.PLANKS, net.minecraft.block.BlockPlanks.EnumType.DARK_OAK.getMetadata(), "dark_oak_planks");
+      this.registerBlock(Blocks.PLANKS, net.minecraft.block.BlockPlanks.EnumType.JUNGLE.getMetadata(), "jungle_planks");
+      this.registerBlock(Blocks.PLANKS, net.minecraft.block.BlockPlanks.EnumType.OAK.getMetadata(), "oak_planks");
+      this.registerBlock(Blocks.PLANKS, net.minecraft.block.BlockPlanks.EnumType.SPRUCE.getMetadata(), "spruce_planks");
+      this.registerBlock(Blocks.PRISMARINE, net.minecraft.block.BlockPrismarine.EnumType.BRICKS.getMetadata(), "prismarine_bricks");
+      this.registerBlock(Blocks.PRISMARINE, net.minecraft.block.BlockPrismarine.EnumType.DARK.getMetadata(), "dark_prismarine");
+      this.registerBlock(Blocks.PRISMARINE, net.minecraft.block.BlockPrismarine.EnumType.ROUGH.getMetadata(), "prismarine");
+      this.registerBlock(Blocks.QUARTZ_BLOCK, net.minecraft.block.BlockQuartz.EnumType.CHISELED.getMetadata(), "chiseled_quartz_block");
+      this.registerBlock(Blocks.QUARTZ_BLOCK, net.minecraft.block.BlockQuartz.EnumType.DEFAULT.getMetadata(), "quartz_block");
+      this.registerBlock(Blocks.QUARTZ_BLOCK, net.minecraft.block.BlockQuartz.EnumType.LINES_Y.getMetadata(), "quartz_column");
+      this.registerBlock(Blocks.RED_FLOWER, EnumFlowerType.ALLIUM.getMeta(), "allium");
+      this.registerBlock(Blocks.RED_FLOWER, EnumFlowerType.BLUE_ORCHID.getMeta(), "blue_orchid");
+      this.registerBlock(Blocks.RED_FLOWER, EnumFlowerType.HOUSTONIA.getMeta(), "houstonia");
+      this.registerBlock(Blocks.RED_FLOWER, EnumFlowerType.ORANGE_TULIP.getMeta(), "orange_tulip");
+      this.registerBlock(Blocks.RED_FLOWER, EnumFlowerType.OXEYE_DAISY.getMeta(), "oxeye_daisy");
+      this.registerBlock(Blocks.RED_FLOWER, EnumFlowerType.PINK_TULIP.getMeta(), "pink_tulip");
+      this.registerBlock(Blocks.RED_FLOWER, EnumFlowerType.POPPY.getMeta(), "poppy");
+      this.registerBlock(Blocks.RED_FLOWER, EnumFlowerType.RED_TULIP.getMeta(), "red_tulip");
+      this.registerBlock(Blocks.RED_FLOWER, EnumFlowerType.WHITE_TULIP.getMeta(), "white_tulip");
+      this.registerBlock(Blocks.SAND, net.minecraft.block.BlockSand.EnumType.RED_SAND.getMetadata(), "red_sand");
+      this.registerBlock(Blocks.SAND, net.minecraft.block.BlockSand.EnumType.SAND.getMetadata(), "sand");
+      this.registerBlock(Blocks.SANDSTONE, net.minecraft.block.BlockSandStone.EnumType.CHISELED.getMetadata(), "chiseled_sandstone");
+      this.registerBlock(Blocks.SANDSTONE, net.minecraft.block.BlockSandStone.EnumType.DEFAULT.getMetadata(), "sandstone");
+      this.registerBlock(Blocks.SANDSTONE, net.minecraft.block.BlockSandStone.EnumType.SMOOTH.getMetadata(), "smooth_sandstone");
+      this.registerBlock(Blocks.RED_SANDSTONE, net.minecraft.block.BlockRedSandstone.EnumType.CHISELED.getMetadata(), "chiseled_red_sandstone");
+      this.registerBlock(Blocks.RED_SANDSTONE, net.minecraft.block.BlockRedSandstone.EnumType.DEFAULT.getMetadata(), "red_sandstone");
+      this.registerBlock(Blocks.RED_SANDSTONE, net.minecraft.block.BlockRedSandstone.EnumType.SMOOTH.getMetadata(), "smooth_red_sandstone");
+      this.registerBlock(Blocks.SAPLING, net.minecraft.block.BlockPlanks.EnumType.ACACIA.getMetadata(), "acacia_sapling");
+      this.registerBlock(Blocks.SAPLING, net.minecraft.block.BlockPlanks.EnumType.BIRCH.getMetadata(), "birch_sapling");
+      this.registerBlock(Blocks.SAPLING, net.minecraft.block.BlockPlanks.EnumType.DARK_OAK.getMetadata(), "dark_oak_sapling");
+      this.registerBlock(Blocks.SAPLING, net.minecraft.block.BlockPlanks.EnumType.JUNGLE.getMetadata(), "jungle_sapling");
+      this.registerBlock(Blocks.SAPLING, net.minecraft.block.BlockPlanks.EnumType.OAK.getMetadata(), "oak_sapling");
+      this.registerBlock(Blocks.SAPLING, net.minecraft.block.BlockPlanks.EnumType.SPRUCE.getMetadata(), "spruce_sapling");
       this.registerBlock(Blocks.SPONGE, 0, "sponge");
       this.registerBlock(Blocks.SPONGE, 1, "sponge_wet");
       this.registerBlock(Blocks.STAINED_GLASS, EnumDyeColor.BLACK.getMetadata(), "black_stained_glass");
@@ -529,35 +663,35 @@ public class RenderItem implements IResourceManagerReloadListener {
       this.registerBlock(Blocks.STAINED_HARDENED_CLAY, EnumDyeColor.SILVER.getMetadata(), "silver_stained_hardened_clay");
       this.registerBlock(Blocks.STAINED_HARDENED_CLAY, EnumDyeColor.WHITE.getMetadata(), "white_stained_hardened_clay");
       this.registerBlock(Blocks.STAINED_HARDENED_CLAY, EnumDyeColor.YELLOW.getMetadata(), "yellow_stained_hardened_clay");
-      this.registerBlock(Blocks.STONE, BlockStone.EnumType.ANDESITE.getMetadata(), "andesite");
-      this.registerBlock(Blocks.STONE, BlockStone.EnumType.ANDESITE_SMOOTH.getMetadata(), "andesite_smooth");
-      this.registerBlock(Blocks.STONE, BlockStone.EnumType.DIORITE.getMetadata(), "diorite");
-      this.registerBlock(Blocks.STONE, BlockStone.EnumType.DIORITE_SMOOTH.getMetadata(), "diorite_smooth");
-      this.registerBlock(Blocks.STONE, BlockStone.EnumType.GRANITE.getMetadata(), "granite");
-      this.registerBlock(Blocks.STONE, BlockStone.EnumType.GRANITE_SMOOTH.getMetadata(), "granite_smooth");
-      this.registerBlock(Blocks.STONE, BlockStone.EnumType.STONE.getMetadata(), "stone");
-      this.registerBlock(Blocks.STONEBRICK, BlockStoneBrick.EnumType.CRACKED.getMetadata(), "cracked_stonebrick");
-      this.registerBlock(Blocks.STONEBRICK, BlockStoneBrick.EnumType.DEFAULT.getMetadata(), "stonebrick");
-      this.registerBlock(Blocks.STONEBRICK, BlockStoneBrick.EnumType.CHISELED.getMetadata(), "chiseled_stonebrick");
-      this.registerBlock(Blocks.STONEBRICK, BlockStoneBrick.EnumType.MOSSY.getMetadata(), "mossy_stonebrick");
-      this.registerBlock(Blocks.STONE_SLAB, BlockStoneSlab.EnumType.BRICK.getMetadata(), "brick_slab");
-      this.registerBlock(Blocks.STONE_SLAB, BlockStoneSlab.EnumType.COBBLESTONE.getMetadata(), "cobblestone_slab");
-      this.registerBlock(Blocks.STONE_SLAB, BlockStoneSlab.EnumType.WOOD.getMetadata(), "old_wood_slab");
-      this.registerBlock(Blocks.STONE_SLAB, BlockStoneSlab.EnumType.NETHERBRICK.getMetadata(), "nether_brick_slab");
-      this.registerBlock(Blocks.STONE_SLAB, BlockStoneSlab.EnumType.QUARTZ.getMetadata(), "quartz_slab");
-      this.registerBlock(Blocks.STONE_SLAB, BlockStoneSlab.EnumType.SAND.getMetadata(), "sandstone_slab");
-      this.registerBlock(Blocks.STONE_SLAB, BlockStoneSlab.EnumType.SMOOTHBRICK.getMetadata(), "stone_brick_slab");
-      this.registerBlock(Blocks.STONE_SLAB, BlockStoneSlab.EnumType.STONE.getMetadata(), "stone_slab");
-      this.registerBlock(Blocks.STONE_SLAB2, BlockStoneSlabNew.EnumType.RED_SANDSTONE.getMetadata(), "red_sandstone_slab");
-      this.registerBlock(Blocks.TALLGRASS, BlockTallGrass.EnumType.DEAD_BUSH.getMeta(), "dead_bush");
-      this.registerBlock(Blocks.TALLGRASS, BlockTallGrass.EnumType.FERN.getMeta(), "fern");
-      this.registerBlock(Blocks.TALLGRASS, BlockTallGrass.EnumType.GRASS.getMeta(), "tall_grass");
-      this.registerBlock(Blocks.WOODEN_SLAB, BlockPlanks.EnumType.ACACIA.getMetadata(), "acacia_slab");
-      this.registerBlock(Blocks.WOODEN_SLAB, BlockPlanks.EnumType.BIRCH.getMetadata(), "birch_slab");
-      this.registerBlock(Blocks.WOODEN_SLAB, BlockPlanks.EnumType.DARK_OAK.getMetadata(), "dark_oak_slab");
-      this.registerBlock(Blocks.WOODEN_SLAB, BlockPlanks.EnumType.JUNGLE.getMetadata(), "jungle_slab");
-      this.registerBlock(Blocks.WOODEN_SLAB, BlockPlanks.EnumType.OAK.getMetadata(), "oak_slab");
-      this.registerBlock(Blocks.WOODEN_SLAB, BlockPlanks.EnumType.SPRUCE.getMetadata(), "spruce_slab");
+      this.registerBlock(Blocks.STONE, net.minecraft.block.BlockStone.EnumType.ANDESITE.getMetadata(), "andesite");
+      this.registerBlock(Blocks.STONE, net.minecraft.block.BlockStone.EnumType.ANDESITE_SMOOTH.getMetadata(), "andesite_smooth");
+      this.registerBlock(Blocks.STONE, net.minecraft.block.BlockStone.EnumType.DIORITE.getMetadata(), "diorite");
+      this.registerBlock(Blocks.STONE, net.minecraft.block.BlockStone.EnumType.DIORITE_SMOOTH.getMetadata(), "diorite_smooth");
+      this.registerBlock(Blocks.STONE, net.minecraft.block.BlockStone.EnumType.GRANITE.getMetadata(), "granite");
+      this.registerBlock(Blocks.STONE, net.minecraft.block.BlockStone.EnumType.GRANITE_SMOOTH.getMetadata(), "granite_smooth");
+      this.registerBlock(Blocks.STONE, net.minecraft.block.BlockStone.EnumType.STONE.getMetadata(), "stone");
+      this.registerBlock(Blocks.STONEBRICK, net.minecraft.block.BlockStoneBrick.EnumType.CRACKED.getMetadata(), "cracked_stonebrick");
+      this.registerBlock(Blocks.STONEBRICK, net.minecraft.block.BlockStoneBrick.EnumType.DEFAULT.getMetadata(), "stonebrick");
+      this.registerBlock(Blocks.STONEBRICK, net.minecraft.block.BlockStoneBrick.EnumType.CHISELED.getMetadata(), "chiseled_stonebrick");
+      this.registerBlock(Blocks.STONEBRICK, net.minecraft.block.BlockStoneBrick.EnumType.MOSSY.getMetadata(), "mossy_stonebrick");
+      this.registerBlock(Blocks.STONE_SLAB, net.minecraft.block.BlockStoneSlab.EnumType.BRICK.getMetadata(), "brick_slab");
+      this.registerBlock(Blocks.STONE_SLAB, net.minecraft.block.BlockStoneSlab.EnumType.COBBLESTONE.getMetadata(), "cobblestone_slab");
+      this.registerBlock(Blocks.STONE_SLAB, net.minecraft.block.BlockStoneSlab.EnumType.WOOD.getMetadata(), "old_wood_slab");
+      this.registerBlock(Blocks.STONE_SLAB, net.minecraft.block.BlockStoneSlab.EnumType.NETHERBRICK.getMetadata(), "nether_brick_slab");
+      this.registerBlock(Blocks.STONE_SLAB, net.minecraft.block.BlockStoneSlab.EnumType.QUARTZ.getMetadata(), "quartz_slab");
+      this.registerBlock(Blocks.STONE_SLAB, net.minecraft.block.BlockStoneSlab.EnumType.SAND.getMetadata(), "sandstone_slab");
+      this.registerBlock(Blocks.STONE_SLAB, net.minecraft.block.BlockStoneSlab.EnumType.SMOOTHBRICK.getMetadata(), "stone_brick_slab");
+      this.registerBlock(Blocks.STONE_SLAB, net.minecraft.block.BlockStoneSlab.EnumType.STONE.getMetadata(), "stone_slab");
+      this.registerBlock(Blocks.STONE_SLAB2, net.minecraft.block.BlockStoneSlabNew.EnumType.RED_SANDSTONE.getMetadata(), "red_sandstone_slab");
+      this.registerBlock(Blocks.TALLGRASS, net.minecraft.block.BlockTallGrass.EnumType.DEAD_BUSH.getMeta(), "dead_bush");
+      this.registerBlock(Blocks.TALLGRASS, net.minecraft.block.BlockTallGrass.EnumType.FERN.getMeta(), "fern");
+      this.registerBlock(Blocks.TALLGRASS, net.minecraft.block.BlockTallGrass.EnumType.GRASS.getMeta(), "tall_grass");
+      this.registerBlock(Blocks.WOODEN_SLAB, net.minecraft.block.BlockPlanks.EnumType.ACACIA.getMetadata(), "acacia_slab");
+      this.registerBlock(Blocks.WOODEN_SLAB, net.minecraft.block.BlockPlanks.EnumType.BIRCH.getMetadata(), "birch_slab");
+      this.registerBlock(Blocks.WOODEN_SLAB, net.minecraft.block.BlockPlanks.EnumType.DARK_OAK.getMetadata(), "dark_oak_slab");
+      this.registerBlock(Blocks.WOODEN_SLAB, net.minecraft.block.BlockPlanks.EnumType.JUNGLE.getMetadata(), "jungle_slab");
+      this.registerBlock(Blocks.WOODEN_SLAB, net.minecraft.block.BlockPlanks.EnumType.OAK.getMetadata(), "oak_slab");
+      this.registerBlock(Blocks.WOODEN_SLAB, net.minecraft.block.BlockPlanks.EnumType.SPRUCE.getMetadata(), "spruce_slab");
       this.registerBlock(Blocks.WOOL, EnumDyeColor.BLACK.getMetadata(), "black_wool");
       this.registerBlock(Blocks.WOOL, EnumDyeColor.BLUE.getMetadata(), "blue_wool");
       this.registerBlock(Blocks.WOOL, EnumDyeColor.BROWN.getMetadata(), "brown_wool");
@@ -686,7 +820,7 @@ public class RenderItem implements IResourceManagerReloadListener {
       this.registerBlock(Blocks.WEB, "web");
       this.registerBlock(Blocks.WOODEN_BUTTON, "wooden_button");
       this.registerBlock(Blocks.WOODEN_PRESSURE_PLATE, "wooden_pressure_plate");
-      this.registerBlock(Blocks.YELLOW_FLOWER, BlockFlower.EnumFlowerType.DANDELION.getMeta(), "dandelion");
+      this.registerBlock(Blocks.YELLOW_FLOWER, EnumFlowerType.DANDELION.getMeta(), "dandelion");
       this.registerBlock(Blocks.END_ROD, "end_rod");
       this.registerBlock(Blocks.CHORUS_PLANT, "chorus_plant");
       this.registerBlock(Blocks.CHORUS_FLOWER, "chorus_flower");
@@ -735,9 +869,9 @@ public class RenderItem implements IResourceManagerReloadListener {
       this.registerBlock(Blocks.RED_GLAZED_TERRACOTTA, "red_glazed_terracotta");
       this.registerBlock(Blocks.BLACK_GLAZED_TERRACOTTA, "black_glazed_terracotta");
 
-      for (EnumDyeColor ☃ : EnumDyeColor.values()) {
-         this.registerBlock(Blocks.CONCRETE, ☃.getMetadata(), ☃.getDyeColorName() + "_concrete");
-         this.registerBlock(Blocks.CONCRETE_POWDER, ☃.getMetadata(), ☃.getDyeColorName() + "_concrete_powder");
+      for (EnumDyeColor enumdyecolor : EnumDyeColor.values()) {
+         this.registerBlock(Blocks.CONCRETE, enumdyecolor.getMetadata(), enumdyecolor.getDyeColorName() + "_concrete");
+         this.registerBlock(Blocks.CONCRETE_POWDER, enumdyecolor.getMetadata(), enumdyecolor.getDyeColorName() + "_concrete_powder");
       }
 
       this.registerBlock(Blocks.CHEST, "chest");
@@ -850,12 +984,12 @@ public class RenderItem implements IResourceManagerReloadListener {
       this.registerItem(Items.FISHING_ROD, "fishing_rod");
       this.registerItem(Items.CLOCK, "clock");
       this.registerItem(Items.GLOWSTONE_DUST, "glowstone_dust");
-      this.registerItem(Items.FISH, ItemFishFood.FishType.COD.getMetadata(), "cod");
-      this.registerItem(Items.FISH, ItemFishFood.FishType.SALMON.getMetadata(), "salmon");
-      this.registerItem(Items.FISH, ItemFishFood.FishType.CLOWNFISH.getMetadata(), "clownfish");
-      this.registerItem(Items.FISH, ItemFishFood.FishType.PUFFERFISH.getMetadata(), "pufferfish");
-      this.registerItem(Items.COOKED_FISH, ItemFishFood.FishType.COD.getMetadata(), "cooked_cod");
-      this.registerItem(Items.COOKED_FISH, ItemFishFood.FishType.SALMON.getMetadata(), "cooked_salmon");
+      this.registerItem(Items.FISH, FishType.COD.getMetadata(), "cod");
+      this.registerItem(Items.FISH, FishType.SALMON.getMetadata(), "salmon");
+      this.registerItem(Items.FISH, FishType.CLOWNFISH.getMetadata(), "clownfish");
+      this.registerItem(Items.FISH, FishType.PUFFERFISH.getMetadata(), "pufferfish");
+      this.registerItem(Items.COOKED_FISH, FishType.COD.getMetadata(), "cooked_cod");
+      this.registerItem(Items.COOKED_FISH, FishType.SALMON.getMetadata(), "cooked_salmon");
       this.registerItem(Items.DYE, EnumDyeColor.BLACK.getDyeDamage(), "dye_black");
       this.registerItem(Items.DYE, EnumDyeColor.RED.getDyeDamage(), "dye_red");
       this.registerItem(Items.DYE, EnumDyeColor.GREEN.getDyeDamage(), "dye_green");
@@ -916,8 +1050,7 @@ public class RenderItem implements IResourceManagerReloadListener {
       this.registerItem(Items.ENDER_EYE, "ender_eye");
       this.registerItem(Items.SPECKLED_MELON, "speckled_melon");
       this.itemModelMesher.register(Items.SPAWN_EGG, new ItemMeshDefinition() {
-         @Override
-         public ModelResourceLocation getModelLocation(ItemStack var1) {
+         public ModelResourceLocation getModelLocation(ItemStack stack) {
             return new ModelResourceLocation("spawn_egg", "inventory");
          }
       });
@@ -956,20 +1089,17 @@ public class RenderItem implements IResourceManagerReloadListener {
       this.registerItem(Items.LEAD, "lead");
       this.registerItem(Items.NAME_TAG, "name_tag");
       this.itemModelMesher.register(Items.BANNER, new ItemMeshDefinition() {
-         @Override
-         public ModelResourceLocation getModelLocation(ItemStack var1) {
+         public ModelResourceLocation getModelLocation(ItemStack stack) {
             return new ModelResourceLocation("banner", "inventory");
          }
       });
       this.itemModelMesher.register(Items.BED, new ItemMeshDefinition() {
-         @Override
-         public ModelResourceLocation getModelLocation(ItemStack var1) {
+         public ModelResourceLocation getModelLocation(ItemStack stack) {
             return new ModelResourceLocation("bed", "inventory");
          }
       });
       this.itemModelMesher.register(Items.SHIELD, new ItemMeshDefinition() {
-         @Override
-         public ModelResourceLocation getModelLocation(ItemStack var1) {
+         public ModelResourceLocation getModelLocation(ItemStack stack) {
             return new ModelResourceLocation("shield", "inventory");
          }
       });
@@ -994,14 +1124,12 @@ public class RenderItem implements IResourceManagerReloadListener {
       this.registerItem(Items.PRISMARINE_CRYSTALS, "prismarine_crystals");
       this.registerItem(Items.KNOWLEDGE_BOOK, "knowledge_book");
       this.itemModelMesher.register(Items.ENCHANTED_BOOK, new ItemMeshDefinition() {
-         @Override
-         public ModelResourceLocation getModelLocation(ItemStack var1) {
+         public ModelResourceLocation getModelLocation(ItemStack stack) {
             return new ModelResourceLocation("enchanted_book", "inventory");
          }
       });
       this.itemModelMesher.register(Items.FILLED_MAP, new ItemMeshDefinition() {
-         @Override
-         public ModelResourceLocation getModelLocation(ItemStack var1) {
+         public ModelResourceLocation getModelLocation(ItemStack stack) {
             return new ModelResourceLocation("filled_map", "inventory");
          }
       });
@@ -1011,19 +1139,21 @@ public class RenderItem implements IResourceManagerReloadListener {
       this.registerBlock(Blocks.BARRIER, "barrier");
       this.registerBlock(Blocks.MOB_SPAWNER, "mob_spawner");
       this.registerItem(Items.WRITTEN_BOOK, "written_book");
-      this.registerBlock(Blocks.BROWN_MUSHROOM_BLOCK, BlockHugeMushroom.EnumType.ALL_INSIDE.getMetadata(), "brown_mushroom_block");
-      this.registerBlock(Blocks.RED_MUSHROOM_BLOCK, BlockHugeMushroom.EnumType.ALL_INSIDE.getMetadata(), "red_mushroom_block");
+      this.registerBlock(Blocks.BROWN_MUSHROOM_BLOCK, net.minecraft.block.BlockHugeMushroom.EnumType.ALL_INSIDE.getMetadata(), "brown_mushroom_block");
+      this.registerBlock(Blocks.RED_MUSHROOM_BLOCK, net.minecraft.block.BlockHugeMushroom.EnumType.ALL_INSIDE.getMetadata(), "red_mushroom_block");
       this.registerBlock(Blocks.DRAGON_EGG, "dragon_egg");
       this.registerBlock(Blocks.REPEATING_COMMAND_BLOCK, "repeating_command_block");
       this.registerBlock(Blocks.CHAIN_COMMAND_BLOCK, "chain_command_block");
-      this.registerBlock(Blocks.STRUCTURE_BLOCK, TileEntityStructure.Mode.SAVE.getModeId(), "structure_block");
-      this.registerBlock(Blocks.STRUCTURE_BLOCK, TileEntityStructure.Mode.LOAD.getModeId(), "structure_block");
-      this.registerBlock(Blocks.STRUCTURE_BLOCK, TileEntityStructure.Mode.CORNER.getModeId(), "structure_block");
-      this.registerBlock(Blocks.STRUCTURE_BLOCK, TileEntityStructure.Mode.DATA.getModeId(), "structure_block");
+      this.registerBlock(Blocks.STRUCTURE_BLOCK, Mode.SAVE.getModeId(), "structure_block");
+      this.registerBlock(Blocks.STRUCTURE_BLOCK, Mode.LOAD.getModeId(), "structure_block");
+      this.registerBlock(Blocks.STRUCTURE_BLOCK, Mode.CORNER.getModeId(), "structure_block");
+      this.registerBlock(Blocks.STRUCTURE_BLOCK, Mode.DATA.getModeId(), "structure_block");
+      if (Reflector.ModelLoader_onRegisterItems.exists()) {
+         Reflector.call(Reflector.ModelLoader_onRegisterItems, new Object[]{this.itemModelMesher});
+      }
    }
 
-   @Override
-   public void onResourceManagerReload(IResourceManager var1) {
+   public void onResourceManagerReload(IResourceManager resourceManager) {
       this.itemModelMesher.rebuildCache();
    }
 }

@@ -34,63 +34,63 @@ public class GameRules {
       this.addGameRule("gameLoopFunction", "-", GameRules.ValueType.FUNCTION);
    }
 
-   public void addGameRule(String var1, String var2, GameRules.ValueType var3) {
-      this.rules.put(☃, new GameRules.Value(☃, ☃));
+   public void addGameRule(String key, String value, GameRules.ValueType type) {
+      this.rules.put(key, new GameRules.Value(value, type));
    }
 
-   public void setOrCreateGameRule(String var1, String var2) {
-      GameRules.Value ☃ = this.rules.get(☃);
-      if (☃ != null) {
-         ☃.setValue(☃);
+   public void setOrCreateGameRule(String key, String ruleValue) {
+      GameRules.Value gamerules$value = this.rules.get(key);
+      if (gamerules$value != null) {
+         gamerules$value.setValue(ruleValue);
       } else {
-         this.addGameRule(☃, ☃, GameRules.ValueType.ANY_VALUE);
+         this.addGameRule(key, ruleValue, GameRules.ValueType.ANY_VALUE);
       }
    }
 
-   public String getString(String var1) {
-      GameRules.Value ☃ = this.rules.get(☃);
-      return ☃ != null ? ☃.getString() : "";
+   public String getString(String name) {
+      GameRules.Value gamerules$value = this.rules.get(name);
+      return gamerules$value != null ? gamerules$value.getString() : "";
    }
 
-   public boolean getBoolean(String var1) {
-      GameRules.Value ☃ = this.rules.get(☃);
-      return ☃ != null ? ☃.getBoolean() : false;
+   public boolean getBoolean(String name) {
+      GameRules.Value gamerules$value = this.rules.get(name);
+      return gamerules$value != null ? gamerules$value.getBoolean() : false;
    }
 
-   public int getInt(String var1) {
-      GameRules.Value ☃ = this.rules.get(☃);
-      return ☃ != null ? ☃.getInt() : 0;
+   public int getInt(String name) {
+      GameRules.Value gamerules$value = this.rules.get(name);
+      return gamerules$value != null ? gamerules$value.getInt() : 0;
    }
 
    public NBTTagCompound writeToNBT() {
-      NBTTagCompound ☃ = new NBTTagCompound();
+      NBTTagCompound nbttagcompound = new NBTTagCompound();
 
-      for (String ☃x : this.rules.keySet()) {
-         GameRules.Value ☃xx = this.rules.get(☃x);
-         ☃.setString(☃x, ☃xx.getString());
+      for (String s : this.rules.keySet()) {
+         GameRules.Value gamerules$value = this.rules.get(s);
+         nbttagcompound.setString(s, gamerules$value.getString());
       }
 
-      return ☃;
+      return nbttagcompound;
    }
 
-   public void readFromNBT(NBTTagCompound var1) {
-      for (String ☃ : ☃.getKeySet()) {
-         this.setOrCreateGameRule(☃, ☃.getString(☃));
+   public void readFromNBT(NBTTagCompound nbt) {
+      for (String s : nbt.getKeySet()) {
+         this.setOrCreateGameRule(s, nbt.getString(s));
       }
    }
 
    public String[] getRules() {
-      Set<String> ☃ = this.rules.keySet();
-      return ☃.toArray(new String[☃.size()]);
+      Set<String> set = this.rules.keySet();
+      return set.toArray(new String[set.size()]);
    }
 
-   public boolean hasRule(String var1) {
-      return this.rules.containsKey(☃);
+   public boolean hasRule(String name) {
+      return this.rules.containsKey(name);
    }
 
-   public boolean areSameType(String var1, GameRules.ValueType var2) {
-      GameRules.Value ☃ = this.rules.get(☃);
-      return ☃ != null && (☃.getType() == ☃ || ☃ == GameRules.ValueType.ANY_VALUE);
+   public boolean areSameType(String key, GameRules.ValueType otherValue) {
+      GameRules.Value gamerules$value = this.rules.get(key);
+      return gamerules$value != null && (gamerules$value.getType() == otherValue || otherValue == GameRules.ValueType.ANY_VALUE);
    }
 
    static class Value {
@@ -100,23 +100,35 @@ public class GameRules {
       private double valueDouble;
       private final GameRules.ValueType type;
 
-      public Value(String var1, GameRules.ValueType var2) {
-         this.type = ☃;
-         this.setValue(☃);
+      public Value(String value, GameRules.ValueType type) {
+         this.type = type;
+         this.setValue(value);
       }
 
-      public void setValue(String var1) {
-         this.valueString = ☃;
-         this.valueBoolean = Boolean.parseBoolean(☃);
+      public void setValue(String value) {
+         this.valueString = value;
+         if (value != null) {
+            if (value.equals("false")) {
+               this.valueBoolean = false;
+               return;
+            }
+
+            if (value.equals("true")) {
+               this.valueBoolean = true;
+               return;
+            }
+         }
+
+         this.valueBoolean = Boolean.parseBoolean(value);
          this.valueInteger = this.valueBoolean ? 1 : 0;
 
          try {
-            this.valueInteger = Integer.parseInt(☃);
+            this.valueInteger = Integer.parseInt(value);
          } catch (NumberFormatException var4) {
          }
 
          try {
-            this.valueDouble = Double.parseDouble(☃);
+            this.valueDouble = Double.parseDouble(value);
          } catch (NumberFormatException var3) {
          }
       }

@@ -26,6 +26,7 @@ import javax.annotation.Nullable;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.renderer.BlockModelShapes;
+import net.minecraft.client.renderer.block.model.MultipartBakedModel.Builder;
 import net.minecraft.client.renderer.block.model.multipart.Multipart;
 import net.minecraft.client.renderer.block.model.multipart.Selector;
 import net.minecraft.client.renderer.block.statemap.BlockStateMapper;
@@ -41,6 +42,13 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.registry.IRegistry;
 import net.minecraft.util.registry.RegistrySimple;
+import net.minecraftforge.common.model.ITransformation;
+import net.minecraftforge.common.model.TRSRTransformation;
+import net.minecraftforge.registries.IRegistryDelegate;
+import net.optifine.CustomItems;
+import net.optifine.reflect.Reflector;
+import net.optifine.util.StrUtils;
+import net.optifine.util.TextureUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -101,7 +109,7 @@ public class ModelBakery {
    private final BlockModelShapes blockModelShapes;
    private final FaceBakery faceBakery = new FaceBakery();
    private final ItemModelGenerator itemModelGenerator = new ItemModelGenerator();
-   private final RegistrySimple<ModelResourceLocation, IBakedModel> bakedRegistry = new RegistrySimple<>();
+   private final RegistrySimple<ModelResourceLocation, IBakedModel> bakedRegistry = new RegistrySimple();
    private static final String EMPTY_MODEL_RAW = "{    'elements': [        {   'from': [0, 0, 0],            'to': [16, 16, 16],            'faces': {                'down': {'uv': [0, 0, 16, 16], 'texture': '' }            }        }    ]}"
       .replaceAll("'", "\"");
    private static final ModelBlock MODEL_GENERATED = ModelBlock.deserialize(EMPTY_MODEL_RAW);
@@ -109,11 +117,12 @@ public class ModelBakery {
    private final Map<String, ResourceLocation> itemLocations = Maps.newLinkedHashMap();
    private final Map<ResourceLocation, ModelBlockDefinition> blockDefinitions = Maps.newHashMap();
    private final Map<Item, List<String>> variantNames = Maps.newIdentityHashMap();
+   private static Map<IRegistryDelegate<Item>, Set<String>> customVariantNames = Maps.newHashMap();
 
-   public ModelBakery(IResourceManager var1, TextureMap var2, BlockModelShapes var3) {
-      this.resourceManager = ☃;
-      this.textureMap = ☃;
-      this.blockModelShapes = ☃;
+   public ModelBakery(IResourceManager resourceManagerIn, TextureMap textureMapIn, BlockModelShapes blockModelShapesIn) {
+      this.resourceManager = resourceManagerIn;
+      this.textureMap = textureMapIn;
+      this.blockModelShapes = blockModelShapesIn;
    }
 
    public IRegistry<ModelResourceLocation, IBakedModel> setupModelRegistry() {
@@ -128,43 +137,51 @@ public class ModelBakery {
    }
 
    private void loadBlocks() {
-      BlockStateMapper ☃ = this.blockModelShapes.getBlockStateMapper();
+      BlockStateMapper blockstatemapper = this.blockModelShapes.getBlockStateMapper();
 
-      for (Block ☃x : Block.REGISTRY) {
-         for (final ResourceLocation ☃xx : ☃.getBlockstateLocations(☃x)) {
+      for (Block block : Block.REGISTRY) {
+         for (ResourceLocation resourcelocation : blockstatemapper.getBlockstateLocations(block)) {
             try {
-               ModelBlockDefinition ☃xxx = this.getModelBlockDefinition(☃xx);
-               Map<IBlockState, ModelResourceLocation> ☃xxxx = ☃.getVariants(☃x);
-               if (☃xxx.hasMultipartData()) {
-                  Collection<ModelResourceLocation> ☃xxxxx = Sets.newHashSet(☃xxxx.values());
-                  ☃xxx.getMultipartData().setStateContainer(☃x.getBlockState());
-                  Collection<ModelResourceLocation> ☃xxxxxx = this.multipartVariantMap.get(☃xxx);
-                  if (☃xxxxxx == null) {
-                     ☃xxxxxx = Lists.newArrayList();
-                     this.multipartVariantMap.put(☃xxx, ☃xxxxxx);
-                  }
+               this.loadBlock(blockstatemapper, block, resourcelocation);
+            } catch (Exception var7) {
+               LOGGER.warn("Unable to load definition " + resourcelocation, var7);
+            }
+         }
+      }
+   }
 
-                  ☃xxxxxx.addAll(Lists.newArrayList(Iterables.filter(☃xxxxx, new Predicate<ModelResourceLocation>() {
-                     public boolean apply(@Nullable ModelResourceLocation var1) {
-                        return ☃.equals(☃);
-                     }
-                  })));
-               }
+   protected void loadBlock(BlockStateMapper blockstatemapper, Block block, final ResourceLocation resourcelocation) {
+      ModelBlockDefinition modelblockdefinition = this.getModelBlockDefinition(resourcelocation);
+      Map<IBlockState, ModelResourceLocation> map = blockstatemapper.getVariants(block);
+      if (modelblockdefinition.hasMultipartData()) {
+         Collection<ModelResourceLocation> collection = Sets.newHashSet(map.values());
+         modelblockdefinition.getMultipartData().setStateContainer(block.getBlockState());
+         Collection<ModelResourceLocation> collection1 = this.multipartVariantMap.get(modelblockdefinition);
+         if (collection1 == null) {
+            collection1 = Lists.newArrayList();
+         }
 
-               for (Entry<IBlockState, ModelResourceLocation> ☃xxxxx : ☃xxxx.entrySet()) {
-                  ModelResourceLocation ☃xxxxxx = ☃xxxxx.getValue();
-                  if (☃xx.equals(☃xxxxxx)) {
-                     try {
-                        this.variants.put(☃xxxxxx, ☃xxx.getVariant(☃xxxxxx.getVariant()));
-                     } catch (RuntimeException var12) {
-                        if (!☃xxx.hasMultipartData()) {
-                           LOGGER.warn("Unable to load variant: {} from {}", ☃xxxxxx.getVariant(), ☃xxxxxx);
-                        }
-                     }
-                  }
+         collection1.addAll(Lists.newArrayList(Iterables.filter(collection, new Predicate<ModelResourceLocation>() {
+            public boolean apply(@Nullable ModelResourceLocation p_apply_1_) {
+               return resourcelocation.equals(p_apply_1_);
+            }
+         })));
+         this.registerMultipartVariant(modelblockdefinition, collection1);
+      }
+
+      for (Entry<IBlockState, ModelResourceLocation> entry : map.entrySet()) {
+         ModelResourceLocation modelresourcelocation = entry.getValue();
+         if (resourcelocation.equals(modelresourcelocation)) {
+            try {
+               if (Reflector.ForgeItem_delegate.exists()) {
+                  this.registerVariant(modelblockdefinition, modelresourcelocation);
+               } else {
+                  this.variants.put(modelresourcelocation, modelblockdefinition.getVariant(modelresourcelocation.getVariant()));
                }
-            } catch (Exception var13) {
-               LOGGER.warn("Unable to load definition {}", ☃xx, var13);
+            } catch (RuntimeException var10) {
+               if (!modelblockdefinition.hasMultipartData()) {
+                  LOGGER.warn("Unable to load variant: " + modelresourcelocation.getVariant() + " from " + modelresourcelocation, var10);
+               }
             }
          }
       }
@@ -180,164 +197,185 @@ public class ModelBakery {
       this.loadVariantModels();
       this.loadMultipartVariantModels();
       this.loadItemModels();
+      CustomItems.update();
+      CustomItems.loadModels(this);
    }
 
    private void loadStaticModels() {
-      ResourceLocation ☃ = new ResourceLocation("item_frame");
-      ModelBlockDefinition ☃x = this.getModelBlockDefinition(☃);
-      this.registerVariant(☃x, new ModelResourceLocation(☃, "normal"));
-      this.registerVariant(☃x, new ModelResourceLocation(☃, "map"));
+      ResourceLocation resourcelocation = new ResourceLocation("item_frame");
+      ModelBlockDefinition modelblockdefinition = this.getModelBlockDefinition(resourcelocation);
+      this.registerVariant(modelblockdefinition, new ModelResourceLocation(resourcelocation, "normal"));
+      this.registerVariant(modelblockdefinition, new ModelResourceLocation(resourcelocation, "map"));
    }
 
-   private void registerVariant(ModelBlockDefinition var1, ModelResourceLocation var2) {
+   private void registerVariant(ModelBlockDefinition blockstateDefinition, ModelResourceLocation location) {
       try {
-         this.variants.put(☃, ☃.getVariant(☃.getVariant()));
+         this.variants.put(location, blockstateDefinition.getVariant(location.getVariant()));
       } catch (RuntimeException var4) {
-         if (!☃.hasMultipartData()) {
-            LOGGER.warn("Unable to load variant: {} from {}", ☃.getVariant(), ☃);
+         if (!blockstateDefinition.hasMultipartData()) {
+            LOGGER.warn("Unable to load variant: {} from {}", location.getVariant(), location);
          }
       }
    }
 
-   private ModelBlockDefinition getModelBlockDefinition(ResourceLocation var1) {
-      ResourceLocation ☃ = this.getBlockstateLocation(☃);
-      ModelBlockDefinition ☃x = this.blockDefinitions.get(☃);
-      if (☃x == null) {
-         ☃x = this.loadMultipartMBD(☃, ☃);
-         this.blockDefinitions.put(☃, ☃x);
+   private ModelBlockDefinition getModelBlockDefinition(ResourceLocation location) {
+      ResourceLocation resourcelocation = this.getBlockstateLocation(location);
+      ModelBlockDefinition modelblockdefinition = this.blockDefinitions.get(resourcelocation);
+      if (modelblockdefinition == null) {
+         modelblockdefinition = this.loadMultipartMBD(location, resourcelocation);
+         this.blockDefinitions.put(resourcelocation, modelblockdefinition);
       }
 
-      return ☃x;
+      return modelblockdefinition;
    }
 
-   private ModelBlockDefinition loadMultipartMBD(ResourceLocation var1, ResourceLocation var2) {
-      List<ModelBlockDefinition> ☃ = Lists.newArrayList();
+   private ModelBlockDefinition loadMultipartMBD(ResourceLocation location, ResourceLocation fileIn) {
+      List<ModelBlockDefinition> list = Lists.newArrayList();
 
       try {
-         for (IResource ☃x : this.resourceManager.getAllResources(☃)) {
-            ☃.add(this.loadModelBlockDefinition(☃, ☃x));
+         for (IResource iresource : this.resourceManager.getAllResources(fileIn)) {
+            list.add(this.loadModelBlockDefinition(location, iresource));
          }
       } catch (IOException var6) {
-         throw new RuntimeException("Encountered an exception when loading model definition of model " + ☃, var6);
+         throw new RuntimeException("Encountered an exception when loading model definition of model " + fileIn, var6);
       }
 
-      return new ModelBlockDefinition(☃);
+      return new ModelBlockDefinition(list);
    }
 
-   private ModelBlockDefinition loadModelBlockDefinition(ResourceLocation var1, IResource var2) {
-      InputStream ☃ = null;
+   private ModelBlockDefinition loadModelBlockDefinition(ResourceLocation location, IResource resource) {
+      InputStream inputstream = null;
 
-      ModelBlockDefinition var4;
+      ModelBlockDefinition lvt_4_1_;
       try {
-         ☃ = ☃.getInputStream();
-         var4 = ModelBlockDefinition.parseFromReader(new InputStreamReader(☃, StandardCharsets.UTF_8));
-      } catch (Exception var8) {
+         inputstream = resource.getInputStream();
+         if (Reflector.ForgeModelBlockDefinition_parseFromReader2.exists()) {
+            lvt_4_1_ = (ModelBlockDefinition)Reflector.call(
+               Reflector.ForgeModelBlockDefinition_parseFromReader2, new Object[]{new InputStreamReader(inputstream, StandardCharsets.UTF_8), location}
+            );
+         } else {
+            lvt_4_1_ = ModelBlockDefinition.parseFromReader(new InputStreamReader(inputstream, StandardCharsets.UTF_8));
+         }
+      } catch (Exception var9) {
          throw new RuntimeException(
             "Encountered an exception when loading model definition of '"
-               + ☃
+               + location
                + "' from: '"
-               + ☃.getResourceLocation()
+               + resource.getResourceLocation()
                + "' in resourcepack: '"
-               + ☃.getResourcePackName()
+               + resource.getResourcePackName()
                + "'",
-            var8
+            var9
          );
       } finally {
-         IOUtils.closeQuietly(☃);
+         IOUtils.closeQuietly(inputstream);
       }
 
-      return var4;
+      return lvt_4_1_;
    }
 
-   private ResourceLocation getBlockstateLocation(ResourceLocation var1) {
-      return new ResourceLocation(☃.getNamespace(), "blockstates/" + ☃.getPath() + ".json");
+   private ResourceLocation getBlockstateLocation(ResourceLocation location) {
+      return new ResourceLocation(location.getNamespace(), "blockstates/" + location.getPath() + ".json");
    }
 
    private void loadVariantModels() {
-      for (Entry<ModelResourceLocation, VariantList> ☃ : this.variants.entrySet()) {
-         this.loadVariantList(☃.getKey(), ☃.getValue());
+      for (Entry<ModelResourceLocation, VariantList> entry : this.variants.entrySet()) {
+         this.loadVariantList(entry.getKey(), entry.getValue());
       }
    }
 
    private void loadMultipartVariantModels() {
-      for (Entry<ModelBlockDefinition, Collection<ModelResourceLocation>> ☃ : this.multipartVariantMap.entrySet()) {
-         ModelResourceLocation ☃x = ☃.getValue().iterator().next();
+      for (Entry<ModelBlockDefinition, Collection<ModelResourceLocation>> entry : this.multipartVariantMap.entrySet()) {
+         ModelResourceLocation modelresourcelocation = entry.getValue().iterator().next();
 
-         for (VariantList ☃xx : ☃.getKey().getMultipartVariants()) {
-            this.loadVariantList(☃x, ☃xx);
+         for (VariantList variantlist : entry.getKey().getMultipartVariants()) {
+            this.loadVariantList(modelresourcelocation, variantlist);
          }
       }
    }
 
-   private void loadVariantList(ModelResourceLocation var1, VariantList var2) {
-      for (Variant ☃ : ☃.getVariantList()) {
-         ResourceLocation ☃x = ☃.getModelLocation();
-         if (this.models.get(☃x) == null) {
+   private void loadVariantList(ModelResourceLocation p_188638_1_, VariantList p_188638_2_) {
+      for (Variant variant : p_188638_2_.getVariantList()) {
+         ResourceLocation resourcelocation = variant.getModelLocation();
+         if (this.models.get(resourcelocation) == null) {
             try {
-               this.models.put(☃x, this.loadModel(☃x));
+               this.models.put(resourcelocation, this.loadModel(resourcelocation));
             } catch (Exception var7) {
-               LOGGER.warn("Unable to load block model: '{}' for variant: '{}': {} ", ☃x, ☃, var7);
+               LOGGER.warn("Unable to load block model: '{}' for variant: '{}': {} ", resourcelocation, p_188638_1_, var7);
             }
          }
       }
    }
 
-   private ModelBlock loadModel(ResourceLocation var1) throws IOException {
-      Reader ☃ = null;
-      IResource ☃x = null;
+   private ModelBlock loadModel(ResourceLocation location) throws IOException {
+      Reader reader = null;
+      IResource iresource = null;
 
-      ModelBlock ☃xx;
+      ModelBlock modelblock1;
       try {
-         String ☃xxx = ☃.getPath();
-         if ("builtin/generated".equals(☃xxx)) {
+         String s = location.getPath();
+         if ("builtin/generated".equals(s)) {
             return MODEL_GENERATED;
          }
 
-         if (!"builtin/entity".equals(☃xxx)) {
-            if (☃xxx.startsWith("builtin/")) {
-               String ☃xxxx = ☃xxx.substring("builtin/".length());
-               String ☃xxxxx = BUILT_IN_MODELS.get(☃xxxx);
-               if (☃xxxxx == null) {
-                  throw new FileNotFoundException(☃.toString());
+         if (!"builtin/entity".equals(s)) {
+            if (s.startsWith("builtin/")) {
+               String s2 = s.substring("builtin/".length());
+               String s1 = BUILT_IN_MODELS.get(s2);
+               if (s1 == null) {
+                  throw new FileNotFoundException(location.toString());
                }
 
-               ☃ = new StringReader(☃xxxxx);
+               reader = new StringReader(s1);
             } else {
-               ☃x = this.resourceManager.getResource(this.getModelLocation(☃));
-               ☃ = new InputStreamReader(☃x.getInputStream(), StandardCharsets.UTF_8);
+               location = this.getModelLocation(location);
+               iresource = this.resourceManager.getResource(location);
+               reader = new InputStreamReader(iresource.getInputStream(), StandardCharsets.UTF_8);
             }
 
-            ☃xx = ModelBlock.deserialize(☃);
-            ☃xx.name = ☃.toString();
-            return ☃xx;
+            ModelBlock lvt_5_2_ = ModelBlock.deserialize(reader);
+            lvt_5_2_.name = location.toString();
+            String basePath = TextureUtils.getBasePath(location.getPath());
+            fixModelLocations(lvt_5_2_, basePath);
+            return lvt_5_2_;
          }
 
-         ☃xx = MODEL_ENTITY;
+         ModelBlock lvt_5_2_ = MODEL_ENTITY;
+         modelblock1 = lvt_5_2_;
       } finally {
-         IOUtils.closeQuietly(☃);
-         IOUtils.closeQuietly(☃x);
+         IOUtils.closeQuietly(reader);
+         IOUtils.closeQuietly(iresource);
       }
 
-      return ☃xx;
+      return modelblock1;
    }
 
-   private ResourceLocation getModelLocation(ResourceLocation var1) {
-      return new ResourceLocation(☃.getNamespace(), "models/" + ☃.getPath() + ".json");
+   private ResourceLocation getModelLocation(ResourceLocation location) {
+      String path = location.getPath();
+      if (!path.startsWith("mcpatcher") && !path.startsWith("optifine")) {
+         return new ResourceLocation(location.getNamespace(), "models/" + location.getPath() + ".json");
+      } else {
+         if (!path.endsWith(".json")) {
+            location = new ResourceLocation(location.getNamespace(), path + ".json");
+         }
+
+         return location;
+      }
    }
 
    private void loadItemModels() {
       this.registerVariantNames();
 
-      for (Item ☃ : Item.REGISTRY) {
-         for (String ☃x : this.getVariantNames(☃)) {
-            ResourceLocation ☃xx = this.getItemLocation(☃x);
-            ResourceLocation ☃xxx = Item.REGISTRY.getNameForObject(☃);
-            this.loadItemModel(☃x, ☃xx, ☃xxx);
-            if (☃.hasCustomProperties()) {
-               ModelBlock ☃xxxx = this.models.get(☃xx);
-               if (☃xxxx != null) {
-                  for (ResourceLocation ☃xxxxx : ☃xxxx.getOverrideLocations()) {
-                     this.loadItemModel(☃xxxxx.toString(), ☃xxxxx, ☃xxx);
+      for (Item item : Item.REGISTRY) {
+         for (String s : this.getVariantNames(item)) {
+            ResourceLocation resourcelocation = this.getItemLocation(s);
+            ResourceLocation resourcelocation1 = (ResourceLocation)Item.REGISTRY.getNameForObject(item);
+            this.loadItemModel(s, resourcelocation, resourcelocation1);
+            if (item.hasCustomProperties()) {
+               ModelBlock modelblock = this.models.get(resourcelocation);
+               if (modelblock != null) {
+                  for (ResourceLocation resourcelocation2 : modelblock.getOverrideLocations()) {
+                     this.loadItemModel(resourcelocation2.toString(), resourcelocation2, resourcelocation1);
                   }
                }
             }
@@ -345,19 +383,21 @@ public class ModelBakery {
       }
    }
 
-   private void loadItemModel(String var1, ResourceLocation var2, ResourceLocation var3) {
-      this.itemLocations.put(☃, ☃);
-      if (this.models.get(☃) == null) {
+   public void loadItemModel(String variantName, ResourceLocation location, ResourceLocation itemName) {
+      this.itemLocations.put(variantName, location);
+      if (this.models.get(location) == null) {
          try {
-            ModelBlock ☃ = this.loadModel(☃);
-            this.models.put(☃, ☃);
+            ModelBlock modelblock = this.loadModel(location);
+            this.models.put(location, modelblock);
          } catch (Exception var5) {
-            LOGGER.warn("Unable to load item model: '{}' for item: '{}'", ☃, ☃, var5);
+            LOGGER.warn("Unable to load item model: '{}' for item: '{}'", new Object[]{location, itemName});
+            LOGGER.warn(var5.getClass().getName() + ": " + var5.getMessage());
          }
       }
    }
 
    private void registerVariantNames() {
+      this.variantNames.clear();
       this.variantNames
          .put(
             Item.getItemFromBlock(Blocks.STONE),
@@ -643,336 +683,461 @@ public class ModelBakery {
       this.variantNames.put(Items.OAK_DOOR, Lists.newArrayList(new String[]{"oak_door"}));
       this.variantNames.put(Items.BOAT, Lists.newArrayList(new String[]{"oak_boat"}));
       this.variantNames.put(Items.TOTEM_OF_UNDYING, Lists.newArrayList(new String[]{"totem"}));
+
+      for (Entry<IRegistryDelegate<Item>, Set<String>> e : customVariantNames.entrySet()) {
+         this.variantNames.put((Item)e.getKey().get(), Lists.newArrayList(e.getValue().iterator()));
+      }
    }
 
-   private List<String> getVariantNames(Item var1) {
-      List<String> ☃ = this.variantNames.get(☃);
-      if (☃ == null) {
-         ☃ = Collections.singletonList(Item.REGISTRY.getNameForObject(☃).toString());
+   private List<String> getVariantNames(Item stack) {
+      List<String> list = this.variantNames.get(stack);
+      if (list == null) {
+         list = Collections.singletonList(((ResourceLocation)Item.REGISTRY.getNameForObject(stack)).toString());
       }
 
-      return ☃;
+      return list;
    }
 
-   private ResourceLocation getItemLocation(String var1) {
-      ResourceLocation ☃ = new ResourceLocation(☃);
-      return new ResourceLocation(☃.getNamespace(), "item/" + ☃.getPath());
+   private ResourceLocation getItemLocation(String location) {
+      ResourceLocation resourcelocation = new ResourceLocation(location);
+      if (Reflector.ForgeHooksClient.exists()) {
+         resourcelocation = new ResourceLocation(location.replaceAll("#.*", ""));
+      }
+
+      return new ResourceLocation(resourcelocation.getNamespace(), "item/" + resourcelocation.getPath());
    }
 
    private void bakeBlockModels() {
-      for (ModelResourceLocation ☃ : this.variants.keySet()) {
-         IBakedModel ☃x = this.createRandomModelForVariantList(this.variants.get(☃), ☃.toString());
-         if (☃x != null) {
-            this.bakedRegistry.putObject(☃, ☃x);
+      for (ModelResourceLocation modelresourcelocation : this.variants.keySet()) {
+         IBakedModel ibakedmodel = this.createRandomModelForVariantList(this.variants.get(modelresourcelocation), modelresourcelocation.toString());
+         if (ibakedmodel != null) {
+            this.bakedRegistry.putObject(modelresourcelocation, ibakedmodel);
          }
       }
 
-      for (Entry<ModelBlockDefinition, Collection<ModelResourceLocation>> ☃x : this.multipartVariantMap.entrySet()) {
-         ModelBlockDefinition ☃xx = ☃x.getKey();
-         Multipart ☃xxx = ☃xx.getMultipartData();
-         String ☃xxxx = Block.REGISTRY.getNameForObject(☃xxx.getStateContainer().getBlock()).toString();
-         MultipartBakedModel.Builder ☃xxxxx = new MultipartBakedModel.Builder();
+      for (Entry<ModelBlockDefinition, Collection<ModelResourceLocation>> entry : this.multipartVariantMap.entrySet()) {
+         ModelBlockDefinition modelblockdefinition = entry.getKey();
+         Multipart multipart = modelblockdefinition.getMultipartData();
+         String s = ((ResourceLocation)Block.REGISTRY.getNameForObject(multipart.getStateContainer().getBlock())).toString();
+         Builder multipartbakedmodel$builder = new Builder();
 
-         for (Selector ☃xxxxxx : ☃xxx.getSelectors()) {
-            IBakedModel ☃xxxxxxx = this.createRandomModelForVariantList(☃xxxxxx.getVariantList(), "selector of " + ☃xxxx);
-            if (☃xxxxxxx != null) {
-               ☃xxxxx.putModel(☃xxxxxx.getPredicate(☃xxx.getStateContainer()), ☃xxxxxxx);
+         for (Selector selector : multipart.getSelectors()) {
+            IBakedModel ibakedmodel1 = this.createRandomModelForVariantList(selector.getVariantList(), "selector of " + s);
+            if (ibakedmodel1 != null) {
+               multipartbakedmodel$builder.putModel(selector.getPredicate(multipart.getStateContainer()), ibakedmodel1);
             }
          }
 
-         IBakedModel ☃xxxxxxx = ☃xxxxx.makeMultipartModel();
+         IBakedModel ibakedmodel2 = multipartbakedmodel$builder.makeMultipartModel();
 
-         for (ModelResourceLocation ☃xxxxxxxx : ☃x.getValue()) {
-            if (!☃xx.hasVariant(☃xxxxxxxx.getVariant())) {
-               this.bakedRegistry.putObject(☃xxxxxxxx, ☃xxxxxxx);
+         for (ModelResourceLocation modelresourcelocation1 : entry.getValue()) {
+            if (!modelblockdefinition.hasVariant(modelresourcelocation1.getVariant())) {
+               this.bakedRegistry.putObject(modelresourcelocation1, ibakedmodel2);
             }
          }
       }
    }
 
    @Nullable
-   private IBakedModel createRandomModelForVariantList(VariantList var1, String var2) {
-      if (☃.getVariantList().isEmpty()) {
+   private IBakedModel createRandomModelForVariantList(VariantList variantsIn, String modelLocation) {
+      if (variantsIn.getVariantList().isEmpty()) {
          return null;
       } else {
-         WeightedBakedModel.Builder ☃ = new WeightedBakedModel.Builder();
-         int ☃x = 0;
+         net.minecraft.client.renderer.block.model.WeightedBakedModel.Builder weightedbakedmodel$builder = new net.minecraft.client.renderer.block.model.WeightedBakedModel.Builder();
+         int i = 0;
 
-         for (Variant ☃xx : ☃.getVariantList()) {
-            ModelBlock ☃xxx = this.models.get(☃xx.getModelLocation());
-            if (☃xxx == null || !☃xxx.isResolved()) {
-               LOGGER.warn("Missing model for: {}", ☃);
-            } else if (☃xxx.getElements().isEmpty()) {
-               LOGGER.warn("Missing elements for: {}", ☃);
+         for (Variant variant : variantsIn.getVariantList()) {
+            ModelBlock modelblock = this.models.get(variant.getModelLocation());
+            if (modelblock == null || !modelblock.isResolved()) {
+               LOGGER.warn("Missing model for: {}", modelLocation);
+            } else if (modelblock.getElements().isEmpty()) {
+               LOGGER.warn("Missing elements for: {}", modelLocation);
             } else {
-               IBakedModel ☃xxxx = this.bakeModel(☃xxx, ☃xx.getRotation(), ☃xx.isUvLock());
-               if (☃xxxx != null) {
-                  ☃x++;
-                  ☃.add(☃xxxx, ☃xx.getWeight());
+               IBakedModel ibakedmodel = this.bakeModel(modelblock, variant.getRotation(), variant.isUvLock());
+               if (ibakedmodel != null) {
+                  i++;
+                  weightedbakedmodel$builder.add(ibakedmodel, variant.getWeight());
                }
             }
          }
 
-         IBakedModel ☃xxx = null;
-         if (☃x == 0) {
-            LOGGER.warn("No weighted models for: {}", ☃);
-         } else if (☃x == 1) {
-            ☃xxx = ☃.first();
+         IBakedModel ibakedmodel1 = null;
+         if (i == 0) {
+            LOGGER.warn("No weighted models for: {}", modelLocation);
+         } else if (i == 1) {
+            ibakedmodel1 = weightedbakedmodel$builder.first();
          } else {
-            ☃xxx = ☃.build();
+            ibakedmodel1 = weightedbakedmodel$builder.build();
          }
 
-         return ☃xxx;
+         return ibakedmodel1;
       }
    }
 
    private void bakeItemModels() {
-      for (Entry<String, ResourceLocation> ☃ : this.itemLocations.entrySet()) {
-         ResourceLocation ☃x = ☃.getValue();
-         ModelResourceLocation ☃xx = new ModelResourceLocation(☃.getKey(), "inventory");
-         ModelBlock ☃xxx = this.models.get(☃x);
-         if (☃xxx == null || !☃xxx.isResolved()) {
-            LOGGER.warn("Missing model for: {}", ☃x);
-         } else if (☃xxx.getElements().isEmpty()) {
-            LOGGER.warn("Missing elements for: {}", ☃x);
-         } else if (this.isCustomRenderer(☃xxx)) {
-            this.bakedRegistry.putObject(☃xx, new BuiltInModel(☃xxx.getAllTransforms(), ☃xxx.createOverrides()));
+      for (Entry<String, ResourceLocation> entry : this.itemLocations.entrySet()) {
+         ResourceLocation resourcelocation = entry.getValue();
+         ModelResourceLocation modelresourcelocation = new ModelResourceLocation(entry.getKey(), "inventory");
+         if (Reflector.ForgeHooksClient.exists()) {
+            modelresourcelocation = (ModelResourceLocation)Reflector.call(Reflector.ModelLoader_getInventoryVariant, new Object[]{entry.getKey()});
+         }
+
+         ModelBlock modelblock = this.models.get(resourcelocation);
+         if (modelblock == null || !modelblock.isResolved()) {
+            LOGGER.warn("Missing model for: {}", resourcelocation);
+         } else if (modelblock.getElements().isEmpty()) {
+            LOGGER.warn("Missing elements for: {}", resourcelocation);
+         } else if (this.isCustomRenderer(modelblock)) {
+            this.bakedRegistry.putObject(modelresourcelocation, new BuiltInModel(modelblock.getAllTransforms(), modelblock.createOverrides()));
          } else {
-            IBakedModel ☃xxxx = this.bakeModel(☃xxx, ModelRotation.X0_Y0, false);
-            if (☃xxxx != null) {
-               this.bakedRegistry.putObject(☃xx, ☃xxxx);
+            IBakedModel ibakedmodel = this.bakeModel(modelblock, ModelRotation.X0_Y0, false);
+            if (ibakedmodel != null) {
+               this.bakedRegistry.putObject(modelresourcelocation, ibakedmodel);
             }
          }
       }
    }
 
    private Set<ResourceLocation> getVariantsTextureLocations() {
-      Set<ResourceLocation> ☃ = Sets.newHashSet();
-      List<ModelResourceLocation> ☃x = Lists.newArrayList(this.variants.keySet());
-      Collections.sort(☃x, new Comparator<ModelResourceLocation>() {
-         public int compare(ModelResourceLocation var1, ModelResourceLocation var2) {
-            return ☃.toString().compareTo(☃.toString());
+      Set<ResourceLocation> set = Sets.newHashSet();
+      List<ModelResourceLocation> list = Lists.newArrayList(this.variants.keySet());
+      Collections.sort(list, new Comparator<ModelResourceLocation>() {
+         public int compare(ModelResourceLocation p_compare_1_, ModelResourceLocation p_compare_2_) {
+            return p_compare_1_.toString().compareTo(p_compare_2_.toString());
          }
       });
 
-      for (ModelResourceLocation ☃xx : ☃x) {
-         VariantList ☃xxx = this.variants.get(☃xx);
+      for (ModelResourceLocation modelresourcelocation : list) {
+         VariantList variantlist = this.variants.get(modelresourcelocation);
 
-         for (Variant ☃xxxx : ☃xxx.getVariantList()) {
-            ModelBlock ☃xxxxx = this.models.get(☃xxxx.getModelLocation());
-            if (☃xxxxx == null) {
-               LOGGER.warn("Missing model for: {}", ☃xx);
+         for (Variant variant : variantlist.getVariantList()) {
+            ModelBlock modelblock = this.models.get(variant.getModelLocation());
+            if (modelblock == null) {
+               LOGGER.warn("Missing model for: {}", modelresourcelocation);
             } else {
-               ☃.addAll(this.getTextureLocations(☃xxxxx));
+               set.addAll(this.getTextureLocations(modelblock));
             }
          }
       }
 
-      for (ModelBlockDefinition ☃xx : this.multipartVariantMap.keySet()) {
-         for (VariantList ☃xxx : ☃xx.getMultipartData().getVariants()) {
-            for (Variant ☃xxxxx : ☃xxx.getVariantList()) {
-               ModelBlock ☃xxxxxx = this.models.get(☃xxxxx.getModelLocation());
-               if (☃xxxxxx == null) {
-                  LOGGER.warn("Missing model for: {}", Block.REGISTRY.getNameForObject(☃xx.getMultipartData().getStateContainer().getBlock()));
+      for (ModelBlockDefinition modelblockdefinition : this.multipartVariantMap.keySet()) {
+         for (VariantList variantlist1 : modelblockdefinition.getMultipartData().getVariants()) {
+            for (Variant variant1 : variantlist1.getVariantList()) {
+               ModelBlock modelblock1 = this.models.get(variant1.getModelLocation());
+               if (modelblock1 == null) {
+                  LOGGER.warn("Missing model for: {}", Block.REGISTRY.getNameForObject(modelblockdefinition.getMultipartData().getStateContainer().getBlock()));
                } else {
-                  ☃.addAll(this.getTextureLocations(☃xxxxxx));
+                  set.addAll(this.getTextureLocations(modelblock1));
                }
             }
          }
       }
 
-      ☃.addAll(LOCATIONS_BUILTIN_TEXTURES);
-      return ☃;
+      set.addAll(LOCATIONS_BUILTIN_TEXTURES);
+      return set;
    }
 
    @Nullable
-   private IBakedModel bakeModel(ModelBlock var1, ModelRotation var2, boolean var3) {
-      TextureAtlasSprite ☃ = this.sprites.get(new ResourceLocation(☃.resolveTextureName("particle")));
-      SimpleBakedModel.Builder ☃x = new SimpleBakedModel.Builder(☃, ☃.createOverrides()).setTexture(☃);
-      if (☃.getElements().isEmpty()) {
+   public IBakedModel bakeModel(ModelBlock modelBlockIn, ModelRotation modelRotationIn, boolean uvLocked) {
+      return this.bakeModel(modelBlockIn, (ITransformation)modelRotationIn, uvLocked);
+   }
+
+   protected IBakedModel bakeModel(ModelBlock modelBlockIn, ITransformation modelRotationIn, boolean uvLocked) {
+      TextureAtlasSprite textureatlassprite = this.sprites.get(new ResourceLocation(modelBlockIn.resolveTextureName("particle")));
+      net.minecraft.client.renderer.block.model.SimpleBakedModel.Builder simplebakedmodel$builder = new net.minecraft.client.renderer.block.model.SimpleBakedModel.Builder(
+            modelBlockIn, modelBlockIn.createOverrides()
+         )
+         .setTexture(textureatlassprite);
+      if (modelBlockIn.getElements().isEmpty()) {
          return null;
       } else {
-         for (BlockPart ☃xx : ☃.getElements()) {
-            for (EnumFacing ☃xxx : ☃xx.mapFaces.keySet()) {
-               BlockPartFace ☃xxxx = ☃xx.mapFaces.get(☃xxx);
-               TextureAtlasSprite ☃xxxxx = this.sprites.get(new ResourceLocation(☃.resolveTextureName(☃xxxx.texture)));
-               if (☃xxxx.cullFace == null) {
-                  ☃x.addGeneralQuad(this.makeBakedQuad(☃xx, ☃xxxx, ☃xxxxx, ☃xxx, ☃, ☃));
+         for (BlockPart blockpart : modelBlockIn.getElements()) {
+            for (EnumFacing enumfacing : blockpart.mapFaces.keySet()) {
+               BlockPartFace blockpartface = (BlockPartFace)blockpart.mapFaces.get(enumfacing);
+               TextureAtlasSprite textureatlassprite1 = this.sprites.get(new ResourceLocation(modelBlockIn.resolveTextureName(blockpartface.texture)));
+               boolean isMatrixInteger = true;
+               if (Reflector.ForgeHooksClient.exists()) {
+                  isMatrixInteger = TRSRTransformation.isInteger(modelRotationIn.getMatrix());
+               }
+
+               if (blockpartface.cullFace != null && isMatrixInteger) {
+                  simplebakedmodel$builder.addFaceQuad(
+                     modelRotationIn.rotate(blockpartface.cullFace),
+                     this.makeBakedQuad(blockpart, blockpartface, textureatlassprite1, enumfacing, modelRotationIn, uvLocked)
+                  );
                } else {
-                  ☃x.addFaceQuad(☃.rotateFace(☃xxxx.cullFace), this.makeBakedQuad(☃xx, ☃xxxx, ☃xxxxx, ☃xxx, ☃, ☃));
+                  simplebakedmodel$builder.addGeneralQuad(
+                     this.makeBakedQuad(blockpart, blockpartface, textureatlassprite1, enumfacing, modelRotationIn, uvLocked)
+                  );
                }
             }
          }
 
-         return ☃x.makeBakedModel();
+         return simplebakedmodel$builder.makeBakedModel();
       }
    }
 
-   private BakedQuad makeBakedQuad(BlockPart var1, BlockPartFace var2, TextureAtlasSprite var3, EnumFacing var4, ModelRotation var5, boolean var6) {
-      return this.faceBakery.makeBakedQuad(☃.positionFrom, ☃.positionTo, ☃, ☃, ☃, ☃, ☃.partRotation, ☃, ☃.shade);
+   private BakedQuad makeBakedQuad(
+      BlockPart p_177589_1_, BlockPartFace p_177589_2_, TextureAtlasSprite p_177589_3_, EnumFacing p_177589_4_, ModelRotation p_177589_5_, boolean p_177589_6_
+   ) {
+      return Reflector.ForgeHooksClient.exists()
+         ? this.makeBakedQuad(p_177589_1_, p_177589_2_, p_177589_3_, p_177589_4_, (ITransformation)p_177589_5_, p_177589_6_)
+         : this.faceBakery
+            .makeBakedQuad(
+               p_177589_1_.positionFrom,
+               p_177589_1_.positionTo,
+               p_177589_2_,
+               p_177589_3_,
+               p_177589_4_,
+               p_177589_5_,
+               p_177589_1_.partRotation,
+               p_177589_6_,
+               p_177589_1_.shade
+            );
+   }
+
+   protected BakedQuad makeBakedQuad(
+      BlockPart p_177589_1_,
+      BlockPartFace p_177589_2_,
+      TextureAtlasSprite p_177589_3_,
+      EnumFacing p_177589_4_,
+      ITransformation p_177589_5_,
+      boolean p_177589_6_
+   ) {
+      return this.faceBakery
+         .makeBakedQuad(
+            p_177589_1_.positionFrom,
+            p_177589_1_.positionTo,
+            p_177589_2_,
+            p_177589_3_,
+            p_177589_4_,
+            p_177589_5_,
+            p_177589_1_.partRotation,
+            p_177589_6_,
+            p_177589_1_.shade
+         );
    }
 
    private void loadModelsCheck() {
       this.loadModels();
 
-      for (ModelBlock ☃ : this.models.values()) {
-         ☃.getParentFromMap(this.models);
+      for (ModelBlock modelblock : this.models.values()) {
+         modelblock.getParentFromMap(this.models);
       }
 
       ModelBlock.checkModelHierarchy(this.models);
    }
 
    private void loadModels() {
-      Deque<ResourceLocation> ☃ = Queues.newArrayDeque();
-      Set<ResourceLocation> ☃x = Sets.newHashSet();
+      Deque<ResourceLocation> deque = Queues.newArrayDeque();
+      Set<ResourceLocation> set = Sets.newHashSet();
 
-      for (ResourceLocation ☃xx : this.models.keySet()) {
-         ☃x.add(☃xx);
-         this.addModelParentLocation(☃, ☃x, this.models.get(☃xx));
+      for (ResourceLocation resourcelocation : this.models.keySet()) {
+         set.add(resourcelocation);
+         this.addModelParentLocation(deque, set, this.models.get(resourcelocation));
       }
 
-      while (!☃.isEmpty()) {
-         ResourceLocation ☃xx = ☃.pop();
+      while (!deque.isEmpty()) {
+         ResourceLocation resourcelocation1 = deque.pop();
 
          try {
-            if (this.models.get(☃xx) != null) {
+            if (this.models.get(resourcelocation1) != null) {
                continue;
             }
 
-            ModelBlock ☃xxx = this.loadModel(☃xx);
-            this.models.put(☃xx, ☃xxx);
-            this.addModelParentLocation(☃, ☃x, ☃xxx);
+            ModelBlock modelblock = this.loadModel(resourcelocation1);
+            this.models.put(resourcelocation1, modelblock);
+            this.addModelParentLocation(deque, set, modelblock);
          } catch (Exception var5) {
-            LOGGER.warn("In parent chain: {}; unable to load model: '{}'", JOINER.join(this.getParentPath(☃xx)), ☃xx, var5);
+            LOGGER.warn("In parent chain: {}; unable to load model: '{}'", new Object[]{JOINER.join(this.getParentPath(resourcelocation1)), resourcelocation1});
          }
 
-         ☃x.add(☃xx);
+         set.add(resourcelocation1);
       }
    }
 
-   private void addModelParentLocation(Deque<ResourceLocation> var1, Set<ResourceLocation> var2, ModelBlock var3) {
-      ResourceLocation ☃ = ☃.getParentLocation();
-      if (☃ != null && !☃.contains(☃)) {
-         ☃.add(☃);
+   private void addModelParentLocation(Deque<ResourceLocation> p_188633_1_, Set<ResourceLocation> p_188633_2_, ModelBlock p_188633_3_) {
+      ResourceLocation resourcelocation = p_188633_3_.getParentLocation();
+      if (resourcelocation != null && !p_188633_2_.contains(resourcelocation)) {
+         p_188633_1_.add(resourcelocation);
       }
    }
 
-   private List<ResourceLocation> getParentPath(ResourceLocation var1) {
-      List<ResourceLocation> ☃ = Lists.newArrayList(new ResourceLocation[]{☃});
-      ResourceLocation ☃x = ☃;
+   private List<ResourceLocation> getParentPath(ResourceLocation p_177573_1_) {
+      List<ResourceLocation> list = Lists.newArrayList(new ResourceLocation[]{p_177573_1_});
+      ResourceLocation resourcelocation = p_177573_1_;
 
-      while ((☃x = this.getParentLocation(☃x)) != null) {
-         ☃.add(0, ☃x);
+      while ((resourcelocation = this.getParentLocation(resourcelocation)) != null) {
+         list.add(0, resourcelocation);
       }
 
-      return ☃;
+      return list;
    }
 
    @Nullable
-   private ResourceLocation getParentLocation(ResourceLocation var1) {
-      for (Entry<ResourceLocation, ModelBlock> ☃ : this.models.entrySet()) {
-         ModelBlock ☃x = ☃.getValue();
-         if (☃x != null && ☃.equals(☃x.getParentLocation())) {
-            return ☃.getKey();
+   private ResourceLocation getParentLocation(ResourceLocation p_177576_1_) {
+      for (Entry<ResourceLocation, ModelBlock> entry : this.models.entrySet()) {
+         ModelBlock modelblock = entry.getValue();
+         if (modelblock != null && p_177576_1_.equals(modelblock.getParentLocation())) {
+            return entry.getKey();
          }
       }
 
       return null;
    }
 
-   private Set<ResourceLocation> getTextureLocations(ModelBlock var1) {
-      Set<ResourceLocation> ☃ = Sets.newHashSet();
+   private Set<ResourceLocation> getTextureLocations(ModelBlock p_177585_1_) {
+      Set<ResourceLocation> set = Sets.newHashSet();
 
-      for (BlockPart ☃x : ☃.getElements()) {
-         for (BlockPartFace ☃xx : ☃x.mapFaces.values()) {
-            ResourceLocation ☃xxx = new ResourceLocation(☃.resolveTextureName(☃xx.texture));
-            ☃.add(☃xxx);
+      for (BlockPart blockpart : p_177585_1_.getElements()) {
+         for (BlockPartFace blockpartface : blockpart.mapFaces.values()) {
+            ResourceLocation resourcelocation = new ResourceLocation(p_177585_1_.resolveTextureName(blockpartface.texture));
+            set.add(resourcelocation);
          }
       }
 
-      ☃.add(new ResourceLocation(☃.resolveTextureName("particle")));
-      return ☃;
+      set.add(new ResourceLocation(p_177585_1_.resolveTextureName("particle")));
+      return set;
    }
 
    private void loadSprites() {
-      final Set<ResourceLocation> ☃ = this.getVariantsTextureLocations();
-      ☃.addAll(this.getItemsTextureLocations());
-      ☃.remove(TextureMap.LOCATION_MISSING_TEXTURE);
-      ITextureMapPopulator ☃x = new ITextureMapPopulator() {
-         @Override
-         public void registerSprites(TextureMap var1x) {
-            for (ResourceLocation ☃xx : ☃) {
-               TextureAtlasSprite ☃x = ☃.registerSprite(☃xx);
-               ModelBakery.this.sprites.put(☃xx, ☃x);
+      final Set<ResourceLocation> set = this.getVariantsTextureLocations();
+      set.addAll(this.getItemsTextureLocations());
+      set.remove(TextureMap.LOCATION_MISSING_TEXTURE);
+      ITextureMapPopulator itexturemappopulator = new ITextureMapPopulator() {
+         public void registerSprites(TextureMap textureMapIn) {
+            for (ResourceLocation resourcelocation : set) {
+               TextureAtlasSprite textureatlassprite = textureMapIn.registerSprite(resourcelocation);
+               ModelBakery.this.sprites.put(resourcelocation, textureatlassprite);
             }
          }
       };
-      this.textureMap.loadSprites(this.resourceManager, ☃x);
+      this.textureMap.loadSprites(this.resourceManager, itexturemappopulator);
       this.sprites.put(new ResourceLocation("missingno"), this.textureMap.getMissingSprite());
    }
 
    private Set<ResourceLocation> getItemsTextureLocations() {
-      Set<ResourceLocation> ☃ = Sets.newHashSet();
+      Set<ResourceLocation> set = Sets.newHashSet();
 
-      for (ResourceLocation ☃x : this.itemLocations.values()) {
-         ModelBlock ☃xx = this.models.get(☃x);
-         if (☃xx != null) {
-            ☃.add(new ResourceLocation(☃xx.resolveTextureName("particle")));
-            if (this.hasItemModel(☃xx)) {
-               for (String ☃xxx : ItemModelGenerator.LAYERS) {
-                  ☃.add(new ResourceLocation(☃xx.resolveTextureName(☃xxx)));
+      for (ResourceLocation resourcelocation : this.itemLocations.values()) {
+         ModelBlock modelblock = this.models.get(resourcelocation);
+         if (modelblock != null) {
+            set.add(new ResourceLocation(modelblock.resolveTextureName("particle")));
+            if (this.hasItemModel(modelblock)) {
+               for (String s : ItemModelGenerator.LAYERS) {
+                  set.add(new ResourceLocation(modelblock.resolveTextureName(s)));
                }
-            } else if (!this.isCustomRenderer(☃xx)) {
-               for (BlockPart ☃xxx : ☃xx.getElements()) {
-                  for (BlockPartFace ☃xxxx : ☃xxx.mapFaces.values()) {
-                     ResourceLocation ☃xxxxx = new ResourceLocation(☃xx.resolveTextureName(☃xxxx.texture));
-                     ☃.add(☃xxxxx);
+            } else if (!this.isCustomRenderer(modelblock)) {
+               for (BlockPart blockpart : modelblock.getElements()) {
+                  for (BlockPartFace blockpartface : blockpart.mapFaces.values()) {
+                     ResourceLocation resourcelocation1 = new ResourceLocation(modelblock.resolveTextureName(blockpartface.texture));
+                     set.add(resourcelocation1);
                   }
                }
             }
          }
       }
 
-      return ☃;
+      return set;
    }
 
-   private boolean hasItemModel(@Nullable ModelBlock var1) {
-      return ☃ == null ? false : ☃.getRootModel() == MODEL_GENERATED;
+   private boolean hasItemModel(@Nullable ModelBlock p_177581_1_) {
+      return p_177581_1_ == null ? false : p_177581_1_.getRootModel() == MODEL_GENERATED;
    }
 
-   private boolean isCustomRenderer(@Nullable ModelBlock var1) {
-      if (☃ == null) {
+   private boolean isCustomRenderer(@Nullable ModelBlock p_177587_1_) {
+      if (p_177587_1_ == null) {
          return false;
       } else {
-         ModelBlock ☃ = ☃.getRootModel();
-         return ☃ == MODEL_ENTITY;
+         ModelBlock modelblock = p_177587_1_.getRootModel();
+         return modelblock == MODEL_ENTITY;
       }
    }
 
    private void makeItemModels() {
-      for (ResourceLocation ☃ : this.itemLocations.values()) {
-         ModelBlock ☃x = this.models.get(☃);
-         if (this.hasItemModel(☃x)) {
-            ModelBlock ☃xx = this.makeItemModel(☃x);
-            if (☃xx != null) {
-               ☃xx.name = ☃.toString();
+      for (ResourceLocation resourcelocation : this.itemLocations.values()) {
+         ModelBlock modelblock = this.models.get(resourcelocation);
+         if (this.hasItemModel(modelblock)) {
+            ModelBlock modelblock1 = this.makeItemModel(modelblock);
+            if (modelblock1 != null) {
+               modelblock1.name = resourcelocation.toString();
             }
 
-            this.models.put(☃, ☃xx);
-         } else if (this.isCustomRenderer(☃x)) {
-            this.models.put(☃, ☃x);
+            this.models.put(resourcelocation, modelblock1);
+         } else if (this.isCustomRenderer(modelblock)) {
+            this.models.put(resourcelocation, modelblock);
          }
       }
 
-      for (TextureAtlasSprite ☃x : this.sprites.values()) {
-         if (!☃x.hasAnimationMetadata()) {
-            ☃x.clearFramesTextureData();
+      for (TextureAtlasSprite textureatlassprite : this.sprites.values()) {
+         if (!textureatlassprite.hasAnimationMetadata()) {
+            textureatlassprite.clearFramesTextureData();
          }
       }
    }
 
-   private ModelBlock makeItemModel(ModelBlock var1) {
-      return this.itemModelGenerator.makeItemModel(this.textureMap, ☃);
+   private ModelBlock makeItemModel(ModelBlock p_177582_1_) {
+      return this.itemModelGenerator.makeItemModel(this.textureMap, p_177582_1_);
+   }
+
+   public ModelBlock getModelBlock(ResourceLocation resourceLocation) {
+      return this.models.get(resourceLocation);
+   }
+
+   public static void fixModelLocations(ModelBlock modelBlock, String basePath) {
+      ResourceLocation parentLocFixed = fixModelLocation(modelBlock.parentLocation, basePath);
+      if (parentLocFixed != modelBlock.parentLocation) {
+         modelBlock.parentLocation = parentLocFixed;
+      }
+
+      if (modelBlock.textures != null) {
+         for (Entry<String, String> entry : modelBlock.textures.entrySet()) {
+            String path = entry.getValue();
+            String pathFixed = fixResourcePath(path, basePath);
+            if (pathFixed != path) {
+               entry.setValue(pathFixed);
+            }
+         }
+      }
+   }
+
+   public static ResourceLocation fixModelLocation(ResourceLocation loc, String basePath) {
+      if (loc != null && basePath != null) {
+         if (!loc.getNamespace().equals("minecraft")) {
+            return loc;
+         } else {
+            String path = loc.getPath();
+            String pathFixed = fixResourcePath(path, basePath);
+            if (pathFixed != path) {
+               loc = new ResourceLocation(loc.getNamespace(), pathFixed);
+            }
+
+            return loc;
+         }
+      } else {
+         return loc;
+      }
+   }
+
+   private static String fixResourcePath(String path, String basePath) {
+      path = TextureUtils.fixResourcePath(path, basePath);
+      path = StrUtils.removeSuffix(path, ".json");
+      return StrUtils.removeSuffix(path, ".png");
+   }
+
+   protected void registerMultipartVariant(ModelBlockDefinition definition, Collection<ModelResourceLocation> locations) {
+      this.multipartVariantMap.put(definition, locations);
+   }
+
+   public static void registerItemVariants(Item item, ResourceLocation... names) {
+      IRegistryDelegate delegate = (IRegistryDelegate)Reflector.getFieldValue(item, Reflector.ForgeItem_delegate);
+      if (!customVariantNames.containsKey(delegate)) {
+         customVariantNames.put(delegate, Sets.newHashSet());
+      }
+
+      for (ResourceLocation name : names) {
+         customVariantNames.get(delegate).add(name.toString());
+      }
    }
 
    static {

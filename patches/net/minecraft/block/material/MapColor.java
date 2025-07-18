@@ -57,45 +57,45 @@ public class MapColor {
    public static final MapColor GREEN_STAINED_HARDENED_CLAY = new MapColor(49, 5001770);
    public static final MapColor RED_STAINED_HARDENED_CLAY = new MapColor(50, 9321518);
    public static final MapColor BLACK_STAINED_HARDENED_CLAY = new MapColor(51, 2430480);
-   public final int colorValue;
+   public int colorValue;
    public final int colorIndex;
 
-   private MapColor(int var1, int var2) {
-      if (☃ >= 0 && ☃ <= 63) {
-         this.colorIndex = ☃;
-         this.colorValue = ☃;
-         COLORS[☃] = this;
+   private MapColor(int index, int color) {
+      if (index >= 0 && index <= 63) {
+         this.colorIndex = index;
+         this.colorValue = color;
+         COLORS[index] = this;
       } else {
          throw new IndexOutOfBoundsException("Map colour ID must be between 0 and 63 (inclusive)");
       }
    }
 
-   public int getMapColor(int var1) {
-      int ☃ = 220;
-      if (☃ == 3) {
-         ☃ = 135;
+   public int getMapColor(int index) {
+      int i = 220;
+      if (index == 3) {
+         i = 135;
       }
 
-      if (☃ == 2) {
-         ☃ = 255;
+      if (index == 2) {
+         i = 255;
       }
 
-      if (☃ == 1) {
-         ☃ = 220;
+      if (index == 1) {
+         i = 220;
       }
 
-      if (☃ == 0) {
-         ☃ = 180;
+      if (index == 0) {
+         i = 180;
       }
 
-      int ☃x = (this.colorValue >> 16 & 0xFF) * ☃ / 255;
-      int ☃xx = (this.colorValue >> 8 & 0xFF) * ☃ / 255;
-      int ☃xxx = (this.colorValue & 0xFF) * ☃ / 255;
-      return 0xFF000000 | ☃x << 16 | ☃xx << 8 | ☃xxx;
+      int j = (this.colorValue >> 16 & 0xFF) * i / 255;
+      int k = (this.colorValue >> 8 & 0xFF) * i / 255;
+      int l = (this.colorValue & 0xFF) * i / 255;
+      return 0xFF000000 | j << 16 | k << 8 | l;
    }
 
-   public static MapColor getBlockColor(EnumDyeColor var0) {
-      return BLOCK_COLORS[☃.getMetadata()];
+   public static MapColor getBlockColor(EnumDyeColor dyeColorIn) {
+      return BLOCK_COLORS[dyeColorIn.getMetadata()];
    }
 
    static {

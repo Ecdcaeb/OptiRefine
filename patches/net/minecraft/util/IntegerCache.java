@@ -3,15 +3,15 @@ package net.minecraft.util;
 public class IntegerCache {
    private static final Integer[] CACHE = new Integer[65535];
 
-   public static Integer getInteger(int var0) {
-      return ☃ > 0 && ☃ < CACHE.length ? CACHE[☃] : ☃;
+   public static Integer getInteger(int value) {
+      return value >= 0 && value < CACHE.length ? CACHE[value] : new Integer(value);
    }
 
    static {
-      int ☃ = 0;
+      int i = 0;
 
-      for (int ☃x = CACHE.length; ☃ < ☃x; ☃++) {
-         CACHE[☃] = ☃;
+      for (int j = CACHE.length; i < j; i++) {
+         CACHE[i] = i;
       }
    }
 }

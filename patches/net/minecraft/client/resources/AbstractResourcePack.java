@@ -20,65 +20,60 @@ import org.apache.logging.log4j.Logger;
 
 public abstract class AbstractResourcePack implements IResourcePack {
    private static final Logger LOGGER = LogManager.getLogger();
-   protected final File resourcePackFile;
+   public final File resourcePackFile;
 
-   public AbstractResourcePack(File var1) {
-      this.resourcePackFile = ☃;
+   public AbstractResourcePack(File resourcePackFileIn) {
+      this.resourcePackFile = resourcePackFileIn;
    }
 
-   private static String locationToName(ResourceLocation var0) {
-      return String.format("%s/%s/%s", "assets", ☃.getNamespace(), ☃.getPath());
+   private static String locationToName(ResourceLocation location) {
+      return String.format("%s/%s/%s", "assets", location.getNamespace(), location.getPath());
    }
 
-   protected static String getRelativeName(File var0, File var1) {
-      return ☃.toURI().relativize(☃.toURI()).getPath();
+   protected static String getRelativeName(File p_110595_0_, File p_110595_1_) {
+      return p_110595_0_.toURI().relativize(p_110595_1_.toURI()).getPath();
    }
 
-   @Override
-   public InputStream getInputStream(ResourceLocation var1) throws IOException {
-      return this.getInputStreamByName(locationToName(☃));
+   public InputStream getInputStream(ResourceLocation location) throws IOException {
+      return this.getInputStreamByName(locationToName(location));
    }
 
-   @Override
-   public boolean resourceExists(ResourceLocation var1) {
-      return this.hasResourceName(locationToName(☃));
+   public boolean resourceExists(ResourceLocation location) {
+      return this.hasResourceName(locationToName(location));
    }
 
    protected abstract InputStream getInputStreamByName(String var1) throws IOException;
 
    protected abstract boolean hasResourceName(String var1);
 
-   protected void logNameNotLowercase(String var1) {
-      LOGGER.warn("ResourcePack: ignored non-lowercase namespace: {} in {}", ☃, this.resourcePackFile);
+   protected void logNameNotLowercase(String name) {
+      LOGGER.warn("ResourcePack: ignored non-lowercase namespace: {} in {}", name, this.resourcePackFile);
    }
 
-   @Override
-   public <T extends IMetadataSection> T getPackMetadata(MetadataSerializer var1, String var2) throws IOException {
-      return readMetadata(☃, this.getInputStreamByName("pack.mcmeta"), ☃);
+   public <T extends IMetadataSection> T getPackMetadata(MetadataSerializer metadataSerializer, String metadataSectionName) throws IOException {
+      return readMetadata(metadataSerializer, this.getInputStreamByName("pack.mcmeta"), metadataSectionName);
    }
 
-   static <T extends IMetadataSection> T readMetadata(MetadataSerializer var0, InputStream var1, String var2) {
-      JsonObject ☃ = null;
-      BufferedReader ☃x = null;
+   static <T extends IMetadataSection> T readMetadata(MetadataSerializer metadataSerializer, InputStream p_110596_1_, String sectionName) {
+      JsonObject jsonobject = null;
+      BufferedReader bufferedreader = null;
 
       try {
-         ☃x = new BufferedReader(new InputStreamReader(☃, StandardCharsets.UTF_8));
-         ☃ = new JsonParser().parse(☃x).getAsJsonObject();
+         bufferedreader = new BufferedReader(new InputStreamReader(p_110596_1_, StandardCharsets.UTF_8));
+         jsonobject = new JsonParser().parse(bufferedreader).getAsJsonObject();
       } catch (RuntimeException var9) {
          throw new JsonParseException(var9);
       } finally {
-         IOUtils.closeQuietly(☃x);
+         IOUtils.closeQuietly(bufferedreader);
       }
 
-      return ☃.parseMetadataSection(☃, ☃);
+      return (T)metadataSerializer.parseMetadataSection(sectionName, jsonobject);
    }
 
-   @Override
    public BufferedImage getPackImage() throws IOException {
       return TextureUtil.readBufferedImage(this.getInputStreamByName("pack.png"));
    }
 
-   @Override
    public String getPackName() {
       return this.resourcePackFile.getName();
    }
