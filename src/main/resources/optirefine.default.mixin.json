@@ -4,8 +4,8 @@
   "refmap": "${mixin_refmap}",
   "plugin": "mods.Hileb.optirefine.core.OptiRefineMixinPlugin",
   "target": "@env(DEFAULT)",
-  "minVersion": "0.8.5",
-  "compatibilityLevel": "JAVA_21",
+  "minVersion": "0.8.7",
+  "compatibilityLevel": "JAVA_8",
   "mixins": [
     "minecraft.block.MixinBlockAir",
     "minecraft.block.material.MixinMapColor",

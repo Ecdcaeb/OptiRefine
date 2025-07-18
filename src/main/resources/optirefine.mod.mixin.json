@@ -1,0 +1,11 @@
+{
+  "required": true,
+  "package": "mods.Hileb.optirefine.mixin.mod",
+  "compatibilityLevel": "JAVA_8",
+  "target": "@env(MOD)",
+  "client": [
+  ],
+  "mixins": [],
+  "server": [],
+  "minVersion": "0.8.7"
+}
