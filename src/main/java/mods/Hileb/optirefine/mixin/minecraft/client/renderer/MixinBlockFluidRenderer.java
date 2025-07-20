@@ -61,8 +61,7 @@ public abstract class MixinBlockFluidRenderer {
 
     @WrapOperation(method = "renderFluid", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/BufferBuilder;color(FFFF)Lnet/minecraft/client/renderer/BufferBuilder;"))
     public BufferBuilder adjustColor(BufferBuilder instance, float p_181666_1_, float p_181666_2_, float p_181666_3_, float p_181666_4_, Operation<BufferBuilder> original, @Local(argsOnly = true) IBlockState blockState, @Local(argsOnly = true) BlockPos blockPos){
-
-        return original.call(p_181666_1_)
+        //return original.call(p_181666_1_); //TODO
     }
 
     @Inject(method = "renderFluid", at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/BlockFluidRenderer;atlasSpriteWaterOverlay:Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;"))
@@ -76,23 +75,23 @@ public abstract class MixinBlockFluidRenderer {
         throw new AbstractMethodError();
     }
 
-
-
-
     @WrapMethod(method = "renderFluid")
     public boolean wrap_renderFluid(IBlockAccess blockAccess, IBlockState blockStateIn, BlockPos blockPosIn, BufferBuilder worldRendererIn, Operation<Boolean> original){
+        boolean value;
         try {
             if (Config.isShaders()) {
                 SVertexBuilder.pushEntity(blockStateIn, blockPosIn, blockAccess, worldRendererIn);
             }
-            original.call(blockAccess, blockStateIn, blockPosIn, worldRendererIn);
+            value = original.call(blockAccess, blockStateIn, blockPosIn, worldRendererIn);
         } finally {
             if (Config.isShaders()) {
                 SVertexBuilder.popEntity(worldRendererIn);
             }
         }
+        return value;
     }
 
+    //TODO
     public boolean renderFluid(IBlockAccess blockAccess, IBlockState blockStateIn, BlockPos blockPosIn, BufferBuilder worldRendererIn) {
         try {
             if (Config.isShaders()) {

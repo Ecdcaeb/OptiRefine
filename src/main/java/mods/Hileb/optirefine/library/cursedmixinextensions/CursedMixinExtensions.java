@@ -139,18 +139,23 @@ public class CursedMixinExtensions {
                     }
                 }
 
-                String desc = method.desc;
-                if (access == -1) access = method.access;
-                if (name == null) name = method.name;
+                if ("<class>".equals(name)) {
+                    targetClass.access = access;
+                    remove = true;
+                } else {
+                    String desc = method.desc;
+                    if (access == -1) access = method.access;
+                    if (name == null) name = method.name;
 
-                if(deobf) {
-                    name = FMLDeobfuscatingRemapper.INSTANCE.mapMethodName(targetClass.name, name, desc);
-                    desc = FMLDeobfuscatingRemapper.INSTANCE.mapMethodDesc(desc);
-                }
+                    if (deobf) {
+                        name = FMLDeobfuscatingRemapper.INSTANCE.mapMethodName(targetClass.name, name, desc);
+                        desc = FMLDeobfuscatingRemapper.INSTANCE.mapMethodDesc(desc);
+                    }
 
-                for (MethodNode mn : targetClass.methods) {
-                    if(mn.name.equals(name) && mn.desc.equals(desc)) {
-                        mn.access = access;
+                    for (MethodNode mn : targetClass.methods) {
+                        if (mn.name.equals(name) && mn.desc.equals(desc)) {
+                            mn.access = access;
+                        }
                     }
                 }
 

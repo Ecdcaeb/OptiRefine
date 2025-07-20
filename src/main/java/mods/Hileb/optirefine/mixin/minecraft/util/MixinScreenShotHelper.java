@@ -2,6 +2,7 @@ package mods.Hileb.optirefine.mixin.minecraft.util;
 
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalBooleanRef;
+import jakarta.annotation.Nullable;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;

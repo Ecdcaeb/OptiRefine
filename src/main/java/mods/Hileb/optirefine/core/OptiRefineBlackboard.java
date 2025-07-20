@@ -6,14 +6,18 @@ import java.util.HashSet;
 
 public class OptiRefineBlackboard {
     public static final HashSet<String> CLASSES = Sets.newHashSet(
-            "net.minecraft.block.material.MapColor", // Optifine -> remove final -> at
-            "net.minecraft.block.state.BlockStateBase", // Optifine -> add new field and methods -> mixin
-            "net.minecraft.block.state.BlockStateBase$1", // Optifine -> final -> skip
-            "net.minecraft.block.state.BlockStateContainer", // Optifine -> redirected a construction -> skip
-            "net.minecraft.block.state.BlockStateContainer$1", // Optifine -> final -> skip
+            "net.minecraft.block.material.MapColor",
+            // Optifine -> make ‘colorValue’ not final -> accessTransformer
+            "net.minecraft.block.state.BlockStateBase",
+            // Optifine -> add new field and methods -> mixin
+            "net.minecraft.block.state.BlockStateBase$1",
+            "net.minecraft.block.state.BlockStateContainer",
+            // Optifine -> redirected a construction -> skip
+            "net.minecraft.block.state.BlockStateContainer$1",
             "net.minecraft.block.state.BlockStateContainer$Builder",
             "net.minecraft.block.state.BlockStateContainer$StateImplementation", // Optifine -> add new field and methods -> very bad -> skip
-            "net.minecraft.block.BlockAir", // Optifine -> add new field and methods -> mixin
+            "net.minecraft.block.BlockAir",
+            // Optifine -> add new field and methods -> mixin
             "net.minecraft.client.LoadingScreenRenderer", // Optifine -> customGUI -> mixin FMLClientHandler
             "net.minecraft.client.entity.AbstractClientPlayer", // Optifine -> Capes -> mixin
             "net.minecraft.client.gui.FontRenderer", // Optifine -> custom font colors -> mixin
@@ -54,12 +58,18 @@ public class OptiRefineBlackboard {
             "net.minecraft.client.renderer.vertex.DefaultVertexFormats",
             "net.minecraft.client.renderer.vertex.VertexBuffer",
             "net.minecraft.client.render.BlockFluidRenderer",
-
+            "net.minecraft.client.render.BlockModelRender",
+            "net.minecraft.client.render.BlockModelRender$$AmbientOcclusionFace",
+            "net.minecraft.client.render.BlockModelRender$EnumNeighborInfo",
+            "net.minecraft.client.render.BlockModelRender$Orientation",
+            "net.minecraft.client.render.BlockModelRender$VertexTranslations",
             "net.minecraft.client.render.BufferBuilder",
             "net.minecraft.client.render.BufferBuilder$1",
             "net.minecraft.client.render.BufferBuilder$2",
             "net.minecraft.client.render.BufferBuilder$State",
             "net.minecraft.client.render.ChunkRenderContainer",
+
+            "net.minecraft.client.renderer.ImageBufferDownload",
 
             "net.minecraft.client.resources.AbstractResourcePack", // Optifine : access -> ignored
             "net.minecraft.client.resources.DefaultResourcePack", //
@@ -120,8 +130,5 @@ public class OptiRefineBlackboard {
             "net.minecraft.world.gen.layer.GenLayerZoom",
             "net.minecraft.world.chunk.BlockStateContainer",
             "net.minecraft.world.chunk.storage.ExtendedBlockStorage"
-
-
-
     );
 }

@@ -50,6 +50,7 @@
     "minecraft.client.particle.MixinParticleItemPickup",
     "minecraft.client.particle.MixinParticleManager",
     "minecraft.client.renderer.MixinBlockFluidRenderer",
+    "minecraft.client.renderer.MixinBlockModelRenderer",
     "minecraft.client.renderer.MixinBufferBuilder",
     "minecraft.client.renderer.MixinBufferBuilderState",
     "minecraft.client.renderer.MixinChunkRenderContainer",

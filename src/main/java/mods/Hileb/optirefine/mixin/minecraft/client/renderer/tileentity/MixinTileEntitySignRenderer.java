@@ -33,7 +33,7 @@ public abstract class MixinTileEntitySignRenderer {
 
     @Definition(id = "p_192841_9_", local = @Local(ordinal = 6))
     @Expression("p_192841_9_ < 0")
-    @ModifyExpressionValue(method = "render(Lnet/minecraft/tileentity/TileEntitySign;DDDFIF)V")
+    @ModifyExpressionValue(method = "render(Lnet/minecraft/tileentity/TileEntitySign;DDDFIF)V", at = @At("MIXINEXTRAS:EXPRESSION"))
     public boolean disableTextRendering(boolean o, @Local(ordinal = 1) TileEntitySign entity){
         return o && isRenderText(entity);
     }
