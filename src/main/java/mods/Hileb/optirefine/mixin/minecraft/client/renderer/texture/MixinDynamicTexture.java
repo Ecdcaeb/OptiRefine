@@ -1,10 +1,12 @@
 package mods.Hileb.optirefine.mixin.minecraft.client.renderer.texture;
 
+import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.renderer.texture.TextureUtil;
 import net.optifine.shaders.ShadersTex;
+import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -41,13 +43,16 @@ public abstract class MixinDynamicTexture extends AbstractTexture {
     public void onUpdate(CallbackInfo ci){
         if (Config.isShaders()) {
             if (!this.shadersInitialized) {
-                ShadersTex.initDynamicTexture(this.getGlTextureId(), this.width, this.height, this);
+                ShadersTex.initDynamicTexture(this.getGlTextureId(), this.width, this.height, DynamicTexture_cast(this));
                 this.shadersInitialized = true;
             }
 
-            ShadersTex.updateDynamicTexture(this.getGlTextureId(), this.dynamicTextureData, this.width, this.height, this);
+            ShadersTex.updateDynamicTexture(this.getGlTextureId(), this.dynamicTextureData, this.width, this.height, DynamicTexture_cast(this));
         } else {
             TextureUtil.uploadTexture(this.getGlTextureId(), this.dynamicTextureData, this.width, this.height);
         }
     }
+
+    @AccessibleOperation(opcode = Opcodes.NOP)
+    private native static DynamicTexture DynamicTexture_cast(MixinDynamicTexture obj);
 }

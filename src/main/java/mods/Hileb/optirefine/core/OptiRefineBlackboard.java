@@ -58,8 +58,8 @@ public class OptiRefineBlackboard {
             "net.minecraft.client.renderer.vertex.DefaultVertexFormats",
             "net.minecraft.client.renderer.vertex.VertexBuffer",
             "net.minecraft.client.render.BlockFluidRenderer",
-            "net.minecraft.client.render.BlockModelRender",
-            "net.minecraft.client.render.BlockModelRender$$AmbientOcclusionFace",
+            //"net.minecraft.client.render.BlockModelRender",
+            //"net.minecraft.client.render.BlockModelRender$AmbientOcclusionFace", //TODO
             "net.minecraft.client.render.BlockModelRender$EnumNeighborInfo",
             "net.minecraft.client.render.BlockModelRender$Orientation",
             "net.minecraft.client.render.BlockModelRender$VertexTranslations",

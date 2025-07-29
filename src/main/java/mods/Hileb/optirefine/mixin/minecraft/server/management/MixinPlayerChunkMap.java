@@ -34,6 +34,8 @@ public abstract class MixinPlayerChunkMap {
     @Unique
     private final Map<EntityPlayerMP, Set<ChunkPos>> mapPlayerPendingEntries = new HashMap<>();
 
+    @Shadow private native PlayerChunkMapEntry getOrCreateEntry(int chunkX, int chunkZ) ;
+
 
     @Inject(method = "tick", at = @At("HEAD"))
     public void inject_tick_(CallbackInfo ci){

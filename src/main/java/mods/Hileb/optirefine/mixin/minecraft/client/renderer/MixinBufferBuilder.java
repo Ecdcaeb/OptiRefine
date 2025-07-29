@@ -12,6 +12,7 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GLAllocation;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.VertexFormat;
 import net.minecraft.client.renderer.vertex.VertexFormatElement;
 import net.minecraft.util.BlockRenderLayer;
@@ -146,9 +147,12 @@ public abstract class MixinBufferBuilder {
         throw new AbstractMethodError();
     }
 
+    @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.BufferBuilder.State stateQuadSprites [Lnet.minecraft.client.renderer.texture.TextureAtlasSprite;")
+    private native static TextureAtlasSprite[] BufferBuilder$State_stateQuadSprites_get(BufferBuilder.State ins) ;
+
     @Inject(method = "setVertexState", at = @At("TAIL"))
-    public void cacheVertexState(BufferBuilder.State p_178993_1_, CallbackInfo ci){
-        if (state.stateQuadSprites != null) {
+    public void cacheVertexState(BufferBuilder.State state, CallbackInfo ci){
+        if (BufferBuilder$State_stateQuadSprites_get(state) != null) {
             if (this.quadSprites == null) {
                 this.quadSprites = this.quadSpritesPrev;
             }
@@ -157,7 +161,7 @@ public abstract class MixinBufferBuilder {
                 this.quadSprites = new TextureAtlasSprite[this.getBufferQuadSize()];
             }
 
-            TextureAtlasSprite[] src = state.stateQuadSprites;
+            TextureAtlasSprite[] src = BufferBuilder$State_stateQuadSprites_get(state);
             System.arraycopy(src, 0, this.quadSprites, 0, src.length);
         } else {
             if (this.quadSprites != null) {
@@ -187,7 +191,7 @@ public abstract class MixinBufferBuilder {
     @Inject(method = "begin", at = @At(value = "INVOKE", target = "Ljava/nio/ByteBuffer;limit(I)Ljava/nio/ByteBuffer;", shift = At.Shift.AFTER))
     public void afterBegin(int p_181668_1_, VertexFormat p_181668_2_, CallbackInfo ci){
         if (Config.isShaders()) {
-            SVertexBuilder.endSetVertexFormat(this);
+            SVertexBuilder.endSetVertexFormat((BufferBuilder) (Object)this);
         }
 
         if (Config.isMultiTexture()) {
@@ -209,11 +213,18 @@ public abstract class MixinBufferBuilder {
         }
     }
 
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite toSingleU (D)D")
+    private static native double TextureAtlasSprite_toSingleU(TextureAtlasSprite textureAtlasSprite, double arg1);
+
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite toSingleV (D)D")
+    private static native double TextureAtlasSprite_toSingleV(TextureAtlasSprite textureAtlasSprite, double arg1);
+
+
     @WrapMethod(method = "tex")
     public BufferBuilder beforeTex(double u, double v, Operation<BufferBuilder> original){
         if (this.quadSprite != null && this.quadSprites != null) {
-            u = this.quadSprite.toSingleU(u);
-            v = this.quadSprite.toSingleV(v);
+            u = TextureAtlasSprite_toSingleU(this.quadSprite, u);
+            v = TextureAtlasSprite_toSingleV(this.quadSprite, v);
             this.quadSprites[this.vertexCount / 4] = this.quadSprite;
         }
         return original.call(u, v);
@@ -277,10 +288,14 @@ public abstract class MixinBufferBuilder {
         }
     }
 
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite getAnimationIndex ()I")
+    private static native int TextureAtlasSprite_getAnimationIndex(TextureAtlasSprite textureAtlasSprite);
+
+
     @Unique
     public void putSprite(TextureAtlasSprite sprite) {
-        if (this.animatedSprites != null && sprite != null && sprite.getAnimationIndex() >= 0) {
-            this.animatedSprites.set(sprite.getAnimationIndex());
+        if (this.animatedSprites != null && sprite != null && TextureAtlasSprite_getAnimationIndex(sprite) >= 0) {
+            this.animatedSprites.set(TextureAtlasSprite_getAnimationIndex(sprite));
         }
 
         if (this.quadSprites != null) {
@@ -291,8 +306,8 @@ public abstract class MixinBufferBuilder {
 
     @Unique
     public void setSprite(TextureAtlasSprite sprite) {
-        if (this.animatedSprites != null && sprite != null && sprite.getAnimationIndex() >= 0) {
-            this.animatedSprites.set(sprite.getAnimationIndex());
+        if (this.animatedSprites != null && sprite != null && TextureAtlasSprite_getAnimationIndex(sprite) >= 0) {
+            this.animatedSprites.set(TextureAtlasSprite_getAnimationIndex(sprite));
         }
 
         if (this.quadSprites != null) {
@@ -305,10 +320,17 @@ public abstract class MixinBufferBuilder {
         return this.quadSprites != null;
     }
 
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = " net.minecraft.client.renderer.texture.TextureMap getCountRegisteredSprites ()I")
+    private static native int TextureMap_getCountRegisteredSprites(TextureMap textureMap) ;
+
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite getIndexInMap ()I")
+    private static native int TextureAtlasSprite_getIndexInMap(TextureAtlasSprite textureAtlasSprite);
+
+
     @Unique
     public void drawMultiTexture() {
         if (this.quadSprites != null) {
-            int maxTextureIndex = Config.getMinecraft().getTextureMapBlocks().getCountRegisteredSprites();
+            int maxTextureIndex = TextureMap_getCountRegisteredSprites(Config.getMinecraft().getTextureMapBlocks());
             if (this.drawnIcons.length <= maxTextureIndex) {
                 this.drawnIcons = new boolean[maxTextureIndex + 1];
             }
@@ -321,7 +343,7 @@ public abstract class MixinBufferBuilder {
             for (int i = 0; i < countQuads; i++) {
                 TextureAtlasSprite icon = this.quadSprites[i];
                 if (icon != null) {
-                    int iconIndex = icon.getIndexInMap();
+                    int iconIndex = TextureAtlasSprite_getIndexInMap(icon);
                     if (!this.drawnIcons[iconIndex]) {
                         if (icon == TextureUtils.iconGrassSideOverlay) {
                             if (grassOverlayIndex < 0) {
@@ -348,9 +370,12 @@ public abstract class MixinBufferBuilder {
         }
     }
 
+    @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite glSpriteTextureId I")
+    private static native int TextureAtlasSprite_glSpriteTextureId_get(TextureAtlasSprite textureAtlasSprite);
+
     @Unique
     private int drawForIcon(TextureAtlasSprite sprite, int startQuadPos) {
-        GL11.glBindTexture(3553, sprite.glSpriteTextureId);
+        GL11.glBindTexture(3553, TextureAtlasSprite_glSpriteTextureId_get(sprite));
         int firstRegionEnd = -1;
         int lastPos = -1;
         int countQuads = this.vertexCount / 4;

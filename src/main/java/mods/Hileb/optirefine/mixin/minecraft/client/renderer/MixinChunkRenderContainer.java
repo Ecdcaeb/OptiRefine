@@ -1,9 +1,12 @@
 package mods.Hileb.optirefine.mixin.minecraft.client.renderer;
 
+import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import net.minecraft.client.renderer.ChunkRenderContainer;
+import net.minecraft.client.renderer.chunk.CompiledChunk;
 import net.minecraft.client.renderer.chunk.RenderChunk;
 import net.minecraft.util.BlockRenderLayer;
 import net.optifine.SmartAnimations;
+import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -38,10 +41,13 @@ public abstract class MixinChunkRenderContainer {
     @Inject(method = "addRenderChunk", at = @At("RETURN"))
     public void afterAddRenderChunk(RenderChunk renderChunkIn, BlockRenderLayer layer, CallbackInfo ci){
         if (this.animatedSpritesRendered != null) {
-            BitSet animatedSprites = renderChunkIn.compiledChunk.getAnimatedSprites(layer);
+            BitSet animatedSprites = CompiledChunk_getAnimatedSprites(renderChunkIn.compiledChunk, layer);
             if (animatedSprites != null) {
                 this.animatedSpritesRendered.or(animatedSprites);
             }
         }
     }
+
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.chunk.CompiledChunk getAnimatedSprites (Lnet.minecraft.util.BlockRenderLayer;)Ljava.util.BitSet;")
+    private native static BitSet CompiledChunk_getAnimatedSprites(CompiledChunk instance, BlockRenderLayer arg0) ;
 }
