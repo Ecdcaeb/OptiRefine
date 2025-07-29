@@ -1,20 +1,27 @@
 package mods.Hileb.optirefine.mixin.minecraft.client.renderer;
 
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.optifine.Config;
+import mods.Hileb.optirefine.optifine.OptifineHelper;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockModelRenderer;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.EntityRenderer;
+import net.minecraft.client.renderer.RegionRenderCacheBuilder;
 import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.renderer.block.model.FaceBakery;
 import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.color.BlockColors;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureUtil;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.crash.CrashReportCategory;
 import net.minecraft.util.BlockRenderLayer;
@@ -24,14 +31,14 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.IBlockAccess;
 import net.minecraftforge.common.ForgeModContainer;
+import net.optifine.BetterSnow;
 import net.optifine.CustomColors;
 import net.optifine.model.BlockModelCustomizer;
+import net.optifine.model.ListQuadsOverlay;
 import net.optifine.render.RenderEnv;
 import net.optifine.shaders.SVertexBuilder;
 import org.objectweb.asm.Opcodes;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
-import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -58,12 +65,8 @@ public class MixinBlockModelRenderer {
         ForgeModContainer.forgeLightPipelineEnabled = false;
     }
 
-    /**
-     * @author
-     * @reason TODO
-     */
-    @Overwrite
-    public boolean renderModel(IBlockAccess worldIn, IBakedModel modelIn, IBlockState stateIn, BlockPos posIn, BufferBuilder buffer, boolean checkSides, long rand) {
+    @WrapMethod(method = "renderModel(Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/client/renderer/block/model/IBakedModel;Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/client/renderer/BufferBuilder;ZJ)Z")
+    public boolean renderModel(IBlockAccess worldIn, IBakedModel modelIn, IBlockState stateIn, BlockPos posIn, BufferBuilder buffer, boolean checkSides, long rand, Operation<Boolean> original) {
         boolean flag = Minecraft.isAmbientOcclusionEnabled() && stateIn.getLightValue(worldIn, posIn) == 0 && modelIn.isAmbientOcclusion(stateIn);
 
         try {
@@ -73,7 +76,7 @@ public class MixinBlockModelRenderer {
             if (!Config.isAlternateBlocks()) {
                 rand = 0L;
             }
-            RenderEnv renderEnv = buffer.getRenderEnv(stateIn, posIn);
+            RenderEnv renderEnv = BufferBuilder_getRenderEnv(buffer, stateIn, posIn);
             modelIn = BlockModelCustomizer.getRenderModel(modelIn, stateIn, renderEnv);
             boolean rendered = flag
                     ? this.renderModelSmooth(worldIn, modelIn, stateIn, posIn, buffer, checkSides, rand)
@@ -145,11 +148,43 @@ public class MixinBlockModelRenderer {
         BlockModelRenderer_renderQuadsFlat(instance, k, f, f1, f2, bakedquad, envLocalRef.get());
     }
 
+    @SuppressWarnings("all")
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/BufferBuilder isMultiTexture ()Z")
+    private static native boolean BufferBuilder_isMultiTexture(BufferBuilder builder);
+
+    @SuppressWarnings("all")
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, deobf = true, desc = "net/minecraft/client/renderer/BufferBuilder putColorMultiplierRgba (FFFFI)V")
+    private static native void BufferBuilder_putColorMultiplierRgba(BufferBuilder builder, float red, float green, float blue, float alpha, int vertexIndex);
+
+    @SuppressWarnings("all")
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, deobf = true, desc = "net/minecraft/client/renderer/BufferBuilder putSprite (Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;)V")
+    private static native void BufferBuilder_putSprite(BufferBuilder builder, TextureAtlasSprite sprite);
+    
+    @SuppressWarnings("all")
+    @AccessibleOperation(opcode = Opcodes.GETFIELD, deobf = true, desc = "net.minecraft.client.renderer.BlockModelRenderer$AmbientOcclusionFace field_178206_b [F")
+    private static native float[] AmbientOcclusionFace_vertexColorMultiplier(Object instance);
+
+    @SuppressWarnings("all")
+    @AccessibleOperation(opcode = Opcodes.GETFIELD, deobf = true, desc = "net.minecraft.client.renderer.BlockModelRenderer$AmbientOcclusionFace field_178207_c [I")
+    private static native int[] AmbientOcclusionFace_vertexBrightness(Object instance);
+
+    @SuppressWarnings("all")
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, deobf = true, desc = "net.minecraft.client.renderer.BlockModelRenderer$AmbientOcclusionFace setMaxBlockLight ()V")
+    private static native void AmbientOcclusionFace_setMaxBlockLight(Object instance);
+
+    @SuppressWarnings("all")
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, deobf = true, desc = "net.minecraft.client.renderer.BlockModelRenderer$AmbientOcclusionFace func_187491_a (Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;[FLjava/util/BitSet;)V")
+    private static native void AmbientOcclusionFace_updateVertexBrightness(Object instance, IBlockAccess worldIn, IBlockState state, BlockPos centerPos, EnumFacing direction, float[] faceShape, BitSet shapeState);
+
+
+    @Shadow @Final
+    private BlockColors blockColors;
+
     @Unique
     private void renderQuadsSmooth(IBlockAccess blockAccessIn, IBlockState stateIn, BlockPos posIn, BufferBuilder buffer, List<BakedQuad> list, RenderEnv renderEnv) {
         float[] quadBounds = renderEnv.getQuadBounds();
         BitSet bitSet = renderEnv.getBoundsFlags();
-        BlockModelRenderer.AmbientOcclusionFace aoFace = renderEnv.getAoFace();
+        var aoFace = renderEnv.getAoFace();
         Vec3d vec3d = stateIn.f(blockAccessIn, posIn);
         double d0 = posIn.getX() + vec3d.x;
         double d1 = posIn.getY() + vec3d.y;
@@ -159,24 +194,24 @@ public class MixinBlockModelRenderer {
         for (int j = list.size(); i < j; i++) {
             BakedQuad bakedquad = list.get(i);
             this.fillQuadBounds(stateIn, bakedquad.getVertexData(), bakedquad.getFace(), quadBounds, bitSet);
-            aoFace.updateVertexBrightness(blockAccessIn, stateIn, posIn, bakedquad.getFace(), quadBounds, bitSet);
+            AmbientOcclusionFace_updateVertexBrightness(aoFace, blockAccessIn, stateIn, posIn, bakedquad.getFace(), quadBounds, bitSet);
             if (bakedquad.getSprite().isEmissive) {
-                aoFace.setMaxBlockLight();
+                AmbientOcclusionFace_setMaxBlockLight(aoFace);
             }
-            if (buffer.isMultiTexture()) {
+            if (BufferBuilder_isMultiTexture(buffer)) {
                 buffer.addVertexData(bakedquad.getVertexDataSingle());
             } else {
                 buffer.addVertexData(bakedquad.getVertexData());
             }
         }
-        buffer.putSprite(bakedquad.getSprite());
-        buffer.putBrightness4(aoFace.vertexBrightness[0], aoFace.vertexBrightness[1], aoFace.vertexBrightness[2], aoFace.vertexBrightness[3]);
+        BufferBuilder_putSprite(buffer, bakedquad.getSprite());
+        buffer.putBrightness4(AmbientOcclusionFace_vertexBrightness(aoFace)[0], AmbientOcclusionFace_vertexBrightness(aoFace)[1], AmbientOcclusionFace_vertexBrightness(aoFace)[2], AmbientOcclusionFace_vertexBrightness(aoFace)[3]);
         if (bakedquad.shouldApplyDiffuseLighting()) {
-            float diffuse = FaceBakery.getFaceBrightness(bakedquad.getFace());
-            aoFace.vertexColorMultiplier[0] *= diffuse;
-            aoFace.vertexColorMultiplier[1] *= diffuse;
-            aoFace.vertexColorMultiplier[2] *= diffuse;
-            aoFace.vertexColorMultiplier[3] *= diffuse;
+            float diffuse = OptifineHelper.getFaceBrightness(bakedquad.getFace());
+            AmbientOcclusionFace_vertexColorMultiplier(aoFace)[0] *= diffuse;
+            AmbientOcclusionFace_vertexColorMultiplier(aoFace)[1] *= diffuse;
+            AmbientOcclusionFace_vertexColorMultiplier(aoFace)[2] *= diffuse;
+            AmbientOcclusionFace_vertexColorMultiplier(aoFace)[3] *= diffuse;
         }
         int colorMultiplier = CustomColors.getColorMultiplier(bakedquad, stateIn, blockAccessIn, posIn, renderEnv);
         if (bakedquad.hasTintIndex() || colorMultiplier != -1) {
@@ -191,26 +226,26 @@ public class MixinBlockModelRenderer {
             float f1 = (k >> 8 & 0xFF) / 255.0F;
             float f2 = (k & 0xFF) / 255.0F;
             if (separateAoLightValue) {
-                buffer.putColorMultiplierRgba(f, f1, f2, aoFace.vertexColorMultiplier[0], 4);
-                buffer.putColorMultiplierRgba(f, f1, f2, aoFace.vertexColorMultiplier[1], 3);
-                buffer.putColorMultiplierRgba(f, f1, f2, aoFace.vertexColorMultiplier[2], 2);
-                buffer.putColorMultiplierRgba(f, f1, f2, aoFace.vertexColorMultiplier[3], 1);
+                BufferBuilder_putColorMultiplierRgba(buffer, f, f1, f2, AmbientOcclusionFace_vertexColorMultiplier(aoFace)[0], 4);
+                BufferBuilder_putColorMultiplierRgba(buffer, f, f1, f2, AmbientOcclusionFace_vertexColorMultiplier(aoFace)[1], 3);
+                BufferBuilder_putColorMultiplierRgba(buffer, f, f1, f2, AmbientOcclusionFace_vertexColorMultiplier(aoFace)[2], 2);
+                BufferBuilder_putColorMultiplierRgba(buffer, f, f1, f2, AmbientOcclusionFace_vertexColorMultiplier(aoFace)[3], 1);
             } else {
-                buffer.putColorMultiplier(aoFace.vertexColorMultiplier[0] * f, aoFace.vertexColorMultiplier[0] * f1, aoFace.vertexColorMultiplier[0] * f2, 4);
-                buffer.putColorMultiplier(aoFace.vertexColorMultiplier[1] * f, aoFace.vertexColorMultiplier[1] * f1, aoFace.vertexColorMultiplier[1] * f2, 3);
-                buffer.putColorMultiplier(aoFace.vertexColorMultiplier[2] * f, aoFace.vertexColorMultiplier[2] * f1, aoFace.vertexColorMultiplier[2] * f2, 2);
-                buffer.putColorMultiplier(aoFace.vertexColorMultiplier[3] * f, aoFace.vertexColorMultiplier[3] * f1, aoFace.vertexColorMultiplier[3] * f2, 1);
+                buffer.putColorMultiplier(AmbientOcclusionFace_vertexColorMultiplier(aoFace)[0] * f, AmbientOcclusionFace_vertexColorMultiplier(aoFace)[0] * f1, AmbientOcclusionFace_vertexColorMultiplier(aoFace)[0] * f2, 4);
+                buffer.putColorMultiplier(AmbientOcclusionFace_vertexColorMultiplier(aoFace)[1] * f, AmbientOcclusionFace_vertexColorMultiplier(aoFace)[1] * f1, AmbientOcclusionFace_vertexColorMultiplier(aoFace)[1] * f2, 3);
+                buffer.putColorMultiplier(AmbientOcclusionFace_vertexColorMultiplier(aoFace)[2] * f, AmbientOcclusionFace_vertexColorMultiplier(aoFace)[2] * f1, AmbientOcclusionFace_vertexColorMultiplier(aoFace)[2] * f2, 2);
+                buffer.putColorMultiplier(AmbientOcclusionFace_vertexColorMultiplier(aoFace)[3] * f, AmbientOcclusionFace_vertexColorMultiplier(aoFace)[3] * f1, AmbientOcclusionFace_vertexColorMultiplier(aoFace)[3] * f2, 1);
             }
         } else if (separateAoLightValue) {
-            buffer.putColorMultiplierRgba(1.0F, 1.0F, 1.0F, aoFace.vertexColorMultiplier[0], 4);
-            buffer.putColorMultiplierRgba(1.0F, 1.0F, 1.0F, aoFace.vertexColorMultiplier[1], 3);
-            buffer.putColorMultiplierRgba(1.0F, 1.0F, 1.0F, aoFace.vertexColorMultiplier[2], 2);
-            buffer.putColorMultiplierRgba(1.0F, 1.0F, 1.0F, aoFace.vertexColorMultiplier[3], 1);
+            BufferBuilder_putColorMultiplierRgba(buffer, 1.0F, 1.0F, 1.0F, AmbientOcclusionFace_vertexColorMultiplier(aoFace)[0], 4);
+            BufferBuilder_putColorMultiplierRgba(buffer, 1.0F, 1.0F, 1.0F, AmbientOcclusionFace_vertexColorMultiplier(aoFace)[1], 3);
+            BufferBuilder_putColorMultiplierRgba(buffer, 1.0F, 1.0F, 1.0F, AmbientOcclusionFace_vertexColorMultiplier(aoFace)[2], 2);
+            BufferBuilder_putColorMultiplierRgba(buffer, 1.0F, 1.0F, 1.0F, AmbientOcclusionFace_vertexColorMultiplier(aoFace)[3], 1);
         } else {
-            buffer.putColorMultiplier(aoFace.vertexColorMultiplier[0], aoFace.vertexColorMultiplier[0], aoFace.vertexColorMultiplier[0], 4);
-            buffer.putColorMultiplier(aoFace.vertexColorMultiplier[1], aoFace.vertexColorMultiplier[1], aoFace.vertexColorMultiplier[1], 3);
-            buffer.putColorMultiplier(aoFace.vertexColorMultiplier[2], aoFace.vertexColorMultiplier[2], aoFace.vertexColorMultiplier[2], 2);
-            buffer.putColorMultiplier(aoFace.vertexColorMultiplier[3], aoFace.vertexColorMultiplier[3], aoFace.vertexColorMultiplier[3], 1);
+            buffer.putColorMultiplier(AmbientOcclusionFace_vertexColorMultiplier(aoFace)[0], AmbientOcclusionFace_vertexColorMultiplier(aoFace)[0], AmbientOcclusionFace_vertexColorMultiplier(aoFace)[0], 4);
+            buffer.putColorMultiplier(AmbientOcclusionFace_vertexColorMultiplier(aoFace)[1], AmbientOcclusionFace_vertexColorMultiplier(aoFace)[1], AmbientOcclusionFace_vertexColorMultiplier(aoFace)[1], 3);
+            buffer.putColorMultiplier(AmbientOcclusionFace_vertexColorMultiplier(aoFace)[2], AmbientOcclusionFace_vertexColorMultiplier(aoFace)[2], AmbientOcclusionFace_vertexColorMultiplier(aoFace)[2], 2);
+            buffer.putColorMultiplier(AmbientOcclusionFace_vertexColorMultiplier(aoFace)[3], AmbientOcclusionFace_vertexColorMultiplier(aoFace)[3], AmbientOcclusionFace_vertexColorMultiplier(aoFace)[3], 1);
         }
         buffer.putPosition(d0, d1, d2);
     }
@@ -303,9 +338,9 @@ public class MixinBlockModelRenderer {
         for (int j = list.size(); i < j; i++) {
             BakedQuad bakedquad = list.get(i);
             if (ownBrightness) {
-                this.fillQuadBounds(stateIn, bakedquad.getVertexData(), bakedquad.getFace(), (float[])null, bitSet);
+                this.fillQuadBounds(stateIn, bakedquad.getVertexData(), bakedquad.getFace(), null, bitSet);
                 BlockPos blockpos = bitSet.get(0) ? posIn.offset(bakedquad.getFace()) : posIn;
-                brightnessIn = stateIn.b(blockAccessIn, blockpos);
+                brightnessIn = stateIn.getLightValue(blockAccessIn, blockpos);
             }
 
             if (bakedquad.getSprite().isEmissive) {
@@ -317,8 +352,8 @@ public class MixinBlockModelRenderer {
             } else {
                 buffer.addVertexData(bakedquad.getVertexData());
             }
-
-            buffer.putSprite(bakedquad.getSprite());
+            
+            BufferBuilder_putSprite(buffer, bakedquad.getSprite());
             buffer.putBrightness4(brightnessIn, brightnessIn, brightnessIn, brightnessIn);
             int colorMultiplier = CustomColors.getColorMultiplier(bakedquad, stateIn, blockAccessIn, posIn, renderEnv);
             if (bakedquad.hasTintIndex() || colorMultiplier != -1) {
@@ -335,7 +370,7 @@ public class MixinBlockModelRenderer {
                 float f1 = (k >> 8 & 0xFF) / 255.0F;
                 float f2 = (k & 0xFF) / 255.0F;
                 if (bakedquad.shouldApplyDiffuseLighting()) {
-                    float diffuse = FaceBakery.getFaceBrightness(bakedquad.getFace());
+                    float diffuse = OptifineHelper.getFaceBrightness(bakedquad.getFace());
                     f *= diffuse;
                     f1 *= diffuse;
                     f2 *= diffuse;
@@ -419,7 +454,7 @@ public class MixinBlockModelRenderer {
         if (Config.isBetterSnow() && !renderEnv.isBreakingAnimation() && BetterSnow.shouldRender(worldIn, stateIn, posIn)) {
             IBakedModel modelSnow = BetterSnow.getModelSnowLayer();
             IBlockState stateSnow = BetterSnow.getStateSnowLayer();
-            this.renderModel(worldIn, modelSnow, stateSnow, posIn, buffer, checkSides, rand);
+            ((BlockModelRenderer)(Object)this).renderModel(worldIn, modelSnow, stateSnow, posIn, buffer, checkSides, rand);
         }
     }
 }

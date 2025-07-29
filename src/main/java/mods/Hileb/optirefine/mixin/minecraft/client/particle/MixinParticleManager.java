@@ -1,6 +1,9 @@
 package mods.Hileb.optirefine.mixin.minecraft.client.particle;
 
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.particle.Barrier;
 import net.minecraft.client.particle.Particle;
@@ -33,16 +36,12 @@ public abstract class MixinParticleManager {
     @Shadow
     protected abstract void tickParticle(Particle particle);
 
-    /**
-     * @author HILEB
-     * @reason TODO
-     */
-    @Overwrite
-    private void tickParticleList(Queue<Particle> p_187240_1_) {
-        if (!p_187240_1_.isEmpty()) {
+    @WrapMethod(method = "tickParticleList")
+    private void tickParticleList(Queue<Particle> particlesToTick, Operation<Void> original) {
+        if (!particlesToTick.isEmpty()) {
             long timeStartMs = System.currentTimeMillis();
-            int countLeft = p_187240_1_.size();
-            Iterator<Particle> iterator = p_187240_1_.iterator();
+            int countLeft = particlesToTick.size();
+            Iterator<Particle> iterator = particlesToTick.iterator();
 
             while (iterator.hasNext()) {
                 Particle particle = iterator.next();
@@ -60,7 +59,7 @@ public abstract class MixinParticleManager {
             if (countLeft > 0) {
                 int countToRemove = countLeft;
 
-                for (Iterator<Particle> it = p_187240_1_.iterator(); it.hasNext() && countToRemove > 0; countToRemove--) {
+                for (Iterator<Particle> it = particlesToTick.iterator(); it.hasNext() && countToRemove > 0; countToRemove--) {
                     Particle particlex = it.next();
                     particlex.setExpired();
                     it.remove();

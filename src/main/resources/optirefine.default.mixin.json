@@ -27,6 +27,7 @@
     "minecraft.util.MixinUtil",
     "minecraft.util.math.MixinChunkPos",
     "minecraft.util.math.MixinMathHelper",
+    "minecraft.util.text.translation.MixinI18n",
     "minecraft.world.MixinGameRulesValues",
     "minecraft.world.MixinWorldEntitySpawner",
     "minecraft.world.chunk.MixinBlockStateContainer",

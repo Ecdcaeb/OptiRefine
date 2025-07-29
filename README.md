@@ -7,6 +7,6 @@ OptiRefine is a mod that utilizes Mixin to patch Optifine, keeping optifine comp
 
 [✔] Disable OptiFineClassTransformer as it make file replacement
 
-[*] Reimplement OptiFine with mixin (57/145)
+[*] Reimplement OptiFine with mixin (59/114)
 
 [] Fix optifine and update to lwjgl3
