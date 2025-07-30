@@ -88,21 +88,10 @@ unimined.minecraft {
 }
 
 repositories {
-    maven {
-        name 'CleanroomMC Maven'
-        url 'https://maven.cleanroommc.com'
-    }
-    maven {
-        name 'Hileb'
-        url 'https://ecdcaeb.github.io/maven/'
-    }
+
 }
 
 dependencies {
-    compileOnly "net.optifine:optifine:1.12.2-HD_U_G5_unpatched_srg"
-    runtimeOnly "net.optifine:optifine:1.12.2-HD_U_G5"
-    runtimeOnly file("gradle/classpath/!!OptiFineDevTweaker-2.6.15-all.jar")
-
     if (propertyBool('use_asset_mover')) {
         implementation "com.cleanroommc:assetmover:${propertyString('asset_mover_version')}"
     }
