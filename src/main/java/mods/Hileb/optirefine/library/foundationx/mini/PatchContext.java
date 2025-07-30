@@ -59,10 +59,10 @@ public class PatchContext {
 	 */
 	public class SearchResult {
 
-		private final AbstractInsnNode start;
-		private final AbstractInsnNode end;
-		private final AbstractInsnNode[] query;
-		private final boolean reverse;
+		private AbstractInsnNode start;
+		private AbstractInsnNode end;
+		private AbstractInsnNode[] query;
+		private boolean reverse;
 		
 		protected SearchResult(AbstractInsnNode start, AbstractInsnNode end, AbstractInsnNode[] query, boolean reverse) {
 			super();
@@ -108,8 +108,8 @@ public class PatchContext {
 		}
 		
 		private void assertValid() {
-			if (!code.contains(start)) throw new IllegalStateException("The starting insn of this SearchResult has gone missing; repeat the search to update it");
-			if (!code.contains(end)) throw new IllegalStateException("The ending insn of this SearchResult has gone missing; repeat the search to update it");
+			//if (!code.contains(start)) throw new IllegalStateException("The starting insn of this SearchResult has gone missing; repeat the search to update it");
+			//if (!code.contains(end)) throw new IllegalStateException("The ending insn of this SearchResult has gone missing; repeat the search to update it");
 		}
 		
 		/**
@@ -155,8 +155,11 @@ public class PatchContext {
 			for (int i = 0; i < query.length; i++) {
 				PatchContext.this.erase(startIdx);
 			}
+
+			this.start = PatchContext.this.code.get(Math.max(startIdx - 1, 0));
+			this.end = PatchContext.this.code.get(Math.max(startIdx - 1, 0));
+			this.query = new AbstractInsnNode[0];
 		}
-		
 	}
 
 	private final MethodNode method;

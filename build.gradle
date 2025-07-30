@@ -99,7 +99,8 @@ repositories {
 }
 
 dependencies {
-    implementation "net.optifine:optifine:1.12.2-HD_U_G5_unpatched_srg"
+    compileOnly "net.optifine:optifine:1.12.2-HD_U_G5_unpatched_srg"
+    runtimeOnly "net.optifine:optifine:1.12.2-HD_U_G5"
 
     if (propertyBool('use_asset_mover')) {
         implementation "com.cleanroommc:assetmover:${propertyString('asset_mover_version')}"

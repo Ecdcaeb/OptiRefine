@@ -6,7 +6,6 @@ import mods.Hileb.optirefine.library.foundationx.mini.annotation.Patch;
 import org.objectweb.asm.tree.LabelNode;
 
 import java.io.*;
-import java.util.*;
 import java.net.*;
 
 import static mods.Hileb.optirefine.library.foundationx.ASMHelper.*;
@@ -32,17 +31,18 @@ public class OptifineTransformerTransformer extends MiniTransformer{
         );
     }
 
-    @Patch.Method("<init>")
+    @Patch.Method("<init>()V")
     public void patch$init(PatchContext context){
         PatchContext.SearchResult result = context.search(
             INVOKEVIRTUAL("java/net/URL", "toURI", "()Ljava/net/URI;")
         );
         while (result.isSuccessful()) {
             result.jumpBefore();
-            result.erase();
             context.add(
-                INVOKESTATIC("mods/Hileb/optirefine/core/transformer/OptifineTransformerTransformer", "url2uri", "(Ljava/net/URL;)Ljava/net/URI;")
+                    INVOKESTATIC("mods/Hileb/optirefine/core/transformer/OptifineTransformerTransformer", "url2uri", "(Ljava/net/URL;)Ljava/net/URI;")
             );
+            result.jumpBefore();
+            result.erase();
             result.next();
         }
     }

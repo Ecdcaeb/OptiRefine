@@ -12,6 +12,7 @@ import java.util.Map;
 
 @IFMLLoadingPlugin.Name(OptiRefine.NAME)
 @IFMLLoadingPlugin.MCVersion(net.minecraftforge.common.ForgeVersion.mcVersion)
+@IFMLLoadingPlugin.TransformerExclusions("mods.Hileb.optirefine.core.")
 public class OptiRefineCore implements IFMLLoadingPlugin{
 
     static {
