@@ -18,7 +18,7 @@ public class OptiRefineRuntimePublicTransformer implements TransformerHelper.Tar
     public int transform(ClassNode classNode) {
         classNode.access = toPublic(classNode.access);
         //classNode.methods.forEach((mn) -> mn.access = toPublic(mn.access));
-        classNode.fields.forEach((mn) -> mn.access = toPublic(mn.access));
+        //classNode.fields.forEach((mn) -> mn.access = toPublic(mn.access));
         return 0;
     }
 

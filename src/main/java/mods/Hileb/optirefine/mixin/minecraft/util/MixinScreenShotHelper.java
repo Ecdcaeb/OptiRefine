@@ -14,6 +14,7 @@ import net.minecraft.util.ScreenShotHelper;
 import net.minecraft.util.text.ITextComponent;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -21,6 +22,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.io.File;
 
 @Mixin(ScreenShotHelper.class) //TODO
+@SuppressWarnings("all")
 public abstract class MixinScreenShotHelper {
 
     @Inject(method = "saveScreenshot(Ljava/io/File;Ljava/lang/String;IILnet/minecraft/client/shader/Framebuffer;)Lnet/minecraft/util/text/ITextComponent;", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/ScreenShotHelper;createScreenshot(IILnet/minecraft/client/shader/Framebuffer;)Ljava/awt/image/BufferedImage;"))
@@ -33,7 +35,7 @@ public abstract class MixinScreenShotHelper {
         resize.set(OpenGlHelper.isFramebufferEnabled() && mul > 1);
         if (resize.get()) {
             Config.getGameSettings().guiScale = guiScale * mul;
-            ScreenShotHelper_resize(width * mul, height * mul);
+            resize(width * mul, height * mul);
             GlStateManager.pushMatrix();
             GlStateManager.clear(16640);
             mc.getFramebuffer().bindFramebuffer(true);
@@ -41,6 +43,26 @@ public abstract class MixinScreenShotHelper {
         }
     }
 
-    @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.util.ScreenShotHelper resize (II)V")
-    private native static void ScreenShotHelper_resize(int i, int j) ;
+    @Unique
+    @SuppressWarnings("all")
+    private static void resize(int width, int height) {
+        Minecraft mc = Minecraft.getMinecraft();
+        mc.displayWidth = Math.max(1, width);
+        mc.displayHeight = Math.max(1, height);
+        if (mc.currentScreen != null) {
+            ScaledResolution sr = new ScaledResolution(mc);
+            mc.currentScreen.onResize(mc, sr.getScaledWidth(), sr.getScaledHeight());
+        }
+
+        updateFramebufferSize();
+    }
+
+    @Unique
+    private static void updateFramebufferSize() {
+        Minecraft mc = Minecraft.getMinecraft();
+        mc.getFramebuffer().createBindFramebuffer(mc.displayWidth, mc.displayHeight);
+        if (mc.entityRenderer != null) {
+            mc.entityRenderer.updateShaderGroupSize(mc.displayWidth, mc.displayHeight);
+        }
+    }
 }

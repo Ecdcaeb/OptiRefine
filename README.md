@@ -8,6 +8,6 @@ Post incompatible issues of optifine here!
 
 [✔] Disable OptiFineClassTransformer as it make file replacement
 
-[*] Reimplement OptiFine with mixin (59/114)
+[*] Reimplement OptiFine with mixin (137/250)
 
 [] Fix optifine and update to lwjgl3

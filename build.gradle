@@ -33,8 +33,9 @@ setDefaultProperty 'extra_jvm_args', false, ''
 version = propertyString('mod_version')
 group = propertyString('root_package')
 
+
 base {
-    archivesName.set(propertyString('mod_id'))
+    archivesName.set('+' + propertyString('mod_name'))
 }
 
 
@@ -68,7 +69,7 @@ unimined.minecraft {
         if (propertyBool('use_access_transformer')) {
             accessTransformer "${rootProject.projectDir}/src/main/resources/" +  propertyString('access_transformer_locations')
         }
-        loader "0.3.10-alpha"
+        loader "0.3.13-alpha"
         runs.auth.username = minecraft_username
         runs.all {
             var map = getSystemProperties()
@@ -88,7 +89,10 @@ unimined.minecraft {
 }
 
 repositories {
-
+    maven {
+        name 'CleanroomMC Maven'
+        url 'https://maven.cleanroommc.com'
+    }
 }
 
 dependencies {
@@ -102,6 +106,11 @@ dependencies {
 }
 
 apply from: 'gradle/scripts/dependencies.gradle'
+
+sourceSets {
+    main {
+    }
+}
 
 processResources {
 

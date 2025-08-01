@@ -2,7 +2,6 @@ package mods.Hileb.optirefine;
 
 import mods.Hileb.optirefine.library.fmlmodhacker.MetaDataDecoder;
 import net.minecraftforge.fml.common.ModMetadata;
-import net.minecraftforge.fml.common.asm.transformers.AccessTransformer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

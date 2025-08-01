@@ -49,10 +49,34 @@ public class OptiRefineBlackboard {
             "net.minecraft.client.particle.ParticleManager$3",
             "net.minecraft.client.particle.ParticleManager$4",
 
+            "net.minecraft.client.renderer.culling.ClippingHelper",
+            "net.minecraft.client.renderer.culling.Frustum",
+            "net.minecraft.client.renderer.debug.DebugRendererChunkBorder",
+
+            "net.minecraft.client.renderer.entity.layers.LayerCape",
+            "net.minecraft.client.renderer.entity.layers.LayerElytra",
+            "net.minecraft.client.renderer.entity.layers.LayerEnderDragonEyes",
+            "net.minecraft.client.renderer.entity.layers.LayerEndermanEyes",
+
+            "net.minecraft.client.renderer.entity.layers.LayerMooshroomMushroom",
+            "net.minecraft.client.renderer.entity.layers.LayerSheepWool",
+            "net.minecraft.client.renderer.entity.layers.LayerSpiderEyes",
+            "net.minecraft.client.renderer.entity.layers.LayerWolfCollar",
+
+            "net.minecraft.client.renderer.entity.RenderXPOrb",
             "net.minecraft.client.renderer.texture.AbstractTexture",
             "net.minecraft.client.renderer.texture.DynamicTexture",
-            "net.minecraft.client.renderer.texture.DynamicTexture",
+            "net.minecraft.client.renderer.texture.ITextureObject",
+            "net.minecraft.client.renderer.texture.LayeredColorMaskTexture",
+            "net.minecraft.client.renderer.texture.LayeredTexture",
+            "net.minecraft.client.renderer.texture.SimpleTexture",
+            "net.minecraft.client.renderer.texture.Stitcher",
+            "net.minecraft.client.renderer.texture.Stitcher$Holder",
+            "net.minecraft.client.renderer.texture.Stitcher$Slot",
 
+            "net.minecraft.client.renderer.tileentity.TileEntityBeaconRenderer",
+            "net.minecraft.client.renderer.tileentity.TileEntityEndPortalRenderer",
+            "net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher",
             "net.minecraft.client.renderer.tileentity.TileEntitySignRenderer",
             "net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer",
             "net.minecraft.client.renderer.vertex.DefaultVertexFormats",
@@ -71,8 +95,11 @@ public class OptiRefineBlackboard {
 
             "net.minecraft.client.renderer.ImageBufferDownload",
 
-            "net.minecraft.client.resources.AbstractResourcePack", // Optifine : access -> ignored
-            "net.minecraft.client.resources.DefaultResourcePack", //
+            "net.minecraft.client.renderer.VertexBufferUploader",
+
+            "net.minecraft.client.renderer.WorldVertexBufferUploader",
+            "net.minecraft.client.resources.AbstractResourcePack",
+            "net.minecraft.client.resources.DefaultResourcePack",
             "net.minecraft.client.resources.I18n",
             "net.minecraft.client.resources.ResourcePackRepository$1",
             "net.minecraft.client.resources.ResourcePackRepository$2",
@@ -121,7 +148,7 @@ public class OptiRefineBlackboard {
             "net.minecraft.util.EnumFacing$AxisDirection",
             "net.minecraft.util.EnumFacing$Plane",
             "net.minecraft.util.IntegerCache",
-
+            "net.minecraft.util.ScreenShotHelper",
             "net.minecraft.util.Util",
             "net.minecraft.util.Util$EnumOS",
             "net.minecraft.world.GameRules",
@@ -131,4 +158,119 @@ public class OptiRefineBlackboard {
             "net.minecraft.world.chunk.BlockStateContainer",
             "net.minecraft.world.chunk.storage.ExtendedBlockStorage"
     );
+
+    /*
+    net.minecraft.block.BlockAir
+net.minecraft.block.material.MapColor
+net.minecraft.block.state.BlockStateBase
+net.minecraft.block.state.BlockStateContainer
+net.minecraft.client.LoadingScreenRenderer
+net.minecraft.client.entity.AbstractClientPlayer
+net.minecraft.client.gui.FontRenderer
+net.minecraft.client.gui.GuiCustomizeSkin
+net.minecraft.client.gui.GuiDownloadTerrain
+net.minecraft.client.gui.GuiIngame
+net.minecraft.client.gui.GuiMainMenu
+net.minecraft.client.gui.GuiOverlayDebug
+net.minecraft.client.gui.GuiScreenWorking
+net.minecraft.client.gui.GuiSlot
+net.minecraft.client.gui.GuiVideoSettings
+net.minecraft.client.model.ModelBox
+net.minecraft.client.model.ModelPlayer
+net.minecraft.client.model.ModelRenderer
+net.minecraft.client.model.TexturedQuad
+net.minecraft.client.multiplayer.WorldClient
+net.minecraft.client.particle.ParticleItemPickup
+net.minecraft.client.particle.ParticleManager
+net.minecraft.client.renderer.BlockFluidRenderer
+net.minecraft.client.renderer.BlockModelRenderer
+net.minecraft.client.renderer.BufferBuilder
+net.minecraft.client.renderer.ChunkRenderContainer
+net.minecraft.client.renderer.EntityRenderer
+net.minecraft.client.renderer.GlStateManager
+net.minecraft.client.renderer.ImageBufferDownload
+net.minecraft.client.renderer.ItemRenderer
+net.minecraft.client.renderer.OpenGlHelper
+net.minecraft.client.renderer.RenderGlobal
+net.minecraft.client.renderer.RenderItem
+net.minecraft.client.renderer.RenderList
+net.minecraft.client.renderer.Tessellator
+net.minecraft.client.renderer.ThreadDownloadImageData
+net.minecraft.client.renderer.VboRenderList
+net.minecraft.client.renderer.VertexBufferUploader
+net.minecraft.client.renderer.ViewFrustum
+net.minecraft.client.renderer.WorldVertexBufferUploader
+net.minecraft.client.renderer.block.model.BakedQuad
+net.minecraft.client.renderer.block.model.BakedQuadRetextured
+net.minecraft.client.renderer.block.model.FaceBakery
+net.minecraft.client.renderer.block.model.ItemOverrideList
+net.minecraft.client.renderer.block.model.ModelBakery
+net.minecraft.client.renderer.block.model.ModelRotation
+net.minecraft.client.renderer.chunk.ChunkRenderDispatcher
+net.minecraft.client.renderer.chunk.CompiledChunk
+net.minecraft.client.renderer.chunk.RenderChunk
+net.minecraft.client.renderer.chunk.SetVisibility
+net.minecraft.client.renderer.chunk.VisGraph
+net.minecraft.client.renderer.culling.ClippingHelper
+net.minecraft.client.renderer.culling.Frustum
+net.minecraft.client.renderer.debug.DebugRendererChunkBorder
+net.minecraft.client.renderer.entity.Render
+net.minecraft.client.renderer.entity.RenderItemFrame
+net.minecraft.client.renderer.entity.RenderLiving
+net.minecraft.client.renderer.entity.RenderLivingBase
+net.minecraft.client.renderer.entity.RenderManager
+net.minecraft.client.renderer.entity.RenderXPOrb
+net.minecraft.client.renderer.entity.layers.LayerArmorBase
+net.minecraft.client.renderer.entity.layers.LayerCape
+net.minecraft.client.renderer.entity.layers.LayerElytra
+net.minecraft.client.renderer.entity.layers.LayerEnderDragonEyes
+net.minecraft.client.renderer.entity.layers.LayerEndermanEyes
+net.minecraft.client.renderer.entity.layers.LayerEntityOnShoulder
+net.minecraft.client.renderer.entity.layers.LayerMooshroomMushroom
+net.minecraft.client.renderer.entity.layers.LayerSheepWool
+net.minecraft.client.renderer.entity.layers.LayerSpiderEyes
+net.minecraft.client.renderer.entity.layers.LayerWolfCollar
+net.minecraft.client.renderer.texture.AbstractTexture
+net.minecraft.client.renderer.texture.DynamicTexture
+net.minecraft.client.renderer.texture.ITextureObject
+net.minecraft.client.renderer.texture.LayeredColorMaskTexture
+net.minecraft.client.renderer.texture.LayeredTexture
+net.minecraft.client.renderer.texture.SimpleTexture
+net.minecraft.client.renderer.texture.Stitcher
+net.minecraft.client.renderer.texture.TextureAtlasSprite
+net.minecraft.client.renderer.texture.TextureManager
+net.minecraft.client.renderer.texture.TextureMap
+net.minecraft.client.renderer.texture.TextureUtil
+net.minecraft.client.renderer.tileentity.TileEntityBeaconRenderer
+net.minecraft.client.renderer.tileentity.TileEntityEndPortalRenderer
+net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher
+net.minecraft.client.renderer.tileentity.TileEntitySignRenderer
+net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
+net.minecraft.client.renderer.vertex.DefaultVertexFormats
+net.minecraft.client.renderer.vertex.VertexBuffer
+net.minecraft.client.resources.AbstractResourcePack
+net.minecraft.client.resources.DefaultResourcePack
+net.minecraft.client.resources.I18n
+net.minecraft.client.resources.ResourcePackRepository
+net.minecraft.client.settings.GameSettings
+net.minecraft.crash.CrashReport
+net.minecraft.entity.EntityLiving
+net.minecraft.network.PacketThreadUtil
+net.minecraft.network.datasync.EntityDataManager
+net.minecraft.potion.PotionUtils
+net.minecraft.profiler.Profiler
+net.minecraft.server.integrated.IntegratedServer
+net.minecraft.server.management.PlayerChunkMap
+net.minecraft.util.ClassInheritanceMultiMap
+net.minecraft.util.EnumFacing
+net.minecraft.util.IntegerCache
+net.minecraft.util.ScreenShotHelper
+net.minecraft.util.Util
+net.minecraft.util.math.ChunkPos
+net.minecraft.util.math.MathHelper
+net.minecraft.world.GameRules
+net.minecraft.world.WorldEntitySpawner
+net.minecraft.world.chunk.storage.ExtendedBlockStorage
+net.minecraft.world.gen.layer.GenLayerZoom
+    */
 }
