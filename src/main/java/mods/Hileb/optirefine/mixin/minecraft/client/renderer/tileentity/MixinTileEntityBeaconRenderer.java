@@ -26,6 +26,7 @@ public class MixinTileEntityBeaconRenderer {
             if (Config.isShaders()) {
                 Shaders.endBeacon();
             }
+
         }
     }
 
