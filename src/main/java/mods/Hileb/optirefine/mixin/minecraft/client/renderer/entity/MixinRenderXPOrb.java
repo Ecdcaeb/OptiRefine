@@ -56,7 +56,7 @@ public class MixinRenderXPOrb {
     public BufferBuilder setColor(BufferBuilder instance, int red, int green, int blue, int alpha,
                                   @Share(namespace = "optirefine", value = "r") LocalIntRef r,
                                   @Share(namespace = "optirefine", value = "g") LocalIntRef g,
-                                  @Share(namespace = "optirefine", value = "b") LocalIntRef b,
+                                  @Share(namespace = "optirefine", value = "b") LocalIntRef b
     ){
         return instance.color(r.get() < 0 ? red : r.get(), g.get() < 0 ? green : g.get(), b.get() < 0 ? blue : b.get(), alpha);
     }

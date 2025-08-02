@@ -5,12 +5,16 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import net.minecraft.client.renderer.culling.ClippingHelper;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 
 @Mixin(ClippingHelper.class)
 public class MixinClippingHelper {
     @Unique @Public @SuppressWarnings("all")
     public boolean disabled = false;
+
+    @Shadow
+    public float[][] frustum;
 
     @WrapMethod(method = "isBoxInFrustum")
     public boolean optional_isBoxInFrustum(double d, double e, double f, double g, double h, double i, Operation<Boolean> original){

@@ -42,7 +42,7 @@ public class MixinLayerMooshroomMushroom {
 
     @Inject(method = "<init>", at = @At("RETURN"))
     public void init(RenderMooshroom p_i46114_1, CallbackInfo ci){
-        this.modelRendererMushroom = new ModelRenderer(this.mooshroomRenderer.f);
+        this.modelRendererMushroom = new ModelRenderer(this.mooshroomRenderer.getMainModel());
         this.modelRendererMushroom.setTextureSize(16, 16);
         this.modelRendererMushroom.rotationPointX = -6.0F;
         this.modelRendererMushroom.rotationPointZ = -8.0F;

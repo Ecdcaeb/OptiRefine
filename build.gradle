@@ -81,7 +81,14 @@ unimined.minecraft {
                 map.put("foundation.dump", "true")
                 map.put("foundation.verbose", "true")
             }
-            return
+            dependsOn("jar")
+            doFirst {
+                classpath = classpath.filter {
+                    !(it.canonicalPath.equals(project.files("${rootProject.projectDir}/build/classes/java/main").canonicalPath) ||
+                            it.canonicalPath.equals(project.files("${rootProject.projectDir}/build/resources/main").canonicalPath))
+                }
+                classpath(project.files(tasks.jar.archiveFile.get().asFile.canonicalPath))
+            }
         }
     }
 

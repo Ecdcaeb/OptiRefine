@@ -53,11 +53,12 @@ public class OptiRefineBlackboard {
             "net.minecraft.client.renderer.culling.Frustum",
             "net.minecraft.client.renderer.debug.DebugRendererChunkBorder",
 
+            "net.minecraft.client.renderer.entity.layers.LayerArmorBase",
             "net.minecraft.client.renderer.entity.layers.LayerCape",
             "net.minecraft.client.renderer.entity.layers.LayerElytra",
             "net.minecraft.client.renderer.entity.layers.LayerEnderDragonEyes",
             "net.minecraft.client.renderer.entity.layers.LayerEndermanEyes",
-
+            "et.minecraft.client.renderer.entity.layers.LayerEntityOnShoulder",
             "net.minecraft.client.renderer.entity.layers.LayerMooshroomMushroom",
             "net.minecraft.client.renderer.entity.layers.LayerSheepWool",
             "net.minecraft.client.renderer.entity.layers.LayerSpiderEyes",

@@ -7,16 +7,22 @@ import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Accessibl
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.renderer.texture.LayeredColorMaskTexture;
 import net.minecraft.client.resources.IResourceManager;
+import net.minecraft.util.ResourceLocation;
 import net.optifine.shaders.MultiTexID;
 import net.optifine.shaders.ShadersTex;
 import org.objectweb.asm.Opcodes;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 
 import java.awt.image.BufferedImage;
 
 @Mixin(LayeredColorMaskTexture.class)
 public class MixinLayeredColorMaskTexture {
+
+    @Shadow @Final
+    private ResourceLocation textureLocation;
 
     @WrapOperation(method = "loadTexture", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/texture/TextureUtil;uploadTextureImage(ILjava/awt/image/BufferedImage;)I"))
     public int onImageLoad(int textureId, BufferedImage texture, Operation<Integer> original, @Local(argsOnly = true) IResourceManager resourceManager ){

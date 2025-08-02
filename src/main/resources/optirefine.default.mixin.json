@@ -62,6 +62,8 @@
     "minecraft.client.renderer.culling.MixinClippingHelper",
     "minecraft.client.renderer.culling.MixinFrustum",
     "minecraft.client.renderer.debug.MixinDebugRendererChunkBorder",
+    "minecraft.client.renderer.entity.MixinRender",
+    "minecraft.client.renderer.entity.MixinRenderItemFrame",
     "minecraft.client.renderer.entity.MixinRenderXPOrb",
     "minecraft.client.renderer.entity.layers.MixinLayerArmorBase",
     "minecraft.client.renderer.entity.layers.MixinLayerCape",
