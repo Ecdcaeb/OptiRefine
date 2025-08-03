@@ -28,6 +28,7 @@ package mods.Hileb.optirefine.library.foundationx.mini;
 
 import java.util.*;
 
+import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
@@ -57,12 +58,12 @@ public class PatchContext {
 	/**
 	 * Represents the code found as a result of a call to search.
 	 */
-	public class SearchResult {
+	public class SearchResult implements Iterable<SearchResult>{
 
-		private AbstractInsnNode start;
-		private AbstractInsnNode end;
-		private AbstractInsnNode[] query;
-		private boolean reverse;
+		private final AbstractInsnNode start;
+		private final AbstractInsnNode end;
+		private final AbstractInsnNode[] query;
+		private final boolean reverse;
 		
 		protected SearchResult(AbstractInsnNode start, AbstractInsnNode end, AbstractInsnNode[] query, boolean reverse) {
 			super();
@@ -108,8 +109,8 @@ public class PatchContext {
 		}
 		
 		private void assertValid() {
-			//if (!code.contains(start)) throw new IllegalStateException("The starting insn of this SearchResult has gone missing; repeat the search to update it");
-			//if (!code.contains(end)) throw new IllegalStateException("The ending insn of this SearchResult has gone missing; repeat the search to update it");
+			if (!code.contains(start)) throw new IllegalStateException("The starting insn of this SearchResult has gone missing; repeat the search to update it");
+			if (!code.contains(end)) throw new IllegalStateException("The ending insn of this SearchResult has gone missing; repeat the search to update it");
 		}
 		
 		/**
@@ -119,7 +120,7 @@ public class PatchContext {
 		public void jumpAfter() {
 			assertSuccessful();
 			assertValid();
-			setPointer(code.indexOf(end)+1);
+			setPointer(code.indexOf(end) + 1);
 		}
 		
 		/**
@@ -131,23 +132,13 @@ public class PatchContext {
 			assertValid();
 			setPointer(code.indexOf(start));
 		}
-		
-		/**
-		 * Repeat this search from the end of the code found by this search.
-		 * @return a new SearchResult that represents the next matching set of
-		 * 		instructions
-		 * @throws NoSuchElementException if the search was unsuccessful
-		 */
+
 		public SearchResult next() {
 			assertSuccessful();
 			assertValid();
-			return searchFrom(reverse ? code.indexOf(start) : code.indexOf(end)+1, query, reverse);
+			return searchFrom(reverse ? code.indexOf(start) : code.indexOf(end) + 1, query, reverse);
 		}
-		
-		/**
-		 * Erase the found code block and don't update the code pointer.
-		 * @throws NoSuchElementException if the search was unsuccessful
-		 */
+
 		public void erase() {
 			assertSuccessful();
 			assertValid();
@@ -155,10 +146,24 @@ public class PatchContext {
 			for (int i = 0; i < query.length; i++) {
 				PatchContext.this.erase(startIdx);
 			}
+		}
 
-			this.start = PatchContext.this.code.get(Math.max(startIdx - 1, 0));
-			this.end = PatchContext.this.code.get(Math.max(startIdx - 1, 0));
-			this.query = new AbstractInsnNode[0];
+		@Override
+		public @NotNull Iterator<SearchResult> iterator() {
+			return new Iterator<SearchResult>() {
+				private SearchResult result;
+				@Override
+				public boolean hasNext() {
+					return result.isSuccessful();
+				}
+
+				@Override
+				public SearchResult next() {
+					SearchResult active = result;
+					this.result = active.next();
+					return active;
+				}
+			};
 		}
 	}
 
@@ -172,9 +177,9 @@ public class PatchContext {
 		AbstractInsnNode ain = method.instructions.getFirst();
 		Map<LabelNode, LabelNode> labels = new IdentityHashMap<>();
 		while (ain != null) {
-			if (ain instanceof LabelNode) {
-				LabelNode l = new LabelNode(((LabelNode) ain).getLabel());
-				labels.put((LabelNode)ain, l);
+			if (ain instanceof LabelNode labelNode) {
+				LabelNode l = new LabelNode(labelNode.getLabel());
+				labels.put(labelNode, l);
 			}
 			ain = ain.getNext();
 		}
@@ -266,7 +271,7 @@ public class PatchContext {
 	 * @param exceptionType the type of exception that the handler accepts, null if this is a finally handler
 	 */
 	public void addTryBlock(LabelNode start, LabelNode end, LabelNode handler, String exceptionType) {
-		this.method.tryCatchBlocks.add(new TryCatchBlockNode(start, end, handler, MiniUtils.remapType(exceptionType)));
+		this.method.tryCatchBlocks.add(new TryCatchBlockNode(start, end, handler, exceptionType == null ? null : MiniUtils.remapType(exceptionType)));
 	}
 	
 	/**
@@ -280,8 +285,7 @@ public class PatchContext {
 	}
 	
 	private void setPointer(int pointer) {
-		if (pointer < 0) throw pointerOutOfBoundsException(pointer);
-		if (pointer >= code.size()) throw pointerOutOfBoundsException(pointer);
+		if (pointer < 0 || pointer > code.size()) throw pointerOutOfBoundsException(pointer);
 		this.pointer = pointer;
 	}
 	
@@ -393,7 +397,9 @@ public class PatchContext {
 	}
 
 	private SearchResult searchFrom(int start, AbstractInsnNode[] nodes, boolean reverse) {
+		if (nodes.length == 0) throw new IllegalArgumentException("Query cannot be empty");
 		for (int k = start; reverse ? k >= 0 : k < code.size(); k += (reverse ? -1 : 1)) {
+			if (k + nodes.length > code.size()) continue;
 			boolean allMatched = true;
 			for (int j = 0; j < nodes.length; j++) {
 				if (!instructionsEqual(code.get(k+j), nodes[j])) {

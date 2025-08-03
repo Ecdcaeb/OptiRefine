@@ -33,17 +33,14 @@ public class OptifineTransformerTransformer extends MiniTransformer{
 
     @Patch.Method("<init>()V")
     public void patch$init(PatchContext context){
-        PatchContext.SearchResult result = context.search(
-            INVOKEVIRTUAL("java/net/URL", "toURI", "()Ljava/net/URI;")
-        );
-        while (result.isSuccessful()) {
-            result.jumpBefore();
+        for (PatchContext.SearchResult searchResult : context.search(
+                INVOKEVIRTUAL("java/net/URL", "toURI", "()Ljava/net/URI;")
+        )) {
+            searchResult.jumpBefore();
             context.add(
                     INVOKESTATIC("mods/Hileb/optirefine/core/transformer/OptifineTransformerTransformer", "url2uri", "(Ljava/net/URL;)Ljava/net/URI;")
             );
-            result.jumpBefore();
-            result.erase();
-            result.next();
+            searchResult.erase();
         }
     }
 

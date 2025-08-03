@@ -7,7 +7,6 @@ import mods.Hileb.optirefine.core.transformer.dev.OptifineDevTweakerTransformer;
 import mods.Hileb.optirefine.core.transformer.dev.OptifineDevUtilTransformer;
 import mods.Hileb.optirefine.core.transformer.OptifineTransformerTransformer;
 import mods.Hileb.optirefine.library.foundationx.TransformerHelper;
-import net.minecraft.launchwrapper.Launch;
 import net.minecraftforge.fml.common.DummyModContainer;
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
 import org.apache.logging.log4j.LogManager;
@@ -18,18 +17,20 @@ import java.util.Map;
 @IFMLLoadingPlugin.SortingIndex(1000)
 @IFMLLoadingPlugin.Name(OptiRefine.NAME)
 @IFMLLoadingPlugin.MCVersion(net.minecraftforge.common.ForgeVersion.mcVersion)
-@IFMLLoadingPlugin.TransformerExclusions
+@IFMLLoadingPlugin.TransformerExclusions({
+        "mods.Hileb.optirefine.core.",
+        "mods.Hileb.optirefine.library.foundationx."
+})
 public class OptiRefineCore implements IFMLLoadingPlugin{
 
+    public static final Logger LOGGER;
+
     static {
+        LOGGER = LogManager.getLogger(OptiRefine.NAME);
         setupTransformers();
     }
 
-    public static final Logger LOGGER = LogManager.getLogger(OptiRefine.NAME);
-
     public static void setupTransformers(){
-        Launch.classLoader.addClassLoaderExclusion("mods.Hileb.optirefine.core.transformer.");
-        Launch.classLoader.addClassLoaderExclusion("mods.Hileb.optirefine.library.foundationx.");
         TransformerHelper.registerTransformer(new OptifineTransformerTransformer());
         TransformerHelper.registerTransformer(new OptiRefineRuntimePublicTransformer());
 
