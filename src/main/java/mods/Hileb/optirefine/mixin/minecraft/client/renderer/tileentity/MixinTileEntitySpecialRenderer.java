@@ -15,21 +15,25 @@ public abstract class MixinTileEntitySpecialRenderer{
     @Unique
     private ResourceLocation locationTextureCustom = null;
 
+    @SuppressWarnings("unused")
     @Unique
     public Class<?> getEntityClass() {
         return this.tileEntityClass;
     }
 
+    @SuppressWarnings("unused")
     @Unique
     public void setEntityClass(Class<?> tileEntityClass) {
         this.tileEntityClass = tileEntityClass;
     }
 
+    @SuppressWarnings("unused")
     @Unique
     public ResourceLocation getLocationTextureCustom() {
         return this.locationTextureCustom;
     }
 
+    @SuppressWarnings("unused")
     @Unique
     public void setLocationTextureCustom(ResourceLocation locationTextureCustom) {
         this.locationTextureCustom = locationTextureCustom;

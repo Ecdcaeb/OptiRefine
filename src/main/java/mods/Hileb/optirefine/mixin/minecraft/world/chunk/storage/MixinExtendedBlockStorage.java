@@ -13,6 +13,7 @@ public abstract class MixinExtendedBlockStorage {
     @Shadow
     private int blockRefCount;
 
+    @SuppressWarnings("unused")
     @Shadow
     private int tickRefCount;
 
@@ -47,6 +48,7 @@ public abstract class MixinExtendedBlockStorage {
         this.tickRefCount = localTickRefCount;
     }
 
+    @SuppressWarnings("unused")
     @Unique
     public int getBlockRefCount() {
         return this.blockRefCount;

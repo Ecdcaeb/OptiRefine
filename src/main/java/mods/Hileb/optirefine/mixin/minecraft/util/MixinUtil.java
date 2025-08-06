@@ -16,7 +16,7 @@ public abstract class MixinUtil {
      */
     @Nullable
     @Overwrite
-    public static <V> V runTask(FutureTask<V> task, Logger logger) {
+    public static <V> @org.jetbrains.annotations.Nullable V runTask(FutureTask<V> task, Logger logger) {
         try {
             task.run();
             return task.get();

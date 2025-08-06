@@ -56,19 +56,19 @@ public class MixinLayerEntityOnShoulder {
 
 
 
-    @SuppressWarnings("all")
+    
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.RenderGlobal renderedEntity Lnet.minecraft.entity.Entity;")
     private static native Entity RenderGlobal_renderedEntity_get(RenderGlobal renderGlobal);
 
-    @SuppressWarnings("all")
+    
     @AccessibleOperation(opcode = Opcodes.PUTFIELD, desc = "net.minecraft.client.renderer.RenderGlobal renderedEntity Lnet.minecraft.entity.Entity;")
     private static native void RenderGlobal_renderedEntity_set(RenderGlobal renderGlobal, Entity entity);
 
-    @SuppressWarnings("all")
+    
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.entity.AbstractClientPlayer entityShoulderLeft Lnet.minecraft.entity.passive.EntityShoulderRiding;")
     private static native EntityShoulderRiding AbstractClientPlayer_entityShoulderLeft_get(AbstractClientPlayer abstractClientPlayer);
 
-    @SuppressWarnings("all")
+    
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.entity.AbstractClientPlayer entityShoulderRight Lnet.minecraft.entity.passive.EntityShoulderRiding;")
     private static native EntityShoulderRiding AbstractClientPlayer_entityShoulderRight_get(AbstractClientPlayer abstractClientPlayer);
 }

@@ -30,27 +30,35 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.ArrayList;
 import java.util.List;
 
-@SuppressWarnings("all")
+
 @Mixin(ModelRenderer.class)
 public abstract class MixinModelRenderer {
+    @SuppressWarnings("unused")
     @Shadow
     public float textureWidth;
+    @SuppressWarnings("unused")
     @Shadow
     public float textureHeight;
     @Shadow
     private int textureOffsetX;
     @Shadow
     private int textureOffsetY;
+    @SuppressWarnings("unused")
     @Shadow
     public float rotationPointX;
+    @SuppressWarnings("unused")
     @Shadow
     public float rotationPointY;
+    @SuppressWarnings("unused")
     @Shadow
     public float rotationPointZ;
+    @SuppressWarnings("unused")
     @Shadow
     public float rotateAngleX;
+    @SuppressWarnings("unused")
     @Shadow
     public float rotateAngleY;
+    @SuppressWarnings("unused")
     @Shadow
     public float rotateAngleZ;
     @Shadow
@@ -68,14 +76,19 @@ public abstract class MixinModelRenderer {
     public List<ModelBox> cubeList;
     @Shadow
     public List<ModelRenderer> childModels;
+    @SuppressWarnings("unused")
     @Shadow @Final
     public String boxName;
+    @SuppressWarnings("unused")
     @Shadow @Final
     private ModelBase baseModel;
+    @SuppressWarnings("unused")
     @Shadow
     public float offsetX;
+    @SuppressWarnings("unused")
     @Shadow
     public float offsetY;
+    @SuppressWarnings("unused")
     @Shadow
     public float offsetZ;
 
@@ -83,18 +96,22 @@ public abstract class MixinModelRenderer {
     @Public
     public List<ModelSprite> spriteList = new ArrayList<>();
 
+    @SuppressWarnings("unused")
     @Unique
     @Public
     public boolean mirrorV = false;
 
+    @SuppressWarnings("unused")
     @Unique
     @Public
     public float scaleX = 1.0F;
 
+    @SuppressWarnings("unused")
     @Unique
     @Public
     public float scaleY = 1.0F;
 
+    @SuppressWarnings("unused")
     @Unique
     @Public
     public float scaleZ = 1.0F;
@@ -119,12 +136,14 @@ public abstract class MixinModelRenderer {
     @Public
     private RenderGlobal renderGlobal = Config.getRenderGlobal();
 
+    @SuppressWarnings({"unused", "BooleanMethodIsAlwaysInverted"})
     @Unique
     @AccessibleOperation(opcode = Opcodes.GETSTATIC, desc = "net/minecraft/client/renderer/RenderGlobal renderOverlayDamaged Z")
     private static boolean _acc_RenderGlobal_renderOverlayDamaged_(RenderGlobal global){
         throw new AbstractMethodError();
     }
 
+    @SuppressWarnings("unused")
     @Unique
     @AccessibleOperation(opcode = Opcodes.GETSTATIC, desc = "net/minecraft/client/renderer/RenderGlobal renderOverlayEyes Z")
     private static boolean _acc_RenderGlobal_renderOverlayEyes_(RenderGlobal global){
@@ -204,6 +223,10 @@ public abstract class MixinModelRenderer {
         }
     }
 
+    /**
+     * @author
+     * @reason
+     */
     @Overwrite
     private void compileDisplayList(float scale) {
         if (this.displayList == 0) {
@@ -225,18 +248,21 @@ public abstract class MixinModelRenderer {
         this.compiled = true;
     }
 
+    @SuppressWarnings("unused")
     @Unique
     @Public
     public void addSprite(float posX, float posY, float posZ, int sizeX, int sizeY, int sizeZ, float sizeAdd) {
         this.spriteList.add(new ModelSprite((ModelRenderer)(Object)this, this.textureOffsetX, this.textureOffsetY, posX, posY, posZ, sizeX, sizeY, sizeZ, sizeAdd));
     }
 
+    @SuppressWarnings("unused")
     @Unique
     @Public
     public boolean getCompiled() {
         return this.compiled;
     }
 
+    @SuppressWarnings("unused")
     @Unique
     @Public
     public int getDisplayList() {
@@ -252,36 +278,42 @@ public abstract class MixinModelRenderer {
         }
     }
 
+    @SuppressWarnings("unused")
     @Unique
     @Public
     public ResourceLocation getTextureLocation() {
         return this.textureLocation;
     }
 
+    @SuppressWarnings("unused")
     @Unique
     @Public
     public void setTextureLocation(ResourceLocation textureLocation) {
         this.textureLocation = textureLocation;
     }
 
+    @SuppressWarnings("unused")
     @Unique
     @Public
     public String getId() {
         return this.id;
     }
 
+    @SuppressWarnings("unused")
     @Unique
     @Public
     public void setId(String id) {
         this.id = id;
     }
 
+    @SuppressWarnings("unused")
     @Unique
     @AccessibleOperation(opcode = Opcodes.NEW, desc = "net/minecraft/client/model/ModelBox (Lnet/minecraft/client/model/ModelRenderer;[[IFFFFFFFZ)V")
     private static ModelBox _new_ModelBox(ModelRenderer renderer, int[][] faceUvs, float x, float y, float z, float dx, float dy, float dz, float delta, boolean mirror){
         throw new AbstractMethodError();
     }
 
+    @SuppressWarnings("unused")
     @Unique
     @Public
     public void addBox(int[][] faceUvs, float x, float y, float z, float dx, float dy, float dz, float delta) {
@@ -294,6 +326,7 @@ public abstract class MixinModelRenderer {
         throw new AbstractMethodError();
     }
 
+    @SuppressWarnings("unused")
     @Unique
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "getId ()I")
     private static int _acc_ModelRenderer_getId(ModelRenderer renderer){
@@ -308,7 +341,8 @@ public abstract class MixinModelRenderer {
         } else {
             if (this.childModels != null) {
                 for (int i = 0; i < this.childModels.size(); i++) {
-                    ModelRenderer child = (ModelRenderer)this.childModels.get(i);
+                    ModelRenderer child = this.childModels.get(i);
+                    //TODO
                     if (name.equals(_acc_ModelRenderer_getId(child))) {
                         return child;
                     }
@@ -319,12 +353,14 @@ public abstract class MixinModelRenderer {
         }
     }
 
+    @SuppressWarnings("unused")
     @Unique
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "getChildDeep (Ljava/lang/String;)Lnet/minecraft/client/model/ModelRenderer;")
     private static ModelRenderer _acc_ModelRenderer_getChildDeep(ModelRenderer renderer, String a){
         throw new AbstractMethodError();
     }
 
+    @SuppressWarnings("unused")
     @Unique
     @Public
     public ModelRenderer getChildDeep(String name) {
@@ -337,7 +373,7 @@ public abstract class MixinModelRenderer {
             } else {
                 if (this.childModels != null) {
                     for (int i = 0; i < this.childModels.size(); i++) {
-                        ModelRenderer child = (ModelRenderer)this.childModels.get(i);
+                        ModelRenderer child = this.childModels.get(i);
                         ModelRenderer mr = _acc_ModelRenderer_getChildDeep(child, name);
                         if (mr != null) {
                             return mr;
@@ -350,6 +386,7 @@ public abstract class MixinModelRenderer {
         }
     }
 
+    @SuppressWarnings("unused")
     @Unique
     @Public
     public void setModelUpdater(ModelUpdater modelUpdater) {
@@ -358,16 +395,7 @@ public abstract class MixinModelRenderer {
 
     @Override
     public String toString() {
-        StringBuffer sb = new StringBuffer();
-        sb.append(
-                "id: "
-                        + this.id
-                        + ", boxes: "
-                        + (this.cubeList != null ? this.cubeList.size() : null)
-                        + ", submodels: "
-                        + (this.childModels != null ? this.childModels.size() : null)
-        );
-        return sb.toString();
+        return "id: " + this.id + ", boxes: " + (this.cubeList != null ? this.cubeList.size() : null) + ", submodels: " + (this.childModels != null ? this.childModels.size() : null);
     }
 
 }

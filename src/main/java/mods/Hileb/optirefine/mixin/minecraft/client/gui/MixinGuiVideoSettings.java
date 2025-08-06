@@ -30,7 +30,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@SuppressWarnings("all")
 @Mixin(GuiVideoSettings.class)
 @ChangeSuperClass(GuiScreenOF.class)
 public abstract class MixinGuiVideoSettings extends GuiScreen {
@@ -45,16 +44,18 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
     @Final
     private GameSettings guiGameSettings;
 
+    @SuppressWarnings("unused")
     @Unique
-    @SuppressWarnings("all")
+    
     private static final String __OBFID = "CL_00000718";
 
     @Unique
-    @SuppressWarnings("all")
+    
     private static GameSettings.Options[] videoOptions = new GameSettings.Options[]{GameSettings.Options.GRAPHICS, GameSettings.Options.RENDER_DISTANCE, GameSettings.Options.AMBIENT_OCCLUSION, GameSettings.Options.FRAMERATE_LIMIT, GameSettingsOptionOF.AO_LEVEL, GameSettings.Options.VIEW_BOBBING, GameSettings.Options.GUI_SCALE, GameSettings.Options.USE_VBO, GameSettings.Options.GAMMA, GameSettings.Options.ATTACK_INDICATOR, GameSettingsOptionOF.DYNAMIC_LIGHTS, GameSettingsOptionOF.DYNAMIC_FOV};
 
+    @SuppressWarnings("unused")
     @Unique
-    @SuppressWarnings("all")
+    
     private TooltipManager tooltipManager = new TooltipManager(this, new TooltipProviderOptions());
 
     @Inject(method = "initGui", at = @At("HEAD"), cancellable = true)
@@ -103,7 +104,7 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
     }
 
     @Unique
-    @SuppressWarnings("all")
+    
     public void actionPerformed(GuiButton button, int val) {
         if (button.enabled) {
             int guiScale = this.guiGameSettings.guiScale;
@@ -182,8 +183,9 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
         }
     }
 
+    @SuppressWarnings("unused")
     @Unique
-    @SuppressWarnings("all")
+    
     protected void actionPerformedRightClick(GuiButton button) {
         if (button.id == GameSettings.Options.GUI_SCALE.ordinal()) {
             this.actionPerformed(button, -1);
@@ -200,36 +202,42 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
         this.drawCenteredString(this.fontRenderer, verMc, this.width - lenMc - 2, this.height - 10, 8421504);
     }
 
+    @SuppressWarnings("unused")
     @Unique
     @Public
-    public static int getButtonWidth(GuiButton btn) {
+    private static int getButtonWidth(GuiButton btn) {
         return btn.width;
     }
 
+    @SuppressWarnings("unused")
     @Unique
     @Public
-    public static int getButtonHeight(GuiButton btn) {
+    private static int getButtonHeight(GuiButton btn) {
         return btn.height;
     }
 
+    @SuppressWarnings("unused")
     @Unique
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.gui func_73733_a (IIIIII)V", deobf = true)
     private static void _acc_GuiScreen_draw(GuiScreen guiScreen, int left, int top, int right, int bottom, int startColor, int endColor){
         throw new AbstractMethodError();
     }
 
+    @SuppressWarnings("unused")
     @Unique
     @Public
-    public static void drawGradientRect(GuiScreen guiScreen, int left, int top, int right, int bottom, int startColor, int endColor) {
+    private static void drawGradientRect(GuiScreen guiScreen, int left, int top, int right, int bottom, int startColor, int endColor) {
         _acc_GuiScreen_draw(guiScreen, left, top, right, bottom, startColor, endColor);
     }
 
+    @SuppressWarnings("unused")
     @Unique
     @Public
-    public static String getGuiChatText(GuiChat guiChat) {
+    private static String getGuiChatText(GuiChat guiChat) {
         return _acc_GuiChatAccessor_getInputField(guiChat).getText();
     }
 
+    @SuppressWarnings("unused")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.gui.GuiTextField field_146415_a Lnet.minecraft.client.gui.GuiTextField")
     private static GuiTextField _acc_GuiChatAccessor_getInputField(GuiChat guiChat) {
         throw new AbstractMethodError();

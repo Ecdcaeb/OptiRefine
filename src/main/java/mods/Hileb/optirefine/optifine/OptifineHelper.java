@@ -17,6 +17,7 @@ public class OptifineHelper {
         else return new ByteArrayInputStream(d);
     }
 
+    @SuppressWarnings("unused")
     public static float getFaceBrightness(EnumFacing facing) {
         return switch (facing) {
             case DOWN -> 0.5F;

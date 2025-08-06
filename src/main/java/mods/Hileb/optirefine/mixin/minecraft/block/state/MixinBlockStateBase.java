@@ -12,23 +12,24 @@ import org.spongepowered.asm.mixin.Unique;
 public abstract class MixinBlockStateBase implements IBlockState {
 
     @Unique
-    @SuppressWarnings("all")
+    
     private int blockId = -1;
 
     @Unique
-    @SuppressWarnings("all")
+    
     private int blockStateId = -1;
 
     @Unique
-    @SuppressWarnings("all")
+    
     private int metadata = -1;
 
     @Unique
-    @SuppressWarnings("all")
+    
     private ResourceLocation blockLocation = null;
 
+    @SuppressWarnings("unused")
     @Unique
-    @SuppressWarnings("all")
+    
     @Public
     public int getBlockId() {
         if (this.blockId < 0) {
@@ -37,8 +38,9 @@ public abstract class MixinBlockStateBase implements IBlockState {
          return this.blockId;
     }
 
+    @SuppressWarnings("unused")
     @Unique
-    @SuppressWarnings("all")
+    
     @Public
     public int getBlockStateId() {
          if (this.blockStateId < 0) {
@@ -47,8 +49,9 @@ public abstract class MixinBlockStateBase implements IBlockState {
          return this.blockStateId;
     }
 
+    @SuppressWarnings("unused")
     @Unique
-    @SuppressWarnings("all")
+    
     @Public
     public int getMetadata() {
          if (this.metadata < 0) {
@@ -57,8 +60,9 @@ public abstract class MixinBlockStateBase implements IBlockState {
          return this.metadata;
     }
 
+    @SuppressWarnings("unused")
     @Unique
-    @SuppressWarnings("all")
+    
     @Public
     public ResourceLocation getBlockLocation() {
         if (this.blockLocation == null) {

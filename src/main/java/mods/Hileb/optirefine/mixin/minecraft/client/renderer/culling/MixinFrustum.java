@@ -20,6 +20,7 @@ public class MixinFrustum {
     @Shadow
     private double z;
 
+    @SuppressWarnings("unused")
     @Unique
     public boolean isBoxInFrustumFully(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
         return ClippingHelper_isBoxInFrustumFully(clippingHelper, minX - this.x, minY - this.y, minZ - this.z, maxX - this.x, maxY - this.y, maxZ - this.z);

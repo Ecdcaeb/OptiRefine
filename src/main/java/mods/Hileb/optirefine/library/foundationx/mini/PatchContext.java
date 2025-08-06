@@ -28,27 +28,10 @@ package mods.Hileb.optirefine.library.foundationx.mini;
 
 import java.util.*;
 
+import it.unimi.dsi.fastutil.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.tree.AbstractInsnNode;
-import org.objectweb.asm.tree.FieldInsnNode;
-import org.objectweb.asm.tree.IincInsnNode;
-import org.objectweb.asm.tree.InsnList;
-import org.objectweb.asm.tree.InsnNode;
-import org.objectweb.asm.tree.IntInsnNode;
-import org.objectweb.asm.tree.InvokeDynamicInsnNode;
-import org.objectweb.asm.tree.JumpInsnNode;
-import org.objectweb.asm.tree.LabelNode;
-import org.objectweb.asm.tree.LdcInsnNode;
-import org.objectweb.asm.tree.LineNumberNode;
-import org.objectweb.asm.tree.LookupSwitchInsnNode;
-import org.objectweb.asm.tree.MethodInsnNode;
-import org.objectweb.asm.tree.MethodNode;
-import org.objectweb.asm.tree.MultiANewArrayInsnNode;
-import org.objectweb.asm.tree.TableSwitchInsnNode;
-import org.objectweb.asm.tree.TryCatchBlockNode;
-import org.objectweb.asm.tree.TypeInsnNode;
-import org.objectweb.asm.tree.VarInsnNode;
+import org.objectweb.asm.tree.*;
 
 import mods.Hileb.optirefine.library.foundationx.mini.exception.PointerNotSetException;
 import mods.Hileb.optirefine.library.foundationx.mini.exception.PointerOutOfBoundsException;
@@ -150,36 +133,45 @@ public class PatchContext {
 
 		@Override
 		public @NotNull Iterator<SearchResult> iterator() {
-			return new Iterator<SearchResult>() {
-				private SearchResult result;
-				@Override
-				public boolean hasNext() {
-					return result.isSuccessful();
-				}
+			return new Iterator<>() {
+                private SearchResult result;
 
-				@Override
-				public SearchResult next() {
-					SearchResult active = result;
-					this.result = active.next();
-					return active;
-				}
-			};
+                @Override
+                public boolean hasNext() {
+                    return result != null && result.isSuccessful();
+                }
+
+                @Override
+                public SearchResult next() {
+                    SearchResult active = result;
+                    this.result = active.next();
+                    return active;
+                }
+            };
 		}
 	}
 
 	private final MethodNode method;
 	private final List<AbstractInsnNode> code;
 	private int pointer = -1;
+	private final HashMap<String, LabelNode> namedLabels = new HashMap<>();
+	private final ClassNode classNode;
 	
-	PatchContext(MethodNode method) {
+	PatchContext(MethodNode method, ClassNode classNode) {
+		this.classNode = classNode;
 		this.method = method;
 		this.code = new ArrayList<>(method.instructions.size());
 		AbstractInsnNode ain = method.instructions.getFirst();
 		Map<LabelNode, LabelNode> labels = new IdentityHashMap<>();
+		int lab = 0;
 		while (ain != null) {
 			if (ain instanceof LabelNode labelNode) {
 				LabelNode l = new LabelNode(labelNode.getLabel());
 				labels.put(labelNode, l);
+
+				namedLabels.put("label" + lab, l);
+				lab++;
+
 			}
 			ain = ain.getNext();
 		}
@@ -189,7 +181,22 @@ public class PatchContext {
 			ain = ain.getNext();
 		}
 	}
-	
+
+	public ClassNode getClassNode() {
+		return classNode;
+	}
+
+	public Pair<PatchContext, MethodInsnNode> wrapMethod(String tag){
+		MethodNode methodNode = new MethodNode(this.method.access, this.method.name, this.method.desc, this.method.signature, this.method.exceptions == null ? null : this.method.exceptions.isEmpty() ? null : this.method.exceptions.toArray(new String[0]));
+		this.method.name = this.method.name + "_original_" + tag;
+		classNode.methods.add(methodNode);
+		return Pair.of(new PatchContext(methodNode, classNode), new MethodInsnNode((this.method.access & Opcodes.ACC_STATIC) != 0 ? Opcodes.INVOKESTATIC : Opcodes.INVOKEVIRTUAL, classNode.name, this.method.name, this.method.desc, false));
+	}
+
+	public LabelNode label(String name) {
+		return namedLabels.computeIfAbsent(name, (o)->new LabelNode());
+	}
+
 	/**
 	 * @return the instruction under the current code pointer
 	 */

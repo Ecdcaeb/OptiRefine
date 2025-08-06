@@ -45,6 +45,7 @@ public abstract class MixinVertexBuffer {
     @Shadow
     public abstract void deleteGlBuffers();
 
+    @SuppressWarnings("unused")
     @Unique
     public void setVboRegion(VboRegion vboRegion) {
         if (vboRegion != null) {
@@ -54,21 +55,25 @@ public abstract class MixinVertexBuffer {
         }
     }
 
+    @SuppressWarnings("unused")
     @Unique
     public VboRegion getVboRegion() {
         return this.vboRegion;
     }
 
+    @SuppressWarnings("unused")
     @Unique
     public VboRange getVboRange() {
         return this.vboRange;
     }
 
+    @SuppressWarnings("unused")
     @Unique
     public int getDrawMode() {
         return this.drawMode;
     }
 
+    @SuppressWarnings("unused")
     @Unique
     public void setDrawMode(int drawMode) {
         this.drawMode = drawMode;

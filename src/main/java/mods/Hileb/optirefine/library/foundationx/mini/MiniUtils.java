@@ -23,6 +23,7 @@ import org.objectweb.asm.tree.MultiANewArrayInsnNode;
 import org.objectweb.asm.tree.TypeInsnNode;
 import org.objectweb.asm.tree.VarInsnNode;
 
+@SuppressWarnings("unused")
 public class MiniUtils {
 	
 	public static String describe(Iterable<? extends AbstractInsnNode> list) {

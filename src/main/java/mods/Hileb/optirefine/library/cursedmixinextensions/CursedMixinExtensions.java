@@ -15,7 +15,8 @@ import java.util.*;
  * @author Cat Core
  * @author Hileb
  */
-@SuppressWarnings("all")
+
+@SuppressWarnings("unused")
 public class CursedMixinExtensions {
     public static void postApply(ClassNode targetClass) {
         LinkedList<CallTransformTask> tasks = new LinkedList<>();
@@ -37,12 +38,14 @@ public class CursedMixinExtensions {
             while (iterator.hasNext()) {
                 Object current = iterator.next();
                 if ("value".equals(current)) {
+                    //noinspection unchecked
                     for (Type type : (List<Type>) iterator.next()) {
                         if (!targetClass.interfaces.contains(type.getClassName())) {
                             targetClass.interfaces.add(type.getClassName());
                         }
                     }
                 } else if ("itfs".equals(current)) {
+                    //noinspection unchecked
                     for (String type : (List<String>) iterator.next()) {
                         type = type.replace('.', '/');
                         if (!targetClass.interfaces.contains(type)) {

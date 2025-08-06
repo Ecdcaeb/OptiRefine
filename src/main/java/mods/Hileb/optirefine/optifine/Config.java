@@ -28,6 +28,7 @@ import org.lwjgl.opengl.DisplayMode;
 /**
  * Redirect to "Config"
  */
+@SuppressWarnings("unused")
 public class Config {
     public static final String OF_NAME = "OptiFine";
     public static final String MC_VERSION = "1.12.2";

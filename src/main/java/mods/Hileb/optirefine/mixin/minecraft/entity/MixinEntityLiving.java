@@ -23,6 +23,7 @@ public abstract class MixinEntityLiving extends EntityLivingBase {
     @Unique
     private String teamUuidString = null;
 
+    @SuppressWarnings("unused")
     public MixinEntityLiving(World p_i1594_1_) {
         super(p_i1594_1_);
     }

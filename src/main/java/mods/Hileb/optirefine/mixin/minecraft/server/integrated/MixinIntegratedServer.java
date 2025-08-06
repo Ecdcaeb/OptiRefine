@@ -50,10 +50,12 @@ public abstract class MixinIntegratedServer extends MinecraftServer {
 
     @Shadow public abstract void tick();
 
+    @SuppressWarnings("unused")
     public MixinIntegratedServer(File p_i47054_1_, Proxy p_i47054_2_, DataFixer p_i47054_3_, YggdrasilAuthenticationService p_i47054_4_, MinecraftSessionService p_i47054_5_, GameProfileRepository p_i47054_6_, PlayerProfileCache p_i47054_7_) {
         super(p_i47054_1_, p_i47054_2_, p_i47054_3_, p_i47054_4_, p_i47054_5_, p_i47054_6_, p_i47054_7_);
     }
 
+    @SuppressWarnings("unused")
     @Unique
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.network.PacketThreadUtil lastDimensionId I")
     public void _set_PacketThreadUtil_lastDimensionId_(int dim){
@@ -61,7 +63,7 @@ public abstract class MixinIntegratedServer extends MinecraftServer {
     }
 
     @Inject(method = "<init>", at = @At("RETURN"))
-    @SuppressWarnings("all")
+    
     public void injectInit(Minecraft clientIn, String folderNameIn, String worldNameIn, WorldSettings worldSettingsIn, YggdrasilAuthenticationService authServiceIn, MinecraftSessionService sessionServiceIn, GameProfileRepository profileRepoIn, PlayerProfileCache profileCacheIn, CallbackInfo ci){
         NBTTagCompound nbt;
         ISaveHandler isavehandler = this.getActiveAnvilConverter().getSaveLoader(folderNameIn, false);
@@ -77,6 +79,7 @@ public abstract class MixinIntegratedServer extends MinecraftServer {
         this.onTick();
     }
 
+    @SuppressWarnings("unused")
     @Unique
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.settings.GameSettings ofAutoSaveTicks I")
     private static int _acc_GameSettings_ofAutoSaveTicks_(GameSettings settings) {
@@ -101,6 +104,7 @@ public abstract class MixinIntegratedServer extends MinecraftServer {
         }
     }
 
+    @SuppressWarnings("unused")
     @Unique @Public
     public DifficultyInstance getDifficultyAsync(World world, BlockPos blockPos) {
         this.difficultyUpdateWorld = world;

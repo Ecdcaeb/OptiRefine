@@ -5,7 +5,6 @@ import com.llamalad7.mixinextras.expression.Expression;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
@@ -14,10 +13,8 @@ import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.renderer.BlockFluidRenderer;
 import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.block.model.FaceBakery;
 import net.minecraft.client.renderer.color.BlockColors;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
 import net.optifine.CustomColors;
@@ -30,6 +27,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+@SuppressWarnings("unused")
 @Mixin(BlockFluidRenderer.class)
 public abstract class MixinBlockFluidRenderer {
 
@@ -47,7 +45,7 @@ public abstract class MixinBlockFluidRenderer {
         env.set(BufferBuilder_getRenderEnv(worldRendererIn, blockStateIn, blockPosIn));
     }
 
-    @SuppressWarnings("all")
+    
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/BufferBuilder getRenderEnv (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/math/BlockPos;)Lnet/optifine/render/RenderEnv;", deobf = true)
     private static RenderEnv BufferBuilder_getRenderEnv(BufferBuilder builder, IBlockState blockStateIn, BlockPos blockPosIn){
         throw new AbstractMethodError();
@@ -63,7 +61,7 @@ public abstract class MixinBlockFluidRenderer {
         BufferBuilder_setSprite(p_178270_4_, this.atlasSpriteWaterOverlay);
     }
 
-    @SuppressWarnings("all")
+    
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/BufferBuilder setSprite (Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;)V")
     private static void BufferBuilder_setSprite(BufferBuilder builder, TextureAtlasSprite sprite){
         throw new AbstractMethodError();

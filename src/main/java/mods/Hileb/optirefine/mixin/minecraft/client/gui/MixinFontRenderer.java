@@ -23,6 +23,7 @@ public abstract class MixinFontRenderer {
 
     @Shadow @Final protected int[] charWidth;
 
+    @SuppressWarnings("unused")
     @Shadow private float red;
 
     @Inject(method = "readFontTexture", at = @At("RETURN"))

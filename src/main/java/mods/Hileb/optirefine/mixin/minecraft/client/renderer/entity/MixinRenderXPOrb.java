@@ -43,6 +43,7 @@ public class MixinRenderXPOrb {
             if (col >= 0) {
                 r.set(col >> 16 & 0xFF);
                 g.set(col >> 8 & 0xFF);
+                //noinspection PointlessBitwiseExpression
                 b.set(col >> 0 & 0xFF);
             }
         } else {

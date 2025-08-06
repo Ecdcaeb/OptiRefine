@@ -10,6 +10,7 @@ import static mods.Hileb.optirefine.library.foundationx.ASMHelper.*;
 @Patch.Class("ofdev.launchwrapper.OptifineDevTransformerWrapper")
 public class OptifineDevTweakerTransformer extends MiniTransformer {
 
+    @SuppressWarnings("unused")
     @Patch.Method("<clinit>()V")
     @Patch.Method.AffectsControlFlow
     public void patch$clinit(PatchContext context) {

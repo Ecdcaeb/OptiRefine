@@ -35,6 +35,7 @@ public class MixinLayerMooshroomMushroom {
     private static boolean hasTextureMushroom = false;
 
 
+    @SuppressWarnings("unused")
     @Unique @Public
     private static void update() {
         hasTextureMushroom = Config.hasResource(LOCATION_MUSHROOM_RED);

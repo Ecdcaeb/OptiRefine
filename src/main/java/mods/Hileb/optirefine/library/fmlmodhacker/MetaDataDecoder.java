@@ -12,7 +12,8 @@ import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 
-@SuppressWarnings("all")
+
+@SuppressWarnings("unused")
 public class MetaDataDecoder {
     public static Map<String, ModMetadata> decodeMcModInfo(InputStream stream) {
         JsonElement element = JsonParser.parseReader(new InputStreamReader(stream));
@@ -29,7 +30,8 @@ public class MetaDataDecoder {
         }
     }
 
-    @SuppressWarnings("all")
+    
+    @SuppressWarnings("deprecation")
     public static ModMetadata decodeMetaData(JsonElement jsonElement){
         JsonObject json = jsonElement.getAsJsonObject();
         ModMetadata metadata = new ModMetadata();

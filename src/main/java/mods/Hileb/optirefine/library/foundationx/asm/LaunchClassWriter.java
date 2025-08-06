@@ -4,6 +4,7 @@ import net.minecraft.launchwrapper.Launch;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 
+@SuppressWarnings("unused")
 public class LaunchClassWriter extends ClassWriter {
     public LaunchClassWriter(int flags) {
         super(flags);

@@ -54,6 +54,7 @@ public class MixinRenderItemFrame {
         }
     }
 
+    @SuppressWarnings("unused")
     @Unique @Public
     private static void updateItemRenderDistance() {
         Minecraft mc = Config.getMinecraft();

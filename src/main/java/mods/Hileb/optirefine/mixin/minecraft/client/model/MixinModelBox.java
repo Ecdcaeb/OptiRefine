@@ -6,44 +6,48 @@ import net.minecraft.client.model.ModelBox;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.model.PositionTextureVertex;
 import net.minecraft.client.model.TexturedQuad;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.*;
 
 @Mixin(ModelBox.class)
 public abstract class MixinModelBox {
-    @Shadow
-    @SuppressWarnings("all")
+    @Mutable
+    @Shadow @Final
     private PositionTextureVertex[] vertexPositions;
-    @Shadow
-    @SuppressWarnings("all")
+    @Mutable
+    @Shadow @Final
     private TexturedQuad[] quadList;
-    @Shadow
-    @SuppressWarnings("all")
+    @Mutable
+    @SuppressWarnings("unused")
+    @Shadow @Final
     public float posX1;
-    @Shadow
-    @SuppressWarnings("all")
+    @Mutable
+    @SuppressWarnings("unused")
+    @Shadow @Final
     public float posY1;
-    @Shadow
-    @SuppressWarnings("all")
+    @Mutable
+    @SuppressWarnings("unused")
+    @Shadow @Final
     public float posZ1;
-    @Shadow
-    @SuppressWarnings("all")
+    @Mutable
+    @SuppressWarnings("unused")
+    @Shadow @Final
     public float posX2;
-    @Shadow
-    @SuppressWarnings("all")
+    @Mutable
+    @SuppressWarnings("unused")
+    @Shadow @Final
     public float posY2;
-    @Shadow
-    @SuppressWarnings("all")
+    @Mutable
+    @SuppressWarnings("unused")
+    @Shadow @Final
     public float posZ2;
-    @Shadow
-    @SuppressWarnings("all")
+    @SuppressWarnings("unused")
+    @Shadow @Final
     public String boxName;
 
+    @SuppressWarnings("unused")
     @Unique
     @NewConstructor
     @Public
-    @SuppressWarnings("all")
     public void ModelBox(ModelRenderer renderer, int[][] faceUvs, float x, float y, float z, float dx, float dy, float dz, float delta, boolean mirror) {
         this.posX1 = x;
         this.posY1 = y;

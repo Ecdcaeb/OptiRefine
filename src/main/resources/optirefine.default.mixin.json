@@ -1,7 +1,7 @@
 {
   "package": "mods.Hileb.optirefine.mixin",
   "required": true,
-  "refmap": "${mixin_refmap}",
+  "refmap": "optifine.refmap.json",
   "plugin": "mods.Hileb.optirefine.core.OptiRefineMixinPlugin",
   "target": "@env(DEFAULT)",
   "minVersion": "0.8.7",
@@ -80,7 +80,6 @@
     "minecraft.client.renderer.texture.MixinLayeredColorMaskTexture",
     "minecraft.client.renderer.texture.MixinLayeredTexture",
     "minecraft.client.renderer.texture.MixinSimpleTexture",
-    "minecraft.client.renderer.texture.MixinStitcher",
     "minecraft.client.renderer.tileentity.MixinTileEntityBeaconRenderer",
     "minecraft.client.renderer.tileentity.MixinTileEntityEndPortalRenderer",
     "minecraft.client.renderer.tileentity.MixinTileEntityRendererDispatcher",

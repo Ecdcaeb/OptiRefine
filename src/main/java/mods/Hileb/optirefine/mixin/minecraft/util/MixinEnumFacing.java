@@ -8,7 +8,8 @@ import org.spongepowered.asm.mixin.Mixin;
 @Mixin(EnumFacing.class)
 public abstract class MixinEnumFacing {
 
-    @SuppressWarnings("all")
+    
+    @SuppressWarnings("unused")
     @AccessTransformer(access = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC | Opcodes.ACC_FINAL, name = "field_82609_l", deobf = true)
-    public static EnumFacing[] _ACC_VALUES;
+    private static EnumFacing[] _ACC_VALUES;
 }

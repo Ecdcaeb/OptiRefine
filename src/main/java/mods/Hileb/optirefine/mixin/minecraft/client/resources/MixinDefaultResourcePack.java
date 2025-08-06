@@ -13,6 +13,7 @@ import java.io.InputStream;
 
 @Mixin(DefaultResourcePack.class)
 public abstract class MixinDefaultResourcePack {
+    @SuppressWarnings("unused")
     @Unique
     private static final boolean ON_WINDOWS = Util.getOSType() == Util.EnumOS.WINDOWS;
 

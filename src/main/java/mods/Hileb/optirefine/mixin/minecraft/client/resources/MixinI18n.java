@@ -15,11 +15,14 @@ import java.util.Map;
 public abstract class MixinI18n {
     @Shadow
     private static Locale i18nLocale;
+
+    @SuppressWarnings("unused")
     @Unique @Public
     private static Map<String, String> getLocaleProperties() {
         return _acc_Locale_properties(i18nLocale);
     }
 
+    @SuppressWarnings("unused")
     @Unique @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.resources.Locale field_135032_a Ljava.util.Map;", deobf = true)
     private static Map<String, String> _acc_Locale_properties(Locale locale){
         throw new AbstractMethodError();

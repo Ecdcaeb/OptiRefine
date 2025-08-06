@@ -12,16 +12,20 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(GuiSlot.class)
 public abstract class MixinGuiSlot{
+    @SuppressWarnings("unused")
     @Shadow
     public int width;
+    @SuppressWarnings("unused")
     @Shadow
     public int height;
     @Shadow
     public int top;
     @Shadow
     public int bottom;
+    @SuppressWarnings("unused")
     @Shadow
     public int right;
+    @SuppressWarnings("unused")
     @Shadow
     public int left;
     @Shadow
@@ -31,7 +35,7 @@ public abstract class MixinGuiSlot{
     @Shadow
     protected abstract void drawSlot(int i1, int i2, int i3, int i4, int i5, int i6, float v);
 
-    @SuppressWarnings("all")
+    
     @Redirect(method = "drawSelectionBox", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiSlot;drawSlot(IIIIIIF)V"))
     public void injectDrawSelectionBox(GuiSlot instance, int i1, int i2, int i3, int i4, int i5, int i6, float v){
         if (!_is_GuiResourcePackList() || i3 >= this.top - this.slotHeight && i3 <= this.bottom) {

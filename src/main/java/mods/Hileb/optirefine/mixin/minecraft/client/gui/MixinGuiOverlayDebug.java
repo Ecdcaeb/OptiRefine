@@ -20,31 +20,32 @@ import java.util.List;
 @Mixin(GuiOverlayDebug.class)
 public abstract class MixinGuiOverlayDebug extends Gui {
     @Unique
-    @SuppressWarnings("all")
     private String debugOF = null;
 
+    @SuppressWarnings("unused")
     @Unique
-    @SuppressWarnings("all")
     private List<String> debugInfoLeft = null;
 
+    @SuppressWarnings("unused")
     @Unique
-    @SuppressWarnings("all")
     private List<String> debugInfoRight = null;
 
+    @SuppressWarnings("unused")
     @Unique
-    @SuppressWarnings("all")
     private long updateInfoLeftTimeMs = 0L;
 
+    @SuppressWarnings("unused")
     @Unique
-    @SuppressWarnings("all")
     private long updateInfoRightTimeMs = 0L;
 
+    @SuppressWarnings("unused")
     @Unique
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureMap getCountAnimationsActive ()I")
     private static int _acc_TextureMap_getCountAnimationsActive_(TextureMap instance){
         throw new AbstractMethodError();
     }
 
+    @SuppressWarnings("unused")
     @Unique
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureMap getCountAnimations ()I")
     private static int _acc_TextureMap_getCountAnimations_(TextureMap instance){

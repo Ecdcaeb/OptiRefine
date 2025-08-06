@@ -17,6 +17,13 @@ public class OptiRefineRuntimePublicTransformer implements TransformerHelper.Tar
     @Override
     public int transform(ClassNode classNode) {
         classNode.access = toPublic(classNode.access);
+//        HashMap<String, FieldNode> fs = new HashMap<>();
+//        for (FieldNode fn : ImmutableList.copyOf(classNode.fields)) {
+//            if (fs.put(fn.name + fn.desc, fn) instanceof FieldNode fieldNode) {
+//                classNode.fields.remove(fieldNode);
+//                System.err.println("Error at Duplicate field " +fn.name+fn.desc + " for " + classNode.name);
+//            }
+//        }
         //classNode.methods.forEach((mn) -> mn.access = toPublic(mn.access));
         //classNode.fields.forEach((mn) -> mn.access = toPublic(mn.access));
         return 0;

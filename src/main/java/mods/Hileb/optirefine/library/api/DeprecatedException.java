@@ -1,5 +1,6 @@
 package mods.Hileb.optirefine.library.api;
 
+@SuppressWarnings("unused")
 public class DeprecatedException extends Exception {
     public DeprecatedException(String clazz, String symbol){
         super("Using an deprecated api : " + clazz + "#" + symbol);

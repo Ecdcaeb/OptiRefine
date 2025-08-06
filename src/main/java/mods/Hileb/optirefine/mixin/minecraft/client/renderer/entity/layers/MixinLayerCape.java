@@ -25,10 +25,7 @@ public class MixinLayerCape {
             return  0.0F;
         }
 
-        if (f2 > 165.0F) {
-            return  165.0F;
-        }
-        return f2;
+        return Math.min(f2, 165.0F);
     }
 
 }

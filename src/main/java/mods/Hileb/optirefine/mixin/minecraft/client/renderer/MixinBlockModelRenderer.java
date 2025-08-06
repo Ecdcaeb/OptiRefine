@@ -51,11 +51,11 @@ import java.util.List;
 
 @Mixin(BlockModelRenderer.class)
 public abstract class MixinBlockModelRenderer {
-//    @Unique @Public @SuppressWarnings("all")
+//    @Unique @Public 
 //    private static float aoLightValueOpaque = 0.2F;
-//    @Unique @Public @SuppressWarnings("all")
+//    @Unique @Public 
 //    private static boolean separateAoLightValue = false;
-//    @Unique @Public @SuppressWarnings("all")
+//    @Unique @Public 
 //    private static final BlockRenderLayer[] OVERLAY_LAYERS = new BlockRenderLayer[]{
 //            BlockRenderLayer.CUTOUT, BlockRenderLayer.CUTOUT_MIPPED, BlockRenderLayer.TRANSLUCENT
 //    };
@@ -152,31 +152,31 @@ public abstract class MixinBlockModelRenderer {
 //        BlockModelRenderer_renderQuadsFlat(instance, k, f, f1, f2, bakedquad, envLocalRef.get());
 //    }
 //
-//    @SuppressWarnings("all")
+//    
 //    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/BufferBuilder isMultiTexture ()Z")
 //    private static native boolean BufferBuilder_isMultiTexture(BufferBuilder builder);
 //
-//    @SuppressWarnings("all")
+//    
 //    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, deobf = true, desc = "net/minecraft/client/renderer/BufferBuilder putColorMultiplierRgba (FFFFI)V")
 //    private static native void BufferBuilder_putColorMultiplierRgba(BufferBuilder builder, float red, float green, float blue, float alpha, int vertexIndex);
 //
-//    @SuppressWarnings("all")
+//    
 //    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, deobf = true, desc = "net/minecraft/client/renderer/BufferBuilder putSprite (Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;)V")
 //    private static native void BufferBuilder_putSprite(BufferBuilder builder, TextureAtlasSprite sprite);
 //
-//    @SuppressWarnings("all")
+//    
 //    @AccessibleOperation(opcode = Opcodes.GETFIELD, deobf = true, desc = "net.minecraft.client.renderer.BlockModelRenderer$AmbientOcclusionFace field_178206_b [F")
 //    private static native float[] AmbientOcclusionFace_vertexColorMultiplier(Object instance);
 //
-//    @SuppressWarnings("all")
+//    
 //    @AccessibleOperation(opcode = Opcodes.GETFIELD, deobf = true, desc = "net.minecraft.client.renderer.BlockModelRenderer$AmbientOcclusionFace field_178207_c [I")
 //    private static native int[] AmbientOcclusionFace_vertexBrightness(Object instance);
 //
-//    @SuppressWarnings("all")
+//    
 //    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, deobf = true, desc = "net.minecraft.client.renderer.BlockModelRenderer$AmbientOcclusionFace setMaxBlockLight ()V")
 //    private static native void AmbientOcclusionFace_setMaxBlockLight(Object instance);
 //
-//    @SuppressWarnings("all")
+//    
 //    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, deobf = true, desc = "net.minecraft.client.renderer.BlockModelRenderer$AmbientOcclusionFace func_187491_a (Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;[FLjava/util/BitSet;)V")
 //    private static native void AmbientOcclusionFace_updateVertexBrightness(Object instance, IBlockAccess worldIn, IBlockState state, BlockPos centerPos, EnumFacing direction, float[] faceShape, BitSet shapeState);
 //

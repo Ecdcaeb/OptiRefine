@@ -26,8 +26,10 @@ public class MixinSimpleTexture {
     @Shadow @Final
     protected ResourceLocation textureLocation;
 
+    @SuppressWarnings("unused")
     @Unique
     public ResourceLocation locationEmissive;
+    @SuppressWarnings("unused")
     @Unique
     public boolean isEmissive;
 

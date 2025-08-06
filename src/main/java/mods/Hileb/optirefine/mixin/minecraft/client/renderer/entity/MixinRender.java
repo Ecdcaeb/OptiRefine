@@ -22,10 +22,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(Render.class)
 public class MixinRender {
+    @SuppressWarnings("unused")
     @Unique
-    private Class<? extends Entity> entityClass = null;
+    private final Class<? extends Entity> entityClass = null;
     @Unique
-    private ResourceLocation locationTextureCustom = null;
+    private final ResourceLocation locationTextureCustom = null;
 
     @Inject(method = "renderEntityOnFire", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/BufferBuilder;begin(ILnet/minecraft/client/renderer/vertex/VertexFormat;)V"))
     public void before_renderEntityOnFire(Entity entity, double x, double y, double z, float partialTicks, CallbackInfo ci, @Share(namespace = "optirefine", value = "multitexture")LocalBooleanRef multitextureRef, @Local(ordinal = 0) BufferBuilder builder){

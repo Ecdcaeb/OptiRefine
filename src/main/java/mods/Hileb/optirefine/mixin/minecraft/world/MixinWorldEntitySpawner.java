@@ -1,24 +1,7 @@
 package mods.Hileb.optirefine.mixin.minecraft.world;
 
-import net.minecraft.entity.EntityLiving;
-import net.minecraft.entity.EnumCreatureType;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.server.management.PlayerChunkMapEntry;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.World;
 import net.minecraft.world.WorldEntitySpawner;
-import net.minecraft.world.WorldServer;
-import net.minecraft.world.chunk.Chunk;
-import net.optifine.BlockPosM;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
-import org.spongepowered.asm.mixin.Unique;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 @Mixin(WorldEntitySpawner.class)
 public abstract class MixinWorldEntitySpawner {

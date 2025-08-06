@@ -73,7 +73,7 @@ unimined.minecraft {
         runs.auth.username = minecraft_username
         runs.all {
             var map = getSystemProperties()
-            map.put("cleanroom.dev.mixin", "${mod_id}.default.mixin.json,${mod_id}.mod.mixin.json")
+            map.put("cleanroom.dev.mixin", "${mod_id}.default.mixin.json")
             if (hasProperty("extra_jvm_args")) {
                 jvmArgs(propertyString('extra_jvm_args'))
             }
@@ -84,8 +84,8 @@ unimined.minecraft {
             dependsOn("jar")
             doFirst {
                 classpath = classpath.filter {
-                    !(it.canonicalPath.equals(project.files("${rootProject.projectDir}/build/classes/java/main").canonicalPath) ||
-                            it.canonicalPath.equals(project.files("${rootProject.projectDir}/build/resources/main").canonicalPath))
+                    !(it.canonicalPath == "${rootProject.layout.buildDirectory}/classes/java/main" ||
+                            it.canonicalPath == "${rootProject.layout.buildDirectory}/resources/main")
                 }
                 classpath(project.files(tasks.jar.archiveFile.get().asFile.canonicalPath))
             }
@@ -161,7 +161,7 @@ jar {
         manifest {
             def attribute_map = [:]
             attribute_map['ModType'] = "CRL"
-            attribute_map['MixinConfigs'] = "${mod_id}.default.mixin.json,${mod_id}.mod.mixin.json"
+            attribute_map['MixinConfigs'] = "${mod_id}.default.mixin.json"
             if (configurations.contain.size() > 0) {
                 attribute_map['ContainedDeps'] = configurations.contain.collect { it.name }.join(' ')
                 attribute_map['NonModDeps'] = true

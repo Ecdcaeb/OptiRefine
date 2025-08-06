@@ -51,6 +51,7 @@ public abstract class MixinTileEntitySignRenderer {
         }
     }
 
+    @SuppressWarnings("unused")
     @Unique @Public
     private static void updateTextRenderDistance() {
         Minecraft mc = Config.getMinecraft();

@@ -9,18 +9,18 @@ import org.spongepowered.asm.mixin.Unique;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
+@SuppressWarnings("unused")
 @Mixin(BlockAir.class)
 public abstract class MixinBlockAir{
 
+    @SuppressWarnings("unchecked")
     @Unique
-    @SuppressWarnings("all")
     @Public
-    public static Map<Block, Integer> mapOriginalOpacity = new IdentityHashMap();
+    private static Map<Block, Integer> mapOriginalOpacity = new IdentityHashMap();
 
     @Unique
-    @SuppressWarnings("all")
     @Public
-    public static void setLightOpacity(Block block, int opacity) {
+    private static void setLightOpacity(Block block, int opacity) {
          if (!mapOriginalOpacity.containsKey(block)) {
              mapOriginalOpacity.put(block, block.lightOpacity);
          }
@@ -28,9 +28,9 @@ public abstract class MixinBlockAir{
     }
 
     @Unique
-    @SuppressWarnings("all")
+    
     @Public
-    public static void restoreLightOpacity(Block block) {
+    private static void restoreLightOpacity(Block block) {
          if (!mapOriginalOpacity.containsKey(block)) {
              return;
          }

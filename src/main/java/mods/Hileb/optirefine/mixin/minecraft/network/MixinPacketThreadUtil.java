@@ -20,6 +20,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(PacketThreadUtil.class)
 public abstract class MixinPacketThreadUtil {
+    @SuppressWarnings("unused")
     @Public
     @Unique
     private static int lastDimensionId = Integer.MIN_VALUE;
@@ -44,6 +45,7 @@ public abstract class MixinPacketThreadUtil {
         }
     }
 
+    @SuppressWarnings("unused")
     @Unique
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.RenderGlobal onPlayerPositionSet ()V")
     private static void _acc_RenderGlobal_onPlayerPositionSet(RenderGlobal renderGlobal){}

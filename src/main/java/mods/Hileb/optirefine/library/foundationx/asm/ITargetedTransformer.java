@@ -9,6 +9,7 @@ import top.outlands.foundation.IExplicitTransformer;
  * This class can only be implemented by {@link top.outlands.foundation.IExplicitTransformer}.
  * You must not provide any additional targets when registering, otherwise the return value of this method will be invalid.
  */
+@SuppressWarnings("unused")
 public interface ITargetedTransformer extends IExplicitTransformer {
     /**
      * @return the target classes, transformed names

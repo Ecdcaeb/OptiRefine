@@ -13,24 +13,33 @@ import java.util.Random;
 @Mixin(MathHelper.class)
 public abstract class MixinMathHelper {
 
+    @SuppressWarnings("unused")
     @Shadow @Final
     public static float SQRT_2;
+    @SuppressWarnings("unused")
     @Unique
     private static final int SIN_BITS = 12;
+    @SuppressWarnings("unused")
     @Unique
     private static final int SIN_MASK = 4095;
+    @SuppressWarnings("unused")
     @Unique
     private static final int SIN_COUNT = 4096;
+    @SuppressWarnings("unused")
     @Unique
     private static final int SIN_COUNT_D4 = 1024;
+    @SuppressWarnings("unused")
     @Unique @Public
     private static final float PI = MathUtils.roundToFloat(Math.PI);
+    @SuppressWarnings("unused")
     @Unique @Public
     private static final float PI2 = MathUtils.roundToFloat(Math.PI * 2);
+    @SuppressWarnings("unused")
     @Unique @Public
     private static final float PId2 = MathUtils.roundToFloat(1.5707963267948966);
     @Unique @Public
     private static final float radToIndex = MathUtils.roundToFloat(651.8986469044033);
+    @SuppressWarnings("unused")
     @Unique @Public
     private static final float deg2Rad = MathUtils.roundToFloat(Math.PI / 180);
     @Unique @Public
@@ -39,14 +48,19 @@ public abstract class MixinMathHelper {
     private static final boolean fastMath = false;
     @Shadow @Final
     private static float[] SIN_TABLE;
+    @SuppressWarnings("unused")
     @Shadow @Final
     private static Random RANDOM;
+    @SuppressWarnings("unused")
     @Shadow @Final
     private static int[] MULTIPLY_DE_BRUIJN_BIT_POSITION;
+    @SuppressWarnings("unused")
     @Shadow @Final
     private static double FRAC_BIAS;
+    @SuppressWarnings("unused")
     @Shadow @Final
     private static double[] ASINE_TAB;
+    @SuppressWarnings("unused")
     @Shadow @Final
     private static double[] COS_TAB;
 

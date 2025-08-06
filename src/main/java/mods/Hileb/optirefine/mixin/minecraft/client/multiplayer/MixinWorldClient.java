@@ -39,19 +39,20 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import javax.annotation.Nonnull;
 import java.util.Set;
 
+@SuppressWarnings("unused")
 @Mixin(WorldClient.class)
 public abstract class MixinWorldClient extends World {
 
     @Shadow @Final
     private Minecraft mc;
 
-    @Unique @SuppressWarnings("all")
+    @Unique 
     protected Set<ChunkPos> visibleChunks;
-    @Unique @SuppressWarnings("all")
+    @Unique 
     private int playerChunkX = Integer.MIN_VALUE;
-    @Unique @SuppressWarnings("all")
+    @Unique 
     private int playerChunkY = Integer.MIN_VALUE;
-    @Unique @SuppressWarnings("all")
+    @Unique 
     private boolean playerUpdate = false;
 
     // Ignored

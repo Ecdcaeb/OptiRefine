@@ -59,6 +59,7 @@ public abstract class MixinClassInheritanceMultiMap<T> extends AbstractSet<T> {
         return this.values.isEmpty() ? Collections.emptyIterator() : castIterator(IteratorCache.getReadOnly(this.values));
     }
 
+    @SuppressWarnings("unused")
     @Unique
     @AccessibleOperation()
     private static<E, V> Iterator<E> castIterator(Iterator<V> i) {

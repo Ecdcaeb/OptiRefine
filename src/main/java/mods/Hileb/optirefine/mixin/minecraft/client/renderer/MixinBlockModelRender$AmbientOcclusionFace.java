@@ -6,7 +6,6 @@ import net.minecraft.client.renderer.BlockModelRenderer;
 import net.minecraft.util.math.BlockPos;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -14,12 +13,11 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 //@Mixin(targets = "net.minecraft.client.renderer.BlockModelRenderer$AmbientOcclusionFace")
-public class MixinBlockModelRender$AmbientOcclusionFace {
+@SuppressWarnings("unused")
+public abstract class MixinBlockModelRender$AmbientOcclusionFace {
 
     @AccessTransformer(name = "<class>", access = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC)
-    public void access(){
-
-    }
+    public abstract void access();
 
     @Shadow @Final
     private float[] vertexColorMultiplier;
@@ -28,7 +26,7 @@ public class MixinBlockModelRender$AmbientOcclusionFace {
     private int[] vertexBrightness;
 
     @Unique
-    private BlockPos.MutableBlockPos[] blockPosArr = new BlockPos.MutableBlockPos[5];
+    private final BlockPos.MutableBlockPos[] blockPosArr = new BlockPos.MutableBlockPos[5];
 
     @Inject(method = "<init>", at = @At("RETURN"))
     public void injectConstructor(BlockModelRenderer p_i46235_1, CallbackInfo ci){

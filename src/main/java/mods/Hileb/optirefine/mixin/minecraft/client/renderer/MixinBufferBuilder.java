@@ -39,19 +39,23 @@ import java.util.BitSet;
 @Mixin(BufferBuilder.class)
 public abstract class MixinBufferBuilder {
 
-    @SuppressWarnings("all")
+    
+    @SuppressWarnings("unused")
     @AccessTransformer(name = "field_178999_b", deobf = true)
     public IntBuffer acc_rawIntBuffer;
 
-    @SuppressWarnings("all")
+    
+    @SuppressWarnings("unused")
     @AccessTransformer(name = "field_179000_c", deobf = true)
     public FloatBuffer acc_rawFloatBuffer;
 
-    @SuppressWarnings("all")
+    
+    @SuppressWarnings("unused")
     @AccessTransformer(name = "field_178997_d", deobf = true)
     public int acc_vertexCount;
 
-    @SuppressWarnings("all")
+    
+    @SuppressWarnings("unused")
     @AccessTransformer(name = "field_179006_k", deobf = true)
     public int acc_drawMode;
 
@@ -65,6 +69,7 @@ public abstract class MixinBufferBuilder {
     private TextureAtlasSprite[] quadSpritesPrev = null;
     @Unique
     private TextureAtlasSprite quadSprite = null;
+    @SuppressWarnings("unused")
     @Unique @Public
     private SVertexBuilder sVertexBuilder;
     @Unique @Public
@@ -110,6 +115,7 @@ public abstract class MixinBufferBuilder {
     @Shadow
     private VertexFormat vertexFormat;
 
+    @SuppressWarnings("unused")
     @Inject(method = "sortVertexData", at = @At("TAIL"))
     public void afterSortVertexData(float p_181674_1_, float p_181674_2_, float p_181674_3_, CallbackInfo ci, @Local Integer[] ainteger){
         if (this.quadSprites != null) {
@@ -129,21 +135,24 @@ public abstract class MixinBufferBuilder {
         return newBufferBuilder$State(p_i46453_2_, p_i46453_3_, this.quadSprites == null ? null : this.quadSprites.clone());
     }
 
-    @SuppressWarnings("all")
+    
+    @SuppressWarnings("unused")
     @AccessibleOperation(opcode = Opcodes.NEW, desc = "net.minecraft.client.renderer.BufferBuilder$State ([ILnet.minecraft.client.renderer.vertex.VertexFormat;[Lnet.minecraft.client.renderer.texture.TextureAtlasSprite;)V")
     private static BufferBuilder.State newBufferBuilder$State(int[] p_i46453_2_, VertexFormat p_i46453_3_, TextureAtlasSprite[] textureAtlasSprites){
         throw new AbstractMethodError();
     }
 
-    @SuppressWarnings("all")
+    
+    @SuppressWarnings("unused")
     @AccessTransformer(name = "func_181664_j()", deobf = true)
     public int acc_getBufferSize(){
         throw new AbstractMethodError();
     }
 
-    @SuppressWarnings("all")
+    
+    @SuppressWarnings("unused")
     @AccessTransformer(name = "func_181665_a", deobf = true)
-    public static float acc_getDistanceSq(FloatBuffer p_181665_0_, float p_181665_1_, float p_181665_2_, float p_181665_3_, int p_181665_4_, int p_181665_5_) {
+    private static float acc_getDistanceSq(FloatBuffer p_181665_0_, float p_181665_1_, float p_181665_2_, float p_181665_3_, int p_181665_4_, int p_181665_5_) {
         throw new AbstractMethodError();
     }
 
@@ -244,6 +253,7 @@ public abstract class MixinBufferBuilder {
         }
     }
 
+    @SuppressWarnings("unused")
     @Shadow
     private VertexFormatElement vertexFormatElement;
     @Shadow
@@ -275,12 +285,14 @@ public abstract class MixinBufferBuilder {
         return this.modeTriangles ? 4 : original;
     }
 
+    @SuppressWarnings("unused")
     @Shadow
     private void putColor(int p_192836_1_, int p_192836_2_) {}
 
     @Shadow
     public void putColorRGB_F(float p_178994_1_, float p_178994_2_, float p_178994_3_, int p_178994_4_) {}
 
+    @SuppressWarnings("unused")
     @Unique
     public void putColorRGB_F4(float red, float green, float blue) {
         for (int i = 0; i < 4; i++) {
@@ -292,6 +304,7 @@ public abstract class MixinBufferBuilder {
     private static native int TextureAtlasSprite_getAnimationIndex(TextureAtlasSprite textureAtlasSprite);
 
 
+    @SuppressWarnings("unused")
     @Unique
     public void putSprite(TextureAtlasSprite sprite) {
         if (this.animatedSprites != null && sprite != null && TextureAtlasSprite_getAnimationIndex(sprite) >= 0) {
@@ -304,6 +317,7 @@ public abstract class MixinBufferBuilder {
         }
     }
 
+    @SuppressWarnings("unused")
     @Unique
     public void setSprite(TextureAtlasSprite sprite) {
         if (this.animatedSprites != null && sprite != null && TextureAtlasSprite_getAnimationIndex(sprite) >= 0) {
@@ -315,6 +329,7 @@ public abstract class MixinBufferBuilder {
         }
     }
 
+    @SuppressWarnings("unused")
     @Unique
     public boolean isMultiTexture() {
         return this.quadSprites != null;
@@ -327,6 +342,7 @@ public abstract class MixinBufferBuilder {
     private static native int TextureAtlasSprite_getIndexInMap(TextureAtlasSprite textureAtlasSprite);
 
 
+    @SuppressWarnings("unused")
     @Unique
     public void drawMultiTexture() {
         if (this.quadSprites != null) {
@@ -423,6 +439,7 @@ public abstract class MixinBufferBuilder {
         }
     }
 
+    @SuppressWarnings("unused")
     @Unique
     public void setBlockLayer(BlockRenderLayer blockLayer) {
         this.blockLayer = blockLayer;
@@ -444,6 +461,7 @@ public abstract class MixinBufferBuilder {
         return this.rawIntBuffer.capacity() * 4 / (this.vertexFormat.getIntegerSize() * 4);
     }
 
+    @SuppressWarnings("unused")
     @Unique
     public RenderEnv getRenderEnv(IBlockState blockStateIn, BlockPos blockPosIn) {
         if (this.renderEnv == null) {
@@ -464,26 +482,31 @@ public abstract class MixinBufferBuilder {
     @Shadow
     private boolean isDrawing;
 
+    @SuppressWarnings("unused")
     @Unique
     public boolean isDrawing() {
         return this.isDrawing;
     }
 
+    @SuppressWarnings("unused")
     @Unique
     public double getXOffset() {
         return this.xOffset;
     }
 
+    @SuppressWarnings("unused")
     @Unique
     public double getYOffset() {
         return this.yOffset;
     }
 
+    @SuppressWarnings("unused")
     @Unique
     public double getZOffset() {
         return this.zOffset;
     }
 
+    @SuppressWarnings("unused")
     @Unique
     public BlockRenderLayer getBlockLayer() {
         return this.blockLayer;
@@ -495,6 +518,7 @@ public abstract class MixinBufferBuilder {
     @Shadow
     public int getColorIndex(int p_78909_1_) {return 0;}
 
+    @SuppressWarnings("unused")
     @Unique
     public void putColorMultiplierRgba(float red, float green, float blue, float alpha, int vertexIndex) {
         int index = this.getColorIndex(vertexIndex);
@@ -522,6 +546,7 @@ public abstract class MixinBufferBuilder {
     @Shadow
     private ByteBuffer byteBuffer;
 
+    @SuppressWarnings("unused")
     @Unique
     public void quadsToTriangles() {
         if (this.drawMode == 7) {
@@ -557,6 +582,7 @@ public abstract class MixinBufferBuilder {
         }
     }
 
+    @SuppressWarnings("unused")
     @Unique
     public void putColorRGBA(int index, int red, int green, int blue, int alpha) {
         if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN) {
@@ -566,6 +592,7 @@ public abstract class MixinBufferBuilder {
         }
     }
 
+    @SuppressWarnings("unused")
     @Unique
     public boolean isColorDisabled() {
         return this.noColor;
@@ -574,6 +601,7 @@ public abstract class MixinBufferBuilder {
     @Shadow
     private void growBuffer(int p_181670_1_) {}
 
+    @SuppressWarnings("unused")
     @Unique
     public void putBulkData(ByteBuffer buffer) {
         if (Config.isShaders()) {

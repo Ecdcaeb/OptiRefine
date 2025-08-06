@@ -9,6 +9,7 @@ import static mods.Hileb.optirefine.library.foundationx.ASMHelper.*;
 @Patch.Class("ofdev.common.Utils")
 public class OptifineDevUtilTransformer extends MiniTransformer {
 
+    @SuppressWarnings("unused")
     @Patch.Method("checkAndNotifyExtractedOptifineJar(Ljava/lang/ClassLoader;)V")
     public void patch$checkAndNotifyExtractedOptifineJar(PatchContext context) {
         context.jumpToStart();

@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.Unique;
 
 @Mixin(ClippingHelper.class)
 public class MixinClippingHelper {
-    @Unique @Public @SuppressWarnings("all")
+    @Unique @Public 
     public boolean disabled = false;
 
     @Shadow
@@ -24,7 +24,8 @@ public class MixinClippingHelper {
     }
 
 
-    @Unique @SuppressWarnings("all")
+    @SuppressWarnings("unused")
+    @Unique
     public boolean isBoxInFrustumFully(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
         if (this.disabled) {
             return true;

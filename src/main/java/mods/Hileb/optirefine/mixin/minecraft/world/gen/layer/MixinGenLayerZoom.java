@@ -7,10 +7,12 @@ import org.spongepowered.asm.mixin.Unique;
 
 @Mixin(GenLayerZoom.class)
 public abstract class MixinGenLayerZoom extends GenLayer {
+    @SuppressWarnings("unused")
     public MixinGenLayerZoom(long p_i2125_1_) {
         super(p_i2125_1_);
     }
 
+    @SuppressWarnings("unused")
     @Unique
     protected int selectRandom2(int i0, int i1) {
         int index = this.nextInt(2);

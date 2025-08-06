@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.collect.ImmutableList;
 import mods.Hileb.optirefine.library.foundationx.ASMHelper;
 import mods.Hileb.optirefine.library.foundationx.TransformerHelper;
 import org.apache.logging.log4j.LogManager;
@@ -47,6 +48,7 @@ import org.objectweb.asm.tree.*;
 
 import mods.Hileb.optirefine.library.foundationx.mini.annotation.Patch;
 
+@SuppressWarnings("unused")
 public abstract class MiniTransformer implements TransformerHelper.TargetedASMTransformer, ASMHelper {
 
 	public static final Logger LOGGER = LogManager.getLogger(MiniTransformer.class);
@@ -226,15 +228,17 @@ public abstract class MiniTransformer implements TransformerHelper.TargetedASMTr
 		Set<String> requiredsNotSeen = new HashSet<>(requiredMethods.size());
 		requiredsNotSeen.addAll(requiredMethods);
 		
-		for (MethodNode mn : clazz.methods) {
+		for (MethodNode mn : ImmutableList.copyOf(clazz.methods)) {
 			String name = mn.name + mn.desc;
 			foundMethods.add(name);
 			List<PatchMethod> li = methods.get(name);
 			if (li != null) {
 				for (PatchMethod pm : li) {
 					try {
-						PatchContext ctx = new PatchContext(mn);
-						frames |= pm.patch(ctx);
+						PatchContext ctx = new PatchContext(mn, clazz);
+						if (pm.patch(ctx)) {
+							frames = true;
+						}
 						ctx.finish();
 					} catch (Throwable t) {
 						throw new Error("Failed to patch "+ classTargetName +"."+mn.name+mn.desc+ " via "+pm, t);
