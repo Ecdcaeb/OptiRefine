@@ -13,10 +13,13 @@ import java.nio.ByteBuffer;
 
 @Mixin(VertexBuffer.class)
 public abstract class MixinVertexBuffer {
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private VboRegion vboRegion;
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private VboRange vboRange;
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private int drawMode;
 
@@ -45,7 +48,7 @@ public abstract class MixinVertexBuffer {
     @Shadow
     public abstract void deleteGlBuffers();
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     public void setVboRegion(VboRegion vboRegion) {
         if (vboRegion != null) {
@@ -55,25 +58,25 @@ public abstract class MixinVertexBuffer {
         }
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     public VboRegion getVboRegion() {
         return this.vboRegion;
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     public VboRange getVboRange() {
         return this.vboRange;
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     public int getDrawMode() {
         return this.drawMode;
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     public void setDrawMode(int drawMode) {
         this.drawMode = drawMode;

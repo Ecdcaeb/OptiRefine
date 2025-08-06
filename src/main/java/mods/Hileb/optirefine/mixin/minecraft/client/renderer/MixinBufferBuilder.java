@@ -40,46 +40,56 @@ import java.util.BitSet;
 public abstract class MixinBufferBuilder {
 
     
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "MissingUnique"})
     @AccessTransformer(name = "field_178999_b", deobf = true)
     public IntBuffer acc_rawIntBuffer;
 
     
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "MissingUnique"})
     @AccessTransformer(name = "field_179000_c", deobf = true)
     public FloatBuffer acc_rawFloatBuffer;
 
     
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "MissingUnique"})
     @AccessTransformer(name = "field_178997_d", deobf = true)
     public int acc_vertexCount;
 
     
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "MissingUnique"})
     @AccessTransformer(name = "field_179006_k", deobf = true)
     public int acc_drawMode;
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private BlockRenderLayer blockLayer = null;
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private boolean[] drawnIcons = new boolean[256];
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private TextureAtlasSprite[] quadSprites = null;
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private TextureAtlasSprite[] quadSpritesPrev = null;
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private TextureAtlasSprite quadSprite = null;
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique @Public
     private SVertexBuilder sVertexBuilder;
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique @Public
     private RenderEnv renderEnv = null;
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique @Public
     private BitSet animatedSprites = null;
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique @Public
     private final BitSet animatedSpritesCached = new BitSet();
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private boolean modeTriangles = false;
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private ByteBuffer byteBufferTriangles;
 
@@ -136,26 +146,27 @@ public abstract class MixinBufferBuilder {
     }
 
     
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.NEW, desc = "net.minecraft.client.renderer.BufferBuilder$State ([ILnet.minecraft.client.renderer.vertex.VertexFormat;[Lnet.minecraft.client.renderer.texture.TextureAtlasSprite;)V")
     private static BufferBuilder.State newBufferBuilder$State(int[] p_i46453_2_, VertexFormat p_i46453_3_, TextureAtlasSprite[] textureAtlasSprites){
         throw new AbstractMethodError();
     }
 
     
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "MissingUnique"})
     @AccessTransformer(name = "func_181664_j()", deobf = true)
     public int acc_getBufferSize(){
         throw new AbstractMethodError();
     }
 
     
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "MissingUnique"})
     @AccessTransformer(name = "func_181665_a", deobf = true)
     private static float acc_getDistanceSq(FloatBuffer p_181665_0_, float p_181665_1_, float p_181665_2_, float p_181665_3_, int p_181665_4_, int p_181665_5_) {
         throw new AbstractMethodError();
     }
 
+    @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.BufferBuilder.State stateQuadSprites [Lnet.minecraft.client.renderer.texture.TextureAtlasSprite;")
     private native static TextureAtlasSprite[] BufferBuilder$State_stateQuadSprites_get(BufferBuilder.State ins) ;
 
@@ -222,9 +233,11 @@ public abstract class MixinBufferBuilder {
         }
     }
 
+    @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite toSingleU (D)D")
     private static native double TextureAtlasSprite_toSingleU(TextureAtlasSprite textureAtlasSprite, double arg1);
 
+    @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite toSingleV (D)D")
     private static native double TextureAtlasSprite_toSingleV(TextureAtlasSprite textureAtlasSprite, double arg1);
 
@@ -300,11 +313,12 @@ public abstract class MixinBufferBuilder {
         }
     }
 
+    @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite getAnimationIndex ()I")
     private static native int TextureAtlasSprite_getAnimationIndex(TextureAtlasSprite textureAtlasSprite);
 
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     public void putSprite(TextureAtlasSprite sprite) {
         if (this.animatedSprites != null && sprite != null && TextureAtlasSprite_getAnimationIndex(sprite) >= 0) {
@@ -317,7 +331,7 @@ public abstract class MixinBufferBuilder {
         }
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     public void setSprite(TextureAtlasSprite sprite) {
         if (this.animatedSprites != null && sprite != null && TextureAtlasSprite_getAnimationIndex(sprite) >= 0) {
@@ -329,20 +343,22 @@ public abstract class MixinBufferBuilder {
         }
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     public boolean isMultiTexture() {
         return this.quadSprites != null;
     }
 
+    @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = " net.minecraft.client.renderer.texture.TextureMap getCountRegisteredSprites ()I")
     private static native int TextureMap_getCountRegisteredSprites(TextureMap textureMap) ;
 
+    @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite getIndexInMap ()I")
     private static native int TextureAtlasSprite_getIndexInMap(TextureAtlasSprite textureAtlasSprite);
 
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     public void drawMultiTexture() {
         if (this.quadSprites != null) {
@@ -386,9 +402,11 @@ public abstract class MixinBufferBuilder {
         }
     }
 
+    @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite glSpriteTextureId I")
     private static native int TextureAtlasSprite_glSpriteTextureId_get(TextureAtlasSprite textureAtlasSprite);
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private int drawForIcon(TextureAtlasSprite sprite, int startQuadPos) {
         GL11.glBindTexture(3553, TextureAtlasSprite_glSpriteTextureId_get(sprite));
@@ -429,6 +447,7 @@ public abstract class MixinBufferBuilder {
     @Shadow
     private int drawMode;
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private void draw(int startQuadVertex, int endQuadVertex) {
         int vxQuadCount = endQuadVertex - startQuadVertex;
@@ -439,7 +458,7 @@ public abstract class MixinBufferBuilder {
         }
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     public void setBlockLayer(BlockRenderLayer blockLayer) {
         this.blockLayer = blockLayer;
@@ -456,12 +475,13 @@ public abstract class MixinBufferBuilder {
     @Shadow
     private IntBuffer rawIntBuffer;
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private int getBufferQuadSize() {
         return this.rawIntBuffer.capacity() * 4 / (this.vertexFormat.getIntegerSize() * 4);
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     public RenderEnv getRenderEnv(IBlockState blockStateIn, BlockPos blockPosIn) {
         if (this.renderEnv == null) {
@@ -482,31 +502,31 @@ public abstract class MixinBufferBuilder {
     @Shadow
     private boolean isDrawing;
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     public boolean isDrawing() {
         return this.isDrawing;
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     public double getXOffset() {
         return this.xOffset;
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     public double getYOffset() {
         return this.yOffset;
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     public double getZOffset() {
         return this.zOffset;
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     public BlockRenderLayer getBlockLayer() {
         return this.blockLayer;
@@ -518,7 +538,7 @@ public abstract class MixinBufferBuilder {
     @Shadow
     public int getColorIndex(int p_78909_1_) {return 0;}
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     public void putColorMultiplierRgba(float red, float green, float blue, float alpha, int vertexIndex) {
         int index = this.getColorIndex(vertexIndex);
@@ -546,7 +566,7 @@ public abstract class MixinBufferBuilder {
     @Shadow
     private ByteBuffer byteBuffer;
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     public void quadsToTriangles() {
         if (this.drawMode == 7) {
@@ -582,7 +602,7 @@ public abstract class MixinBufferBuilder {
         }
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     public void putColorRGBA(int index, int red, int green, int blue, int alpha) {
         if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN) {
@@ -592,7 +612,7 @@ public abstract class MixinBufferBuilder {
         }
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     public boolean isColorDisabled() {
         return this.noColor;
@@ -601,7 +621,7 @@ public abstract class MixinBufferBuilder {
     @Shadow
     private void growBuffer(int p_181670_1_) {}
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     public void putBulkData(ByteBuffer buffer) {
         if (Config.isShaders()) {

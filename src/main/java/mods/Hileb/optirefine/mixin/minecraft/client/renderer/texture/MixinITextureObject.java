@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.Unique;
 @Mixin(ITextureObject.class)
 public interface MixinITextureObject {
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     default MultiTexID getMultiTexID(){
         DeprecatedHelper.deprecated(this.getClass(), "getMultiTexID()V", "method were not implemented.");

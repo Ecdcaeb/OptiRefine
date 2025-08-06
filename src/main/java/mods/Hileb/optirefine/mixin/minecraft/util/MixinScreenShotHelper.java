@@ -41,6 +41,7 @@ public abstract class MixinScreenShotHelper {
         }
     }
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private static void resize(int width, int height) {
         Minecraft mc = Minecraft.getMinecraft();
@@ -54,6 +55,7 @@ public abstract class MixinScreenShotHelper {
         updateFramebufferSize();
     }
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private static void updateFramebufferSize() {
         Minecraft mc = Minecraft.getMinecraft();

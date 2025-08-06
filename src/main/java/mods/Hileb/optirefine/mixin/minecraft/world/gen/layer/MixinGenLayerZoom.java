@@ -12,7 +12,7 @@ public abstract class MixinGenLayerZoom extends GenLayer {
         super(p_i2125_1_);
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     protected int selectRandom2(int i0, int i1) {
         int index = this.nextInt(2);

@@ -19,6 +19,7 @@ public abstract class MixinAbstractTexture {
     @Shadow
     protected int glTextureId;
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique @Public
     public MultiTexID multiTex;
 
@@ -35,6 +36,7 @@ public abstract class MixinAbstractTexture {
         GlStateManager.bindTexture(this.getGlTextureId());
     }
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     public MultiTexID getMultiTexID() {
         return ShadersTex.getMultiTexID((AbstractTexture) (Object)this);

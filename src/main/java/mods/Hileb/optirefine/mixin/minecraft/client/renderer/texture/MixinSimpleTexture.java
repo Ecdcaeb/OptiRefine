@@ -26,10 +26,10 @@ public class MixinSimpleTexture {
     @Shadow @Final
     protected ResourceLocation textureLocation;
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     public ResourceLocation locationEmissive;
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     public boolean isEmissive;
 
@@ -47,6 +47,7 @@ public class MixinSimpleTexture {
         return 0;
     }
 
+    @SuppressWarnings({"MissingUnique", "AddedMixinMembersNamePattern"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.AbstractTexture getMultiTexID ()Lnet.optifine.shaders.MultiTexID;")
     public native MultiTexID getMultiTexID();
 }

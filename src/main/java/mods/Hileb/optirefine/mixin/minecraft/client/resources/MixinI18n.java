@@ -11,6 +11,7 @@ import org.spongepowered.asm.mixin.Unique;
 
 import java.util.Map;
 
+@SuppressWarnings("ALL")
 @Mixin(I18n.class)
 public abstract class MixinI18n {
     @Shadow

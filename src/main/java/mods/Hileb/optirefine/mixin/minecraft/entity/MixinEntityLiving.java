@@ -18,8 +18,10 @@ import java.util.UUID;
 
 @Mixin(EntityLiving.class)
 public abstract class MixinEntityLiving extends EntityLivingBase {
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private UUID teamUuid = null;
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private String teamUuidString = null;
 
@@ -37,6 +39,7 @@ public abstract class MixinEntityLiving extends EntityLivingBase {
         }
     }
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private boolean canSkipUpdate() {
         if (this.isChild()) {
@@ -59,6 +62,7 @@ public abstract class MixinEntityLiving extends EntityLivingBase {
         }
     }
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private void onUpdateMinimal() {
         ++this.idleTime;

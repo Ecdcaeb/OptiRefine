@@ -20,23 +20,25 @@ import java.util.function.Supplier;
 
 @Mixin(Profiler.class)
 public abstract class MixinProfiler {
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique @Public
     public boolean profilerGlobalEnabled = true;
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private boolean profilerLocalEnabled = this.profilerGlobalEnabled;
     @SuppressWarnings("unused")
     @Unique
     private static final String SCHEDULED_EXECUTABLES = "scheduledExecutables";
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     private static final String TICK = "tick";
     @SuppressWarnings("unused")
     @Unique
     private static final String PRE_RENDER_ERRORS = "preRenderErrors";
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     private static final String RENDER = "render";
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     private static final String DISPLAY = "display";
     @Unique

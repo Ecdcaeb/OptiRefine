@@ -46,6 +46,7 @@ public abstract class MixinBlockFluidRenderer {
     }
 
     
+    @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/BufferBuilder getRenderEnv (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/math/BlockPos;)Lnet/optifine/render/RenderEnv;", deobf = true)
     private static RenderEnv BufferBuilder_getRenderEnv(BufferBuilder builder, IBlockState blockStateIn, BlockPos blockPosIn){
         throw new AbstractMethodError();
@@ -62,6 +63,7 @@ public abstract class MixinBlockFluidRenderer {
     }
 
     
+    @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/BufferBuilder setSprite (Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;)V")
     private static void BufferBuilder_setSprite(BufferBuilder builder, TextureAtlasSprite sprite){
         throw new AbstractMethodError();
@@ -86,7 +88,7 @@ public abstract class MixinBlockFluidRenderer {
     @Expression("@(atextureatlassprite[0]).?")
     @ModifyExpressionValue(method = "renderFluid", at = @At(value = "MIXINEXTRAS:EXPRESSION", ordinal = 0))
     public TextureAtlasSprite hookAtUseZeroTextureAtlasSprite_renderFluid(TextureAtlasSprite or,
-                                                            @Local BufferBuilder builder,
+                                                            @Local(argsOnly = true) BufferBuilder builder,
                                                             @Share(namespace = "optirefine", value = "fbr") LocalRef<Float> fbr) {
         BufferBuilder_setSprite(builder, or);
         fbr.set(0.5F);

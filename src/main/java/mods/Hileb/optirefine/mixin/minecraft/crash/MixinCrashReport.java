@@ -13,6 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(CrashReport.class)
 public abstract class MixinCrashReport {
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private boolean reported = false;
 

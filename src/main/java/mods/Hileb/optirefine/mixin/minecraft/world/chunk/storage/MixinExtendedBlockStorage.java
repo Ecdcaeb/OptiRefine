@@ -7,6 +7,7 @@ import net.minecraft.world.chunk.BlockStateContainer;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import org.spongepowered.asm.mixin.*;
 
+@SuppressWarnings("AddedMixinMembersNamePattern")
 @Mixin(ExtendedBlockStorage.class)
 public abstract class MixinExtendedBlockStorage {
 

@@ -46,13 +46,17 @@ public abstract class MixinWorldClient extends World {
     @Shadow @Final
     private Minecraft mc;
 
-    @Unique 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
+    @Unique
     protected Set<ChunkPos> visibleChunks;
-    @Unique 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
+    @Unique
     private int playerChunkX = Integer.MIN_VALUE;
-    @Unique 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
+    @Unique
     private int playerChunkY = Integer.MIN_VALUE;
-    @Unique 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
+    @Unique
     private boolean playerUpdate = false;
 
     // Ignored
@@ -111,6 +115,7 @@ public abstract class MixinWorldClient extends World {
         return res;
     }
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     @Public
     private boolean isPlayerActing() {
@@ -123,7 +128,7 @@ public abstract class MixinWorldClient extends World {
 
     @Unique
     @Public
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     public boolean isPlayerUpdate() {
         return this.playerUpdate;
     }

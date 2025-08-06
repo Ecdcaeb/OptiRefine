@@ -25,9 +25,11 @@ public class MixinVertexBufferUploader {
         }
     }
 
+    @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.BufferBuilder quadsToTriangles ()V")
     private static native void BufferBuilder_quadsToTriangles(BufferBuilder builder) ;
 
+    @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.vertex.VertexBuffer setDrawMode (I)V")
     private static native void VertexBuffer_setDrawMode(VertexBuffer builder, int arg1) ;
 

@@ -31,6 +31,7 @@ public abstract class MixinPlayerChunkMap {
     @Shadow
     private int playerViewRadius;
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private final Map<EntityPlayerMP, Set<ChunkPos>> mapPlayerPendingEntries = new HashMap<>();
 
@@ -188,6 +189,7 @@ public abstract class MixinPlayerChunkMap {
     }
 
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private PriorityQueue<ChunkPos> getNearest(Set<ChunkPos> setPending, EntityPlayerMP player, int count) {
         float playerYaw = player.rotationYaw + 90.0F;
@@ -223,6 +225,7 @@ public abstract class MixinPlayerChunkMap {
     }
 
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private Set<ChunkPos> getPendingEntriesSafe(EntityPlayerMP player) {
         Set<ChunkPos> setPendingEntries = this.mapPlayerPendingEntries.get(player);

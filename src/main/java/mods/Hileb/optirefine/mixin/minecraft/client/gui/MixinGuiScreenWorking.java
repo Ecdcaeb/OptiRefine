@@ -11,6 +11,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(GuiScreenWorking.class)
 public abstract class MixinGuiScreenWorking extends GuiScreen {
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     
     private CustomLoadingScreen customLoadingScreen = CustomLoadingScreens.getCustomLoadingScreen();

@@ -10,10 +10,10 @@ import org.spongepowered.asm.mixin.Unique;
 
 @Mixin(EntityDataManager.class)
 public abstract class MixinEntityDataManager {
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique @Public
     public Biome spawnBiome = Biomes.PLAINS;
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique @Public
     public BlockPos spawnPosition = BlockPos.ORIGIN;
 }

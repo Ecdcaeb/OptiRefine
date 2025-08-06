@@ -31,6 +31,7 @@ public class MixinLayerEndermanEyes {
         }
     }
 
+    @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.PUTFIELD, desc = "net.minecraft.client.renderer.RenderGlobal renderOverlayEyes Z")
     private static native void RenderGlobal_renderOverlayEyes_set(RenderGlobal renderGlobal, boolean val);
 

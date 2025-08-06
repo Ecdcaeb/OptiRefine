@@ -20,6 +20,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(TileEntitySignRenderer.class)
 public abstract class MixinTileEntitySignRenderer {
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private static double textRenderDistanceSq = 4096.0;
 
@@ -38,6 +39,7 @@ public abstract class MixinTileEntitySignRenderer {
         return o && isRenderText(entity);
     }
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private static boolean isRenderText(TileEntitySign tileEntity) {
         if (Shaders.isShadowPass) {
@@ -51,7 +53,7 @@ public abstract class MixinTileEntitySignRenderer {
         }
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique @Public
     private static void updateTextRenderDistance() {
         Minecraft mc = Config.getMinecraft();

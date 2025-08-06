@@ -10,30 +10,32 @@ import org.spongepowered.asm.mixin.Unique;
 @Implements(IEntityRenderer.class)
 @Mixin(TileEntitySpecialRenderer.class)
 public abstract class MixinTileEntitySpecialRenderer{
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private Class<?> tileEntityClass = null;
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private ResourceLocation locationTextureCustom = null;
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     public Class<?> getEntityClass() {
         return this.tileEntityClass;
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     public void setEntityClass(Class<?> tileEntityClass) {
         this.tileEntityClass = tileEntityClass;
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     public ResourceLocation getLocationTextureCustom() {
         return this.locationTextureCustom;
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     public void setLocationTextureCustom(ResourceLocation locationTextureCustom) {
         this.locationTextureCustom = locationTextureCustom;

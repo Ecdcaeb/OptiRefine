@@ -57,6 +57,7 @@
     "minecraft.client.renderer.MixinBufferBuilder",
     "minecraft.client.renderer.MixinBufferBuilderState",
     "minecraft.client.renderer.MixinChunkRenderContainer",
+    "minecraft.client.renderer.MixinImageBufferDownload",
     "minecraft.client.renderer.MixinVertexBufferUploader",
     "minecraft.client.renderer.MixinWorldVertexBufferUploader",
     "minecraft.client.renderer.culling.MixinClippingHelper",

@@ -21,6 +21,7 @@ public class MixinRenderItemFrame {
     @Shadow @Final
     private Minecraft mc;
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private static double itemRenderDistanceSq = 4096.0;
 
@@ -39,6 +40,7 @@ public class MixinRenderItemFrame {
         } else return true;
     }
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private boolean isRenderItem(EntityItemFrame itemFrame) {
         if (Shaders.isShadowPass) {
@@ -54,7 +56,7 @@ public class MixinRenderItemFrame {
         }
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique @Public
     private static void updateItemRenderDistance() {
         Minecraft mc = Config.getMinecraft();

@@ -20,7 +20,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(PacketThreadUtil.class)
 public abstract class MixinPacketThreadUtil {
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Public
     @Unique
     private static int lastDimensionId = Integer.MIN_VALUE;
@@ -31,6 +31,7 @@ public abstract class MixinPacketThreadUtil {
         clientPreProcessPacket(p_180031_0_);
     }
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique @Public
     private static void clientPreProcessPacket(Packet<?> packetIn) {
         if (packetIn instanceof SPacketPlayerPosLook) {

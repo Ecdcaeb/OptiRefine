@@ -7,27 +7,26 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.renderer.vertex.VertexFormat;
 import net.minecraftforge.client.model.Attributes;
 import net.optifine.shaders.SVertexFormat;
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.*;
 
 @Mixin(DefaultVertexFormats.class)
 public abstract class MixinDefaultVertexFormats {
+    @Mutable
     @SuppressWarnings("unused")
     @Shadow @Final
     public static VertexFormat BLOCK;
 
+    @Mutable
     @SuppressWarnings("unused")
     @Shadow @Final
     public static VertexFormat ITEM;
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "MissingUnique"})
     @AccessTransformer(name = "field_176600_a", deobf = true)
     
     private static VertexFormat ACC_BLOCK;
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "MissingUnique"})
     @AccessTransformer(name = "field_176599_b", deobf = true)
     
     private static VertexFormat ACC_ITEM;
@@ -39,7 +38,7 @@ public abstract class MixinDefaultVertexFormats {
     @Unique
     private static final VertexFormat FORGE_BAKED = Attributes.DEFAULT_BAKED_FORMAT;
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique @Public
     private static void updateVertexFormats() {
         if (Config.isShaders()) {

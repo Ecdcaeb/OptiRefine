@@ -13,11 +13,12 @@ import java.util.Map;
 @Mixin(BlockAir.class)
 public abstract class MixinBlockAir{
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "AddedMixinMembersNamePattern"})
     @Unique
     @Public
     private static Map<Block, Integer> mapOriginalOpacity = new IdentityHashMap();
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     @Public
     private static void setLightOpacity(Block block, int opacity) {
@@ -27,6 +28,7 @@ public abstract class MixinBlockAir{
         block.lightOpacity = opacity;
     }
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     
     @Public

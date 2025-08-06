@@ -27,15 +27,17 @@ public class MixinLayerMooshroomMushroom {
     @Shadow @Final
     private RenderMooshroom mooshroomRenderer;
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private ModelRenderer modelRendererMushroom;
     @Unique
     private static final ResourceLocation LOCATION_MUSHROOM_RED = new ResourceLocation("textures/entity/cow/mushroom_red.png");
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private static boolean hasTextureMushroom = false;
 
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique @Public
     private static void update() {
         hasTextureMushroom = Config.hasResource(LOCATION_MUSHROOM_RED);
@@ -54,6 +56,7 @@ public class MixinLayerMooshroomMushroom {
         ModelRenderer_addBox(this.modelRendererMushroom, faceUvs2, 10.0F, 0.0F, 0.0F, 0.0F, 16.0F, 20.0F, 0.0F);
     }
 
+    @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.model.ModelRenderer addBox ([[IFFFFFFF)V")
     private static native void ModelRenderer_addBox(ModelRenderer modelRendererMushroom, int[][] faceUvs, float x, float y, float z, float dx, float dy, float dz, float delta);
 

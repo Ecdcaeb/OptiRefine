@@ -35,12 +35,15 @@ public class MixinWorldVertexBufferUploader {
         }
     }
 
+    @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.BufferBuilder quadsToTriangles ()V")
     private static native void BufferBuilder_quadsToTriangles(BufferBuilder builder) ;
 
+    @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.BufferBuilder isMultiTexture()Z")
     private static native boolean BufferBuilder_isMultiTexture(BufferBuilder builder) ;
 
+    @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.BufferBuilder drawMultiTexture ()V")
     private static native void BufferBuilder_drawMultiTexture(BufferBuilder builder) ;
 }

@@ -52,11 +52,13 @@ public abstract class MixinBlockStateContainer{
         }
     }
 
+    @SuppressWarnings({"MissingUnique", "AddedMixinMembersNamePattern"})
     @AccessibleOperation(opcode = Opcodes.NEW, desc = "net.minecraft.world.chunk.BlockStatePaletteHashMap (ILnet/minecraft/world/chunk/IBlockStatePaletteResizer;)V")
     private static BlockStatePaletteHashMap newBlockStatePaletteHashMap(int i, Object o){
         throw new AbstractMethodError();
     }
 
+    @SuppressWarnings({"MissingUnique", "AddedMixinMembersNamePattern"})
     @AccessibleOperation(opcode = Opcodes.NEW, desc = "net.minecraft.world.chunk.BlockStatePaletteLinear (ILnet/minecraft/world/chunk/IBlockStatePaletteResizer;)V")
     private static BlockStatePaletteLinear newBlockStatePaletteLinear(int i, Object o){
         throw new AbstractMethodError();

@@ -41,10 +41,10 @@ public abstract class MixinModelBox {
     @Shadow @Final
     public float posZ2;
     @SuppressWarnings("unused")
-    @Shadow @Final
+    @Shadow
     public String boxName;
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     @NewConstructor
     @Public
@@ -113,6 +113,7 @@ public abstract class MixinModelBox {
         }
     }
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private TexturedQuad makeTexturedQuad(
             PositionTextureVertex[] positionTextureVertexs, int[] faceUvs, boolean reverseUV, float textureWidth, float textureHeight

@@ -22,13 +22,13 @@ public abstract class MixinGameSettingsOption {
     @Unique @Public private static final GameSettings.Options MIPMAP_TYPE = EnumHelper.addEnum(GameSettings.Options.class, "MIPMAP_TYPE", _optirefine_args1, "of.options.MIPMAP_TYPE", true, false, 0.0F, 3.0F, 1.0F);
     @SuppressWarnings("unused")
     @Unique @Public private static final GameSettings.Options SMOOTH_FPS = EnumHelper.addEnum(GameSettings.Options.class, "SMOOTH_FPS", _optirefine_args0, "of.options.SMOOTH_FPS", false, false);
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique @Public private static final GameSettings.Options CLOUDS = EnumHelper.addEnum(GameSettings.Options.class, "CLOUDS", _optirefine_args0, "of.options.CLOUDS", false, false);
     @SuppressWarnings("unused")
     @Unique @Public private static final GameSettings.Options CLOUD_HEIGHT = EnumHelper.addEnum(GameSettings.Options.class, "CLOUD_HEIGHT", _optirefine_args0, "of.options.CLOUD_HEIGHT", true, false);
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique @Public private static final GameSettings.Options TREES = EnumHelper.addEnum(GameSettings.Options.class, "TREES", _optirefine_args0, "of.options.TREES", false, false);
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique @Public private static final GameSettings.Options RAIN = EnumHelper.addEnum(GameSettings.Options.class, "RAIN", _optirefine_args0, "of.options.RAIN", false, false);
     @SuppressWarnings("unused")
     @Unique @Public private static final GameSettings.Options ANIMATED_WATER = EnumHelper.addEnum(GameSettings.Options.class, "ANIMATED_WATER", _optirefine_args0, "of.options.ANIMATED_WATER", false, false);
@@ -40,7 +40,7 @@ public abstract class MixinGameSettingsOption {
     @Unique @Public private static final GameSettings.Options ANIMATED_PORTAL = EnumHelper.addEnum(GameSettings.Options.class, "ANIMATED_PORTAL", _optirefine_args0, "of.options.ANIMATED_PORTAL", false, false);
     @SuppressWarnings("unused")
     @Unique @Public private static final GameSettings.Options AO_LEVEL = EnumHelper.addEnum(GameSettings.Options.class, "AO_LEVEL", _optirefine_args0, "of.options.AO_LEVEL", true, false);
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique @Public private static final GameSettings.Options LAGOMETER = EnumHelper.addEnum(GameSettings.Options.class, "LAGOMETER", _optirefine_args0, "of.options.LAGOMETER", false, false);
     @SuppressWarnings("unused")
     @Unique @Public private static final GameSettings.Options SHOW_FPS = EnumHelper.addEnum(GameSettings.Options.class, "SHOW_FPS", _optirefine_args0, "of.options.SHOW_FPS", false, false);
@@ -56,21 +56,21 @@ public abstract class MixinGameSettingsOption {
     @Unique @Public private static final GameSettings.Options ANIMATED_FLAME = EnumHelper.addEnum(GameSettings.Options.class, "ANIMATED_FLAME", _optirefine_args0, "of.options.ANIMATED_FLAME", false, false);
     @SuppressWarnings("unused")
     @Unique @Public private static final GameSettings.Options ANIMATED_SMOKE = EnumHelper.addEnum(GameSettings.Options.class, "ANIMATED_SMOKE", _optirefine_args0, "of.options.ANIMATED_SMOKE", false, false);
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique @Public private static final GameSettings.Options WEATHER = EnumHelper.addEnum(GameSettings.Options.class, "WEATHER", _optirefine_args0, "of.options.WEATHER", false, false);
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique @Public private static final GameSettings.Options SKY = EnumHelper.addEnum(GameSettings.Options.class, "SKY", _optirefine_args0, "of.options.SKY", false, false);
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique @Public private static final GameSettings.Options STARS = EnumHelper.addEnum(GameSettings.Options.class, "STARS", _optirefine_args0, "of.options.STARS", false, false);
     @SuppressWarnings("unused")
     @Unique @Public private static final GameSettings.Options SUN_MOON = EnumHelper.addEnum(GameSettings.Options.class, "SUN_MOON", _optirefine_args0, "of.options.SUN_MOON", false, false);
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique @Public private static final GameSettings.Options VIGNETTE = EnumHelper.addEnum(GameSettings.Options.class, "VIGNETTE", _optirefine_args0, "of.options.VIGNETTE", false, false);
     @SuppressWarnings("unused")
     @Unique @Public private static final GameSettings.Options CHUNK_UPDATES = EnumHelper.addEnum(GameSettings.Options.class, "CHUNK_UPDATES", _optirefine_args0, "of.options.CHUNK_UPDATES", false, false);
     @SuppressWarnings("unused")
     @Unique @Public private static final GameSettings.Options CHUNK_UPDATES_DYNAMIC = EnumHelper.addEnum(GameSettings.Options.class, "CHUNK_UPDATES_DYNAMIC", _optirefine_args0, "of.options.CHUNK_UPDATES_DYNAMIC", false, false);
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique @Public private static final GameSettings.Options TIME = EnumHelper.addEnum(GameSettings.Options.class, "TIME", _optirefine_args0, "of.options.TIME", false, false);
     @SuppressWarnings("unused")
     @Unique @Public private static final GameSettings.Options CLEAR_WATER = EnumHelper.addEnum(GameSettings.Options.class, "CLEAR_WATER", _optirefine_args0, "of.options.CLEAR_WATER", false, false);
@@ -88,7 +88,7 @@ public abstract class MixinGameSettingsOption {
     @Unique @Public private static final GameSettings.Options POTION_PARTICLES = EnumHelper.addEnum(GameSettings.Options.class, "POTION_PARTICLES", _optirefine_args0, "of.options.POTION_PARTICLES", false, false);
     @SuppressWarnings("unused")
     @Unique @Public private static final GameSettings.Options FIREWORK_PARTICLES = EnumHelper.addEnum(GameSettings.Options.class, "FIREWORK_PARTICLES", _optirefine_args0, "of.options.FIREWORK_PARTICLES", false, false);
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique @Public private static final GameSettings.Options PROFILER = EnumHelper.addEnum(GameSettings.Options.class, "PROFILER", _optirefine_args0, "of.options.PROFILER", false, false);
     @SuppressWarnings("unused")
     @Unique @Public private static final GameSettings.Options DRIPPING_WATER_LAVA = EnumHelper.addEnum(GameSettings.Options.class, "DRIPPING_WATER_LAVA", _optirefine_args0, "of.options.DRIPPING_WATER_LAVA", false, false);

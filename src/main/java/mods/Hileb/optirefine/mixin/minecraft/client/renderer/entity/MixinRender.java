@@ -22,9 +22,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(Render.class)
 public class MixinRender {
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     private final Class<? extends Entity> entityClass = null;
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private final ResourceLocation locationTextureCustom = null;
 
@@ -37,6 +38,7 @@ public class MixinRender {
         multitextureRef.set(multitexture);
     }
 
+    @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.BufferBuilder setBlockLayer (Lnet.minecraft.util.BlockRenderLayer;)V")
     private static native void BufferBuilder_setBlockLayer(BufferBuilder builder, BlockRenderLayer layer);
 
@@ -48,6 +50,7 @@ public class MixinRender {
         }
     }
 
+    @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.client.renderer.GlStateManager bindCurrentTexture ()V")
     private static native void GlStateManager_bindCurrentTexture();
 

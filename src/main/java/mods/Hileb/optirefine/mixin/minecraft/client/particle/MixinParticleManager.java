@@ -84,6 +84,7 @@ public abstract class MixinParticleManager {
         }
     }
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private boolean reuseBarrierParticle(Particle entityfx, ArrayDeque<Particle> deque) {
         for (Particle efx : deque) {

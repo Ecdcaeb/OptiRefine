@@ -19,22 +19,23 @@ import java.util.List;
 
 @Mixin(GuiOverlayDebug.class)
 public abstract class MixinGuiOverlayDebug extends Gui {
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private String debugOF = null;
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     private List<String> debugInfoLeft = null;
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     private List<String> debugInfoRight = null;
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     private long updateInfoLeftTimeMs = 0L;
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     private long updateInfoRightTimeMs = 0L;
 

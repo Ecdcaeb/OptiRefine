@@ -49,11 +49,12 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
     
     private static final String __OBFID = "CL_00000718";
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     
     private static GameSettings.Options[] videoOptions = new GameSettings.Options[]{GameSettings.Options.GRAPHICS, GameSettings.Options.RENDER_DISTANCE, GameSettings.Options.AMBIENT_OCCLUSION, GameSettings.Options.FRAMERATE_LIMIT, GameSettingsOptionOF.AO_LEVEL, GameSettings.Options.VIEW_BOBBING, GameSettings.Options.GUI_SCALE, GameSettings.Options.USE_VBO, GameSettings.Options.GAMMA, GameSettings.Options.ATTACK_INDICATOR, GameSettingsOptionOF.DYNAMIC_LIGHTS, GameSettingsOptionOF.DYNAMIC_FOV};
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     
     private TooltipManager tooltipManager = new TooltipManager(this, new TooltipProviderOptions());
@@ -103,6 +104,7 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
         }
     }
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     
     public void actionPerformed(GuiButton button, int val) {
@@ -183,7 +185,7 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
         }
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     
     protected void actionPerformedRightClick(GuiButton button) {
@@ -202,14 +204,14 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
         this.drawCenteredString(this.fontRenderer, verMc, this.width - lenMc - 2, this.height - 10, 8421504);
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     @Public
     private static int getButtonWidth(GuiButton btn) {
         return btn.width;
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     @Public
     private static int getButtonHeight(GuiButton btn) {
@@ -223,21 +225,21 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
         throw new AbstractMethodError();
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     @Public
     private static void drawGradientRect(GuiScreen guiScreen, int left, int top, int right, int bottom, int startColor, int endColor) {
         _acc_GuiScreen_draw(guiScreen, left, top, right, bottom, startColor, endColor);
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     @Public
     private static String getGuiChatText(GuiChat guiChat) {
         return _acc_GuiChatAccessor_getInputField(guiChat).getText();
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.gui.GuiTextField field_146415_a Lnet.minecraft.client.gui.GuiTextField")
     private static GuiTextField _acc_GuiChatAccessor_getInputField(GuiChat guiChat) {
         throw new AbstractMethodError();

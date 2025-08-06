@@ -17,8 +17,10 @@ import java.util.BitSet;
 
 @Mixin(ChunkRenderContainer.class)
 public abstract class MixinChunkRenderContainer {
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private BitSet animatedSpritesRendered;
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private final BitSet animatedSpritesCached = new BitSet();
 
@@ -48,6 +50,7 @@ public abstract class MixinChunkRenderContainer {
         }
     }
 
+    @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.chunk.CompiledChunk getAnimatedSprites (Lnet.minecraft.util.BlockRenderLayer;)Ljava.util.BitSet;")
     private native static BitSet CompiledChunk_getAnimatedSprites(CompiledChunk instance, BlockRenderLayer arg0) ;
 }

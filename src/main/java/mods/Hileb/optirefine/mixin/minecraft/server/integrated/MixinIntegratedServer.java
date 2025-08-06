@@ -36,12 +36,16 @@ import java.net.Proxy;
 
 @Mixin(IntegratedServer.class)
 public abstract class MixinIntegratedServer extends MinecraftServer {
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private long ticksSaveLast = 0L;
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     public World difficultyUpdateWorld = null;
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     public BlockPos difficultyUpdatePos = null;
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     public DifficultyInstance difficultyLast = null;
 
@@ -97,6 +101,7 @@ public abstract class MixinIntegratedServer extends MinecraftServer {
         }
     }
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique @Public
     private void onTick() {
         for (WorldServer ws : this.worlds) {
@@ -104,7 +109,7 @@ public abstract class MixinIntegratedServer extends MinecraftServer {
         }
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique @Public
     public DifficultyInstance getDifficultyAsync(World world, BlockPos blockPos) {
         this.difficultyUpdateWorld = world;
@@ -112,6 +117,7 @@ public abstract class MixinIntegratedServer extends MinecraftServer {
         return this.difficultyLast;
     }
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private void onTick(WorldServer ws) {
         if (!Config.isTimeDefault()) {
@@ -131,6 +137,7 @@ public abstract class MixinIntegratedServer extends MinecraftServer {
         }
     }
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private void fixWorldWeather(WorldServer ws) {
         WorldInfo worldInfo = ws.getWorldInfo();
@@ -147,6 +154,7 @@ public abstract class MixinIntegratedServer extends MinecraftServer {
         }
     }
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private void fixWorldTime(WorldServer ws) {
         WorldInfo worldInfo = ws.getWorldInfo();

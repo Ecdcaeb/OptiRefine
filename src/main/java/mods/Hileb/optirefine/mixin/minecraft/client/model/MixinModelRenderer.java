@@ -92,46 +92,52 @@ public abstract class MixinModelRenderer {
     @Shadow
     public float offsetZ;
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     @Public
     public List<ModelSprite> spriteList = new ArrayList<>();
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     @Public
     public boolean mirrorV = false;
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     @Public
     public float scaleX = 1.0F;
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     @Public
     public float scaleY = 1.0F;
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     @Public
     public float scaleZ = 1.0F;
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     @Public
     private int countResetDisplayList;
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     @Public
     private ResourceLocation textureLocation = null;
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     @Public
     private String id = null;
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     @Public
     private ModelUpdater modelUpdater;
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     @Public
     private RenderGlobal renderGlobal = Config.getRenderGlobal();
@@ -248,27 +254,28 @@ public abstract class MixinModelRenderer {
         this.compiled = true;
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     @Public
     public void addSprite(float posX, float posY, float posZ, int sizeX, int sizeY, int sizeZ, float sizeAdd) {
         this.spriteList.add(new ModelSprite((ModelRenderer)(Object)this, this.textureOffsetX, this.textureOffsetY, posX, posY, posZ, sizeX, sizeY, sizeZ, sizeAdd));
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     @Public
     public boolean getCompiled() {
         return this.compiled;
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     @Public
     public int getDisplayList() {
         return this.displayList;
     }
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     @Public
     private void checkResetDisplayList() {
@@ -278,28 +285,28 @@ public abstract class MixinModelRenderer {
         }
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     @Public
     public ResourceLocation getTextureLocation() {
         return this.textureLocation;
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     @Public
     public void setTextureLocation(ResourceLocation textureLocation) {
         this.textureLocation = textureLocation;
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     @Public
     public String getId() {
         return this.id;
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     @Public
     public void setId(String id) {
@@ -313,7 +320,7 @@ public abstract class MixinModelRenderer {
         throw new AbstractMethodError();
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     @Public
     public void addBox(int[][] faceUvs, float x, float y, float z, float dx, float dy, float dz, float delta) {
@@ -333,6 +340,7 @@ public abstract class MixinModelRenderer {
         throw new AbstractMethodError();
     }
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     @Public
     public ModelRenderer getChild(String name) {
@@ -360,7 +368,7 @@ public abstract class MixinModelRenderer {
         throw new AbstractMethodError();
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     @Public
     public ModelRenderer getChildDeep(String name) {
@@ -386,7 +394,7 @@ public abstract class MixinModelRenderer {
         }
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     @Public
     public void setModelUpdater(ModelUpdater modelUpdater) {

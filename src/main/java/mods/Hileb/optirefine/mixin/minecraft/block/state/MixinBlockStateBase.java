@@ -11,23 +11,27 @@ import org.spongepowered.asm.mixin.Unique;
 @Mixin(BlockStateBase.class)
 public abstract class MixinBlockStateBase implements IBlockState {
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     
     private int blockId = -1;
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     
     private int blockStateId = -1;
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     
     private int metadata = -1;
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     
     private ResourceLocation blockLocation = null;
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     
     @Public
@@ -38,7 +42,7 @@ public abstract class MixinBlockStateBase implements IBlockState {
          return this.blockId;
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     
     @Public
@@ -49,7 +53,7 @@ public abstract class MixinBlockStateBase implements IBlockState {
          return this.blockStateId;
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     
     @Public
@@ -60,7 +64,7 @@ public abstract class MixinBlockStateBase implements IBlockState {
          return this.metadata;
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     
     @Public

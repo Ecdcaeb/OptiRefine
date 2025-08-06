@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.Mixin;
 public abstract class MixinMapColor {
 
     
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "MissingUnique"})
     @AccessTransformer(access = Opcodes.ACC_PUBLIC, name = "field_76291_p", deobf = true)
     public int access_colorValue;
 

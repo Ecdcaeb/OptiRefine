@@ -33,6 +33,7 @@ public class MixinLayeredColorMaskTexture {
         }
     }
 
+    @SuppressWarnings({"MissingUnique", "AddedMixinMembersNamePattern"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.AbstractTexture getMultiTexID ()Lnet.optifine.shaders.MultiTexID;")
     public native MultiTexID getMultiTexID();
 }

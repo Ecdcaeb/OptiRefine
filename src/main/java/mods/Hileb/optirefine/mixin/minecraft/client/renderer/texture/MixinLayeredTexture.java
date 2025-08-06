@@ -19,9 +19,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.awt.image.BufferedImage;
 
+@SuppressWarnings("MissingUnique")
 @Mixin(LayeredTexture.class)
 public class MixinLayeredTexture {
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private ResourceLocation textureLocation;
 
@@ -41,6 +43,7 @@ public class MixinLayeredTexture {
         }
     }
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.AbstractTexture getMultiTexID ()Lnet.optifine.shaders.MultiTexID;")
     public native MultiTexID getMultiTexID();
 }

@@ -8,6 +8,7 @@ import org.spongepowered.asm.mixin.Unique;
 
 @Mixin(ChunkPos.class)
 public abstract class MixinChunkPos {
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private int cachedHashCode = 0;
 

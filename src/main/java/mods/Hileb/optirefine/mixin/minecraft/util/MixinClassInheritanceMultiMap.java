@@ -18,6 +18,7 @@ import java.util.List;
 @Mixin(ClassInheritanceMultiMap.class)
 public abstract class MixinClassInheritanceMultiMap<T> extends AbstractSet<T> {
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     public boolean empty;
 
@@ -59,7 +60,7 @@ public abstract class MixinClassInheritanceMultiMap<T> extends AbstractSet<T> {
         return this.values.isEmpty() ? Collections.emptyIterator() : castIterator(IteratorCache.getReadOnly(this.values));
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     @AccessibleOperation()
     private static<E, V> Iterator<E> castIterator(Iterator<V> i) {
