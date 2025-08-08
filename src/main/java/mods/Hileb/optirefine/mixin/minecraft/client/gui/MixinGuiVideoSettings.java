@@ -237,7 +237,7 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
     }
 
     @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.gui.GuiTextField field_146415_a Lnet.minecraft.client.gui.GuiTextField;")
+    @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.gui.GuiTextField field_146415_a Lnet.minecraft.client.gui.GuiTextField;")
     private static GuiTextField _acc_GuiChatAccessor_getInputField(GuiChat guiChat) {
         throw new AbstractMethodError();
     }
