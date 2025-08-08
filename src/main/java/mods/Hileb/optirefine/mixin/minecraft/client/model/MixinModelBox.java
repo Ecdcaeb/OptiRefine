@@ -2,6 +2,7 @@ package mods.Hileb.optirefine.mixin.minecraft.client.model;
 
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.NewConstructor;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
+import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.ShadowSuper;
 import net.minecraft.client.model.ModelBox;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.model.PositionTextureVertex;
@@ -44,11 +45,14 @@ public abstract class MixinModelBox {
     @Shadow
     public String boxName;
 
-    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
+    @ShadowSuper("<init>")
+    public void _Object(){}
+
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern", "MissingUnique"})
     @NewConstructor
     @Public
-    public void ModelBox(ModelRenderer renderer, int[][] faceUvs, float x, float y, float z, float dx, float dy, float dz, float delta, boolean mirror) {
+    public void _ModelBox(ModelRenderer renderer, int[][] faceUvs, float x, float y, float z, float dx, float dy, float dz, float delta, boolean mirror) {
+        _Object();
         this.posX1 = x;
         this.posY1 = y;
         this.posZ1 = z;

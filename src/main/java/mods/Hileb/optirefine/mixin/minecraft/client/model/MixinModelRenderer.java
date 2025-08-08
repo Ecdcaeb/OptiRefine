@@ -14,6 +14,8 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 import net.optifine.entity.model.anim.ModelUpdater;
 import net.optifine.model.ModelSprite;
 import net.optifine.shaders.Shaders;
@@ -144,23 +146,17 @@ public abstract class MixinModelRenderer {
 
     @SuppressWarnings({"unused", "BooleanMethodIsAlwaysInverted"})
     @Unique
-    @AccessibleOperation(opcode = Opcodes.GETSTATIC, desc = "net/minecraft/client/renderer/RenderGlobal renderOverlayDamaged Z")
-    private static boolean _acc_RenderGlobal_renderOverlayDamaged_(RenderGlobal global){
-        throw new AbstractMethodError();
-    }
+    @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net/minecraft/client/renderer/RenderGlobal renderOverlayDamaged Z")
+    private native static boolean _acc_RenderGlobal_renderOverlayDamaged_(RenderGlobal global);
 
     @SuppressWarnings("unused")
     @Unique
-    @AccessibleOperation(opcode = Opcodes.GETSTATIC, desc = "net/minecraft/client/renderer/RenderGlobal renderOverlayEyes Z")
-    private static boolean _acc_RenderGlobal_renderOverlayEyes_(RenderGlobal global){
-        throw new AbstractMethodError();
-    }
+    @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net/minecraft/client/renderer/RenderGlobal renderOverlayEyes Z")
+    private static native boolean _acc_RenderGlobal_renderOverlayEyes_(RenderGlobal global);
 
     @Unique
-    @AccessibleOperation(opcode = Opcodes.GETSTATIC, desc = "net/minecraft/client/renderer/GlStateManager getBoundTexture ()I")
-    private static int _acc_GlStateManager_getBoundTexture_(){
-        throw new AbstractMethodError();
-    }
+    @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net/minecraft/client/renderer/GlStateManager getBoundTexture ()I")
+    private native static int _acc_GlStateManager_getBoundTexture_();
 
     @Inject(method = "render", at = @At("HEAD"), cancellable = true)
     public void injectPreRender(float p_78785_1_, CallbackInfo ci, @Share("lastTextureId") LocalIntRef lastTextureId){
@@ -233,6 +229,7 @@ public abstract class MixinModelRenderer {
      * @author
      * @reason
      */
+    @SideOnly(Side.CLIENT)
     @Overwrite
     private void compileDisplayList(float scale) {
         if (this.displayList == 0) {
@@ -316,15 +313,13 @@ public abstract class MixinModelRenderer {
     @SuppressWarnings("unused")
     @Unique
     @AccessibleOperation(opcode = Opcodes.NEW, desc = "net/minecraft/client/model/ModelBox (Lnet/minecraft/client/model/ModelRenderer;[[IFFFFFFFZ)V")
-    private static ModelBox _new_ModelBox(ModelRenderer renderer, int[][] faceUvs, float x, float y, float z, float dx, float dy, float dz, float delta, boolean mirror){
-        throw new AbstractMethodError();
-    }
+    private native static ModelBox _new_ModelBox(AccessibleOperation.Construction construction, ModelRenderer renderer, int[][] faceUvs, float x, float y, float z, float dx, float dy, float dz, float delta, boolean mirror);
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     @Public
     public void addBox(int[][] faceUvs, float x, float y, float z, float dx, float dy, float dz, float delta) {
-        this.cubeList.add(_new_ModelBox(_cast_this(), faceUvs, x, y, z, dx, dy, dz, delta, this.mirror));
+        this.cubeList.add(_new_ModelBox(AccessibleOperation.Construction.construction(), _cast_this(), faceUvs, x, y, z, dx, dy, dz, delta, this.mirror));
     }
 
     @Unique
@@ -364,9 +359,7 @@ public abstract class MixinModelRenderer {
     @SuppressWarnings("unused")
     @Unique
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "getChildDeep (Ljava/lang/String;)Lnet/minecraft/client/model/ModelRenderer;")
-    private static ModelRenderer _acc_ModelRenderer_getChildDeep(ModelRenderer renderer, String a){
-        throw new AbstractMethodError();
-    }
+    private static native ModelRenderer _acc_ModelRenderer_getChildDeep(ModelRenderer renderer, String a);
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique

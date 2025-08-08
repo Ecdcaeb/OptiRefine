@@ -18,6 +18,7 @@ import static mods.Hileb.optirefine.library.foundationx.ASMHelper.*;
 
 public class OptifineTransformerTransformer implements TransformerHelper.TargetedASMTransformer {
 
+
     @SuppressWarnings("unused")
     public static URI url2uri(URL url) throws IOException, URISyntaxException {
         URLConnection connection = url.openConnection();
@@ -51,12 +52,9 @@ public class OptifineTransformerTransformer implements TransformerHelper.Targete
                 }
             } else if ("transform".equals(mn.name)) {
                 mn.name = "transform0";
-                MethodNode methodVisitor = new MethodNode(Opcodes.ACC_PUBLIC, "transform", "(Ljava/lang/String;Ljava/lang/String;[B)[B", null, null);
+                MethodNode methodVisitor = new MethodNode(Opcodes.ACC_PUBLIC, "transform", mn.desc, null, null);
                 Label label0 = new Label();
                 methodVisitor.visitLabel(label0);
-                methodVisitor.visitVarInsn(ALOAD, 1);
-                methodVisitor.visitVarInsn(ALOAD, 2);
-                methodVisitor.visitMethodInsn(INVOKESTATIC, "mods/Hileb/optirefine/core/transformer/OptifineTransformerTransformer", "log", "(Ljava/lang/String;Ljava/lang/String;)V", false);
                 methodVisitor.visitVarInsn(ALOAD, 2);
                 methodVisitor.visitMethodInsn(INVOKESTATIC, "mods/Hileb/optirefine/core/transformer/OptifineTransformerTransformer", "couldNotTransform", "(Ljava/lang/String;)Z", false);
                 Label label1 = new Label();
@@ -71,7 +69,7 @@ public class OptifineTransformerTransformer implements TransformerHelper.Targete
                 methodVisitor.visitVarInsn(ALOAD, 1);
                 methodVisitor.visitVarInsn(ALOAD, 2);
                 methodVisitor.visitVarInsn(ALOAD, 3);
-                methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "optifine/OptiFineClassTransformer", "transform0", "(Ljava/lang/String;Ljava/lang/String;[B)[B", false);
+                methodVisitor.visitMethodInsn(INVOKEVIRTUAL, "optifine/OptiFineClassTransformer", "transform0", mn.desc, false);
                 methodVisitor.visitInsn(ARETURN);
                 Label label3 = new Label();
                 methodVisitor.visitLabel(label3);
@@ -88,13 +86,11 @@ public class OptifineTransformerTransformer implements TransformerHelper.Targete
     }
 
     public static boolean couldNotTransform(String transformedName) {
-        return OptiRefineBlackboard.CLASSES.contains(transformedName);
-    }
-
-    @SuppressWarnings("unused")
-    public static void log(String s0, String s1) {
-        if (couldNotTransform(s1)) {
-            OptiRefineLog.log.debug("Optifine skipped class {} or {}", s1, s0);
+        OptiRefineLog.log.debug("Optifine try class {}", transformedName);
+        if (OptiRefineBlackboard.CLASSES.contains(transformedName)) {
+            OptiRefineLog.log.debug("Optifine skipped class {}", transformedName);
+            return true;
         }
+        else return false;
     }
 }

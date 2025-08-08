@@ -7,6 +7,7 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.renderer.vertex.VertexFormat;
 import net.minecraftforge.client.model.Attributes;
 import net.optifine.shaders.SVertexFormat;
+import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.*;
 
 @Mixin(DefaultVertexFormats.class)
@@ -22,13 +23,11 @@ public abstract class MixinDefaultVertexFormats {
     public static VertexFormat ITEM;
 
     @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessTransformer(name = "field_176600_a", deobf = true)
-    
+    @AccessTransformer(name = "field_176600_a", deobf = true, access = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC)
     private static VertexFormat ACC_BLOCK;
 
     @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessTransformer(name = "field_176599_b", deobf = true)
-    
+    @AccessTransformer(name = "field_176599_b", deobf = true, access = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC)
     private static VertexFormat ACC_ITEM;
 
     @Unique

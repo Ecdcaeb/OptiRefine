@@ -142,32 +142,26 @@ public abstract class MixinBufferBuilder {
 
     @Redirect(method = "getVertexState", at = @At(value = "NEW", target = "(Lnet/minecraft/client/renderer/BufferBuilder;[ILnet/minecraft/client/renderer/vertex/VertexFormat;)Lnet/minecraft/client/renderer/BufferBuilder$State;"))
     public BufferBuilder.State getVertexStateReturn(BufferBuilder p_i46453_1_, int[] p_i46453_2_, VertexFormat p_i46453_3_){
-        return newBufferBuilder$State(p_i46453_2_, p_i46453_3_, this.quadSprites == null ? null : this.quadSprites.clone());
+        return newBufferBuilder$State(AccessibleOperation.Construction.construction(), p_i46453_2_, p_i46453_3_, this.quadSprites == null ? null : this.quadSprites.clone());
     }
 
     
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.NEW, desc = "net.minecraft.client.renderer.BufferBuilder$State ([ILnet.minecraft.client.renderer.vertex.VertexFormat;[Lnet.minecraft.client.renderer.texture.TextureAtlasSprite;)V")
-    private static BufferBuilder.State newBufferBuilder$State(int[] p_i46453_2_, VertexFormat p_i46453_3_, TextureAtlasSprite[] textureAtlasSprites){
-        throw new AbstractMethodError();
-    }
+    private static native BufferBuilder.State newBufferBuilder$State(AccessibleOperation.Construction construction, int[] p_i46453_2_, VertexFormat p_i46453_3_, TextureAtlasSprite[] textureAtlasSprites);
 
     
     @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessTransformer(name = "func_181664_j()", deobf = true)
-    public int acc_getBufferSize(){
-        throw new AbstractMethodError();
-    }
+    @AccessTransformer(name = "func_181664_j", deobf = true, access = Opcodes.ACC_PUBLIC)
+    private static native int acc_getBufferSize();
 
     
     @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessTransformer(name = "func_181665_a", deobf = true)
-    private static float acc_getDistanceSq(FloatBuffer p_181665_0_, float p_181665_1_, float p_181665_2_, float p_181665_3_, int p_181665_4_, int p_181665_5_) {
-        throw new AbstractMethodError();
-    }
+    @AccessTransformer(name = "func_181665_a", deobf = true, access = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC)
+    private static native float acc_getDistanceSq(FloatBuffer p_181665_0_, float p_181665_1_, float p_181665_2_, float p_181665_3_, int p_181665_4_, int p_181665_5_);
 
     @SuppressWarnings("MissingUnique")
-    @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.BufferBuilder.State stateQuadSprites [Lnet.minecraft.client.renderer.texture.TextureAtlasSprite;")
+    @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.BufferBuilder$State stateQuadSprites [Lnet.minecraft.client.renderer.texture.TextureAtlasSprite;")
     private native static TextureAtlasSprite[] BufferBuilder$State_stateQuadSprites_get(BufferBuilder.State ins) ;
 
     @Inject(method = "setVertexState", at = @At("TAIL"))
@@ -350,7 +344,7 @@ public abstract class MixinBufferBuilder {
     }
 
     @SuppressWarnings("MissingUnique")
-    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = " net.minecraft.client.renderer.texture.TextureMap getCountRegisteredSprites ()I")
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureMap getCountRegisteredSprites ()I")
     private static native int TextureMap_getCountRegisteredSprites(TextureMap textureMap) ;
 
     @SuppressWarnings("MissingUnique")

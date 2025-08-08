@@ -58,7 +58,7 @@ public class OptiRefineBlackboard {
             "net.minecraft.client.renderer.entity.layers.LayerElytra",
             "net.minecraft.client.renderer.entity.layers.LayerEnderDragonEyes",
             "net.minecraft.client.renderer.entity.layers.LayerEndermanEyes",
-            "et.minecraft.client.renderer.entity.layers.LayerEntityOnShoulder",
+            "net.minecraft.client.renderer.entity.layers.LayerEntityOnShoulder",
             "net.minecraft.client.renderer.entity.layers.LayerMooshroomMushroom",
             "net.minecraft.client.renderer.entity.layers.LayerSheepWool",
             "net.minecraft.client.renderer.entity.layers.LayerSpiderEyes",
@@ -83,8 +83,8 @@ public class OptiRefineBlackboard {
             "net.minecraft.client.renderer.vertex.DefaultVertexFormats",
             "net.minecraft.client.renderer.vertex.VertexBuffer",
             "net.minecraft.client.renderer.BlockFluidRenderer",
-            //"net.minecraft.client.render.BlockModelRender",
-            //"net.minecraft.client.render.BlockModelRender$AmbientOcclusionFace", //TODO
+            //"net.minecraft.client.renderer.BlockModelRender",
+            //"net.minecraft.client.renderer.BlockModelRender$AmbientOcclusionFace", //TODO
             "net.minecraft.client.renderer.BlockModelRender$EnumNeighborInfo",
             "net.minecraft.client.renderer.BlockModelRender$Orientation",
             "net.minecraft.client.renderer.BlockModelRender$VertexTranslations",
@@ -97,6 +97,7 @@ public class OptiRefineBlackboard {
             "net.minecraft.client.renderer.ImageBufferDownload",
 
             "net.minecraft.client.renderer.VertexBufferUploader",
+            "net.minecraft.client.renderer.Tessellator",
 
             "net.minecraft.client.renderer.WorldVertexBufferUploader",
             "net.minecraft.client.resources.AbstractResourcePack",

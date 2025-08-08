@@ -87,7 +87,7 @@ public class OptiRefineCore implements IFMLLoadingPlugin {
             if (source.isFile()) {
                 try (FileSystem fs = FileSystems.newFileSystem(source.toPath(), (ClassLoader)null)){
                     try (InputStream inputStream = Files.newInputStream(Objects.requireNonNull(fs.getPath("/mcmod.info")))) {
-                        return MetaDataDecoder.decodeMcModInfo(inputStream).get("optifine");
+                        return MetaDataDecoder.decodeMcModInfo(inputStream).get("optirefine");
                     } catch (Throwable t) {
                         OptiRefineLog.log.error("Error loading metadata from jar: ", t);
                     }
@@ -96,7 +96,7 @@ public class OptiRefineCore implements IFMLLoadingPlugin {
                 }
             } else if (source.isDirectory()) {
                 try (InputStream inputStream = Files.newInputStream(Objects.requireNonNull(source.toPath().resolve("mcmod.info")))) {
-                    return MetaDataDecoder.decodeMcModInfo(inputStream).get("optifine");
+                    return MetaDataDecoder.decodeMcModInfo(inputStream).get("optirefine");
                 } catch (Throwable t) {
                     OptiRefineLog.log.error("Error loading metadata from jar: ", t);
                 }

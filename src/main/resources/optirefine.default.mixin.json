@@ -5,7 +5,9 @@
   "plugin": "mods.Hileb.optirefine.core.OptiRefineMixinPlugin",
   "target": "@env(DEFAULT)",
   "minVersion": "0.8.7",
-  "mixinextras": {"minVersion": "0.5.0-rc.4"},
+  "mixinextras": {
+    "minVersion": "0.5.0-rc.4"
+  },
   "compatibilityLevel": "JAVA_8",
   "mixins": [
     "minecraft.block.MixinBlockAir",
@@ -59,6 +61,7 @@
     "minecraft.client.renderer.MixinBufferBuilderState",
     "minecraft.client.renderer.MixinChunkRenderContainer",
     "minecraft.client.renderer.MixinImageBufferDownload",
+    "minecraft.client.renderer.MixinTessellator",
     "minecraft.client.renderer.MixinVertexBufferUploader",
     "minecraft.client.renderer.MixinWorldVertexBufferUploader",
     "minecraft.client.renderer.culling.MixinClippingHelper",

@@ -40,9 +40,9 @@ public abstract class MixinBlockStateContainer{
             this.bits = bitsIn;
             if (this.bits <= 4) {
                 this.bits = 4;
-                this.palette = newBlockStatePaletteLinear(this.bits, this);
+                this.palette = newBlockStatePaletteLinear(AccessibleOperation.Construction.construction(), this.bits, this);
             } else if (this.bits <= 8) {
-                this.palette = newBlockStatePaletteHashMap(this.bits, this);
+                this.palette = newBlockStatePaletteHashMap(AccessibleOperation.Construction.construction(), this.bits, this);
             } else {
                 this.palette = REGISTRY_BASED_PALETTE;
                 this.bits = MathHelper.log2DeBruijn(GameData.getBlockStateIDMap().size());
@@ -54,13 +54,13 @@ public abstract class MixinBlockStateContainer{
 
     @SuppressWarnings({"MissingUnique", "AddedMixinMembersNamePattern"})
     @AccessibleOperation(opcode = Opcodes.NEW, desc = "net.minecraft.world.chunk.BlockStatePaletteHashMap (ILnet/minecraft/world/chunk/IBlockStatePaletteResizer;)V")
-    private static BlockStatePaletteHashMap newBlockStatePaletteHashMap(int i, Object o){
+    private static BlockStatePaletteHashMap newBlockStatePaletteHashMap(AccessibleOperation.Construction construction, int i, Object o){
         throw new AbstractMethodError();
     }
 
     @SuppressWarnings({"MissingUnique", "AddedMixinMembersNamePattern"})
     @AccessibleOperation(opcode = Opcodes.NEW, desc = "net.minecraft.world.chunk.BlockStatePaletteLinear (ILnet/minecraft/world/chunk/IBlockStatePaletteResizer;)V")
-    private static BlockStatePaletteLinear newBlockStatePaletteLinear(int i, Object o){
+    private static BlockStatePaletteLinear newBlockStatePaletteLinear(AccessibleOperation.Construction construction, int i, Object o){
         throw new AbstractMethodError();
     }
 }

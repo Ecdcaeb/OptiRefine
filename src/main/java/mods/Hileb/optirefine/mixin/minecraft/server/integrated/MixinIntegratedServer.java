@@ -9,6 +9,7 @@ import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.GameSettings;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.PacketThreadUtil;
 import net.minecraft.network.play.server.SPacketChangeGameState;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.integrated.IntegratedServer;
@@ -60,14 +61,10 @@ public abstract class MixinIntegratedServer extends MinecraftServer {
     }
 
     @SuppressWarnings("unused")
-    @Unique
-    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.network.PacketThreadUtil lastDimensionId I")
-    public void _set_PacketThreadUtil_lastDimensionId_(int dim){
-        throw new AbstractMethodError();
-    }
+    @AccessibleOperation(opcode = Opcodes.PUTSTATIC, desc = "net.minecraft.network.PacketThreadUtil lastDimensionId I")
+    private static native void _set_PacketThreadUtil_lastDimensionId_(int dim);
 
     @Inject(method = "<init>", at = @At("RETURN"))
-    
     public void injectInit(Minecraft clientIn, String folderNameIn, String worldNameIn, WorldSettings worldSettingsIn, YggdrasilAuthenticationService authServiceIn, MinecraftSessionService sessionServiceIn, GameProfileRepository profileRepoIn, PlayerProfileCache profileCacheIn, CallbackInfo ci){
         NBTTagCompound nbt;
         ISaveHandler isavehandler = this.getActiveAnvilConverter().getSaveLoader(folderNameIn, false);
