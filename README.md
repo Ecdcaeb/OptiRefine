@@ -24,5 +24,6 @@ Before with Fugue
 
 After with OptiRefine
 
-<img width="847" height="477" alt="image" src="https://github.com/user-attachments/assets/7941d769-99cb-4039-8339-b43870ba3f98" />
+<img width="833" height="507" alt="image" src="https://github.com/user-attachments/assets/2c701e4b-1325-4b61-a5c7-5308e7d34528" />
+
 
