@@ -56,7 +56,6 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
-    
     private TooltipManager tooltipManager = new TooltipManager(this, new TooltipProviderOptions());
 
     @Inject(method = "initGui", at = @At("HEAD"), cancellable = true)
@@ -106,7 +105,6 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
-    
     public void actionPerformed(GuiButton button, int val) {
         if (button.enabled) {
             int guiScale = this.guiGameSettings.guiScale;
@@ -187,7 +185,6 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
-    
     protected void actionPerformedRightClick(GuiButton button) {
         if (button.id == GameSettings.Options.GUI_SCALE.ordinal()) {
             this.actionPerformed(button, -1);
@@ -220,7 +217,7 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
 
     @SuppressWarnings("unused")
     @Unique
-    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.gui func_73733_a (IIIIII)V", deobf = true)
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.gui.GuiScreen func_73733_a (IIIIII)V", deobf = true)
     private static void _acc_GuiScreen_draw(GuiScreen guiScreen, int left, int top, int right, int bottom, int startColor, int endColor){
         throw new AbstractMethodError();
     }
@@ -240,7 +237,7 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
     }
 
     @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.gui.GuiTextField field_146415_a Lnet.minecraft.client.gui.GuiTextField")
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.gui.GuiTextField field_146415_a Lnet.minecraft.client.gui.GuiTextField;")
     private static GuiTextField _acc_GuiChatAccessor_getInputField(GuiChat guiChat) {
         throw new AbstractMethodError();
     }

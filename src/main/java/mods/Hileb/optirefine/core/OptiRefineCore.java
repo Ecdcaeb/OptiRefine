@@ -78,8 +78,10 @@ public class OptiRefineCore implements IFMLLoadingPlugin {
 
     @SuppressWarnings("unused")
     public static class Container extends DummyModContainer{
+        public static ModMetadata DATA = null;
+
         public Container(){
-            super(decodeData());
+            super(DATA = decodeData());
         }
 
         private static ModMetadata decodeData() {

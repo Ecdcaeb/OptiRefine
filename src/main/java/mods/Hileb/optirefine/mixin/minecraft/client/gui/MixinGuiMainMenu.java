@@ -82,7 +82,4 @@ public abstract class MixinGuiMainMenu extends GuiScreen {
         } else this.drawGradientRect(i1, i2, i3, i4, i5, i6);
     }
 
-
-
-
 }
