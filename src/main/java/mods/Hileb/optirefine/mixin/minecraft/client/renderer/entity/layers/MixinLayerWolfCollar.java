@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(LayerWolfCollar.class)
-public class MixinLayerWolfCollar {
+public abstract class MixinLayerWolfCollar {
     @Redirect(method = "doRenderLayer(Lnet/minecraft/entity/passive/EntityWolf;FFFFFFF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/EnumDyeColor;getColorComponentValues()[F"))
     public float[] customColor(EnumDyeColor instance) {
         if (Config.isCustomColors()) {

@@ -21,7 +21,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(Render.class)
-public class MixinRender {
+public abstract class MixinRender {
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     private final Class<? extends Entity> entityClass = null;

@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import java.awt.image.BufferedImage;
 
 @Mixin(ImageBufferDownload.class)
-public class MixinImageBufferDownload {
+public abstract class MixinImageBufferDownload {
     @Shadow
     private int imageWidth;
 

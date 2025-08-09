@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(LayerEnderDragonEyes.class)
-public class MixinLayerEnderDragonEyes {
+public abstract class MixinLayerEnderDragonEyes {
     @WrapOperation(method = "doRenderLayer(Lnet/minecraft/entity/boss/EntityDragon;FFFFFFF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/ModelBase;render(Lnet/minecraft/entity/Entity;FFFFFF)V"))
     public void wrap_render(ModelBase instance, Entity entity, float v0, float v1, float v2, float v3, float v4, float v5, Operation<Void> original){
         if (Config.isShaders()) {

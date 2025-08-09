@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 
 @Mixin(Frustum.class)
-public class MixinFrustum {
+public abstract class MixinFrustum {
     @Shadow @Final
     private ClippingHelper clippingHelper;
     @Shadow

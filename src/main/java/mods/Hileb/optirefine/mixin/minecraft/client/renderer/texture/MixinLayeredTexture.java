@@ -21,7 +21,7 @@ import java.awt.image.BufferedImage;
 
 @SuppressWarnings("MissingUnique")
 @Mixin(LayeredTexture.class)
-public class MixinLayeredTexture {
+public abstract class MixinLayeredTexture {
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique

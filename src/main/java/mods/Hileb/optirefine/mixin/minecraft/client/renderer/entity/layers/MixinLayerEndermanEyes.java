@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(LayerEndermanEyes.class)
-public class MixinLayerEndermanEyes {
+public abstract class MixinLayerEndermanEyes {
 
     @WrapOperation(method = "doRenderLayer(Lnet/minecraft/entity/monster/EntityEnderman;FFFFFFF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/ModelEnderman;render(Lnet/minecraft/entity/Entity;FFFFFF)V"))
     public void wrap_render(ModelEnderman instance, Entity entity, float v0, float v1, float v2, float v3, float v4, float v5, Operation<Void> original){

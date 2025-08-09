@@ -21,7 +21,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import java.awt.image.BufferedImage;
 
 @Mixin(SimpleTexture.class)
-public class MixinSimpleTexture {
+public abstract class MixinSimpleTexture {
 
     @Shadow @Final
     protected ResourceLocation textureLocation;

@@ -23,7 +23,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(LayerMooshroomMushroom.class)
-public class MixinLayerMooshroomMushroom {
+public abstract class MixinLayerMooshroomMushroom {
     @Shadow @Final
     private RenderMooshroom mooshroomRenderer;
 

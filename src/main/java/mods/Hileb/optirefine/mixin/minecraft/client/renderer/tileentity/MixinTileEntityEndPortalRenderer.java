@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
 @Mixin(TileEntityEndPortalRenderer.class)
-public class MixinTileEntityEndPortalRenderer {
+public abstract class MixinTileEntityEndPortalRenderer {
 
     @WrapMethod(method = "render(Lnet/minecraft/tileentity/TileEntityEndPortal;DDDFIF)V")
     public void renderShader(TileEntityEndPortal te, double x, double y, double z, float partialTicks, int destroyStage, float alpha, Operation<Void> original){

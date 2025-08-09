@@ -19,7 +19,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import java.awt.image.BufferedImage;
 
 @Mixin(LayeredColorMaskTexture.class)
-public class MixinLayeredColorMaskTexture {
+public abstract class MixinLayeredColorMaskTexture {
 
     @Shadow @Final
     private ResourceLocation textureLocation;

@@ -49,10 +49,11 @@ public class OptiRefineBlackboard {
             "net.minecraft.client.particle.ParticleManager$3",
             "net.minecraft.client.particle.ParticleManager$4",
 
+            "net.minecraft.client.renderer.chunk.SetVisibility",
+            "net.minecraft.client.renderer.chunk.VisGraph",
             "net.minecraft.client.renderer.culling.ClippingHelper",
             "net.minecraft.client.renderer.culling.Frustum",
             "net.minecraft.client.renderer.debug.DebugRendererChunkBorder",
-
             "net.minecraft.client.renderer.entity.layers.LayerArmorBase",
             "net.minecraft.client.renderer.entity.layers.LayerCape",
             "net.minecraft.client.renderer.entity.layers.LayerElytra",
@@ -63,7 +64,11 @@ public class OptiRefineBlackboard {
             "net.minecraft.client.renderer.entity.layers.LayerSheepWool",
             "net.minecraft.client.renderer.entity.layers.LayerSpiderEyes",
             "net.minecraft.client.renderer.entity.layers.LayerWolfCollar",
-
+            "net.minecraft.client.renderer.entity.Render",
+            "net.minecraft.client.renderer.entity.RenderItemFrame",
+            "net.minecraft.client.renderer.entity.RenderLiving",
+            "net.minecraft.client.renderer.entity.RenderLivingBase",
+            "net.minecraft.client.renderer.entity.RenderManager",
             "net.minecraft.client.renderer.entity.RenderXPOrb",
             "net.minecraft.client.renderer.texture.AbstractTexture",
             "net.minecraft.client.renderer.texture.DynamicTexture",

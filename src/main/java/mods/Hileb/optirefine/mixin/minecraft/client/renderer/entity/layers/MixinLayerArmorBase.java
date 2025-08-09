@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(LayerArmorBase.class)
-public class MixinLayerArmorBase {
+public abstract class MixinLayerArmorBase {
 
     @WrapOperation(method = "renderArmorLayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/layers/LayerArmorBase;getArmorResource(Lnet/minecraft/entity/Entity;Lnet/minecraft/item/ItemStack;Lnet/minecraft/inventory/EntityEquipmentSlot;Ljava/lang/String;)Lnet/minecraft/util/ResourceLocation;"))
     public ResourceLocation getResources(LayerArmorBase instance, Entity entity, ItemStack stack, EntityEquipmentSlot slot, String type, Operation<ResourceLocation> original){

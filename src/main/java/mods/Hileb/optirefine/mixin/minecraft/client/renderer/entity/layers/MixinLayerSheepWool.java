@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(LayerSheepWool.class)
-public class MixinLayerSheepWool {
+public abstract class MixinLayerSheepWool {
 
     @WrapOperation(method = "doRenderLayer(Lnet/minecraft/entity/passive/EntitySheep;FFFFFFF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/passive/EntitySheep;getDyeRgb(Lnet/minecraft/item/EnumDyeColor;)[F"))
     public float[] custom_color(EnumDyeColor dyeColor, Operation<float[]> original) {

@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(LayerElytra.class)
-public class MixinLayerElytra {
+public abstract class MixinLayerElytra {
     @Shadow @Final
     private static ResourceLocation TEXTURE_ELYTRA;
 

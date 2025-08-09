@@ -87,7 +87,8 @@ unimined.minecraft {
                     !(it.canonicalPath == "${rootProject.layout.buildDirectory}/classes/java/main" ||
                             it.canonicalPath == "${rootProject.layout.buildDirectory}/resources/main")
                 }
-                classpath(project.files(tasks.jar.archiveFile.get().asFile.canonicalPath))
+
+                classpath += project.files(tasks.jar.archiveFile.get().asFile)
             }
         }
     }

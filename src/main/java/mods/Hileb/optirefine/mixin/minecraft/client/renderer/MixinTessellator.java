@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.BitSet;
 
 @Mixin(Tessellator.class)
-public class MixinTessellator {
+public abstract class MixinTessellator {
 
     @Shadow @Final
     private BufferBuilder buffer;

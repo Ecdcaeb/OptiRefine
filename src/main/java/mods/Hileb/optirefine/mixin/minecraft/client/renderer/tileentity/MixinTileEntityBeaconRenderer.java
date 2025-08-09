@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import java.util.List;
 
 @Mixin(TileEntityBeaconRenderer.class)
-public class MixinTileEntityBeaconRenderer {
+public abstract class MixinTileEntityBeaconRenderer {
 
     @WrapMethod(method = "renderBeacon")
     public void _renderBeacon(double x, double y, double z, double partialTicks, double textureScale, List<TileEntityBeacon.BeamSegment> beamSegments, double totalWorldTime, Operation<Void> original) {

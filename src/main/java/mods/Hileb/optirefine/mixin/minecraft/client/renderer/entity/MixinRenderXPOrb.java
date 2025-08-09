@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(RenderXPOrb.class)
-public class MixinRenderXPOrb {
+public abstract class MixinRenderXPOrb {
     //float u = ((float)entity.xpColor + partialTicks) / 2.0F;
     @Expression("@(? / 2.0)")
     @ModifyExpressionValue(method = "doRender(Lnet/minecraft/entity/item/EntityXPOrb;DDDFF)V", at = @At("MIXINEXTRAS:EXPRESSION"))

@@ -41,17 +41,14 @@ public abstract class MixinGuiOverlayDebug extends Gui {
 
     @SuppressWarnings("unused")
     @Unique
+    @AccessibleOperation.Reference(TextureMap.class)
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureMap getCountAnimationsActive ()I")
-    private static int _acc_TextureMap_getCountAnimationsActive_(TextureMap instance){
-        throw new AbstractMethodError();
-    }
+    private native static int _acc_TextureMap_getCountAnimationsActive_(TextureMap instance);
 
     @SuppressWarnings("unused")
     @Unique
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureMap getCountAnimations ()I")
-    private static int _acc_TextureMap_getCountAnimations_(TextureMap instance){
-        throw new AbstractMethodError();
-    }
+    private native static int _acc_TextureMap_getCountAnimations_(TextureMap instance);
 
     @Inject(method = "call", at = @At("RETURN"), cancellable = true)
     public void injectCall(CallbackInfoReturnable<List<String>> cir){

@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(WorldVertexBufferUploader.class)
-public class MixinWorldVertexBufferUploader {
+public abstract class MixinWorldVertexBufferUploader {
     @Inject(method = "draw", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/BufferBuilder;getVertexFormat()Lnet/minecraft/client/renderer/vertex/VertexFormat;"))
     public void beforeDraw(BufferBuilder vertexBufferIn, CallbackInfo ci){
         if (vertexBufferIn.getDrawMode() == 7 && Config.isQuadsToTriangles()) {

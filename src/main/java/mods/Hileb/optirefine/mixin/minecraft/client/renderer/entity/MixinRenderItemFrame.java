@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(RenderItemFrame.class)
-public class MixinRenderItemFrame {
+public abstract class MixinRenderItemFrame {
 
     @Shadow @Final
     private Minecraft mc;

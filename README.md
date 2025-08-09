@@ -8,7 +8,7 @@ Post incompatible issues of optifine here!
 
 [✔] Disable OptiFineClassTransformer as it make file replacement
 
-[*] Reimplement OptiFine with mixin (137/250) !!! Note that currently builds from actions are in a hybrid state, unstable and unsuitable for use.
+[*] Reimplement OptiFine with mixin (148/250) !!! Note that currently builds from actions are in a hybrid state, unstable and unsuitable for use.
 
 [] Fix optifine and update to lwjgl3
 

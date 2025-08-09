@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(VertexBufferUploader.class)
-public class MixinVertexBufferUploader {
+public abstract class MixinVertexBufferUploader {
     @Shadow
     private VertexBuffer vertexBuffer;
 
