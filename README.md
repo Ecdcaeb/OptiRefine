@@ -20,9 +20,9 @@ Mod conflict fixes
 
 ### Medium Priority:
 
-Later GL support
+Latest GL support
 
-Later OptiFine features
+Latest OptiFine features
 
 ### Low Priority:
 
