@@ -95,6 +95,7 @@
     "minecraft.client.resources.MixinDefaultResourcePack",
     "minecraft.client.resources.MixinI18n",
     "minecraft.client.resources.MixinResourcePackRepository",
+    "minecraft.client.settings.MixinGameSettings",
     "minecraft.client.settings.MixinGameSettingsOption",
     "minecraft.server.integrated.MixinIntegratedServer",
     "minecraft.util.MixinScreenShotHelper",

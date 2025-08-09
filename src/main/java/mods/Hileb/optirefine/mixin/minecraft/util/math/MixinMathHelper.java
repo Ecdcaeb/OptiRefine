@@ -52,7 +52,7 @@ public abstract class MixinMathHelper {
     private static float[] _ACC_SIN_TABLE_FAST;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique @Public
-    private static final boolean fastMath = false;
+    private static boolean fastMath = false;
     @Shadow @Final
     private static float[] SIN_TABLE;
     @SuppressWarnings("unused")

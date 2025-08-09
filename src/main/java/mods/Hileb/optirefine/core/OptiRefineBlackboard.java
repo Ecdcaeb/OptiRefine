@@ -107,6 +107,7 @@ public class OptiRefineBlackboard {
             "net.minecraft.client.resources.ResourcePackRepository$2",
             "net.minecraft.client.resources.ResourcePackRepository$3",
             "net.minecraft.client.resources.ResourcePackRepository$Entry",
+            "net.minecraft.client.settings.GameSettings",
             "net.minecraft.client.settings.GameSettings$1",
             "net.minecraft.client.settings.GameSettings$2",
             "net.minecraft.client.settings.GameSettings$Options",

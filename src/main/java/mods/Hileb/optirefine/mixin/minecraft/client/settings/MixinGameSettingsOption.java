@@ -3,9 +3,15 @@ package mods.Hileb.optirefine.mixin.minecraft.client.settings;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.settings.GameSettings;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraftforge.common.util.EnumHelper;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import java.io.File;
 
 @Mixin(GameSettings.Options.class)
 public abstract class MixinGameSettingsOption {
@@ -158,5 +164,4 @@ public abstract class MixinGameSettingsOption {
     @Unique @Public private static final GameSettings.Options SHOW_GL_ERRORS = EnumHelper.addEnum(GameSettings.Options.class, "SHOW_GL_ERRORS", _optirefine_args0, "of.options.SHOW_GL_ERRORS", false, false);
     @SuppressWarnings("unused")
     @Unique @Public private static final GameSettings.Options SMART_ANIMATIONS = EnumHelper.addEnum(GameSettings.Options.class, "SMART_ANIMATIONS", _optirefine_args0,"of.options.SMART_ANIMATIONS", false, false);
-
 }

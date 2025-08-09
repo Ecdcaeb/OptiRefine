@@ -13,7 +13,10 @@ import org.objectweb.asm.util.ASMifier;
 import org.objectweb.asm.util.CheckClassAdapter;
 import org.objectweb.asm.util.TraceClassVisitor;
 import org.spongepowered.asm.util.Annotations;
+import top.outlands.foundation.boot.ActualClassLoader;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.util.*;
 import java.util.function.Predicate;
@@ -386,24 +389,34 @@ public class CursedMixinExtensions {
 
         transformCalls(targetClass, tasks.toArray(CallTransformTask[]::new));
 
-        if (true) {
+        if (DUMP) {
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            PrintStream printStream = new PrintStream(byteArrayOutputStream);
             try{
                 ClassWriter classWriter = new NonLoadingClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
+
                 targetClass.accept(new TraceClassVisitor(new ClassVisitor(Opcodes.ASM9, classWriter) {
                     @Override
+                    public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+                        printStream.printf("NEW CLASS %s %s", name);
+                        super.visit(version, access, name, signature, superName, interfaces);
+                    }
+
+                    @Override
                     public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
-                        OptiRefineLog.log.info("NEW METHOD {} {}", name, descriptor);
+                        printStream.printf("NEW METHOD %s %s", name, descriptor);
                         try {
                             return super.visitMethod(access, name, descriptor, signature, exceptions);
                         } catch (Throwable throwable) {
-                            throwable.printStackTrace();
+                            throwable.printStackTrace(printStream);
                             return new MethodVisitor(Opcodes.ASM9, null) {};
                         }
                     }
-                }, new ASMifier(), new PrintWriter(System.out)));
+                }, new ASMifier(), new PrintWriter(printStream)));
                 classWriter.toByteArray();
             }catch (Throwable t) {
-                t.printStackTrace();
+                t.printStackTrace(printStream);
+                System.err.print(byteArrayOutputStream.toByteArray());
             }
         }
     }
@@ -419,6 +432,9 @@ public class CursedMixinExtensions {
             }
         }
     }
+
+    private static final boolean DUMP = Boolean.parseBoolean(System.getProperty("foundation.dump", "false"));
+
     public static AbstractInsnNode findPreviousNode(AbstractInsnNode start,
                                                     Predicate<AbstractInsnNode> checkNode) {
         final int MAX_SEARCH = 10000;

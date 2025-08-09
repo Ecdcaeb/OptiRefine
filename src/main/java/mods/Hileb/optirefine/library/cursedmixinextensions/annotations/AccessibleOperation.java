@@ -1,5 +1,7 @@
 package mods.Hileb.optirefine.library.cursedmixinextensions.annotations;
 
+import org.spongepowered.asm.mixin.injection.Desc;
+
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
@@ -40,4 +42,14 @@ public @interface AccessibleOperation {
             return null;
         }
     }
+
+    @Retention(RetentionPolicy.SOURCE)
+    @interface Reference{
+        Class<?> value();
+        Desc desc() default @Desc("");
+    }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface BuildIn{}
+
 }
