@@ -1,19 +1,15 @@
 package mods.Hileb.optirefine.library.cursedmixinextensions;
 
-import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import mods.Hileb.optirefine.core.OptiRefineLog;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.*;
 import mods.Hileb.optirefine.library.cursedmixinextensions.util.CallTransformTask;
 import mods.Hileb.optirefine.library.foundationx.asm.NonLoadingClassWriter;
 import net.minecraftforge.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper;
-import net.minecraftforge.fml.common.launcher.FMLDeobfTweaker;
 import org.objectweb.asm.*;
 import org.objectweb.asm.tree.*;
 import org.objectweb.asm.util.ASMifier;
-import org.objectweb.asm.util.CheckClassAdapter;
 import org.objectweb.asm.util.TraceClassVisitor;
 import org.spongepowered.asm.util.Annotations;
-import top.outlands.foundation.boot.ActualClassLoader;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
@@ -74,6 +70,11 @@ public class CursedMixinExtensions {
 
         for (MethodNode method : targetClass.methods) {
             boolean remove = false;
+
+            AnnotationNode signFix = Annotations.getVisible(method, SignatureFix.class);
+            if (signFix != null) {
+                method.signature = ((String)Annotations.getValue(signFix)).replace('.', '/');
+            }
 
             if (Annotations.getVisible(method, ShadowSuperConstructor.class) != null) {
                 OptiRefineLog.log.debug("ShadowSuperConstructor Instance, {}", method.name);

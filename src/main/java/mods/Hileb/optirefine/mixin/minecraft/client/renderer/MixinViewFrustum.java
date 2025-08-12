@@ -1,5 +1,7 @@
 package mods.Hileb.optirefine.mixin.minecraft.client.renderer;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.renderer.ViewFrustum;
@@ -32,10 +34,11 @@ public abstract class MixinViewFrustum {
     @Unique
     private Map<ChunkPos, VboRegion[]> optiRefine$mapVboRegions = new HashMap<>();
 
-    @Inject(method = "createRenderChunks", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/chunk/RenderChunk;setPosition(III)V"))
-    public void updateMapVboRegions(IRenderChunkFactory renderChunkFactory, CallbackInfo ci){
+    @WrapOperation(method = "createRenderChunks", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/chunk/RenderChunk;setPosition(III)V"))
+    public void updateMapVboRegions(RenderChunk instance, int i, int x, int y, Operation<Void> original){
+        original.call(instance, i, x, y);
         if (Config.isVbo() && Config.isRenderRegions()) {
-            this.optiRefine$updateVboRegion(this.renderChunks[j1]);
+            this.optiRefine$updateVboRegion(instance);
         }
     }
 
@@ -46,7 +49,7 @@ public abstract class MixinViewFrustum {
                 EnumFacing facing = EnumFacing.VALUES[l];
                 BlockPos posOffset16 = renderChunk.getBlockPosOffset16(facing);
                 RenderChunk neighbour = this.getRenderChunk(posOffset16);
-                renderChunk.setRenderChunkNeighbour(facing, neighbour);
+                RenderChunk_setRenderChunkNeighbour(renderChunk, facing, neighbour);
             }
         }
     }

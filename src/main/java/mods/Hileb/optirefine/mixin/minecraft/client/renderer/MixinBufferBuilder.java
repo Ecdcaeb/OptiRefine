@@ -228,19 +228,19 @@ public abstract class MixinBufferBuilder {
     }
 
     @SuppressWarnings("MissingUnique")
-    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite toSingleU (D)D")
-    private static native double TextureAtlasSprite_toSingleU(TextureAtlasSprite textureAtlasSprite, double arg1);
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite toSingleU (F)F")
+    private static native float TextureAtlasSprite_toSingleU(TextureAtlasSprite textureAtlasSprite, float arg1);
 
     @SuppressWarnings("MissingUnique")
-    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite toSingleV (D)D")
-    private static native double TextureAtlasSprite_toSingleV(TextureAtlasSprite textureAtlasSprite, double arg1);
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite toSingleV (F)F")
+    private static native float TextureAtlasSprite_toSingleV(TextureAtlasSprite textureAtlasSprite, float arg1);
 
 
     @WrapMethod(method = "tex")
     public BufferBuilder beforeTex(double u, double v, Operation<BufferBuilder> original){
         if (this.quadSprite != null && this.quadSprites != null) {
-            u = TextureAtlasSprite_toSingleU(this.quadSprite, u);
-            v = TextureAtlasSprite_toSingleV(this.quadSprite, v);
+            u = TextureAtlasSprite_toSingleU(this.quadSprite, (float) u);
+            v = TextureAtlasSprite_toSingleV(this.quadSprite, (float) v);
             this.quadSprites[this.vertexCount / 4] = this.quadSprite;
         }
         return original.call(u, v);
