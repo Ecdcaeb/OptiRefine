@@ -3,16 +3,22 @@ package mods.Hileb.optirefine.core;
 import com.google.common.eventbus.EventBus;
 import jakarta.annotation.Nullable;
 import mods.Hileb.optirefine.OptiRefine;
+import mods.Hileb.optirefine.core.transformer.OptiRefineConfigTransformer;
 import mods.Hileb.optirefine.core.transformer.dev.OptifineDevTweakerTransformer;
 import mods.Hileb.optirefine.core.transformer.dev.OptifineDevUtilTransformer;
 import mods.Hileb.optirefine.core.transformer.OptifineTransformerTransformer;
+import mods.Hileb.optirefine.library.cursedmixinextensions.CursedMixinExtensions;
 import mods.Hileb.optirefine.library.fmlmodhacker.MetaDataDecoder;
 import mods.Hileb.optirefine.library.foundationx.TransformerHelper;
 import net.minecraftforge.fml.common.DummyModContainer;
 import net.minecraftforge.fml.common.LoadController;
+import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.ModMetadata;
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
 import org.apache.logging.log4j.Logger;
+import org.objectweb.asm.tree.ClassNode;
+import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
+import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,8 +26,10 @@ import java.io.InputStream;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 @IFMLLoadingPlugin.SortingIndex(1000)
 @IFMLLoadingPlugin.Name(OptiRefine.NAME)
@@ -128,6 +136,83 @@ public class OptiRefineCore implements IFMLLoadingPlugin {
         @Override
         public boolean registerBus(EventBus bus, LoadController controller) {
             return true;
+        }
+    }
+
+    public static class DefaultMixinPlugin implements IMixinConfigPlugin {
+        @Override
+        public void onLoad(String s) {
+
+        }
+
+        @Override
+        public String getRefMapperConfig() {
+            return null;
+        }
+
+        @Override
+        public boolean shouldApplyMixin(String s, String s1) {
+            return true;
+        }
+
+        @Override
+        public void acceptTargets(Set<String> set, Set<String> set1) {
+
+        }
+
+        @Override
+        public List<String> getMixins() {
+            return null;
+        }
+
+        @Override
+        public void preApply(String s, ClassNode classNode, String s1, IMixinInfo iMixinInfo) {
+
+        }
+
+        @Override
+        public void postApply(String s, ClassNode classNode, String s1, IMixinInfo iMixinInfo) {
+            CursedMixinExtensions.postApply(classNode);
+            OptiRefineConfigTransformer.transform(classNode);
+        }
+    }
+
+    public static class ModMixinPlugin implements IMixinConfigPlugin {
+        @Override
+        public void onLoad(String s) {
+
+        }
+
+        @Override
+        public String getRefMapperConfig() {
+            return "";
+        }
+
+        @Override
+        public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
+            //mods.Hileb.optirefine.mixin.mods.<modId>.path.MixinClass
+            String modId = mixinClassName.split("\\.")[5];
+            return Loader.isModLoaded(modId);
+        }
+
+        @Override
+        public void acceptTargets(Set<String> set, Set<String> set1) {
+
+        }
+
+        @Override
+        public List<String> getMixins() {
+            return List.of();
+        }
+
+        @Override
+        public void preApply(String s, ClassNode classNode, String s1, IMixinInfo iMixinInfo) {
+
+        }
+
+        @Override
+        public void postApply(String s, ClassNode classNode, String s1, IMixinInfo iMixinInfo) {
+            CursedMixinExtensions.postApply(classNode);
         }
     }
 }

@@ -177,6 +177,7 @@ public class CursedMixinExtensions {
             AnnotationNode accessibleOperation = Annotations.getVisible(method, AccessibleOperation.class);
             if (accessibleOperation != null) {
                 OptiRefineLog.log.debug("Accessible Operation Instance, {}", method.name);
+                boolean isBuildIn = Annotations.getVisible(method, AccessibleOperation.BuildIn.class) != null;
                 methodToRemove.add(method);
                 int opcodes = Annotations.getValue(accessibleOperation, "opcode", Opcodes.NOP);
                 String desc = Annotations.getValue(accessibleOperation, "desc");
@@ -184,13 +185,31 @@ public class CursedMixinExtensions {
                 boolean itf = Annotations.getValue(accessibleOperation, "itf", Boolean.FALSE);
                 boolean deobf = Annotations.getValue(accessibleOperation, "deobf", Boolean.FALSE);
 
+                if (isBuildIn) {
+                    method.access = method.access & ~(Opcodes.ACC_NATIVE | Opcodes.ACC_ABSTRACT);
+                }
                 if (opcodes == Opcodes.NOP) {
                     OptiRefineLog.log.debug("AccessibleOperation {} : NOP", targetClass.name);
-                    tasks.add((instructions, call) -> {
-                        if (call.owner.equals(targetClass.name) && call.name.equals(method.name) && call.desc.equals(method.desc)) {
-                            instructions.remove(call);
-                        }
-                    });
+                    if (isBuildIn) {
+                        String rt = Type.getMethodType(desc).getReturnType().toString();
+                        if (rt.startsWith("L")) {
+                            method.visitInsn(Opcodes.ARETURN);
+                        } else if ("J".equals(rt)) {
+                            method.visitInsn(Opcodes.LRETURN);
+                        } else if ("D".equals(rt)) {
+                            method.visitInsn(Opcodes.DRETURN);
+                        } else if ("F".equals(rt)) {
+                            method.visitInsn(Opcodes.FRETURN);
+                        } else if ("V".equals(rt)) {
+                            method.visitInsn(Opcodes.RETURN);
+                        } else method.visitInsn(Opcodes.IRETURN);
+                    } else {
+                        tasks.add((instructions, call) -> {
+                            if (call.owner.equals(targetClass.name) && call.name.equals(method.name) && call.desc.equals(method.desc)) {
+                                instructions.remove(call);
+                            }
+                        });
+                    }
                 } else if (opcodes == Opcodes.NEW) {
                     String[] str = desc.split(" ");
                     final String owner;

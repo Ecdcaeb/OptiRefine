@@ -2,6 +2,8 @@ package mods.Hileb.optirefine.core.transformer;
 
 import mods.Hileb.optirefine.core.OptiRefineBlackboard;
 import mods.Hileb.optirefine.library.foundationx.TransformerHelper;
+import net.minecraftforge.fml.common.asm.transformers.EventSubscriberTransformer;
+import net.minecraftforge.fml.common.asm.transformers.EventSubscriptionTransformer;
 import org.objectweb.asm.commons.Remapper;
 import org.objectweb.asm.commons.SimpleRemapper;
 import org.objectweb.asm.tree.ClassNode;
