@@ -36,11 +36,11 @@ Continue optimization
 
 OptiRefine does not perform any special repairs, which may prove to be universal.
 
-Before with Fugue
+with Fugue
 
 <img width="851" height="477" alt="image" src="https://github.com/user-attachments/assets/9ac12224-b8dd-42f0-ba33-2975854a0fef" />
 
-After with OptiRefine
+with OptiRefine
 
 <img width="833" height="507" alt="image" src="https://github.com/user-attachments/assets/2c701e4b-1325-4b61-a5c7-5308e7d34528" />
 
