@@ -7,6 +7,7 @@ import org.objectweb.asm.tree.MethodInsnNode;
 public interface CallTransformTask {
     void transform(InsnList method, MethodInsnNode methodInsnNode);
 
+    @SuppressWarnings("unused")
     @FunctionalInterface
     interface Simple extends CallTransformTask{
         @Override

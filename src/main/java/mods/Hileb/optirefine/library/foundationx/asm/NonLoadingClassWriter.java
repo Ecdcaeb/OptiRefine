@@ -23,10 +23,12 @@ public class NonLoadingClassWriter extends ClassWriter {
 
     private final ClassLoader loader;
 
+    @SuppressWarnings("unused")
     public NonLoadingClassWriter(int flags) {
         this(Launch.classLoader, flags);
     }
 
+    @SuppressWarnings("unused")
     public NonLoadingClassWriter(ClassLoader loader, int flags) {
         super(flags);
         this.loader = loader == null ? ClassLoader.getSystemClassLoader() : loader;
@@ -73,6 +75,7 @@ public class NonLoadingClassWriter extends ClassWriter {
         return false;
     }
 
+    @SuppressWarnings("unused")
     @Override
     protected String getCommonSuperClass(String a, String b) {
         if ("java/lang/Object".equals(a) || "java/lang/Object".equals(b)) return "java/lang/Object";

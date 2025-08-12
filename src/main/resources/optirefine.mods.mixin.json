@@ -1,0 +1,15 @@
+{
+  "package": "mods.Hileb.optirefine.mixin.mods",
+  "required": true,
+  "refmap": "optifine.refmap.json",
+  "plugin": "mods.Hileb.optirefine.core.OptiRefineCore$ModMixinPlugin",
+  "target": "@env(MOD)",
+  "minVersion": "0.8.7",
+  "mixinextras": {
+    "minVersion": "0.5.0-rc.4"
+  },
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+
+  ]
+}

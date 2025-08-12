@@ -3,7 +3,6 @@ import org.codehaus.groovy.runtime.MethodClosure
 
 ext.propertyString = this.&propertyString as MethodClosure
 ext.propertyBool = this.&propertyBool as MethodClosure
-ext.propertyInteger = this.&propertyInteger as MethodClosure
 ext.propertyStringList = this.&propertyStringList as MethodClosure
 ext.interpolate = this.&interpolate as MethodClosure
 ext.assertProperty = this.&assertProperty as MethodClosure
@@ -17,10 +16,6 @@ String propertyString(String key) {
 
 boolean propertyBool(String key) {
     return propertyString(key).toBoolean()
-}
-
-int propertyInteger(String key){
-    return propertyString(key).toInteger()
 }
 
 Collection<String> propertyStringList(String key) {
@@ -90,7 +85,7 @@ void setDefaultProperty(String propertyName, boolean warn, defaultValue) {
     }
 }
 
-static void assertEnvironmentVariable(String propertyName) {
+void assertEnvironmentVariable(String propertyName) {
     def property = System.getenv(propertyName)
     if (property == null) {
         throw new GradleException("System Environment Variable $propertyName is not defined!")

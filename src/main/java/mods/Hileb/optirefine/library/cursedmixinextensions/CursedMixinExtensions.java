@@ -1,26 +1,36 @@
 package mods.Hileb.optirefine.library.cursedmixinextensions;
 
+import mods.Hileb.optirefine.core.OptiRefineLog;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.*;
 import mods.Hileb.optirefine.library.cursedmixinextensions.util.CallTransformTask;
+import mods.Hileb.optirefine.library.foundationx.asm.NonLoadingClassWriter;
 import net.minecraftforge.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
+import org.objectweb.asm.*;
 import org.objectweb.asm.tree.*;
+import org.objectweb.asm.util.ASMifier;
+import org.objectweb.asm.util.TraceClassVisitor;
 import org.spongepowered.asm.util.Annotations;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.util.*;
+import java.util.function.Predicate;
 
 /**
  * @author LlamaLad7
  * @author Cat Core
  * @author Hileb
  */
-@SuppressWarnings("all")
+
+@SuppressWarnings("unused")
 public class CursedMixinExtensions {
     public static void postApply(ClassNode targetClass) {
-        LinkedList<CallTransformTask> tasks = new LinkedList<>();
-        AnnotationNode changeSuperClass = Annotations.getVisible(targetClass, ChangeSuperClass.class);
+        OptiRefineLog.log.debug("OptiRefine for !!! {}", targetClass.name);
 
+        LinkedList<CallTransformTask> tasks = new LinkedList<>();
+
+        AnnotationNode changeSuperClass = Annotations.getVisible(targetClass, ChangeSuperClass.class);
         if (changeSuperClass != null) {
             String oldOwner = targetClass.superName;
             targetClass.superName = Annotations.<Type>getValue(changeSuperClass).getInternalName();
@@ -31,13 +41,44 @@ public class CursedMixinExtensions {
             });
         }
 
-        List<String> ctrToReplace = new ArrayList<>();
+        AnnotationNode implementsItf = Annotations.getVisible(targetClass, Implements.class);
+        if (implementsItf != null) {
+            ListIterator<Object> iterator = implementsItf.values.listIterator();
+            while (iterator.hasNext()) {
+                Object current = iterator.next();
+                if ("value".equals(current)) {
+                    //noinspection unchecked
+                    for (Type type : (List<Type>) iterator.next()) {
+                        if (!targetClass.interfaces.contains(type.getInternalName())) {
+                            targetClass.interfaces.add(type.getInternalName());
+                        }
+                    }
+                } else if ("itfs".equals(current)) {
+                    //noinspection unchecked
+                    for (String type : (List<String>) iterator.next()) {
+                        type = type.replace('.', '/');
+                        if (!targetClass.interfaces.contains(type)) {
+                            targetClass.interfaces.add(type);
+                        }
+                    }
+                }
+            }
+        }
 
-        for (ListIterator<MethodNode> it = targetClass.methods.listIterator(); it.hasNext(); ) {
-            MethodNode method = it.next();
+        List<String> ctrToReplace = new ArrayList<>();
+        LinkedHashSet<MethodNode> methodToRemove = new LinkedHashSet<>();
+
+        for (MethodNode method : targetClass.methods) {
+            boolean remove = false;
+
+            AnnotationNode signFix = Annotations.getVisible(method, SignatureFix.class);
+            if (signFix != null) {
+                method.signature = ((String)Annotations.getValue(signFix)).replace('.', '/');
+            }
 
             if (Annotations.getVisible(method, ShadowSuperConstructor.class) != null) {
-                it.remove();
+                OptiRefineLog.log.debug("ShadowSuperConstructor Instance, {}", method.name);
+                methodToRemove.add(method);
                 tasks.add((instructions, call) -> {
                     if (call.name.equals(method.name) && call.desc.equals(method.desc)) {
                         call.setOpcode(Opcodes.INVOKESPECIAL);
@@ -45,24 +86,23 @@ public class CursedMixinExtensions {
                         call.owner = targetClass.superName;
                     }
                 });
-                continue;
             }
 
             if (Annotations.getVisible(method, ShadowConstructor.class) != null) {
-                it.remove();
+                OptiRefineLog.log.debug("ShadowConstructor Instance, {}", method.name);
+                methodToRemove.add(method);
                 tasks.add((instructions, call) -> {
                     if (call.name.equals(method.name) && call.desc.equals(method.desc)) {
                         call.setOpcode(Opcodes.INVOKESPECIAL);
                         call.name = "<init>";
                     }
                 });
-                continue;
             }
 
             AnnotationNode superMethod = Annotations.getVisible(method, ShadowSuper.class);
-
             if (superMethod != null) {
-                it.remove();
+                OptiRefineLog.log.debug("ShadowSuper Instance, {}", method.name);
+                methodToRemove.add(method);
                 String targetName = Annotations.getValue(superMethod);
 
                 tasks.add((instructions, call) -> {
@@ -73,15 +113,16 @@ public class CursedMixinExtensions {
                     }
                 });
 
-                continue;
             }
 
             if (Annotations.getVisible(method, Public.class) != null) {
+                OptiRefineLog.log.debug("Public Instance, {}", method.name);
                 method.access |= Opcodes.ACC_PUBLIC;
                 method.access &= ~(Opcodes.ACC_PRIVATE | Opcodes.ACC_PROTECTED);
             }
 
             if (Annotations.getVisible(method, NewConstructor.class) != null) {
+                OptiRefineLog.log.debug("NewConstructor Instance, {}", method.name);
                 tasks.add((instructions, call) -> {
                     if (call.name.equals(method.name) && call.desc.equals(method.desc)) {
                         call.setOpcode(Opcodes.INVOKESPECIAL);
@@ -92,6 +133,7 @@ public class CursedMixinExtensions {
             }
 
             if (Annotations.getVisible(method, ReplaceConstructor.class) != null) {
+                OptiRefineLog.log.debug("ReplaceConstructor Instance, {}", method.name);
                 ctrToReplace.add(method.desc);
                 tasks.add((instructions, call) -> {
                     if (call.name.equals(method.name) && call.desc.equals(method.desc)) {
@@ -102,32 +144,72 @@ public class CursedMixinExtensions {
                 method.name = "<init>";
             }
 
-            if (Annotations.getVisible(method, AccessibleOperation.class) != null) {
-                it.remove();
-                int opcodes = 0;
-                String desc = null;
-                boolean itf = false;
-                boolean deobf = false;
-                ListIterator<Object> iterator = Annotations.getVisible(method, AccessibleOperation.class).values.listIterator();
-                while (iterator.hasNext()) {
-                    Object current = iterator.next();
-                    if ("opcode".equals(current)) {
-                        opcodes = (Integer) iterator.next();
-                    } else if ("desc".equals(current)){
-                        desc = ((String) iterator.next()).replace('.', '/');
-                    } else if ("itf".equals(current)) {
-                        itf = (Boolean) iterator.next();
-                    } else if ("deobf".equals(current)) {
-                        deobf = (Boolean) iterator.next();
+            AnnotationNode accessTransform = Annotations.getVisible(method, AccessTransformer.class);
+            if (accessTransform != null) {
+                OptiRefineLog.log.debug("Accessible Transformer Instance, {}", method.name);
+                methodToRemove.add(method);
+                int access = Annotations.getValue(accessTransform, "access", -1);
+                String name = Annotations.getValue(accessTransform, "name");
+                if(name != null) name = name.replace('.', '/');
+                boolean deobf = Annotations.getValue(accessTransform, "deobf", Boolean.FALSE);
+
+                if ("<class>".equals(name)) {
+                    targetClass.access = access;
+                } else {
+                    String desc = method.desc;
+                    if (access == -1) access = method.access;
+                    if (name == null) name = method.name;
+
+                    if (deobf) {
+                        name = FMLDeobfuscatingRemapper.INSTANCE.mapMethodName(targetClass.name, name, desc);
+                        desc = FMLDeobfuscatingRemapper.INSTANCE.mapMethodDesc(desc);
+                    }
+
+                    for (MethodNode mn : targetClass.methods) {
+                        if (mn.name.equals(name) && mn.desc.equals(desc)) {
+                            mn.access = access;
+                        }
                     }
                 }
+
+            }
+
+            AnnotationNode accessibleOperation = Annotations.getVisible(method, AccessibleOperation.class);
+            if (accessibleOperation != null) {
+                OptiRefineLog.log.debug("Accessible Operation Instance, {}", method.name);
+                boolean isBuildIn = Annotations.getVisible(method, AccessibleOperation.BuildIn.class) != null;
+                methodToRemove.add(method);
+                int opcodes = Annotations.getValue(accessibleOperation, "opcode", Opcodes.NOP);
+                String desc = Annotations.getValue(accessibleOperation, "desc");
+                if(desc != null) desc = desc.replace('.','/');
+                boolean itf = Annotations.getValue(accessibleOperation, "itf", Boolean.FALSE);
+                boolean deobf = Annotations.getValue(accessibleOperation, "deobf", Boolean.FALSE);
+
+                if (isBuildIn) {
+                    method.access = method.access & ~(Opcodes.ACC_NATIVE | Opcodes.ACC_ABSTRACT);
+                }
                 if (opcodes == Opcodes.NOP) {
-                    tasks.add((instructions, call) -> {
-                        if (call.owner.equals(targetClass.name) && call.name.equals(method.name) && call.desc.equals(method.desc)) {
-                            instructions.insert(call, new InsnNode(Opcodes.NOP));
-                            instructions.remove(call);
-                        }
-                    });
+                    OptiRefineLog.log.debug("AccessibleOperation {} : NOP", targetClass.name);
+                    if (isBuildIn) {
+                        String rt = Type.getMethodType(desc).getReturnType().toString();
+                        if (rt.startsWith("L")) {
+                            method.visitInsn(Opcodes.ARETURN);
+                        } else if ("J".equals(rt)) {
+                            method.visitInsn(Opcodes.LRETURN);
+                        } else if ("D".equals(rt)) {
+                            method.visitInsn(Opcodes.DRETURN);
+                        } else if ("F".equals(rt)) {
+                            method.visitInsn(Opcodes.FRETURN);
+                        } else if ("V".equals(rt)) {
+                            method.visitInsn(Opcodes.RETURN);
+                        } else method.visitInsn(Opcodes.IRETURN);
+                    } else {
+                        tasks.add((instructions, call) -> {
+                            if (call.owner.equals(targetClass.name) && call.name.equals(method.name) && call.desc.equals(method.desc)) {
+                                instructions.remove(call);
+                            }
+                        });
+                    }
                 } else if (opcodes == Opcodes.NEW) {
                     String[] str = desc.split(" ");
                     final String owner;
@@ -154,13 +236,20 @@ public class CursedMixinExtensions {
                         _opt_desc = null;
                     }
 
+                    OptiRefineLog.log.debug("AccessibleOperation {} : NEW : {}, {}, {}", targetClass.name, owner, "<init>", _opt_desc);
                     tasks.add((instructions, call) -> {
                         if (call.owner.equals(targetClass.name) && call.name.equals(method.name) && call.desc.equals(method.desc)) {
-                            instructions.insertBefore(call, new TypeInsnNode(Opcodes.NEW, owner));
-                            instructions.insertBefore(call, new InsnNode(Opcodes.DUP));
-                            call.owner = owner;
+                            AbstractInsnNode construction = findPreviousNode(call, (n)-> n instanceof MethodInsnNode methodInsnNode &&
+                                    "mods/Hileb/optirefine/library/cursedmixinextensions/annotations/AccessibleOperation$Construction".equals(methodInsnNode.owner) &&
+                                    "construction".equals(methodInsnNode.name));
+                            InsnList insnNodes = new InsnList();
+                            insnNodes.add(new TypeInsnNode(Opcodes.NEW, owner.replace('.', '/')));
+                            insnNodes.add(new InsnNode(Opcodes.DUP));
+                            instructions.insertBefore(construction, insnNodes);
+                            instructions.remove(construction);
+                            call.owner = owner.replace('.', '/');
                             call.name = "<init>";
-                            call.desc = _opt_desc;
+                            call.desc = _opt_desc.replace('.', '/');
                             call.itf = false;
                             call.setOpcode(Opcodes.INVOKESPECIAL);
                         }
@@ -171,9 +260,10 @@ public class CursedMixinExtensions {
                     if (deobf) {
                         owner = FMLDeobfuscatingRemapper.INSTANCE.map(desc);
                     } else owner = desc;
+                    OptiRefineLog.log.debug("AccessibleOperation {} : INSTANCEOF : {}", targetClass.name, owner);
                     tasks.add((instructions, call) -> {
                         if (call.owner.equals(targetClass.name) && call.name.equals(method.name) && call.desc.equals(method.desc)) {
-                            instructions.insert(call, new TypeInsnNode(Opcodes.INSTANCEOF, owner));
+                            instructions.insert(call, new TypeInsnNode(Opcodes.INSTANCEOF, owner.replace('.', '/')));
                             instructions.remove(call);
                         }
                     });
@@ -184,31 +274,66 @@ public class CursedMixinExtensions {
                     final String name;
                     final String _opt_desc;
                     final boolean itf_ = itf;
-                    if (str.length == 2) {
-                        if (deobf) {
-                            owner = FMLDeobfuscatingRemapper.INSTANCE.map(targetClass.name);
-                            name = FMLDeobfuscatingRemapper.INSTANCE.mapMethodName(targetClass.name, str[0], str[1]);
-                            _opt_desc = FMLDeobfuscatingRemapper.INSTANCE.mapMethodDesc(str[1]);
+
+                    if (opcodes >= Opcodes.GETSTATIC && opcodes <= Opcodes.PUTFIELD) {
+                        if (str.length == 2) {
+                            if (deobf) {
+                                owner = FMLDeobfuscatingRemapper.INSTANCE.map(targetClass.name);
+                                name = FMLDeobfuscatingRemapper.INSTANCE.mapFieldName(targetClass.name, str[0], str[1]);
+                                _opt_desc = FMLDeobfuscatingRemapper.INSTANCE.mapDesc(str[1]);
+                            } else {
+                                owner = targetClass.name;
+                                name = str[0];
+                                _opt_desc = str[1];
+                            }
+                        } else if (str.length == 3) {
+                            if (deobf) {
+                                owner = FMLDeobfuscatingRemapper.INSTANCE.map(str[0]);
+                                name = FMLDeobfuscatingRemapper.INSTANCE.mapFieldName(str[0], str[1], str[2]);
+                                _opt_desc = FMLDeobfuscatingRemapper.INSTANCE.mapDesc(str[2]);
+                            } else {
+                                owner = str[0];
+                                name = str[1];
+                                _opt_desc = str[2];
+                            }
                         } else {
-                            owner = targetClass.name;
-                            name = str[0];
-                            _opt_desc = str[1];
+                            owner = null;
+                            name = null;
+                            _opt_desc = null;
                         }
-                    } else if (str.length == 3) {
-                        if (deobf) {
-                            owner = FMLDeobfuscatingRemapper.INSTANCE.map(str[0]);
-                            name = FMLDeobfuscatingRemapper.INSTANCE.mapMethodName(str[0], str[1], str[2]);
-                            _opt_desc = FMLDeobfuscatingRemapper.INSTANCE.mapMethodDesc(str[2]);
+                    } else if (opcodes >= Opcodes.INVOKEVIRTUAL && opcodes <= Opcodes.INVOKEDYNAMIC) {
+                        if (str.length == 2) {
+                            if (deobf) {
+                                owner = FMLDeobfuscatingRemapper.INSTANCE.map(targetClass.name);
+                                name = FMLDeobfuscatingRemapper.INSTANCE.mapMethodName(targetClass.name, str[0], str[1]);
+                                _opt_desc = FMLDeobfuscatingRemapper.INSTANCE.mapMethodDesc(str[1]);
+                            } else {
+                                owner = targetClass.name;
+                                name = str[0];
+                                _opt_desc = str[1];
+                            }
+                        } else if (str.length == 3) {
+                            if (deobf) {
+                                owner = FMLDeobfuscatingRemapper.INSTANCE.map(str[0]);
+                                name = FMLDeobfuscatingRemapper.INSTANCE.mapMethodName(str[0], str[1], str[2]);
+                                _opt_desc = FMLDeobfuscatingRemapper.INSTANCE.mapMethodDesc(str[2]);
+                            } else {
+                                owner = str[0];
+                                name = str[1];
+                                _opt_desc = str[2];
+                            }
                         } else {
-                            owner = str[0];
-                            name = str[1];
-                            _opt_desc = str[2];
+                            owner = null;
+                            name = null;
+                            _opt_desc = null;
                         }
                     } else {
                         owner = null;
                         name = null;
                         _opt_desc = null;
                     }
+
+                    OptiRefineLog.log.debug("AccessibleOperation {} : FIELD : {}, {}, {}", targetClass.name, owner, name, _opt_desc);
                     if (opcodes >= Opcodes.GETSTATIC && opcodes <= Opcodes.PUTFIELD) {
                         tasks.add((instructions, call) -> {
                             if (call.owner.equals(targetClass.name) && call.name.equals(method.name) && call.desc.equals(method.desc)) {
@@ -217,11 +342,12 @@ public class CursedMixinExtensions {
                             }
                         });
                     } else if (opcodes >= Opcodes.INVOKEVIRTUAL && opcodes <= Opcodes.INVOKEDYNAMIC) {
+                        OptiRefineLog.log.debug("AccessibleOperation {} : METHOD : {}, {}, {}", targetClass.name, owner, name, _opt_desc);
                         tasks.add((instructions, call) -> {
                             if (call.owner.equals(targetClass.name) && call.name.equals(method.name) && call.desc.equals(method.desc)) {
-                                call.owner = owner;
-                                call.name = name;
-                                call.desc = _opt_desc;
+                                call.owner = owner.replace('.', '/');
+                                call.name = name.replace('.', '/');
+                                call.desc = _opt_desc.replace('.', '/');
                                 call.itf = itf_;
                                 call.setOpcode(opc);
                             }
@@ -229,6 +355,11 @@ public class CursedMixinExtensions {
                     }
                 }
             }
+        }
+
+        for(MethodNode methodNode : methodToRemove) {
+            OptiRefineLog.log.debug("REMOVE METHOD FOR {} {}", targetClass.name, methodNode.name);
+            targetClass.methods.remove(methodNode);
         }
 
         if (!ctrToReplace.isEmpty()) {
@@ -243,24 +374,105 @@ public class CursedMixinExtensions {
             }
         }
 
-        for (FieldNode field : targetClass.fields) {
+        Iterator<FieldNode> fieldNodeIterator = targetClass.fields.iterator();
+        while (fieldNodeIterator.hasNext()){
+            FieldNode field = fieldNodeIterator.next();
+
             if (Annotations.getVisible(field, Public.class) != null) {
                 field.access |= Opcodes.ACC_PUBLIC;
                 field.access &= ~(Opcodes.ACC_PRIVATE | Opcodes.ACC_PROTECTED);
             }
+            AnnotationNode accesstrasnformer = Annotations.getVisible(field, AccessTransformer.class);
+            if (accesstrasnformer != null) {
+                fieldNodeIterator.remove();
+                int access = Annotations.getValue(accesstrasnformer, "access", -1);
+                String name = Annotations.getValue(accesstrasnformer, "name");
+                boolean deobf = Annotations.getValue(accesstrasnformer, "deobf", Boolean.FALSE);
+
+                String desc = field.desc;
+                if (access == -1) access = field.access;
+                if (name == null) name = field.name;
+
+                if(deobf) {
+                    name = FMLDeobfuscatingRemapper.INSTANCE.mapFieldName(targetClass.name, name, desc);
+                    desc = FMLDeobfuscatingRemapper.INSTANCE.mapDesc(desc);
+                }
+
+                for (FieldNode mn : targetClass.fields) {
+                    if(mn.name.equals(name) && mn.desc.equals(desc)) {
+                        mn.access = access;
+                    }
+                }
+
+            }
         }
 
         transformCalls(targetClass, tasks.toArray(CallTransformTask[]::new));
+
+        if (DUMP) {
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            PrintStream printStream = new PrintStream(byteArrayOutputStream);
+            try{
+                ClassWriter classWriter = new NonLoadingClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
+
+                targetClass.accept(new TraceClassVisitor(new ClassVisitor(Opcodes.ASM9, classWriter) {
+                    @Override
+                    public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+                        printStream.printf("NEW CLASS %s %s", name);
+                        super.visit(version, access, name, signature, superName, interfaces);
+                    }
+
+                    @Override
+                    public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
+                        printStream.printf("NEW METHOD %s %s", name, descriptor);
+                        try {
+                            return super.visitMethod(access, name, descriptor, signature, exceptions);
+                        } catch (Throwable throwable) {
+                            throwable.printStackTrace(printStream);
+                            return new MethodVisitor(Opcodes.ASM9, null) {};
+                        }
+                    }
+                }, new ASMifier(), new PrintWriter(printStream)));
+                classWriter.toByteArray();
+            }catch (Throwable t) {
+                t.printStackTrace(printStream);
+                System.err.print(byteArrayOutputStream.toByteArray());
+            }
+        }
     }
+
     private static void transformCalls(ClassNode classNode, CallTransformTask... tasks) {
-        for (MethodNode method : classNode.methods) {
-            for (AbstractInsnNode insn : method.instructions) {
-                if (insn instanceof MethodInsnNode call) {
-                    for (CallTransformTask task : tasks) {
+        for (CallTransformTask task : tasks) {
+            for (MethodNode method : classNode.methods) {
+                for (AbstractInsnNode insn : method.instructions) {
+                    if (insn instanceof MethodInsnNode call) {
                         task.transform(method.instructions, call);
                     }
                 }
             }
         }
+    }
+
+    private static final boolean DUMP = Boolean.parseBoolean(System.getProperty("foundation.dump", "false"));
+
+    public static AbstractInsnNode findPreviousNode(AbstractInsnNode start,
+                                                    Predicate<AbstractInsnNode> checkNode) {
+        final int MAX_SEARCH = 10000;
+        int counter = 0;
+
+        AbstractInsnNode current = start;
+        while (current != null && counter++ < MAX_SEARCH) {
+            if (checkNode.test(current)) {
+                return current;
+            }
+
+            current = current.getPrevious();
+        }
+
+        if (counter >= MAX_SEARCH) {
+            throw new IllegalStateException("Forward search exceeded safety limit. Possible circular reference?");
+        }
+
+        return null;
     }
 }

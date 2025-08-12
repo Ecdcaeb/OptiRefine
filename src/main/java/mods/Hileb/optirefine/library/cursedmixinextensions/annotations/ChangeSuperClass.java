@@ -8,6 +8,7 @@ import java.lang.annotation.Target;
 /**
  * Change the super class of the annotated class.
  */
+@SuppressWarnings("unused")
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ChangeSuperClass {

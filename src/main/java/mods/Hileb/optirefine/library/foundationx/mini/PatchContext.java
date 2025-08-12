@@ -28,26 +28,10 @@ package mods.Hileb.optirefine.library.foundationx.mini;
 
 import java.util.*;
 
+import it.unimi.dsi.fastutil.Pair;
+import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.tree.AbstractInsnNode;
-import org.objectweb.asm.tree.FieldInsnNode;
-import org.objectweb.asm.tree.IincInsnNode;
-import org.objectweb.asm.tree.InsnList;
-import org.objectweb.asm.tree.InsnNode;
-import org.objectweb.asm.tree.IntInsnNode;
-import org.objectweb.asm.tree.InvokeDynamicInsnNode;
-import org.objectweb.asm.tree.JumpInsnNode;
-import org.objectweb.asm.tree.LabelNode;
-import org.objectweb.asm.tree.LdcInsnNode;
-import org.objectweb.asm.tree.LineNumberNode;
-import org.objectweb.asm.tree.LookupSwitchInsnNode;
-import org.objectweb.asm.tree.MethodInsnNode;
-import org.objectweb.asm.tree.MethodNode;
-import org.objectweb.asm.tree.MultiANewArrayInsnNode;
-import org.objectweb.asm.tree.TableSwitchInsnNode;
-import org.objectweb.asm.tree.TryCatchBlockNode;
-import org.objectweb.asm.tree.TypeInsnNode;
-import org.objectweb.asm.tree.VarInsnNode;
+import org.objectweb.asm.tree.*;
 
 import mods.Hileb.optirefine.library.foundationx.mini.exception.PointerNotSetException;
 import mods.Hileb.optirefine.library.foundationx.mini.exception.PointerOutOfBoundsException;
@@ -57,7 +41,7 @@ public class PatchContext {
 	/**
 	 * Represents the code found as a result of a call to search.
 	 */
-	public class SearchResult {
+	public class SearchResult implements Iterable<SearchResult>{
 
 		private final AbstractInsnNode start;
 		private final AbstractInsnNode end;
@@ -119,7 +103,7 @@ public class PatchContext {
 		public void jumpAfter() {
 			assertSuccessful();
 			assertValid();
-			setPointer(code.indexOf(end)+1);
+			setPointer(code.indexOf(end) + 1);
 		}
 		
 		/**
@@ -131,23 +115,13 @@ public class PatchContext {
 			assertValid();
 			setPointer(code.indexOf(start));
 		}
-		
-		/**
-		 * Repeat this search from the end of the code found by this search.
-		 * @return a new SearchResult that represents the next matching set of
-		 * 		instructions
-		 * @throws NoSuchElementException if the search was unsuccessful
-		 */
+
 		public SearchResult next() {
 			assertSuccessful();
 			assertValid();
-			return searchFrom(reverse ? code.indexOf(start) : code.indexOf(end)+1, query, reverse);
+			return searchFrom(reverse ? code.indexOf(start) : code.indexOf(end) + 1, query, reverse);
 		}
-		
-		/**
-		 * Erase the found code block and don't update the code pointer.
-		 * @throws NoSuchElementException if the search was unsuccessful
-		 */
+
 		public void erase() {
 			assertSuccessful();
 			assertValid();
@@ -156,22 +130,48 @@ public class PatchContext {
 				PatchContext.this.erase(startIdx);
 			}
 		}
-		
+
+		@Override
+		public @NotNull Iterator<SearchResult> iterator() {
+			return new Iterator<>() {
+                private SearchResult result;
+
+                @Override
+                public boolean hasNext() {
+                    return result != null && result.isSuccessful();
+                }
+
+                @Override
+                public SearchResult next() {
+                    SearchResult active = result;
+                    this.result = active.next();
+                    return active;
+                }
+            };
+		}
 	}
 
 	private final MethodNode method;
 	private final List<AbstractInsnNode> code;
 	private int pointer = -1;
+	private final HashMap<String, LabelNode> namedLabels = new HashMap<>();
+	private final ClassNode classNode;
 	
-	PatchContext(MethodNode method) {
+	PatchContext(MethodNode method, ClassNode classNode) {
+		this.classNode = classNode;
 		this.method = method;
 		this.code = new ArrayList<>(method.instructions.size());
 		AbstractInsnNode ain = method.instructions.getFirst();
 		Map<LabelNode, LabelNode> labels = new IdentityHashMap<>();
+		int lab = 0;
 		while (ain != null) {
-			if (ain instanceof LabelNode) {
-				LabelNode l = new LabelNode(((LabelNode) ain).getLabel());
-				labels.put((LabelNode)ain, l);
+			if (ain instanceof LabelNode labelNode) {
+				LabelNode l = new LabelNode(labelNode.getLabel());
+				labels.put(labelNode, l);
+
+				namedLabels.put("label" + lab, l);
+				lab++;
+
 			}
 			ain = ain.getNext();
 		}
@@ -181,7 +181,22 @@ public class PatchContext {
 			ain = ain.getNext();
 		}
 	}
-	
+
+	public ClassNode getClassNode() {
+		return classNode;
+	}
+
+	public Pair<PatchContext, MethodInsnNode> wrapMethod(String tag){
+		MethodNode methodNode = new MethodNode(this.method.access, this.method.name, this.method.desc, this.method.signature, this.method.exceptions == null ? null : this.method.exceptions.isEmpty() ? null : this.method.exceptions.toArray(new String[0]));
+		this.method.name = this.method.name + "_original_" + tag;
+		classNode.methods.add(methodNode);
+		return Pair.of(new PatchContext(methodNode, classNode), new MethodInsnNode((this.method.access & Opcodes.ACC_STATIC) != 0 ? Opcodes.INVOKESTATIC : Opcodes.INVOKEVIRTUAL, classNode.name, this.method.name, this.method.desc, false));
+	}
+
+	public LabelNode label(String name) {
+		return namedLabels.computeIfAbsent(name, (o)->new LabelNode());
+	}
+
 	/**
 	 * @return the instruction under the current code pointer
 	 */
@@ -263,7 +278,7 @@ public class PatchContext {
 	 * @param exceptionType the type of exception that the handler accepts, null if this is a finally handler
 	 */
 	public void addTryBlock(LabelNode start, LabelNode end, LabelNode handler, String exceptionType) {
-		this.method.tryCatchBlocks.add(new TryCatchBlockNode(start, end, handler, MiniUtils.remapType(exceptionType)));
+		this.method.tryCatchBlocks.add(new TryCatchBlockNode(start, end, handler, exceptionType == null ? null : MiniUtils.remapType(exceptionType)));
 	}
 	
 	/**
@@ -277,8 +292,7 @@ public class PatchContext {
 	}
 	
 	private void setPointer(int pointer) {
-		if (pointer < 0) throw pointerOutOfBoundsException(pointer);
-		if (pointer >= code.size()) throw pointerOutOfBoundsException(pointer);
+		if (pointer < 0 || pointer > code.size()) throw pointerOutOfBoundsException(pointer);
 		this.pointer = pointer;
 	}
 	
@@ -390,7 +404,9 @@ public class PatchContext {
 	}
 
 	private SearchResult searchFrom(int start, AbstractInsnNode[] nodes, boolean reverse) {
+		if (nodes.length == 0) throw new IllegalArgumentException("Query cannot be empty");
 		for (int k = start; reverse ? k >= 0 : k < code.size(); k += (reverse ? -1 : 1)) {
+			if (k + nodes.length > code.size()) continue;
 			boolean allMatched = true;
 			for (int j = 0; j < nodes.length; j++) {
 				if (!instructionsEqual(code.get(k+j), nodes[j])) {

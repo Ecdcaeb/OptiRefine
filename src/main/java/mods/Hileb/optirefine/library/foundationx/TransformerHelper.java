@@ -28,7 +28,7 @@ public class TransformerHelper {
         }
     }
 
-    public interface TargetedASMTransformer extends ASMTransformer{
+    public interface TargetedASMTransformer extends ASMTransformer {
         String[] getTargets();
     }
 

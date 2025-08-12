@@ -12,14 +12,15 @@ import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 
-@SuppressWarnings("all")
+
+@SuppressWarnings("unused")
 public class MetaDataDecoder {
     public static Map<String, ModMetadata> decodeMcModInfo(InputStream stream) {
         JsonElement element = JsonParser.parseReader(new InputStreamReader(stream));
         if (element instanceof JsonArray array) {
             Map<String, ModMetadata> map = HashMap.newHashMap(array.size());
             for (JsonElement element1 : array) {
-                ModMetadata modMetadata = decodeMetaData(element);
+                ModMetadata modMetadata = decodeMetaData(element1);
                 map.put(modMetadata.modId, modMetadata);
             }
             return map;
@@ -29,7 +30,8 @@ public class MetaDataDecoder {
         }
     }
 
-    @SuppressWarnings("all")
+    
+    @SuppressWarnings("deprecation")
     public static ModMetadata decodeMetaData(JsonElement jsonElement){
         JsonObject json = jsonElement.getAsJsonObject();
         ModMetadata metadata = new ModMetadata();
