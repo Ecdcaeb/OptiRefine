@@ -73,7 +73,7 @@ unimined.minecraft {
         runs.auth.username = minecraft_username
         runs.all {
             var map = getSystemProperties()
-            map.put("cleanroom.dev.mixin", "${mod_id}.default.mixin.json")
+            map.put("cleanroom.dev.mixin", "optirefine.default.mixin.json,optirefine.default.mods.json")
             if (hasProperty("extra_jvm_args")) {
                 jvmArgs(propertyString('extra_jvm_args'))
             }
@@ -162,7 +162,7 @@ jar {
         manifest {
             def attribute_map = [:]
             attribute_map['ModType'] = "CRL"
-            attribute_map['MixinConfigs'] = "${mod_id}.default.mixin.json"
+            attribute_map['MixinConfigs'] = "optirefine.default.mixin.json,optirefine.mods.mixin.json"
             if (configurations.contain.size() > 0) {
                 attribute_map['ContainedDeps'] = configurations.contain.collect { it.name }.join(' ')
                 attribute_map['NonModDeps'] = true

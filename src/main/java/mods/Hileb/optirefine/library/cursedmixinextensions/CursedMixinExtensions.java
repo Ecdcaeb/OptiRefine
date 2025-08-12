@@ -1,19 +1,15 @@
 package mods.Hileb.optirefine.library.cursedmixinextensions;
 
-import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import mods.Hileb.optirefine.core.OptiRefineLog;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.*;
 import mods.Hileb.optirefine.library.cursedmixinextensions.util.CallTransformTask;
 import mods.Hileb.optirefine.library.foundationx.asm.NonLoadingClassWriter;
 import net.minecraftforge.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper;
-import net.minecraftforge.fml.common.launcher.FMLDeobfTweaker;
 import org.objectweb.asm.*;
 import org.objectweb.asm.tree.*;
 import org.objectweb.asm.util.ASMifier;
-import org.objectweb.asm.util.CheckClassAdapter;
 import org.objectweb.asm.util.TraceClassVisitor;
 import org.spongepowered.asm.util.Annotations;
-import top.outlands.foundation.boot.ActualClassLoader;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
@@ -74,6 +70,11 @@ public class CursedMixinExtensions {
 
         for (MethodNode method : targetClass.methods) {
             boolean remove = false;
+
+            AnnotationNode signFix = Annotations.getVisible(method, SignatureFix.class);
+            if (signFix != null) {
+                method.signature = ((String)Annotations.getValue(signFix)).replace('.', '/');
+            }
 
             if (Annotations.getVisible(method, ShadowSuperConstructor.class) != null) {
                 OptiRefineLog.log.debug("ShadowSuperConstructor Instance, {}", method.name);
@@ -176,6 +177,7 @@ public class CursedMixinExtensions {
             AnnotationNode accessibleOperation = Annotations.getVisible(method, AccessibleOperation.class);
             if (accessibleOperation != null) {
                 OptiRefineLog.log.debug("Accessible Operation Instance, {}", method.name);
+                boolean isBuildIn = Annotations.getVisible(method, AccessibleOperation.BuildIn.class) != null;
                 methodToRemove.add(method);
                 int opcodes = Annotations.getValue(accessibleOperation, "opcode", Opcodes.NOP);
                 String desc = Annotations.getValue(accessibleOperation, "desc");
@@ -183,13 +185,31 @@ public class CursedMixinExtensions {
                 boolean itf = Annotations.getValue(accessibleOperation, "itf", Boolean.FALSE);
                 boolean deobf = Annotations.getValue(accessibleOperation, "deobf", Boolean.FALSE);
 
+                if (isBuildIn) {
+                    method.access = method.access & ~(Opcodes.ACC_NATIVE | Opcodes.ACC_ABSTRACT);
+                }
                 if (opcodes == Opcodes.NOP) {
                     OptiRefineLog.log.debug("AccessibleOperation {} : NOP", targetClass.name);
-                    tasks.add((instructions, call) -> {
-                        if (call.owner.equals(targetClass.name) && call.name.equals(method.name) && call.desc.equals(method.desc)) {
-                            instructions.remove(call);
-                        }
-                    });
+                    if (isBuildIn) {
+                        String rt = Type.getMethodType(desc).getReturnType().toString();
+                        if (rt.startsWith("L")) {
+                            method.visitInsn(Opcodes.ARETURN);
+                        } else if ("J".equals(rt)) {
+                            method.visitInsn(Opcodes.LRETURN);
+                        } else if ("D".equals(rt)) {
+                            method.visitInsn(Opcodes.DRETURN);
+                        } else if ("F".equals(rt)) {
+                            method.visitInsn(Opcodes.FRETURN);
+                        } else if ("V".equals(rt)) {
+                            method.visitInsn(Opcodes.RETURN);
+                        } else method.visitInsn(Opcodes.IRETURN);
+                    } else {
+                        tasks.add((instructions, call) -> {
+                            if (call.owner.equals(targetClass.name) && call.name.equals(method.name) && call.desc.equals(method.desc)) {
+                                instructions.remove(call);
+                            }
+                        });
+                    }
                 } else if (opcodes == Opcodes.NEW) {
                     String[] str = desc.split(" ");
                     final String owner;

@@ -6,18 +6,14 @@ import java.util.HashSet;
 
 public class OptiRefineBlackboard {
     public static final HashSet<String> CLASSES = Sets.newHashSet(
-            "net.minecraft.block.material.MapColor",
-            // Optifine -> make ‘colorValue’ not final -> accessTransformer
-            "net.minecraft.block.state.BlockStateBase",
-            // Optifine -> add new field and methods -> mixin
+            "net.minecraft.block.material.MapColor", // Optifine -> make ‘colorValue’ not final -> accessTransformer
+            "net.minecraft.block.state.BlockStateBase", // Optifine -> add new field and methods -> mixin
             "net.minecraft.block.state.BlockStateBase$1",
-            "net.minecraft.block.state.BlockStateContainer",
-            // Optifine -> redirected a construction -> skip
+            "net.minecraft.block.state.BlockStateContainer", // Optifine -> redirected a construction -> skip
             "net.minecraft.block.state.BlockStateContainer$1",
             "net.minecraft.block.state.BlockStateContainer$Builder",
             "net.minecraft.block.state.BlockStateContainer$StateImplementation", // Optifine -> add new field and methods -> very bad -> skip
-            "net.minecraft.block.BlockAir",
-            // Optifine -> add new field and methods -> mixin
+            "net.minecraft.block.BlockAir", // Optifine -> add new field and methods -> mixin
             "net.minecraft.client.LoadingScreenRenderer", // Optifine -> customGUI -> mixin FMLClientHandler
             "net.minecraft.client.entity.AbstractClientPlayer", // Optifine -> Capes -> mixin
             "net.minecraft.client.gui.FontRenderer", // Optifine -> custom font colors -> mixin
@@ -48,13 +44,37 @@ public class OptiRefineBlackboard {
             "net.minecraft.client.particle.ParticleManager$2",
             "net.minecraft.client.particle.ParticleManager$3",
             "net.minecraft.client.particle.ParticleManager$4",
-
+            "net.minecraft.client.renderer.block.model.BakedQuad",
+            "net.minecraft.client.renderer.block.model.BakedQuadRetextured",
+            "net.minecraft.client.renderer.block.model.FaceBakery",
+            "net.minecraft.client.renderer.block.model.FaceBakery$1",
+            "net.minecraft.client.renderer.block.model.FaceBakery$2",
+            "net.minecraft.client.renderer.block.model.FaceBakery$3",
+            "net.minecraft.client.renderer.block.model.FaceBakery$4",
+            "net.minecraft.client.renderer.block.model.FaceBakery$5",
+            "net.minecraft.client.renderer.block.model.FaceBakery$Rotation",
+            "net.minecraft.client.renderer.block.model.ItemOverrideList",
+            "net.minecraft.client.renderer.block.model.ModelBakery",
+            "net.minecraft.client.renderer.block.model.ModelBakery$1",
+            "net.minecraft.client.renderer.block.model.ModelBakery$2",
+            "net.minecraft.client.renderer.block.model.ModelBakery$3",
+            "net.minecraft.client.renderer.block.model.ModelRotation",
+            "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher",
+            "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$1",
+            "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$2",
+            "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$3",
+            "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$PendingUpload",
+            "net.minecraft.client.renderer.chunk.CompiledChunk",
+            "net.minecraft.client.renderer.chunk.CompiledChunk$1",
+            "net.minecraft.client.renderer.chunk.RenderChunk",
             "net.minecraft.client.renderer.chunk.SetVisibility",
             "net.minecraft.client.renderer.chunk.VisGraph",
+            "net.minecraft.client.renderer.chunk.VisGraph$1",
             "net.minecraft.client.renderer.culling.ClippingHelper",
             "net.minecraft.client.renderer.culling.Frustum",
             "net.minecraft.client.renderer.debug.DebugRendererChunkBorder",
             "net.minecraft.client.renderer.entity.layers.LayerArmorBase",
+            "net.minecraft.client.renderer.entity.layers.LayerArmorBase$1",
             "net.minecraft.client.renderer.entity.layers.LayerCape",
             "net.minecraft.client.renderer.entity.layers.LayerElytra",
             "net.minecraft.client.renderer.entity.layers.LayerEnderDragonEyes",
@@ -68,6 +88,7 @@ public class OptiRefineBlackboard {
             "net.minecraft.client.renderer.entity.RenderItemFrame",
             "net.minecraft.client.renderer.entity.RenderLiving",
             "net.minecraft.client.renderer.entity.RenderLivingBase",
+            "net.minecraft.client.renderer.entity.RenderLivingBase$1",
             "net.minecraft.client.renderer.entity.RenderManager",
             "net.minecraft.client.renderer.entity.RenderXPOrb",
             "net.minecraft.client.renderer.texture.AbstractTexture",
@@ -79,6 +100,9 @@ public class OptiRefineBlackboard {
             "net.minecraft.client.renderer.texture.Stitcher",
             "net.minecraft.client.renderer.texture.Stitcher$Holder",
             "net.minecraft.client.renderer.texture.Stitcher$Slot",
+
+            "net.minecraft.client.renderer.texture.TextureManager",
+            "net.minecraft.client.renderer.texture.TextureManager$1",
 
             "net.minecraft.client.renderer.tileentity.TileEntityBeaconRenderer",
             "net.minecraft.client.renderer.tileentity.TileEntityEndPortalRenderer",
@@ -101,10 +125,14 @@ public class OptiRefineBlackboard {
 
             "net.minecraft.client.renderer.ImageBufferDownload",
 
-            "net.minecraft.client.renderer.VertexBufferUploader",
             "net.minecraft.client.renderer.Tessellator",
-
+            "net.minecraft.client.renderer.ThreadDownloadImageData",
+            "net.minecraft.client.renderer.ThreadDownloadImageData$1",
+            "net.minecraft.client.renderer.VboRenderList",
+            "net.minecraft.client.renderer.VertexBufferUploader",
+            "net.minecraft.client.renderer.ViewFrustum",
             "net.minecraft.client.renderer.WorldVertexBufferUploader",
+            "net.minecraft.client.renderer.WorldVertexBufferUploader$1",
             "net.minecraft.client.resources.AbstractResourcePack",
             "net.minecraft.client.resources.DefaultResourcePack",
             "net.minecraft.client.resources.I18n",
