@@ -1,9 +1,14 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.settings;
 
+import com.llamalad7.mixinextras.expression.Definition;
+import com.llamalad7.mixinextras.expression.Expression;
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import mods.Hileb.optirefine.core.OptiRefineLog;
+import mods.Hileb.optirefine.library.common.utils.Lazy;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.optifine.Config;
@@ -15,13 +20,14 @@ import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.settings.GameSettings;
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.launchwrapper.Launch;
 import net.minecraftforge.client.resource.IResourceType;
 import net.minecraftforge.client.resource.VanillaResourceType;
 import net.minecraftforge.fml.client.FMLClientHandler;
 import net.optifine.*;
 import net.optifine.shaders.Shaders;
-import net.optifine.util.ArrayUtils;
 import net.optifine.util.KeyUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 import org.objectweb.asm.Opcodes;
@@ -30,7 +36,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.io.*;
@@ -233,18 +238,6 @@ public abstract class MixinGameSettings {
     @Shadow
     protected Minecraft mc;
 
-    @WrapOperation(method = "<init>(Lnet/minecraft/client/Minecraft;Ljava/io/File;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/settings/GameSettings;loadOptions()V"))
-    public void ofConfigInit2(GameSettings instance, Operation<Void> original, @Local(argsOnly = true) File optionsFileIn) {
-        this.optionsFileOF = new File(optionsFileIn, "optionsof.txt");
-        this.limitFramerate = (int) GameSettings.Options.FRAMERATE_LIMIT.getValueMax();
-        this.ofKeyBindZoom = new KeyBinding("of.key.zoom", 46, "key.categories.misc");
-        this.keyBindings = (KeyBinding[]) ArrayUtils.addObjectToArray(this.keyBindings, this.ofKeyBindZoom);
-        //KeyUtils.fixKeyConflicts(this.keyBindings, new KeyBinding[]{this.ofKeyBindZoom}); // TODO : check if it still needed
-        this.renderDistanceChunks = 8;
-        original.call(instance);
-        Config.initGameSettings(cast_GameSettings(this));
-    }
-
     @AccessibleOperation
     private static native GameSettings cast_GameSettings(Object o);
 
@@ -253,8 +246,10 @@ public abstract class MixinGameSettings {
         this.optiRefine$setOptionValueOF(settingsOption, value);
     }
 
-    @Redirect(method = "setOptionValue", at = @At(value = "FIELD", target = "Lnet/minecraft/client/settings/GameSettings;guiScale:I"))
-    public void addGuiScaleByConfig(GameSettings.Options settingsOption, int valueDef, CallbackInfo ci, @Local(argsOnly = true) int value) {
+    @Definition(id = "guiScale", field = "Lnet/minecraft/client/settings/GameSettings;guiScale:I")
+    @Expression("this.guiScale = @(?)")
+    @ModifyExpressionValue(method = "setOptionValue", at = @At("MIXINEXTRAS:EXPRESSION"))
+    public int addGuiScaleByConfig(int original, @Local(argsOnly = true) int value) {
         this.guiScale += value;
         if (GuiScreen.isShiftKeyDown()) {
             this.guiScale = 0;
@@ -269,12 +264,13 @@ public abstract class MixinGameSettings {
         }
 
         if (this.mc.isUnicode() && this.guiScale % 2 != 0) {
-            this.guiScale += (int) value;
+            this.guiScale += value;
         }
 
         if (this.guiScale < 0 || this.guiScale >= maxGuiScale) {
             this.guiScale = 0;
         }
+        return this.guiScale;
     }
 
     @Shadow
@@ -295,9 +291,20 @@ public abstract class MixinGameSettings {
         this.optiRefine$updateRenderClouds();
     }
 
-    @Inject(method = "loadOptions", at = @At("TAIL"))
-    public void hookForoadOfOptions(CallbackInfo ci) {
+    @WrapMethod(method = "loadOptions")
+    public void hookForoadOfOptions(Operation<Void> original) {
+        boolean init = this.optionsFile == null;
+        if (init) {
+            this.optionsFileOF = new File(Launch.minecraftHome, "optionsof.txt");
+            this.limitFramerate = (int) GameSettings.Options.FRAMERATE_LIMIT.getValueMax();
+            this.ofKeyBindZoom = new KeyBinding("of.key.zoom", 46, "key.categories.misc");
+            this.keyBindings = ArrayUtils.add(this.keyBindings, this.ofKeyBindZoom);
+        }
+        original.call();
         this.loadOfOptions();
+        if (init) {
+            Config.initGameSettings(cast_GameSettings(this));
+        }
     }
 
     @WrapOperation(method = "saveOptions", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/settings/GameSettings;sendSettingsToServer()V"))

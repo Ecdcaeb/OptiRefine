@@ -14,7 +14,9 @@ import net.minecraftforge.fml.common.DummyModContainer;
 import net.minecraftforge.fml.common.LoadController;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.ModMetadata;
+import net.minecraftforge.fml.relauncher.FMLLaunchHandler;
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
+import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
@@ -36,23 +38,24 @@ import java.util.Set;
 @IFMLLoadingPlugin.MCVersion(net.minecraftforge.common.ForgeVersion.mcVersion)
 @IFMLLoadingPlugin.TransformerExclusions({
         "mods.Hileb.optirefine.core.",
-        "mods.Hileb.optirefine.library.foundationx."
+        "mods.Hileb.optirefine.library."
 })
 public class OptiRefineCore implements IFMLLoadingPlugin {
 
-    public static final Logger LOGGER;
+    private static final Logger LOGGER = LogManager.getLogger();
 
     static {
-        LOGGER = OptiRefineLog.log;
         setupTransformers();
     }
 
     public static void setupTransformers(){
         TransformerHelper.registerTransformer(new OptifineTransformerTransformer());
-        //TransformerHelper.registerTransformer(new OptiRefineRuntimePublicTransformer());
+        TransformerHelper.registerTransformer(new OptiRefineConfigTransformer());
 
-        TransformerHelper.registerTransformer(new OptifineDevUtilTransformer());
-        TransformerHelper.registerTransformer(new OptifineDevTweakerTransformer());
+        if (FMLLaunchHandler.isDeobfuscatedEnvironment()) {
+            TransformerHelper.registerTransformer(new OptifineDevUtilTransformer());
+            TransformerHelper.registerTransformer(new OptifineDevTweakerTransformer());
+        }
     }
 
     @Nullable
@@ -99,16 +102,16 @@ public class OptiRefineCore implements IFMLLoadingPlugin {
                     try (InputStream inputStream = Files.newInputStream(Objects.requireNonNull(fs.getPath("/mcmod.info")))) {
                         return MetaDataDecoder.decodeMcModInfo(inputStream).get("optirefine");
                     } catch (Throwable t) {
-                        OptiRefineLog.log.error("Error loading metadata from jar: ", t);
+                        LOGGER.error("Error loading metadata from jar: ", t);
                     }
                 } catch (IOException e) {
-                    OptiRefineLog.log.error("Error loading FileSystem from jar: ", e);
+                    LOGGER.error("Error loading FileSystem from jar: ", e);
                 }
             } else if (source.isDirectory()) {
                 try (InputStream inputStream = Files.newInputStream(Objects.requireNonNull(source.toPath().resolve("mcmod.info")))) {
                     return MetaDataDecoder.decodeMcModInfo(inputStream).get("optirefine");
                 } catch (Throwable t) {
-                    OptiRefineLog.log.error("Error loading metadata from jar: ", t);
+                    LOGGER.error("Error loading metadata from jar: ", t);
                 }
             }
             ModMetadata modMetadata = new ModMetadata();
@@ -151,8 +154,12 @@ public class OptiRefineCore implements IFMLLoadingPlugin {
         }
 
         @Override
-        public boolean shouldApplyMixin(String s, String s1) {
-            return true;
+        public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
+            targetClassName = targetClassName.replace('/', '.');
+
+            boolean should = !targetClassName.startsWith("net.minecraft.") || OptiRefineBlackboard.isOverwritePatches(targetClassName);;
+            LOGGER.info("OptiRefine ShouldApply For {} ? {}", targetClassName, should);
+            return should;
         }
 
         @Override
@@ -173,7 +180,7 @@ public class OptiRefineCore implements IFMLLoadingPlugin {
         @Override
         public void postApply(String s, ClassNode classNode, String s1, IMixinInfo iMixinInfo) {
             CursedMixinExtensions.postApply(classNode);
-            OptiRefineConfigTransformer.transform(classNode);
+            OptiRefineConfigTransformer.transform0(classNode);
         }
     }
 

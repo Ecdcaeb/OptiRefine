@@ -18,7 +18,7 @@ public abstract class MixinBakedQuadRetextured {
     @Unique
     private TextureAtlasSprite spriteOld;
 
-    @Inject(method = "<init>", at = @At("TAIL"))
+    @Inject(method = "<init>", at = @At("RETURN"))
     public void init(BakedQuad quad, TextureAtlasSprite p_i46217_2, CallbackInfo ci){
         this.spriteOld = quad.getSprite();
         BakedQuad_fixVertexData(this);
@@ -29,7 +29,7 @@ public abstract class MixinBakedQuadRetextured {
 
     @Redirect(method = "remapQuad", at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/block/model/BakedQuadRetextured;sprite:Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;"))
     public TextureAtlasSprite applySpriteOld(BakedQuadRetextured instance){
-        return spriteOld;
+        return spriteOld == null ? instance.getSprite() : spriteOld;
     }
 
 }

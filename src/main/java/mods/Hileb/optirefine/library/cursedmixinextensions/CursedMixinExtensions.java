@@ -5,6 +5,8 @@ import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.*;
 import mods.Hileb.optirefine.library.cursedmixinextensions.util.CallTransformTask;
 import mods.Hileb.optirefine.library.foundationx.asm.NonLoadingClassWriter;
 import net.minecraftforge.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.objectweb.asm.*;
 import org.objectweb.asm.tree.*;
 import org.objectweb.asm.util.ASMifier;
@@ -25,8 +27,11 @@ import java.util.function.Predicate;
 
 @SuppressWarnings("unused")
 public class CursedMixinExtensions {
+    
+    private static final Logger LOGGER = LogManager.getLogger();
+    
     public static void postApply(ClassNode targetClass) {
-        OptiRefineLog.log.debug("OptiRefine for !!! {}", targetClass.name);
+        LOGGER.debug("OptiRefine for !!! {}", targetClass.name);
 
         LinkedList<CallTransformTask> tasks = new LinkedList<>();
 
@@ -77,7 +82,7 @@ public class CursedMixinExtensions {
             }
 
             if (Annotations.getVisible(method, ShadowSuperConstructor.class) != null) {
-                OptiRefineLog.log.debug("ShadowSuperConstructor Instance, {}", method.name);
+                LOGGER.debug("ShadowSuperConstructor Instance, {}", method.name);
                 methodToRemove.add(method);
                 tasks.add((instructions, call) -> {
                     if (call.name.equals(method.name) && call.desc.equals(method.desc)) {
@@ -89,7 +94,7 @@ public class CursedMixinExtensions {
             }
 
             if (Annotations.getVisible(method, ShadowConstructor.class) != null) {
-                OptiRefineLog.log.debug("ShadowConstructor Instance, {}", method.name);
+                LOGGER.debug("ShadowConstructor Instance, {}", method.name);
                 methodToRemove.add(method);
                 tasks.add((instructions, call) -> {
                     if (call.name.equals(method.name) && call.desc.equals(method.desc)) {
@@ -101,7 +106,7 @@ public class CursedMixinExtensions {
 
             AnnotationNode superMethod = Annotations.getVisible(method, ShadowSuper.class);
             if (superMethod != null) {
-                OptiRefineLog.log.debug("ShadowSuper Instance, {}", method.name);
+                LOGGER.debug("ShadowSuper Instance, {}", method.name);
                 methodToRemove.add(method);
                 String targetName = Annotations.getValue(superMethod);
 
@@ -116,13 +121,13 @@ public class CursedMixinExtensions {
             }
 
             if (Annotations.getVisible(method, Public.class) != null) {
-                OptiRefineLog.log.debug("Public Instance, {}", method.name);
+                LOGGER.debug("Public Instance, {}", method.name);
                 method.access |= Opcodes.ACC_PUBLIC;
                 method.access &= ~(Opcodes.ACC_PRIVATE | Opcodes.ACC_PROTECTED);
             }
 
             if (Annotations.getVisible(method, NewConstructor.class) != null) {
-                OptiRefineLog.log.debug("NewConstructor Instance, {}", method.name);
+                LOGGER.debug("NewConstructor Instance, {}", method.name);
                 tasks.add((instructions, call) -> {
                     if (call.name.equals(method.name) && call.desc.equals(method.desc)) {
                         call.setOpcode(Opcodes.INVOKESPECIAL);
@@ -133,7 +138,7 @@ public class CursedMixinExtensions {
             }
 
             if (Annotations.getVisible(method, ReplaceConstructor.class) != null) {
-                OptiRefineLog.log.debug("ReplaceConstructor Instance, {}", method.name);
+                LOGGER.debug("ReplaceConstructor Instance, {}", method.name);
                 ctrToReplace.add(method.desc);
                 tasks.add((instructions, call) -> {
                     if (call.name.equals(method.name) && call.desc.equals(method.desc)) {
@@ -146,7 +151,7 @@ public class CursedMixinExtensions {
 
             AnnotationNode accessTransform = Annotations.getVisible(method, AccessTransformer.class);
             if (accessTransform != null) {
-                OptiRefineLog.log.debug("Accessible Transformer Instance, {}", method.name);
+                LOGGER.debug("Accessible Transformer Instance, {}", method.name);
                 methodToRemove.add(method);
                 int access = Annotations.getValue(accessTransform, "access", -1);
                 String name = Annotations.getValue(accessTransform, "name");
@@ -176,7 +181,7 @@ public class CursedMixinExtensions {
 
             AnnotationNode accessibleOperation = Annotations.getVisible(method, AccessibleOperation.class);
             if (accessibleOperation != null) {
-                OptiRefineLog.log.debug("Accessible Operation Instance, {}", method.name);
+                LOGGER.debug("Accessible Operation Instance, {}", method.name);
                 boolean isBuildIn = Annotations.getVisible(method, AccessibleOperation.BuildIn.class) != null;
                 methodToRemove.add(method);
                 int opcodes = Annotations.getValue(accessibleOperation, "opcode", Opcodes.NOP);
@@ -189,7 +194,7 @@ public class CursedMixinExtensions {
                     method.access = method.access & ~(Opcodes.ACC_NATIVE | Opcodes.ACC_ABSTRACT);
                 }
                 if (opcodes == Opcodes.NOP) {
-                    OptiRefineLog.log.debug("AccessibleOperation {} : NOP", targetClass.name);
+                    LOGGER.debug("AccessibleOperation {} : NOP", targetClass.name);
                     if (isBuildIn) {
                         String rt = Type.getMethodType(desc).getReturnType().toString();
                         if (rt.startsWith("L")) {
@@ -236,7 +241,7 @@ public class CursedMixinExtensions {
                         _opt_desc = null;
                     }
 
-                    OptiRefineLog.log.debug("AccessibleOperation {} : NEW : {}, {}, {}", targetClass.name, owner, "<init>", _opt_desc);
+                    LOGGER.debug("AccessibleOperation {} : NEW : {}, {}, {}", targetClass.name, owner, "<init>", _opt_desc);
                     tasks.add((instructions, call) -> {
                         if (call.owner.equals(targetClass.name) && call.name.equals(method.name) && call.desc.equals(method.desc)) {
                             AbstractInsnNode construction = findPreviousNode(call, (n)-> n instanceof MethodInsnNode methodInsnNode &&
@@ -260,7 +265,7 @@ public class CursedMixinExtensions {
                     if (deobf) {
                         owner = FMLDeobfuscatingRemapper.INSTANCE.map(desc);
                     } else owner = desc;
-                    OptiRefineLog.log.debug("AccessibleOperation {} : INSTANCEOF : {}", targetClass.name, owner);
+                    LOGGER.debug("AccessibleOperation {} : INSTANCEOF : {}", targetClass.name, owner);
                     tasks.add((instructions, call) -> {
                         if (call.owner.equals(targetClass.name) && call.name.equals(method.name) && call.desc.equals(method.desc)) {
                             instructions.insert(call, new TypeInsnNode(Opcodes.INSTANCEOF, owner.replace('.', '/')));
@@ -333,7 +338,7 @@ public class CursedMixinExtensions {
                         _opt_desc = null;
                     }
 
-                    OptiRefineLog.log.debug("AccessibleOperation {} : FIELD : {}, {}, {}", targetClass.name, owner, name, _opt_desc);
+                    LOGGER.debug("AccessibleOperation {} : FIELD : {}, {}, {}", targetClass.name, owner, name, _opt_desc);
                     if (opcodes >= Opcodes.GETSTATIC && opcodes <= Opcodes.PUTFIELD) {
                         tasks.add((instructions, call) -> {
                             if (call.owner.equals(targetClass.name) && call.name.equals(method.name) && call.desc.equals(method.desc)) {
@@ -342,7 +347,7 @@ public class CursedMixinExtensions {
                             }
                         });
                     } else if (opcodes >= Opcodes.INVOKEVIRTUAL && opcodes <= Opcodes.INVOKEDYNAMIC) {
-                        OptiRefineLog.log.debug("AccessibleOperation {} : METHOD : {}, {}, {}", targetClass.name, owner, name, _opt_desc);
+                        LOGGER.debug("AccessibleOperation {} : METHOD : {}, {}, {}", targetClass.name, owner, name, _opt_desc);
                         tasks.add((instructions, call) -> {
                             if (call.owner.equals(targetClass.name) && call.name.equals(method.name) && call.desc.equals(method.desc)) {
                                 call.owner = owner.replace('.', '/');
@@ -358,7 +363,7 @@ public class CursedMixinExtensions {
         }
 
         for(MethodNode methodNode : methodToRemove) {
-            OptiRefineLog.log.debug("REMOVE METHOD FOR {} {}", targetClass.name, methodNode.name);
+            LOGGER.debug("REMOVE METHOD FOR {} {}", targetClass.name, methodNode.name);
             targetClass.methods.remove(methodNode);
         }
 

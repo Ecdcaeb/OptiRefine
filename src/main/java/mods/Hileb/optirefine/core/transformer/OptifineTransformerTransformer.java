@@ -4,6 +4,8 @@ import com.google.common.collect.ImmutableList;
 import mods.Hileb.optirefine.core.OptiRefineBlackboard;
 import mods.Hileb.optirefine.core.OptiRefineLog;
 import mods.Hileb.optirefine.library.foundationx.TransformerHelper;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
@@ -18,6 +20,7 @@ import static mods.Hileb.optirefine.library.foundationx.ASMHelper.*;
 
 public class OptifineTransformerTransformer implements TransformerHelper.TargetedASMTransformer {
 
+    private static final Logger LOGGER = LogManager.getLogger();
 
     @SuppressWarnings("unused")
     public static URI url2uri(URL url) throws IOException, URISyntaxException {
@@ -78,7 +81,7 @@ public class OptifineTransformerTransformer implements TransformerHelper.Targete
                 methodVisitor.visitLocalVariable("transformedName", "Ljava/lang/String;", null, label0, label3, 2);
                 methodVisitor.visitLocalVariable("bytes", "[B", null, label0, label3, 3);
                 methodVisitor.visitMaxs(4, 4);
-                OptiRefineLog.log.info("OptiRefine hijacked the OptifineClassTransformer");
+                LOGGER.info("OptiRefine hijacked the OptifineClassTransformer");
                 classNode.methods.add(methodVisitor);
             }
         }
@@ -86,9 +89,9 @@ public class OptifineTransformerTransformer implements TransformerHelper.Targete
     }
 
     public static boolean couldNotTransform(String transformedName) {
-        OptiRefineLog.log.debug("Optifine try class {}", transformedName);
-        if (OptiRefineBlackboard.CLASSES.contains(transformedName)) {
-            OptiRefineLog.log.debug("Optifine skipped class {}", transformedName);
+        LOGGER.debug("Optifine try class {}", transformedName);
+        if (OptiRefineBlackboard.isOverwritePatches(transformedName)) {
+            LOGGER.debug("Optifine skipped class {}", transformedName);
             return true;
         }
         else return false;

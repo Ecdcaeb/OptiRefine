@@ -19,19 +19,19 @@ public class OptiRefineLog {
     public static final PrintStream logOut = new PrintStream(new WriterOutputStream(
             new Writer() {
                 @Override
-                public void write(@NotNull char[] cbuf, int off, int len) throws IOException {
+                public void write(char[] cbuf, int off, int len) {
                     char[] str = new char[len];
                     System.arraycopy(cbuf, off, str, 0, len);
                     log.info(String.valueOf(str));
                 }
 
                 @Override
-                public void flush() throws IOException {
+                public void flush() {
 
                 }
 
                 @Override
-                public void close() throws IOException {
+                public void close() {
                 }
             }, StandardCharsets.UTF_8
     ));

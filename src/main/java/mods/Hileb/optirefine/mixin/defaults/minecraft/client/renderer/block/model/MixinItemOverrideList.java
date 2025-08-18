@@ -27,7 +27,7 @@ public abstract class MixinItemOverrideList {
     @Unique
     private ItemOverrideCache itemOverrideCache;
 
-    @Inject(method = "<init>(Ljava/util/List;)V", at = @At("TAIL"))
+    @Inject(method = "<init>(Ljava/util/List;)V", at = @At("RETURN"))
     public void init(List<ItemOverride> overrides, CallbackInfo ci){
         if (this.overrides.size() > 65) {
             this.itemOverrideCache = ItemOverrideCache.make(this.overrides);

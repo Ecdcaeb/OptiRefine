@@ -38,7 +38,8 @@
     "minecraft.world.chunk.MixinBlockStateContainer",
     "minecraft.world.chunk.storage.MixinExtendedBlockStorage",
     "minecraft.world.gen.layer.MixinGenLayerZoom",
-    "defaults.minecraftforge.fml.MixinFMLClientHandler"
+    "minecraftforge.fml.MixinFMLClientHandler",
+    "optifine.MixinConfig"
   ],
   "server": [],
   "client": [

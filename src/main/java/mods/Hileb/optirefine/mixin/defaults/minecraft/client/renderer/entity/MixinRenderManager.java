@@ -32,7 +32,7 @@ public abstract class MixinRenderManager {
     @Final
     private Map<String, RenderPlayer> skinMap;
 
-    @Inject(method = "<init>", at = @At("TAIL"))
+    @Inject(method = "<init>", at = @At("RETURN"))
     public void init(TextureManager p_i46180_1, RenderItem p_i46180_2, CallbackInfo ci){
         PlayerItemsLayer.register(this.skinMap);
     }

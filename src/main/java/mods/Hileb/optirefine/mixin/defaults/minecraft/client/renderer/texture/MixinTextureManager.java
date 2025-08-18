@@ -17,8 +17,6 @@ import net.optifine.shaders.ShadersTex;
 import org.apache.commons.lang3.StringUtils;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.ModifyArgs;
-import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 
 import java.util.Map;
 
@@ -29,9 +27,8 @@ public abstract class MixinTextureManager {
     @Unique
     private ResourceLocation boundTextureLocation;
 
-    @ModifyArgs(method = "bindTexture", at = @At("HEAD"))
-    public void beforeBindTexture(Args args){
-        ResourceLocation resource = args.get(1);
+    @WrapMethod(method = "bindTexture")
+    public void beforeBindTexture(ResourceLocation resource, Operation<Void> original){
         if (Config.isRandomEntities()) {
             resource = RandomEntities.getTextureLocation(resource);
         }
@@ -39,7 +36,7 @@ public abstract class MixinTextureManager {
         if (Config.isCustomGuis()) {
             resource = CustomGuis.getTextureLocation(resource);
         }
-        args.set(1, resource);
+        original.call(resource);
     }
 
     @WrapOperation(method = "bindTexture", at = @At(value = "INVOKE", target = "Ljava/util/Map;get(Ljava/lang/Object;)Ljava/lang/Object;"))
@@ -63,11 +60,12 @@ public abstract class MixinTextureManager {
         this.boundTextureLocation = resource;
     }
 
-    @ModifyArgs(method = "getDynamicTextureLocation", at = @At("HEAD"))
-    public void mojangLogo(Args args){
-        if ("logo".equals(args.get(1))) {
-            args.set(2, Config.getMojangLogoTexture(args.get(2)));
+    @WrapMethod(method = "getDynamicTextureLocation")
+    public ResourceLocation mojangLogo(String name, DynamicTexture texture, Operation<ResourceLocation> original){
+        if ("logo".equals(name)) {
+            texture = Config.getMojangLogoTexture(texture);
         }
+        return original.call(name, texture);
     }
 
     @Shadow @Final

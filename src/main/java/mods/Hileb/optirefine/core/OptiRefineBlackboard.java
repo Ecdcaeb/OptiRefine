@@ -1,8 +1,26 @@
 package mods.Hileb.optirefine.core;
 
 import com.google.common.collect.Sets;
+import com.google.gson.*;
+import it.unimi.dsi.fastutil.Arrays;
+import it.unimi.dsi.fastutil.objects.Object2BooleanArrayMap;
+import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
+import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
+import mods.Hileb.optirefine.library.common.utils.Lazy;
+import net.minecraft.launchwrapper.Launch;
+import net.minecraftforge.common.IPlantable;
+import net.optifine.util.ArrayUtils;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.ServiceLoader;
 
 public class OptiRefineBlackboard {
     public static final HashSet<String> CLASSES = Sets.newHashSet(
@@ -44,6 +62,7 @@ public class OptiRefineBlackboard {
             "net.minecraft.client.particle.ParticleManager$2",
             "net.minecraft.client.particle.ParticleManager$3",
             "net.minecraft.client.particle.ParticleManager$4",
+            /*
             "net.minecraft.client.renderer.block.model.BakedQuad",
             "net.minecraft.client.renderer.block.model.BakedQuadRetextured",
             "net.minecraft.client.renderer.block.model.FaceBakery",
@@ -54,6 +73,8 @@ public class OptiRefineBlackboard {
             "net.minecraft.client.renderer.block.model.FaceBakery$5",
             "net.minecraft.client.renderer.block.model.FaceBakery$Rotation",
             "net.minecraft.client.renderer.block.model.ItemOverrideList",
+
+             */
             "net.minecraft.client.renderer.block.model.ModelBakery",
             "net.minecraft.client.renderer.block.model.ModelBakery$1",
             "net.minecraft.client.renderer.block.model.ModelBakery$2",
@@ -66,7 +87,7 @@ public class OptiRefineBlackboard {
             "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$PendingUpload",
             "net.minecraft.client.renderer.chunk.CompiledChunk",
             "net.minecraft.client.renderer.chunk.CompiledChunk$1",
-            "net.minecraft.client.renderer.chunk.RenderChunk",
+            //"net.minecraft.client.renderer.chunk.RenderChunk",
             "net.minecraft.client.renderer.chunk.SetVisibility",
             "net.minecraft.client.renderer.chunk.VisGraph",
             "net.minecraft.client.renderer.chunk.VisGraph$1",
@@ -112,8 +133,8 @@ public class OptiRefineBlackboard {
             "net.minecraft.client.renderer.vertex.DefaultVertexFormats",
             "net.minecraft.client.renderer.vertex.VertexBuffer",
             "net.minecraft.client.renderer.BlockFluidRenderer",
-            //"net.minecraft.client.renderer.BlockModelRender",
-            //"net.minecraft.client.renderer.BlockModelRender$AmbientOcclusionFace", //TODO
+//            "net.minecraft.client.renderer.BlockModelRender",
+//            "net.minecraft.client.renderer.BlockModelRender$AmbientOcclusionFace", //TODO
             "net.minecraft.client.renderer.BlockModelRender$EnumNeighborInfo",
             "net.minecraft.client.renderer.BlockModelRender$Orientation",
             "net.minecraft.client.renderer.BlockModelRender$VertexTranslations",
@@ -144,7 +165,7 @@ public class OptiRefineBlackboard {
             "net.minecraft.client.settings.GameSettings$1",
             "net.minecraft.client.settings.GameSettings$2",
             "net.minecraft.client.settings.GameSettings$Options",
-            "net.minecraft.client.LoadingScreenRenderer",
+            //"net.minecraft.client.LoadingScreenRenderer",
             "net.minecraft.crash.CrashReport",
             "net.minecraft.crash.CrashReport$1",
             "net.minecraft.crash.CrashReport$2",
@@ -194,6 +215,47 @@ public class OptiRefineBlackboard {
             "net.minecraft.world.chunk.BlockStateContainer",
             "net.minecraft.world.chunk.storage.ExtendedBlockStorage"
     );
+
+    public static final Lazy<Object2BooleanMap<String>> REPATCH_CONFIG = Lazy.of(()->{
+//        ServiceLoader.load(IPlantable.class).stream()
+//                .map(ServiceLoader.Provider::get)
+                .
+        String[] str = CLASSES.toArray(String[]::new);
+        boolean[] ab = new boolean[str.length];
+        java.util.Arrays.fill(ab, true);
+        var map = new Object2BooleanOpenHashMap<>(str, ab);
+        File config = new File(new File(Launch.minecraftHome, "config"), "optirefine_patch_cfg.json");
+        if (config.exists()) {
+            try (BufferedReader bufferedReader = Files.newBufferedReader(config.toPath(), StandardCharsets.UTF_8)) {
+                JsonElement jsonElement = JsonParser.parseReader(bufferedReader);
+                if (jsonElement.isJsonObject()) {
+                    JsonObject jsonObject = jsonElement.getAsJsonObject();
+                    for (Map.Entry<String, JsonElement> entry : jsonObject.entrySet()) {
+                        if (entry.getValue().isJsonPrimitive() && entry.getValue().getAsJsonPrimitive().isBoolean()) {
+                            if(map.containsKey(entry.getKey())) {
+                                map.put(entry.getKey(), entry.getValue().getAsBoolean());
+                            }
+                        }
+                    }
+                }
+            } catch (IOException ignored) {
+            }
+        } else {
+            try (BufferedWriter writer = Files.newBufferedWriter(config.toPath(), StandardCharsets.UTF_8)) {
+                JsonObject jsonObject = new JsonObject();
+                for (var entry : map.object2BooleanEntrySet().stream().sorted(Map.Entry.comparingByKey()).toList()) {
+                    jsonObject.add(entry.getKey(), new JsonPrimitive(entry.getBooleanValue()));
+                }
+                writer.write(new GsonBuilder().setPrettyPrinting().create().toJson(jsonObject));
+            } catch (IOException ignored) {
+            }
+        }
+        return map;
+    });
+
+    public static boolean isOverwritePatches(String className) {
+        return REPATCH_CONFIG.get().containsKey(className) && REPATCH_CONFIG.get().getBoolean(className);
+    }
 
     /*
     net.minecraft.block.BlockAir

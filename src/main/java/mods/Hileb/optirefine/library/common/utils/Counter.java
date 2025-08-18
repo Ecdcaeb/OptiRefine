@@ -1,4 +1,4 @@
-package mods.Hileb.optirefine.library.common;
+package mods.Hileb.optirefine.library.common.utils;
 
 public class Counter {
     public Counter(){}

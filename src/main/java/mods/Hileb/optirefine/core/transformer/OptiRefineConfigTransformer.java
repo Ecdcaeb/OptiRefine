@@ -1,14 +1,15 @@
 package mods.Hileb.optirefine.core.transformer;
 
+import mods.Hileb.optirefine.library.foundationx.TransformerHelper;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.Remapper;
 import org.objectweb.asm.commons.SimpleRemapper;
 import org.objectweb.asm.tree.*;
 
-public class OptiRefineConfigTransformer {
+public class OptiRefineConfigTransformer implements TransformerHelper.TargetedASMTransformer {
     private static final Remapper CONFIG_REMAPPER = new SimpleRemapper("mods/Hileb/optirefine/optifine/Config", "Config");
 
-    public static void transform(ClassNode classNode){
+    public static void transform0(ClassNode classNode){
         for (MethodNode mn : classNode.methods) {
             for (AbstractInsnNode abstractInsnNode : mn.instructions) {
                 switch (abstractInsnNode) {
@@ -44,5 +45,18 @@ public class OptiRefineConfigTransformer {
                 }
             }
         }
+    }
+
+    @Override
+    public String[] getTargets() {
+        return new String[]{
+                "mods.Hileb.optirefine.optifine.client.GameSettingsOptionOF"
+        };
+    }
+
+    @Override
+    public int transform(ClassNode classNode) {
+        transform0(classNode);
+        return 0;
     }
 }

@@ -5,7 +5,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
-import mods.Hileb.optirefine.library.common.Counter;
+import mods.Hileb.optirefine.library.common.utils.Counter;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.model.ModelBase;
