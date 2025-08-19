@@ -34,7 +34,72 @@ public abstract class MixinGuiCustomizeSkin extends GuiScreen {
             }
         }
     }
-
-
-
 }
+
+/*
++++ net/minecraft/client/gui/GuiCustomizeSkin.java	Tue Aug 19 14:59:58 2025
+@@ -1,11 +1,14 @@
+ package net.minecraft.client.gui;
+
++import java.io.IOException;
+ import net.minecraft.client.resources.I18n;
+ import net.minecraft.client.settings.GameSettings;
+ import net.minecraft.entity.player.EnumPlayerModelParts;
++import net.optifine.gui.GuiButtonOF;
++import net.optifine.gui.GuiScreenCapeOF;
+
+ public class GuiCustomizeSkin extends GuiScreen {
+    private final GuiScreen parentScreen;
+    private String title;
+
+    public GuiCustomizeSkin(GuiScreen var1) {
+@@ -33,25 +36,31 @@
+             )
+          );
+       if (++var1 % 2 == 1) {
+          var1++;
+       }
+
++      this.buttonList.add(new GuiButtonOF(210, this.width / 2 - 100, this.height / 6 + 24 * (var1 >> 1), I18n.format("of.options.skinCustomisation.ofCape")));
++      var1 += 2;
+       this.buttonList.add(new GuiButton(200, this.width / 2 - 100, this.height / 6 + 24 * (var1 >> 1), I18n.format("gui.done")));
+    }
+
+-   protected void keyTyped(char var1, int var2) {
++   protected void keyTyped(char var1, int var2) throws IOException {
+       if (var2 == 1) {
+          this.mc.gameSettings.saveOptions();
+       }
+
+       super.keyTyped(var1, var2);
+    }
+
+-   protected void actionPerformed(GuiButton var1) {
++   protected void actionPerformed(GuiButton var1) throws IOException {
+       if (var1.enabled) {
++         if (var1.id == 210) {
++            this.mc.displayGuiScreen(new GuiScreenCapeOF(this));
++         }
++
+          if (var1.id == 200) {
+             this.mc.gameSettings.saveOptions();
+             this.mc.displayGuiScreen(this.parentScreen);
+          } else if (var1.id == 199) {
+             this.mc.gameSettings.setOptionValue(GameSettings.Options.MAIN_HAND, 1);
+             var1.displayString = this.mc.gameSettings.getKeyBinding(GameSettings.Options.MAIN_HAND);
+@@ -63,13 +72,13 @@
+          }
+       }
+    }
+
+    public void drawScreen(int var1, int var2, float var3) {
+       this.drawDefaultBackground();
+-      this.drawCenteredString(this.fontRenderer, this.title, this.width / 2, 20, 16777215);
++      this.a(this.fontRenderer, this.title, this.width / 2, 20, 16777215);
+       super.drawScreen(var1, var2, var3);
+    }
+
+    private String getMessage(EnumPlayerModelParts var1) {
+       String var2;
+       if (this.mc.gameSettings.getModelParts().contains(var1)) {
+ */

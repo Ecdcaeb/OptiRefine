@@ -30,3 +30,18 @@ public abstract class MixinFrustum {
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.culling.ClippingHelper isBoxInFrustumFully (DDDDDD)Z")
     private static native boolean ClippingHelper_isBoxInFrustumFully(ClippingHelper helper, double a0, double a1, double a2, double a3, double a4, double a5) ;
 }
+/*
++++ net/minecraft/client/renderer/culling/Frustum.java	Tue Aug 19 14:59:58 2025
+@@ -26,7 +26,11 @@
+       return this.clippingHelper.isBoxInFrustum(var1 - this.x, var3 - this.y, var5 - this.z, var7 - this.x, var9 - this.y, var11 - this.z);
+    }
+
+    public boolean isBoundingBoxInFrustum(AxisAlignedBB var1) {
+       return this.isBoxInFrustum(var1.minX, var1.minY, var1.minZ, var1.maxX, var1.maxY, var1.maxZ);
+    }
++
++   public boolean isBoxInFrustumFully(double var1, double var3, double var5, double var7, double var9, double var11) {
++      return this.clippingHelper.isBoxInFrustumFully(var1 - this.x, var3 - this.y, var5 - this.z, var7 - this.x, var9 - this.y, var11 - this.z);
++   }
+ }
+ */

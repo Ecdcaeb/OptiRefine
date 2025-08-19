@@ -78,3 +78,103 @@ public abstract class MixinLayerMooshroomMushroom {
         }
     }
 }
+/*
++++ net/minecraft/client/renderer/entity/layers/LayerMooshroomMushroom.java	Tue Aug 19 14:59:58 2025
+@@ -1,51 +1,90 @@
+ package net.minecraft.client.renderer.entity.layers;
+
+ import net.minecraft.client.Minecraft;
++import net.minecraft.client.model.ModelRenderer;
+ import net.minecraft.client.renderer.BlockRendererDispatcher;
+ import net.minecraft.client.renderer.GlStateManager;
+ import net.minecraft.client.renderer.entity.RenderMooshroom;
+ import net.minecraft.client.renderer.texture.TextureMap;
+ import net.minecraft.entity.passive.EntityMooshroom;
+ import net.minecraft.init.Blocks;
++import net.minecraft.util.ResourceLocation;
++import net.minecraft.util.math.MathHelper;
+
+ public class LayerMooshroomMushroom implements LayerRenderer<EntityMooshroom> {
+    private final RenderMooshroom mooshroomRenderer;
++   private ModelRenderer modelRendererMushroom;
++   private static final ResourceLocation LOCATION_MUSHROOM_RED = new ResourceLocation("textures/entity/cow/mushroom_red.png");
++   private static boolean hasTextureMushroom = false;
++
++   public static void update() {
++      hasTextureMushroom = Config.hasResource(LOCATION_MUSHROOM_RED);
++   }
+
+    public LayerMooshroomMushroom(RenderMooshroom var1) {
+       this.mooshroomRenderer = var1;
++      this.modelRendererMushroom = new ModelRenderer(this.mooshroomRenderer.f);
++      this.modelRendererMushroom.setTextureSize(16, 16);
++      this.modelRendererMushroom.rotationPointX = -6.0F;
++      this.modelRendererMushroom.rotationPointZ = -8.0F;
++      this.modelRendererMushroom.rotateAngleY = MathHelper.PI / 4.0F;
++      int[][] var2 = new int[][]{null, null, {16, 16, 0, 0}, {16, 16, 0, 0}, null, null};
++      this.modelRendererMushroom.addBox(var2, 0.0F, 0.0F, 10.0F, 20.0F, 16.0F, 0.0F, 0.0F);
++      int[][] var3 = new int[][]{null, null, null, null, {16, 16, 0, 0}, {16, 16, 0, 0}};
++      this.modelRendererMushroom.addBox(var3, 10.0F, 0.0F, 0.0F, 0.0F, 16.0F, 20.0F, 0.0F);
+    }
+
+    public void doRenderLayer(EntityMooshroom var1, float var2, float var3, float var4, float var5, float var6, float var7, float var8) {
+-      if (!var1.isChild() && !var1.isInvisible()) {
++      if (!var1.l_() && !var1.aX()) {
+          BlockRendererDispatcher var9 = Minecraft.getMinecraft().getBlockRendererDispatcher();
+-         this.mooshroomRenderer.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
++         if (hasTextureMushroom) {
++            this.mooshroomRenderer.a(LOCATION_MUSHROOM_RED);
++         } else {
++            this.mooshroomRenderer.a(TextureMap.LOCATION_BLOCKS_TEXTURE);
++         }
++
+          GlStateManager.enableCull();
+          GlStateManager.cullFace(GlStateManager.CullFace.FRONT);
+          GlStateManager.pushMatrix();
+          GlStateManager.scale(1.0F, -1.0F, 1.0F);
+          GlStateManager.translate(0.2F, 0.35F, 0.5F);
+          GlStateManager.rotate(42.0F, 0.0F, 1.0F, 0.0F);
+          GlStateManager.pushMatrix();
+          GlStateManager.translate(-0.5F, -0.5F, 0.5F);
+-         var9.renderBlockBrightness(Blocks.RED_MUSHROOM.getDefaultState(), 1.0F);
++         if (hasTextureMushroom) {
++            this.modelRendererMushroom.render(0.0625F);
++         } else {
++            var9.renderBlockBrightness(Blocks.RED_MUSHROOM.getDefaultState(), 1.0F);
++         }
++
+          GlStateManager.popMatrix();
+          GlStateManager.pushMatrix();
+          GlStateManager.translate(0.1F, 0.0F, -0.6F);
+          GlStateManager.rotate(42.0F, 0.0F, 1.0F, 0.0F);
+          GlStateManager.translate(-0.5F, -0.5F, 0.5F);
+-         var9.renderBlockBrightness(Blocks.RED_MUSHROOM.getDefaultState(), 1.0F);
++         if (hasTextureMushroom) {
++            this.modelRendererMushroom.render(0.0625F);
++         } else {
++            var9.renderBlockBrightness(Blocks.RED_MUSHROOM.getDefaultState(), 1.0F);
++         }
++
+          GlStateManager.popMatrix();
+          GlStateManager.popMatrix();
+          GlStateManager.pushMatrix();
+-         this.mooshroomRenderer.getMainModel().head.postRender(0.0625F);
++         this.mooshroomRenderer.getMainModel().modelTextureMap.postRender(0.0625F);
+          GlStateManager.scale(1.0F, -1.0F, 1.0F);
+          GlStateManager.translate(0.0F, 0.7F, -0.2F);
+          GlStateManager.rotate(12.0F, 0.0F, 1.0F, 0.0F);
+          GlStateManager.translate(-0.5F, -0.5F, 0.5F);
+-         var9.renderBlockBrightness(Blocks.RED_MUSHROOM.getDefaultState(), 1.0F);
++         if (hasTextureMushroom) {
++            this.modelRendererMushroom.render(0.0625F);
++         } else {
++            var9.renderBlockBrightness(Blocks.RED_MUSHROOM.getDefaultState(), 1.0F);
++         }
++
+          GlStateManager.popMatrix();
+          GlStateManager.cullFace(GlStateManager.CullFace.BACK);
+          GlStateManager.disableCull();
+       }
+    }
+
+ */

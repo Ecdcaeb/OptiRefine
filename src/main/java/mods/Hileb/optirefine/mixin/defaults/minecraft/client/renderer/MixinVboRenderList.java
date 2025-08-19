@@ -111,3 +111,114 @@ public abstract class MixinVboRenderList extends ChunkRenderContainer {
         GlStateManager.translate((float)(x - this.optiRefine$viewEntityX), (float)(y - this.optiRefine$viewEntityY), (float)(z - this.optiRefine$viewEntityZ));
     }
 }
+/*
+
+--- net/minecraft/client/renderer/VboRenderList.java	Tue Aug 19 14:59:42 2025
++++ net/minecraft/client/renderer/VboRenderList.java	Tue Aug 19 14:59:58 2025
+@@ -1,35 +1,89 @@
+ package net.minecraft.client.renderer;
+
+ import net.minecraft.client.renderer.chunk.RenderChunk;
+ import net.minecraft.client.renderer.vertex.VertexBuffer;
+ import net.minecraft.util.BlockRenderLayer;
++import net.optifine.render.VboRegion;
++import net.optifine.shaders.ShadersRender;
+
+ public class VboRenderList extends ChunkRenderContainer {
++   private double viewEntityX;
++   private double viewEntityY;
++   private double viewEntityZ;
++
+    public void renderChunkLayer(BlockRenderLayer var1) {
+       if (this.initialized) {
+-         for (RenderChunk var3 : this.renderChunks) {
+-            VertexBuffer var4 = var3.getVertexBufferByLayer(var1.ordinal());
+-            GlStateManager.pushMatrix();
+-            this.preRenderChunk(var3);
+-            var3.multModelviewMatrix();
+-            var4.bindBuffer();
+-            this.setupArrayPointers();
+-            var4.drawArrays(7);
+-            GlStateManager.popMatrix();
++         if (!Config.isRenderRegions()) {
++            for (RenderChunk var10 : this.renderChunks) {
++               VertexBuffer var11 = var10.getVertexBufferByLayer(var1.ordinal());
++               GlStateManager.pushMatrix();
++               this.preRenderChunk(var10);
++               var10.multModelviewMatrix();
++               var11.bindBuffer();
++               this.setupArrayPointers();
++               var11.drawArrays(7);
++               GlStateManager.popMatrix();
++            }
++         } else {
++            int var2 = Integer.MIN_VALUE;
++            int var3 = Integer.MIN_VALUE;
++            VboRegion var4 = null;
++
++            for (RenderChunk var6 : this.renderChunks) {
++               VertexBuffer var7 = var6.getVertexBufferByLayer(var1.ordinal());
++               VboRegion var8 = var7.getVboRegion();
++               if (var8 != var4 || var2 != var6.regionX || var3 != var6.regionZ) {
++                  if (var4 != null) {
++                     this.drawRegion(var2, var3, var4);
++                  }
++
++                  var2 = var6.regionX;
++                  var3 = var6.regionZ;
++                  var4 = var8;
++               }
++
++               var7.drawArrays(7);
++            }
++
++            if (var4 != null) {
++               this.drawRegion(var2, var3, var4);
++            }
+          }
+
+          OpenGlHelper.glBindBuffer(OpenGlHelper.GL_ARRAY_BUFFER, 0);
+          GlStateManager.resetColor();
+          this.renderChunks.clear();
+       }
+    }
+
+-   private void setupArrayPointers() {
+-      GlStateManager.glVertexPointer(3, 5126, 28, 0);
+-      GlStateManager.glColorPointer(4, 5121, 28, 12);
+-      GlStateManager.glTexCoordPointer(2, 5126, 28, 16);
+-      OpenGlHelper.setClientActiveTexture(OpenGlHelper.lightmapTexUnit);
+-      GlStateManager.glTexCoordPointer(2, 5122, 28, 24);
+-      OpenGlHelper.setClientActiveTexture(OpenGlHelper.defaultTexUnit);
++   public void setupArrayPointers() {
++      if (Config.isShaders()) {
++         ShadersRender.setupArrayPointersVbo();
++      } else {
++         GlStateManager.glVertexPointer(3, 5126, 28, 0);
++         GlStateManager.glColorPointer(4, 5121, 28, 12);
++         GlStateManager.glTexCoordPointer(2, 5126, 28, 16);
++         OpenGlHelper.setClientActiveTexture(OpenGlHelper.lightmapTexUnit);
++         GlStateManager.glTexCoordPointer(2, 5122, 28, 24);
++         OpenGlHelper.setClientActiveTexture(OpenGlHelper.defaultTexUnit);
++      }
++   }
++
++   public void initialize(double var1, double var3, double var5) {
++      this.viewEntityX = var1;
++      this.viewEntityY = var3;
++      this.viewEntityZ = var5;
++      super.initialize(var1, var3, var5);
++   }
++
++   private void drawRegion(int var1, int var2, VboRegion var3) {
++      GlStateManager.pushMatrix();
++      this.preRenderRegion(var1, 0, var2);
++      var3.finishDraw(this);
++      GlStateManager.popMatrix();
++   }
++
++   public void preRenderRegion(int var1, int var2, int var3) {
++      GlStateManager.translate((float)(var1 - this.viewEntityX), (float)(var2 - this.viewEntityY), (float)(var3 - this.viewEntityZ));
+    }
+ }
+ */

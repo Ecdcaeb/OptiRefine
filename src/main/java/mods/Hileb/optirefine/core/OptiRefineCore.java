@@ -214,7 +214,6 @@ public class OptiRefineCore implements IFMLLoadingPlugin {
 
         @Override
         public void preApply(String s, ClassNode classNode, String s1, IMixinInfo iMixinInfo) {
-
         }
 
         @Override
