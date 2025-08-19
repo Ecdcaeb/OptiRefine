@@ -33,3 +33,31 @@ public abstract class MixinUtil {
         return null;
     }
 }
+/*
+--- net/minecraft/util/Util.java	Tue Aug 19 14:59:42 2025
++++ net/minecraft/util/Util.java	Tue Aug 19 14:59:58 2025
+@@ -27,16 +27,20 @@
+
+    @Nullable
+    public static <V> V runTask(FutureTask<V> var0, Logger var1) {
+       try {
+          var0.run();
+          return (V)var0.get();
+-      } catch (ExecutionException var3) {
+-         var1.fatal("Error executing task", var3);
+-      } catch (InterruptedException var4) {
++      } catch (ExecutionException var4) {
+          var1.fatal("Error executing task", var4);
++         if (var4.getCause() instanceof OutOfMemoryError) {
++            OutOfMemoryError var3 = (OutOfMemoryError)var4.getCause();
++            throw var3;
++         }
++      } catch (InterruptedException var5) {
++         var1.fatal("Error executing task", var5);
+       }
+
+       return null;
+    }
+
+    public static <T> T getLastElement(List<T> var0) {
+ */

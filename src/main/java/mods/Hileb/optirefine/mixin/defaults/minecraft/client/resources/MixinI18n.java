@@ -29,3 +29,31 @@ public abstract class MixinI18n {
         throw new AbstractMethodError();
     }
 }
+/*
+--- net/minecraft/client/resources/I18n.java	Tue Aug 19 14:59:42 2025
++++ net/minecraft/client/resources/I18n.java	Tue Aug 19 14:59:58 2025
+@@ -1,8 +1,10 @@
+ package net.minecraft.client.resources;
+
++import java.util.Map;
++
+ public class I18n {
+    private static Locale i18nLocale;
+
+    static void setLocale(Locale var0) {
+       i18nLocale = var0;
+    }
+@@ -10,8 +12,12 @@
+    public static String format(String var0, Object... var1) {
+       return i18nLocale.formatMessage(var0, var1);
+    }
+
+    public static boolean hasKey(String var0) {
+       return i18nLocale.hasKey(var0);
++   }
++
++   public static Map getLocaleProperties() {
++      return i18nLocale.properties;
+    }
+ }
+ */

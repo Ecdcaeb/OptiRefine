@@ -34,3 +34,31 @@ public abstract class MixinVertexBufferUploader {
     private static native void VertexBuffer_setDrawMode(VertexBuffer builder, int arg1) ;
 
 }
+/*
+
+--- net/minecraft/client/renderer/Vector3d.java	Tue Aug 19 14:59:42 2025
++++ net/minecraft/client/renderer/Vector3d.java	Tue Aug 19 14:59:42 2025
+--- net/minecraft/client/renderer/VertexBufferUploader.java	Tue Aug 19 14:59:42 2025
++++ net/minecraft/client/renderer/VertexBufferUploader.java	Tue Aug 19 14:59:58 2025
+@@ -3,14 +3,19 @@
+ import net.minecraft.client.renderer.vertex.VertexBuffer;
+
+ public class VertexBufferUploader extends WorldVertexBufferUploader {
+    private VertexBuffer vertexBuffer;
+
+    public void draw(BufferBuilder var1) {
+-      var1.reset();
++      if (var1.getDrawMode() == 7 && Config.isQuadsToTriangles()) {
++         var1.quadsToTriangles();
++         this.vertexBuffer.setDrawMode(var1.getDrawMode());
++      }
++
+       this.vertexBuffer.bufferData(var1.getByteBuffer());
++      var1.reset();
+    }
+
+    public void setVertexBuffer(VertexBuffer var1) {
+       this.vertexBuffer = var1;
+    }
+ }
+ */
