@@ -1,3 +1,5 @@
+# OptiRefine 目前没有可用版本，请勿在任何实际场景下载安装。暂不接受由OptiRefine引发崩溃或错误的issue。但你仍然可以反馈OptiFine本身在Cleanroom环境下存在的问题，需要的特性。
+
 # OptiRefine
 OptiRefine is a mod that utilizes Mixin to patch Optifine, keeping optifine compatible with cleanroom and reducing its destructiveness.
 
