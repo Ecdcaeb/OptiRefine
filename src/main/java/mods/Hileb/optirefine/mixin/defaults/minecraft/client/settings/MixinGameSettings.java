@@ -8,7 +8,6 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import mods.Hileb.optirefine.core.OptiRefineLog;
-import mods.Hileb.optirefine.library.common.utils.Lazy;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.optifine.Config;
@@ -815,6 +814,16 @@ public abstract class MixinGameSettings {
     @Shadow
     public abstract float getOptionFloatValue(GameSettings.Options settingOption);
 
+    @WrapMethod(method = "getKeyBinding")
+    public String getKeyBindingOFForged(GameSettings.Options settingOption, Operation<String> original){
+        String str = getKeyBindingOF(settingOption);
+        if (str != null) {
+            OptiRefineLog.log.info("getKeyBindingOF : {}", str);
+            return str;
+        }
+        else return original.call(settingOption);
+    }
+
     @Unique
     @SuppressWarnings("AddedMixinMembersNamePattern")
     private String getKeyBindingOF(GameSettings.Options par1EnumOptions) {
@@ -860,7 +869,7 @@ public abstract class MixinGameSettings {
                 descr = str + "+";
             }
 
-            return var2 + distChunks + " " + descr + "";
+            return var2 + distChunks + " " + descr;
         } else if (par1EnumOptions == GameSettingsOptionOF.FOG_FANCY) {
             return switch (this.ofFogType) {
                 case 1 -> var2 + Lang.getFast();

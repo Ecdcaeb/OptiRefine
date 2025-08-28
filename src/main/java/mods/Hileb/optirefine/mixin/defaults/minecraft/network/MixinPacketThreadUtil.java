@@ -8,17 +8,27 @@ import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.optifine.Config;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Gui;
+import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.RenderGlobal;
+import net.minecraft.inventory.Slot;
 import net.minecraft.network.Packet;
 import net.minecraft.network.PacketThreadUtil;
 import net.minecraft.network.play.server.SPacketJoinGame;
 import net.minecraft.network.play.server.SPacketPlayerPosLook;
 import net.minecraft.network.play.server.SPacketRespawn;
 import net.minecraft.util.IThreadListener;
+import net.optifine.gui.GuiButtonOF;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
+
+import java.awt.*;
+import java.util.List;
 
 @Checked
 @Mixin(PacketThreadUtil.class)

@@ -23,7 +23,6 @@
     "minecraft.crash.MixinCrashReport",
     "minecraft.entity.MixinEntityLiving",
     "minecraft.network.MixinPacketThreadUtil",
-    "minecraft.network.MixinPacketThreadUtil_1",
     "minecraft.network.datasync.MixinEntityDataManager",
     "minecraft.potion.MixinPotionUtil",
     "minecraft.profiler.MixinProfiler",

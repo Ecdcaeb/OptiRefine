@@ -1,18 +1,20 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.gui;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import mods.Hileb.optirefine.Reference;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.ChangeSuperClass;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.optifine.Config;
 import mods.Hileb.optirefine.optifine.client.GameSettingsOptionOF;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.*;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.settings.GameSettings;
 import net.optifine.Lang;
 import net.optifine.gui.GuiAnimationSettingsOF;
 import net.optifine.gui.GuiDetailSettingsOF;
-import net.optifine.gui.GuiOptionButtonOF;
-import net.optifine.gui.GuiOptionSliderOF;
 import net.optifine.gui.GuiOtherSettingsOF;
 import net.optifine.gui.GuiPerformanceSettingsOF;
 import net.optifine.gui.GuiQualitySettingsOF;
@@ -30,6 +32,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.List;
+
 @Mixin(GuiVideoSettings.class)
 @ChangeSuperClass(GuiScreenOF.class)
 public abstract class MixinGuiVideoSettings extends GuiScreen {
@@ -46,36 +50,28 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
 
     @SuppressWarnings("unused")
     @Unique
-    
     private static final String __OBFID = "CL_00000718";
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
-    
     private static GameSettings.Options[] videoOptions = new GameSettings.Options[]{GameSettings.Options.GRAPHICS, GameSettings.Options.RENDER_DISTANCE, GameSettings.Options.AMBIENT_OCCLUSION, GameSettings.Options.FRAMERATE_LIMIT, GameSettingsOptionOF.AO_LEVEL, GameSettings.Options.VIEW_BOBBING, GameSettings.Options.GUI_SCALE, GameSettings.Options.USE_VBO, GameSettings.Options.GAMMA, GameSettings.Options.ATTACK_INDICATOR, GameSettingsOptionOF.DYNAMIC_LIGHTS, GameSettingsOptionOF.DYNAMIC_FOV};
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     private TooltipManager tooltipManager = new TooltipManager(this, new TooltipProviderOptions());
 
-    @Inject(method = "initGui", at = @At("HEAD"), cancellable = true)
-    public void overwriteInitGui(CallbackInfo ci) {
-        this.screenTitle = I18n.format("options.videoTitle");
-        this.buttonList.clear();
+    @Redirect(method = "initGui", at = @At(value = "FIELD", target = "Lnet/minecraft/client/gui/GuiVideoSettings;VIDEO_OPTIONS:[Lnet/minecraft/client/settings/GameSettings$Options;"))
+    private GameSettings.Options[] redirectUpdatedEnumVideoSettings(){
+        return videoOptions;
+    }
 
-        for (int i = 0; i < videoOptions.length; i++) {
-            GameSettings.Options opt = videoOptions[i];
-            if (opt != null) {
-                int x = this.width / 2 - 155 + i % 2 * 160;
-                int y = this.height / 6 + 21 * (i / 2) - 12;
-                if (opt.isFloat()) {
-                    this.buttonList.add(new GuiOptionSliderOF(opt.getOrdinal(), x, y, opt));
-                } else {
-                    this.buttonList.add(new GuiOptionButtonOF(opt.getOrdinal(), x, y, opt, this.guiGameSettings.getKeyBinding(opt)));
-                }
-            }
-        }
+    @Redirect(method = "initGui", at = @At(value = "NEW", target = "(Lnet/minecraft/client/Minecraft;IIIII[Lnet/minecraft/client/settings/GameSettings$Options;)Lnet/minecraft/client/gui/GuiOptionsRowList;"))
+    public GuiOptionsRowList adjustRollHight(Minecraft p_i45015_1, int p_i45015_2, int p_i45015_3, int p_i45015_4, int p_i45015_5, int p_i45015_6, GameSettings.Options[] p_i45015_7){
+        return new GuiOptionsRowList(p_i45015_1, p_i45015_2, p_i45015_3, p_i45015_4, p_i45015_5 - 48, p_i45015_6, p_i45015_7);
+    }
 
+    @WrapOperation(method = "initGui", at = @At(value = "INVOKE", target = "Ljava/util/List;add(Ljava/lang/Object;)Z", ordinal = 0))
+    public boolean addExtraInitGui(List<?> instance, Object e, Operation<Boolean> original) {
         int y = this.height / 6 + 21 * (videoOptions.length / 2) - 12;
         int x = 0;
         x = this.width / 2 - 155;
@@ -93,7 +89,8 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
         x = this.width / 2 - 155 + 160;
         this.buttonList.add(new GuiOptionButton(222, x, y, Lang.get("of.options.other")));
         this.buttonList.add(new GuiButton(200, this.width / 2 - 100, this.height / 6 + 168 + 11, I18n.format("gui.done")));
-        ci.cancel();
+
+        return true;
     }
 
     @Inject(method = "actionPerformed", at = @At("RETURN"))
@@ -191,14 +188,15 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
         }
     }
 
-    @Redirect(method = "drawScreen", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiListExtended;drawScreen(IIF)V"))
-    public void injectDrawScreen(GuiListExtended instance, int x, int y, float v){
+    @WrapOperation(method = "drawScreen", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiListExtended;drawScreen(IIF)V"))
+    public void injectDrawScreen(GuiListExtended instance, int x, int y, float v, Operation<Void> original){
         this.drawString(this.fontRenderer, this.screenTitle, this.width / 2, 15, 16777215);
-        final String ver = "OptiFine HD G5 Ultra";
+        final String ver = "OptiFine HD G5 Ultra + " + Reference.BRAND;
         this.drawCenteredString(this.fontRenderer, ver, 2, this.height - 10, 8421504);
         final String verMc = "Minecraft 1.12.2";
         int lenMc = this.fontRenderer.getStringWidth(verMc);
         this.drawCenteredString(this.fontRenderer, verMc, this.width - lenMc - 2, this.height - 10, 8421504);
+        original.call(instance, x, y, v);
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})

@@ -1,6 +1,7 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraftforge.fml;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
+import mods.Hileb.optirefine.Reference;
 import mods.Hileb.optirefine.core.OptiRefineCore;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraftforge.fml.client.FMLClientHandler;
@@ -30,7 +31,7 @@ public abstract class MixinFMLClientHandler {
     public List<String> modifyOptifineBrand(List<String> original){
         original.replaceAll(s -> {
             if (s.startsWith("Optifine")) {
-                return s + " + " + OptiRefineCore.Container.DATA.name + " " + OptiRefineCore.Container.DATA.version;
+                return s + " + " + Reference.BRAND;
             } else return s;
         });
         return original;

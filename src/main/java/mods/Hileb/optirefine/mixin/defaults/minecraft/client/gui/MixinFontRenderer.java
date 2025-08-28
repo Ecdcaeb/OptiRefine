@@ -11,6 +11,8 @@ import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalIntRef;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
+import mods.Hileb.optirefine.OptiRefine;
+import mods.Hileb.optirefine.core.OptiRefineLog;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessTransformer;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Implements;
@@ -86,7 +88,7 @@ public abstract class MixinFontRenderer implements ISelectiveResourceReloadListe
     @Shadow @Final
     private static ResourceLocation[] UNICODE_PAGE_LOCATIONS;
 
-    @WrapMethod(method = "onResourceManagerReload")
+    @WrapMethod(method = "onResourceManagerReload(Lnet/minecraft/client/resources/IResourceManager;)V")
     private void $onResourceManagerReload(IResourceManager resourceManager, Operation<Void> original){
         this.onResourceManagerReload(resourceManager, SelectiveReloadStateHandler.INSTANCE.get());
     }
@@ -114,69 +116,84 @@ public abstract class MixinFontRenderer implements ISelectiveResourceReloadListe
         Properties var3 = FontUtils.readFontProperties(this.locationFontTexture);
         this.blend = FontUtils.readBoolean(var3, "blend", false);
         propertiesLocalRef.set(var3);
+        Arrays.fill(this.charWidthFloat, -1f);
+    }
+
+    @Inject(method = "readFontTexture", at = @At("TAIL"))
+    private void postinit$readFontTexture(CallbackInfo ci,
+                                      @Share(namespace = "optirefine", value = "properties")LocalRef<Properties> propertiesLocalRef
+    ){
+        for (int i = 0; i < this.charWidthFloat.length; i++) {
+            if (charWidthFloat[i] < 0) {
+                this.charWidthFloat[i] = this.charWidth[i];
+            }
+        }
     }
 
     @WrapOperation(method = "readFontTexture", at = @At(value = "INVOKE", target = "Ljava/awt/image/BufferedImage;getRGB(IIII[III)[I"))
-    private int[] readFontTexture$customRGB(BufferedImage instance, int data0_, int data0_1, int datax, int datay, int[] array, int data0_2, int data3, Operation<int[]> original, @Share(namespace = "optirefine", value = "properties")LocalRef<Properties> propertiesLocalRef){
-        int width = instance.getWidth();
-        int height = instance.getHeight();
-
-        int width16 = width / 16;
-        int height16 = height / 16;
-        float width128 = width / 128.0F;
-        float limitedWidth128 = Config.limit(width128, 1.0F, 2.0F);
-        this.offsetBold = 1.0F / limitedWidth128;
-        float offsetBold = FontUtils.readFloat(propertiesLocalRef.get(), "offsetBold", -1.0F);
-        if (offsetBold >= 0.0F) {
-            this.offsetBold = offsetBold;
+    private int[] readFontTexture$customRGB(BufferedImage instance, int data0_, int data0_1, int imgWidth, int imgHeight, int[] array, int data0_2, int data3, Operation<int[]> original, @Share(namespace = "optirefine", value = "properties")LocalRef<Properties> propertiesLocalRef){
+        Arrays.fill(this.charWidth, -1);
+        int charW = imgWidth / 16;
+        int charH = imgHeight / 16;
+        float kx = imgWidth / 128.0F;
+        float boldScaleFactor = Config.limit(kx, 1.0F, 2.0F);
+        this.offsetBold = 1.0F / boldScaleFactor;
+        float offsetBoldConfig = FontUtils.readFloat(propertiesLocalRef.get(), "offsetBold", -1.0F);
+        if (offsetBoldConfig >= 0.0F) {
+            this.offsetBold = offsetBoldConfig;
         }
 
-        Arrays.fill(this.charWidth, -1);
+        array = original.call(instance, 0, 0, imgWidth, imgHeight, array, 0, imgWidth);
 
-        int[] valueToReturn = original.call(instance, data0_, data0_1, datax, datay, array, data0_2, data3);
+        for (int k = 0; k < 256; k++) {
+            int cx = k % 16;
+            int cy = k / 16;
+            int px = 0;
 
-        for (int var12 = 0; var12 < 256; var12++) {
-            int var13 = var12 % 16;
-            int var14 = var12 / 16;
-            for (int var15 = width16 - 1; var15 >= 0; var15--) {
-                int var16 = var13 * width16 + var15;
-                boolean var17 = true;
-                for (int var18 = 0; var18 < height16 && var17; var18++) {
-                    int var19 = (var14 * height16 + var18) * width16;
-                    int var20 = valueToReturn[var16 + var19];
-                    int var21 = var20 >> 24 & 0xFF;
-                    if (var21 > 16) {
-                        var17 = false;
+            for (px = charW - 1; px >= 0; px--) {
+                int x = cx * charW + px;
+                boolean flag = true;
+
+                for (int py = 0; py < charH; py++) {
+                    int ypos = (cy * charH + py) * imgWidth;
+                    int col = array[x + ypos];
+                    int al = col >> 24 & 0xFF;
+                    if (al > 16) {
+                        flag = false;
+                        break;
                     }
                 }
 
-                if (!var17) {
+                if (!flag) {
                     break;
                 }
+            }
 
-                if (var12 == 32) {
-                    if (width16 <= 8) {
-                        var15 = (int) (2.0F * width128);
-                    } else {
-                        var15 = (int) (1.5F * width128);
-                    }
+            if (k == 32) {
+                if (charW <= 8) {
+                    px = (int)(2.0F * kx);
+                } else {
+                    px = (int)(1.5F * kx);
                 }
-                this.charWidthFloat[var12] = (var15 + 1) / width128 + 1.0F;
             }
-            FontUtils.readCustomCharWidths(propertiesLocalRef.get(), this.charWidthFloat);
-            for (int var26 = 0; var26 < this.charWidth.length; var26++) {
-                this.charWidth[var26] = Math.round(this.charWidthFloat[var26]);
-            }
+
+            this.charWidthFloat[k] = (px + 1) / kx + 1.0F;
         }
 
-        return valueToReturn;
+        FontUtils.readCustomCharWidths(propertiesLocalRef.get(), this.charWidthFloat);
+        for (int i = 0; i < this.charWidth.length; i++) {
+            this.charWidth[i] = Math.round(this.charWidthFloat[i]);
+            OptiRefineLog.log.info("A_CharFloat {} : {}", i, charWidthFloat[i]);
+        }
+        return array;
     }
 
     @Definition(id = "charWidth", field = "Lnet/minecraft/client/gui/FontRenderer;charWidth:[I")
     @Expression("this.charWidth[?] = ?")
     @WrapOperation(method = "readFontTexture", at = @At("MIXINEXTRAS:EXPRESSION"))
     private void customWight$catchArrayValue(int[] array, int index, int value, Operation<Void> original){
-        if (array[index] < 0) {
+        OptiRefineLog.log.info("A_CharInt {} : {}", index, value);
+        if (array[index] < 0 || this.charWidthFloat[index] < 0) {
             original.call(array, index, value);
         }
     }
