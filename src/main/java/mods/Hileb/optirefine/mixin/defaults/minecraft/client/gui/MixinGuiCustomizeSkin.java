@@ -2,6 +2,7 @@ package mods.Hileb.optirefine.mixin.defaults.minecraft.client.gui;
 
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalIntRef;
+import mods.Hileb.optirefine.library.common.utils.Checked;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiCustomizeSkin;
 import net.minecraft.client.gui.GuiScreen;
@@ -13,6 +14,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+@Checked
 @Mixin(GuiCustomizeSkin.class)
 public abstract class MixinGuiCustomizeSkin extends GuiScreen {
 

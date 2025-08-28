@@ -1,5 +1,8 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.gui;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import mods.Hileb.optirefine.library.common.utils.Checked;
 import net.minecraft.client.gui.GuiDownloadTerrain;
 import net.minecraft.client.gui.GuiScreen;
 import net.optifine.CustomLoadingScreen;
@@ -9,18 +12,18 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
+@Checked
 @Mixin(GuiDownloadTerrain.class)
 public abstract class MixinGuiDownloadTerrain extends GuiScreen {
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
-    
     private CustomLoadingScreen customLoadingScreen = CustomLoadingScreens.getCustomLoadingScreen();
 
-    @Redirect(method = "drawScreen", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiDownloadTerrain;drawBackground(I)V"))
-    public void injectDrawScreen(GuiDownloadTerrain instance, int i) {
+    @WrapOperation(method = "drawScreen", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiDownloadTerrain;drawBackground(I)V"))
+    public void injectDrawScreen(GuiDownloadTerrain instance, int i, Operation<Void> original) {
         if (customLoadingScreen != null) {
             customLoadingScreen.drawBackground(this.width, this.height);
-        } else instance.drawBackground(i);
+        } else original.call(instance, i);
     }
 
 }

@@ -2,6 +2,7 @@ package mods.Hileb.optirefine.mixin.defaults.minecraft.potion;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.potion.Potion;
@@ -18,9 +19,9 @@ import java.util.Collection;
 @Mixin(PotionUtils.class)
 public abstract class MixinPotionUtil {
 
-    @Redirect(method = "getPotionColorFromEffectList", at = @At(value = "INVOKE", target = "Lnet/minecraft/potion/Potion;getLiquidColor()I"))
-    private static int injectGetPotionColorFromEffectList(Potion instance){
-        int k = instance.getLiquidColor();
+    @WrapOperation(method = "getPotionColorFromEffectList", at = @At(value = "INVOKE", target = "Lnet/minecraft/potion/Potion;getLiquidColor()I"))
+    private static int injectGetPotionColorFromEffectList(Potion instance, Operation<Integer> original){
+        int k = original.call(instance);
         if (Config.isCustomColors()) {
             return CustomColors.getPotionColor(instance, k);
         }

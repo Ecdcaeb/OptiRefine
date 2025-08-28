@@ -48,26 +48,40 @@ public class CursedMixinExtensions {
 
         AnnotationNode implementsItf = Annotations.getVisible(targetClass, Implements.class);
         if (implementsItf != null) {
-            ListIterator<Object> iterator = implementsItf.values.listIterator();
-            while (iterator.hasNext()) {
-                Object current = iterator.next();
-                if ("value".equals(current)) {
-                    //noinspection unchecked
-                    for (Type type : (List<Type>) iterator.next()) {
-                        if (!targetClass.interfaces.contains(type.getInternalName())) {
-                            targetClass.interfaces.add(type.getInternalName());
-                        }
-                    }
-                } else if ("itfs".equals(current)) {
-                    //noinspection unchecked
-                    for (String type : (List<String>) iterator.next()) {
-                        type = type.replace('.', '/');
-                        if (!targetClass.interfaces.contains(type)) {
-                            targetClass.interfaces.add(type);
-                        }
+            List<Type> targetToAdd = Annotations.getValue(implementsItf, "value");
+            if (targetToAdd != null) {
+                for (Type type : targetToAdd) {
+                    if (!targetClass.interfaces.contains(type.getInternalName())) {
+                        targetClass.interfaces.add(type.getInternalName());
                     }
                 }
             }
+
+            List<String> targetToAddStr = Annotations.getValue(implementsItf, "itfs");
+            if (targetToAddStr != null) {
+                for (String type : targetToAddStr) {
+                    type = type.replace('.', '/');
+                    if (!targetClass.interfaces.contains(type)) {
+                        targetClass.interfaces.add(type);
+                    }
+                }
+            }
+
+            List<Type> targetToRemove = Annotations.getValue(implementsItf, "removes");
+            if (targetToRemove != null) {
+                for (Type type : targetToRemove) {
+                    targetClass.interfaces.remove(type.getInternalName());
+                }
+            }
+
+            List<String> targetToRemoveStr = Annotations.getValue(implementsItf, "removed");
+            if (targetToRemoveStr != null) {
+                for (String type : targetToRemoveStr) {
+                    targetClass.interfaces.remove(type.replace('.', '/'));
+                }
+            }
+
+
         }
 
         List<String> ctrToReplace = new ArrayList<>();

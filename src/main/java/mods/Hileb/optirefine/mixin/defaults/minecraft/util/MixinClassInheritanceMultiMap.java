@@ -1,7 +1,7 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.util;
 
+import mods.Hileb.optirefine.library.common.utils.Caster;
 import mods.Hileb.optirefine.library.common.utils.Checked;
-import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import net.minecraft.util.ClassInheritanceMultiMap;
 import net.optifine.util.IteratorCache;
 import org.spongepowered.asm.mixin.*;
@@ -28,22 +28,22 @@ public abstract class MixinClassInheritanceMultiMap<T> extends AbstractSet<T> {
     private List<T> values;
 
     @Inject(method = "<init>", at = @At("RETURN"))
-    public void inject_empty0(Class<?> p_i45909_1_, CallbackInfo ci){
+    public void init$checkEmpty(Class<?> p_i45909_1_, CallbackInfo ci){
         this.empty = this.values.isEmpty();
     }
 
     @Inject(method = "add", at = @At("RETURN"))
-    public void inject_empty1(Object p_add_1_, CallbackInfoReturnable<Boolean> cir){
+    public void add$checkEmpty(Object p_add_1_, CallbackInfoReturnable<Boolean> cir){
         this.empty = this.values.isEmpty();
     }
 
     @Inject(method = "addForClass", at = @At("RETURN"))
-    public void inject_empty2(Object p_181743_1_, Class<?> p_181743_2_, CallbackInfo ci){
+    public void addForClass$checkEmpty(Object p_181743_1_, Class<?> p_181743_2_, CallbackInfo ci){
         this.empty = this.values.isEmpty();
     }
 
     @Inject(method = "remove", at = @At("RETURN"))
-    public void inject_empty3(Object p_add_1_, CallbackInfoReturnable<Boolean> cir){
+    public void remove$checkEmpty(Object p_add_1_, CallbackInfoReturnable<Boolean> cir){
         this.empty = this.values.isEmpty();
     }
 
@@ -59,14 +59,7 @@ public abstract class MixinClassInheritanceMultiMap<T> extends AbstractSet<T> {
     @Overwrite
     @Nonnull
     public Iterator<T> iterator() {
-        return this.values.isEmpty() ? Collections.emptyIterator() : castIterator(IteratorCache.getReadOnly(this.values));
-    }
-
-    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
-    @AccessibleOperation()
-    private static<E, V> Iterator<E> castIterator(Iterator<V> i) {
-        throw new AbstractMethodError();
+        return this.values.isEmpty() ? Collections.emptyIterator() : Caster.cast(IteratorCache.getReadOnly(this.values));
     }
 
 }

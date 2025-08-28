@@ -9,5 +9,7 @@ public @interface Implements {
     Class<?>[] value() default {};
     String[] itfs() default {};
 
+    Class<?>[] removes() default {};
+    String[] removed() default {};
 
 }

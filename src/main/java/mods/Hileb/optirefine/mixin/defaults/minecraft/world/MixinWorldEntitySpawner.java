@@ -1,7 +1,16 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.world;
 
+import net.minecraft.entity.EntityLiving;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.World;
 import net.minecraft.world.WorldEntitySpawner;
+import net.minecraft.world.chunk.Chunk;
+import net.optifine.BlockPosM;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Mixin(WorldEntitySpawner.class)
 public abstract class MixinWorldEntitySpawner {
@@ -143,6 +152,27 @@ public abstract class MixinWorldEntitySpawner {
 //        blockPosM.setXyz(px, py, pz);
 //        return blockPosM;
 //    }
+    @Unique
+    private Map<Class<?>, EntityLiving> mapSampleEntitiesByClass = new HashMap<>();
+    @Unique
+    private int lastPlayerChunkX = Integer.MAX_VALUE;
+    @Unique
+    private int lastPlayerChunkZ = Integer.MAX_VALUE;
+    @Unique
+    private int countChunkPos;
+
+    @Unique
+    private static BlockPosM getRandomChunkPosition(World var0, int var1, int var2, BlockPosM var3) {
+        Chunk var4 = var0.getChunk(var1, var2);
+        int var5 = var1 * 16 + var0.rand.nextInt(16);
+        int var6 = var2 * 16 + var0.rand.nextInt(16);
+        int var7 = MathHelper.roundUp(var4.getHeightValue(var5 & 15, var6 & 15) + 1, 16);
+        int var8 = var0.rand.nextInt(var7 > 0 ? var7 : var4.getTopFilledSegment() + 16 - 1);
+        var3.setXyz(var5, var8, var6);
+        return var3;
+    }
+
+
 }
 /*
 --- net/minecraft/world/WorldEntitySpawner.java	Tue Aug 19 14:59:42 2025

@@ -1,15 +1,23 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.world.gen.layer;
 
+import mods.Hileb.optirefine.library.common.utils.Checked;
 import net.minecraft.world.gen.layer.GenLayer;
 import net.minecraft.world.gen.layer.GenLayerZoom;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
-
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Redirect;
+@Checked
 @Mixin(GenLayerZoom.class)
 public abstract class MixinGenLayerZoom extends GenLayer {
     @SuppressWarnings("unused")
     public MixinGenLayerZoom(long p_i2125_1_) {
         super(p_i2125_1_);
+    }
+
+    @Redirect(method = "getInts", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/gen/layer/GenLayerZoom;selectRandom([I)I"))
+    private int getInts$UseSelectRandom2(GenLayerZoom instance, int[] ints){
+        return selectRandom2(ints[0], ints[1]);
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})

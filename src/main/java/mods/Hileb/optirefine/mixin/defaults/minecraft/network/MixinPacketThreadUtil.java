@@ -39,7 +39,7 @@ public abstract class MixinPacketThreadUtil {
 
     @WrapOperation(method = "checkThreadAndEnqueue", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/IThreadListener;addScheduledTask(Ljava/lang/Runnable;)Lcom/google/common/util/concurrent/ListenableFuture;"))
     private static ListenableFuture<Object> injectCheckThreadAndEnqueue(IThreadListener instance, Runnable runnable, Operation<ListenableFuture<Object>> original, @Local(argsOnly = true) Packet<?> packet) {
-        original.call(instance, (Runnable) () -> {
+        return original.call(instance, (Runnable) () -> {
             clientPreProcessPacket(packet);
             runnable.run();
         });

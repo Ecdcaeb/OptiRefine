@@ -1,7 +1,9 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.entity;
 
-import com.llamalad7.mixinextras.injector.ModifyReturnValue;
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.mojang.authlib.GameProfile;
+import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.entity.AbstractClientPlayer;
@@ -17,6 +19,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+@Checked
 @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
 @Mixin(AbstractClientPlayer.class)
 public abstract class MixinAbstractClientPlayer {
@@ -56,20 +59,22 @@ public abstract class MixinAbstractClientPlayer {
         PlayerConfigurations.getPlayerConfiguration((AbstractClientPlayer)(Object) this);
     }
 
-    @ModifyReturnValue(method = "getLocationCape", at = @At("RETURN"))
-    public ResourceLocation injectGetLocationCape(ResourceLocation cir){
+
+    @WrapMethod(method = "getLocationCape")
+    public ResourceLocation injectGetLocationCape(Operation<ResourceLocation> original){
         if (!Config.isShowCapes()) {
             return null;
         } else {
             if (this.reloadCapeTimeMs != 0L && System.currentTimeMillis() > this.reloadCapeTimeMs) {
-                CapeUtils.reloadCape((AbstractClientPlayer)(Object) this);
+                CapeUtils.reloadCape((AbstractClientPlayer) (Object)this);
                 this.reloadCapeTimeMs = 0L;
             }
             if (this.locationOfCape != null) {
                 return this.locationOfCape;
+            } else {
+                return original.call();
             }
         }
-        return cir;
     }
 
     @Unique

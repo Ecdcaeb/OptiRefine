@@ -1,5 +1,7 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.util.math;
 
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessTransformer;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
@@ -73,28 +75,20 @@ public abstract class MixinMathHelper {
     @Shadow @Final
     private static double[] COS_TAB;
 
-    /**
-     * @author Hileb
-     * @reason ov
-     */
-    @Overwrite
-    public static float sin(float value) {
+    @WrapMethod(method = "sin")
+    private static float sin(float value, Operation<Float> original) {
         if (fastMath) {
             return SIN_TABLE_FAST[(int)(value * radToIndex) & 0xFFF];
         }
-        return SIN_TABLE[(int)(value * 10430.378f) & 0xFFFF];
+        return original.call(value);
     }
 
-    /**
-     * @author Hileb
-     * @reason ov
-     */
-    @Overwrite
-    public static float cos(float value) {
+    @WrapMethod(method = "cos")
+    private static float cos(float value, Operation<Float> original) {
         if (fastMath) {
             return SIN_TABLE_FAST[(int)(value * radToIndex + 1024.0f) & 0xFFF];
         }
-        return SIN_TABLE[(int)(value * 10430.378f + 16384.0f) & 0xFFFF];
+        return original.call(value);
     }
 
     @Inject(method = "<clinit>", at = @At("HEAD"))
