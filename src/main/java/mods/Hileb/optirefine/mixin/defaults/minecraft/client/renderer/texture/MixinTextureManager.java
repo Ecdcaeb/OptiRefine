@@ -20,7 +20,7 @@ import org.spongepowered.asm.mixin.injection.At;
 
 import java.util.Map;
 
-@Mixin(TextureManager.class)
+@MixinTextureAtlasSprite(TextureManager.class)
 public abstract class MixinTextureManager {
     @Unique
     private ITextureObject boundTexture;

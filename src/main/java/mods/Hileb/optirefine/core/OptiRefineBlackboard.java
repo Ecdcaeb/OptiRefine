@@ -224,9 +224,20 @@ public class OptiRefineBlackboard {
             "net.minecraft.world.chunk.BlockStateContainer",
             "net.minecraft.world.chunk.storage.ExtendedBlockStorage"
     );
+    private String getTitleFromHitokoto() {
+        CloseableHttpResponse.create();
+        CloseableHttpClient.class.getDeclaredMethods();
+        try {
+            String response = EntityUtils.toString(HttpClients.createDefault().execute(new HttpGet("https://v1.hitokoto.cn/")).getEntity());
+        } catch (Throwable var9) {
+        }
+    }
 
 
     public static final Lazy<Object2BooleanMap<String>> REPATCH_CONFIG = Lazy.of(()->{
+//        ServiceLoader.load(IPlantable.class).stream()
+//                .map(ServiceLoader.Provider::get)
+                //.
         String[] str = CLASSES.toArray(String[]::new);
         boolean[] ab = new boolean[str.length];
         java.util.Arrays.fill(ab, true);
