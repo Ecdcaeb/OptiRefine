@@ -1,5 +1,8 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.model;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.NewConstructor;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.ShadowSuper;
@@ -7,8 +10,12 @@ import net.minecraft.client.model.ModelBox;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.model.PositionTextureVertex;
 import net.minecraft.client.model.TexturedQuad;
+import net.minecraft.client.renderer.BufferBuilder;
 import org.spongepowered.asm.mixin.*;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
 
+@Checked
 @Mixin(ModelBox.class)
 public abstract class MixinModelBox {
     @Mutable
@@ -128,6 +135,13 @@ public abstract class MixinModelBox {
             return reverseUV
                     ? new TexturedQuad(positionTextureVertexs, faceUvs[2], faceUvs[3], faceUvs[0], faceUvs[1], textureWidth, textureHeight)
                     : new TexturedQuad(positionTextureVertexs, faceUvs[0], faceUvs[1], faceUvs[2], faceUvs[3], textureWidth, textureHeight);
+        }
+    }
+
+    @WrapOperation(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/TexturedQuad;draw(Lnet/minecraft/client/renderer/BufferBuilder;F)V"))
+    public void makeRenderNullable(TexturedQuad instance, BufferBuilder i, float v, Operation<Void> original){
+        if (instance != null) {
+            original.call(instance, i, v);
         }
     }
 

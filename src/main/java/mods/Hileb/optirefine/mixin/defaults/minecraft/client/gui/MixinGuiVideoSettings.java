@@ -37,6 +37,7 @@ import java.util.List;
 @Mixin(GuiVideoSettings.class)
 @ChangeSuperClass(GuiScreenOF.class)
 public abstract class MixinGuiVideoSettings extends GuiScreen {
+
     @Shadow
     @Final
     private GuiScreen parentGuiScreen;

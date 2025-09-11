@@ -1,5 +1,8 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.gui;
 
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.Minecraft;
@@ -11,12 +14,10 @@ import net.optifine.TextureAnimations;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.List;
 
+@Checked
 @Mixin(GuiOverlayDebug.class)
 public abstract class MixinGuiOverlayDebug extends Gui {
     @SuppressWarnings("AddedMixinMembersNamePattern")
@@ -50,8 +51,8 @@ public abstract class MixinGuiOverlayDebug extends Gui {
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureMap getCountAnimations ()I")
     private native static int _acc_TextureMap_getCountAnimations_(TextureMap instance);
 
-    @Inject(method = "call", at = @At("RETURN"), cancellable = true)
-    public void injectCall(CallbackInfoReturnable<List<String>> cir){
+    @WrapMethod(method = "call")
+    public List<String> injectCall(Operation<List<String>> original){
         if (Minecraft.getMinecraft().debug.equals(this.debugOF)) {
             StringBuilder sb = new StringBuilder(Minecraft.getMinecraft().debug);
             int fpsMin = Config.getFpsMin();
@@ -99,7 +100,7 @@ public abstract class MixinGuiOverlayDebug extends Gui {
         sbx.append(_acc_TextureMap_getCountAnimations_(tm) + TextureAnimations.getCountAnimations());
         String ofInfo = sbx.toString();
 
-        cir.setReturnValue(cir.getReturnValue().stream().map((s) -> s.startsWith("P: ") ? s + ofInfo : s).toList());
+        return original.call().stream().map((s) -> s.startsWith("P: ") ? s + ofInfo : s).toList();
     }
 }
 /*

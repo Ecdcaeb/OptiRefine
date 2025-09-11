@@ -5,7 +5,9 @@ import com.llamalad7.mixinextras.expression.Expression;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
+import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.block.state.IBlockState;
@@ -28,6 +30,7 @@ import net.minecraft.world.storage.WorldInfo;
 import net.optifine.CustomGuis;
 import net.optifine.DynamicLights;
 import net.optifine.override.PlayerControllerOF;
+import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -39,7 +42,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import javax.annotation.Nonnull;
 import java.util.Set;
 
-@SuppressWarnings("unused")
+@Checked
 @Mixin(WorldClient.class)
 public abstract class MixinWorldClient extends World {
 
@@ -85,7 +88,7 @@ public abstract class MixinWorldClient extends World {
 
     @Definition(id = "ambienceTicks", field = "Lnet/minecraft/client/multiplayer/WorldClient;ambienceTicks:I")
     @Expression("this.ambienceTicks == 0")
-    @ModifyExpressionValue(method = "playMoodSoundAndCheckLight", at = @At("MIXINEXTRAS:EXPRESSION"))
+    @ModifyExpressionValue(method = "playMoodSoundAndCheckLight", at = @At("MIXINEXTRAS:EXPRESSION")) // TODO
     public boolean injectPlayMoodSoundAndCheckLight(boolean ambienceTicksIs0, @Local(argsOnly = true) Chunk chunkIn){
         if (ambienceTicksIs0) {
             EntityPlayerSP player = this.mc.player;

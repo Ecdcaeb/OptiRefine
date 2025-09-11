@@ -1,5 +1,7 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.gui;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import net.minecraft.client.gui.GuiSlot;
 import org.objectweb.asm.Opcodes;
@@ -36,10 +38,10 @@ public abstract class MixinGuiSlot{
     protected abstract void drawSlot(int i1, int i2, int i3, int i4, int i5, int i6, float v);
 
     
-    @Redirect(method = "drawSelectionBox", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiSlot;drawSlot(IIIIIIF)V"))
-    public void injectDrawSelectionBox(GuiSlot instance, int i1, int i2, int i3, int i4, int i5, int i6, float v){
+    @WrapOperation(method = "drawSelectionBox", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiSlot;drawSlot(IIIIIIF)V"))
+    public void injectDrawSelectionBox(GuiSlot instance, int i1, int i2, int i3, int i4, int i5, int i6, float v, Operation<Void> original){
         if (!_is_GuiResourcePackList() || i3 >= this.top - this.slotHeight && i3 <= this.bottom) {
-            this.drawSlot(i1, i2, i3, i4, i5, i6, v);
+            original.call(instance, i1, i2, i3, i4, i5, i6, v);
         }
     }
 
