@@ -6,14 +6,13 @@ import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
 import mods.Hileb.optirefine.library.common.utils.Lazy;
 import net.minecraft.launchwrapper.Launch;
+import net.minecraftforge.fml.relauncher.FMLLaunchHandler;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.*;
 import org.objectweb.asm.tree.*;
 
 import java.io.BufferedReader;
@@ -29,7 +28,6 @@ import java.nio.file.Files;
 import java.util.*;
 
 public class OptiRefineBlackboard {
-
 
 
     public static final HashSet<String> CLASSES = Sets.newHashSet(
@@ -226,7 +224,7 @@ public class OptiRefineBlackboard {
     );
 
 
-    public static final Lazy<Object2BooleanMap<String>> REPATCH_CONFIG = Lazy.of(()->{
+    public static final Lazy<Object2BooleanMap<String>> REPATCH_CONFIG = Lazy.of(() -> {
         String[] str = CLASSES.toArray(String[]::new);
         boolean[] ab = new boolean[str.length];
         java.util.Arrays.fill(ab, true);
@@ -239,7 +237,7 @@ public class OptiRefineBlackboard {
                     JsonObject jsonObject = jsonElement.getAsJsonObject();
                     for (Map.Entry<String, JsonElement> entry : jsonObject.entrySet()) {
                         if (entry.getValue().isJsonPrimitive() && entry.getValue().getAsJsonPrimitive().isBoolean()) {
-                            if(map.containsKey(entry.getKey())) {
+                            if (map.containsKey(entry.getKey())) {
                                 map.put(entry.getKey(), entry.getValue().getAsBoolean());
                             }
                         }
@@ -261,8 +259,57 @@ public class OptiRefineBlackboard {
     });
 
     public static boolean isOverwritePatches(String className) {
-        return REPATCH_CONFIG.get().containsKey(className) && REPATCH_CONFIG.get().getBoolean(className);
+        if (REPATCH_CONFIG.get().containsKey(className) && REPATCH_CONFIG.get().getBoolean(className)) {
+            if (FMLLaunchHandler.isDeobfuscatedEnvironment()) {
+                return true;
+            } else {
+                try {
+                    return classHasAnnotation("Lmods/Hileb/optirefine/library/common/utils/Checked;", Launch.classLoader.testGetClassBytes(className));
+                } catch (IOException e) {
+                    return false;
+                }
+            }
+        } else return false;
     }
+
+    public static boolean classHasAnnotation(String annotationDescriptor, byte[] classBytes) {
+        if (classBytes == null) return false;
+
+        ClassReader classReader = new ClassReader(classBytes);
+
+        ClassAnnotationVisitor visitor = new ClassAnnotationVisitor(annotationDescriptor);
+
+        try {
+            classReader.accept(visitor, ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+        } catch (Exception e) {
+            return false;
+        }
+
+        return visitor.hasAnnotation();
+    }
+
+    private static class ClassAnnotationVisitor extends ClassVisitor {
+        private final String targetAnnotation;
+        private boolean found = false;
+
+        public ClassAnnotationVisitor(String targetAnnotation) {
+            super(Opcodes.ASM9);
+            this.targetAnnotation = targetAnnotation;
+        }
+
+        @Override
+        public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
+            if (descriptor.equals(targetAnnotation)) {
+                found = true;
+            }
+            return null;
+        }
+
+        public boolean hasAnnotation() {
+            return found;
+        }
+    }
+}
 
     /*
     net.minecraft.block.BlockAir
@@ -378,4 +425,3 @@ net.minecraft.world.WorldEntitySpawner
 net.minecraft.world.chunk.storage.ExtendedBlockStorage
 net.minecraft.world.gen.layer.GenLayerZoom
     */
-}
