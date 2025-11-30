@@ -1,5 +1,6 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.settings;
 
+import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.settings.GameSettings;
@@ -7,6 +8,7 @@ import net.minecraftforge.common.util.EnumHelper;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
+@Checked
 @Mixin(GameSettings.Options.class)
 public abstract class MixinGameSettingsOption {
     @Unique

@@ -1,12 +1,10 @@
-import org.jetbrains.changelog.Changelog
-
 plugins {
     id 'java'
     id 'java-library'
     id 'maven-publish'
-    id 'com.gradleup.shadow' version '9.0.0-beta12' // Remove this line and shadowJar task if you don't need shadow
-    id 'org.jetbrains.changelog' version '2.2.1'
+    id 'com.gradleup.shadow' version '9.0.2'
     id 'xyz.wagyourtail.unimined' version '1.4.1'
+    id 'net.kyori.blossom'  version '2.1.0'
 }
 
 apply from: 'gradle/scripts/helpers.gradle'
@@ -16,10 +14,6 @@ assertProperty 'mod_version'
 assertProperty 'root_package'
 assertProperty 'mod_id'
 assertProperty 'mod_name'
-
-if (propertyBool('generate_reference_class')) {
-    generateReferenceClass()
-}
 
 assertSubProperties 'use_access_transformer', 'access_transformer_locations'
 assertSubProperties 'is_coremod', 'coremod_includes_mod', 'coremod_plugin_class_name'
@@ -33,9 +27,8 @@ setDefaultProperty 'extra_jvm_args', false, ''
 version = propertyString('mod_version')
 group = propertyString('root_package')
 
-
 base {
-    archivesName.set('+' + propertyString('mod_name'))
+    archivesName.set("+" + propertyString('mod_id'))
 }
 
 
@@ -56,6 +49,10 @@ configurations {
     contain
     implementation.extendsFrom(embed)
     implementation.extendsFrom(contain)
+    modCompileOnly
+    compileOnly.extendsFrom(modCompileOnly)
+    modRuntimeOnly
+    runtimeOnly.extendsFrom(modRuntimeOnly)
 }
 
 unimined.minecraft {
@@ -69,37 +66,47 @@ unimined.minecraft {
         if (propertyBool('use_access_transformer')) {
             accessTransformer "${rootProject.projectDir}/src/main/resources/" +  propertyString('access_transformer_locations')
         }
-        loader "0.3.13-alpha"
+        loader "0.3.27-alpha"
         runs.auth.username = minecraft_username
         runs.all {
-            var map = getSystemProperties()
-            map.put("cleanroom.dev.mixin", "optirefine.default.mixin.json,optirefine.default.mods.json")
-            if (hasProperty("extra_jvm_args")) {
-                jvmArgs(propertyString('extra_jvm_args'))
+            systemProperty("cleanroom.dev.mixin", "${mod_id}.default.mixin.json,${mod_id}.mod.mixin.json")
+            def extraArgs = propertyString('extra_jvm_args')
+            if (extraArgs != null && !extraArgs.trim().isEmpty()) {
+                jvmArgs += extraArgs.split("\\s+").toList()
             }
             if (propertyBool('enable_foundation_debug')) {
-                map.put("foundation.dump", "true")
-                map.put("foundation.verbose", "true")
+                systemProperty("foundation.dump", "true")
+                systemProperty("foundation.verbose", "true")
             }
-            dependsOn("jar")
-            doFirst {
-                classpath = classpath.filter {
-                    !(it.canonicalPath == "${rootProject.layout.buildDirectory}/classes/java/main" ||
-                            it.canonicalPath == "${rootProject.layout.buildDirectory}/resources/main")
-                }
+            if (propertyBool('is_coremod')) {
+                systemProperty("fml.coreMods.load", propertyString('coremod_plugin_class_name'))
+            }
+            return
+        }
+    }
 
-                classpath += project.files(tasks.jar.archiveFile.get().asFile)
+    defaultRemapJar = false
+
+    if (propertyBool('enable_shadow')) {
+        remap(tasks.shadowJar) {
+            mixinRemap {
+                enableBaseMixin()
+                enableMixinExtra()
+                disableRefmap()
+            }
+        }
+    } else {
+        remap(tasks.jar) {
+            mixinRemap {
+                enableBaseMixin()
+                enableMixinExtra()
+                disableRefmap()
             }
         }
     }
 
-
-}
-
-repositories {
-    maven {
-        name 'CleanroomMC Maven'
-        url 'https://maven.cleanroommc.com'
+    mods {
+        remap(configurations.modCompileOnly)
     }
 }
 
@@ -114,11 +121,6 @@ dependencies {
 }
 
 apply from: 'gradle/scripts/dependencies.gradle'
-
-sourceSets {
-    main {
-    }
-}
 
 processResources {
 
@@ -151,6 +153,23 @@ processResources {
     rename '(.+_at.cfg)', 'META-INF/$1'
 }
 
+sourceSets {
+    main {
+        blossom {
+            javaSources {
+                property('mod_id', propertyString('mod_id'))
+                property('mod_name', propertyString('mod_name'))
+                property('mod_version', propertyString('mod_version'))
+                property('package', "${root_package}.${mod_id}")
+            }
+        }
+    }
+}
+
+if (!propertyBool('enable_shadow')) {
+    shadowJar.enabled = false
+}
+
 jar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     if (configurations.contain.size() > 0) {
@@ -158,11 +177,11 @@ jar {
             from configurations.contain
         }
     }
-    doFirst{
+    doFirst {
         manifest {
             def attribute_map = [:]
             attribute_map['ModType'] = "CRL"
-            attribute_map['MixinConfigs'] = "optirefine.default.mixin.json,optirefine.mods.mixin.json"
+            attribute_map['MixinConfigs'] = "${mod_id}.default.mixin.json,${mod_id}.mod.mixin.json"
             if (configurations.contain.size() > 0) {
                 attribute_map['ContainedDeps'] = configurations.contain.collect { it.name }.join(' ')
                 attribute_map['NonModDeps'] = true
@@ -180,22 +199,25 @@ jar {
         }
     }
     if (propertyBool('enable_shadow')) {
-        finalizedBy(shadowJar)
+        finalizedBy(tasks.named("remapShadowJar"))
+    } else {
+        finalizedBy(tasks.named("remapJar"))
     }
 }
 
-tasks.remapJar {
+
+shadowJar {
+    configurations = [project.configurations.shadow]
+    archiveClassifier = "shadow"
+}
+
+remapJar {
     doFirst {
         logging.captureStandardOutput LogLevel.INFO
     }
     doLast {
         logging.captureStandardOutput LogLevel.QUIET
     }
-}
-
-shadowJar {
-    configurations = [project.configurations.shadow]
-    archiveClassifier = "shadow"
 }
 
 compileTestJava {
@@ -210,31 +232,6 @@ test {
     if (propertyBool('show_testing_output')) {
         testLogging {
             showStandardStreams = true
-        }
-    }
-}
-
-String parserChangelog() {
-    if (!file('CHANGELOG.md').exists()) {
-        throw new GradleException('publish_with_changelog is true, but CHANGELOG.md does not exist in the workspace!')
-    }
-    String parsedChangelog = changelog.renderItem(
-            changelog.get(propertyString('mod_version')).withHeader(false).withEmptySections(false),
-            Changelog.OutputType.MARKDOWN)
-    if (parsedChangelog.isEmpty()) {
-        throw new GradleException('publish_with_changelog is true, but the changelog for the latest version is empty!')
-    }
-    return parsedChangelog
-}
-
-def generateReferenceClass() {
-    var target = new File("${rootProject.projectDir}/src/main/java/${root_package.replace('.', '/')}/${mod_id}/Reference.java")
-    var template = new File("${rootProject.projectDir}/template/Reference.java")
-    var replaceMap = [$package : "${root_package}.${mod_id}", $mod_id : mod_id, $mod_name : mod_name, $mod_version : mod_version]
-    target.withWriter { var writer ->
-        template.eachLine { var line ->
-            replaceMap.each {if (line.contains(it.key)) line = line.replace(it.key, it.value)}
-            writer.write(line + "\n");
         }
     }
 }

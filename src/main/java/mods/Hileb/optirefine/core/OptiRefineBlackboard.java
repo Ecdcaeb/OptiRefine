@@ -29,6 +29,29 @@ import java.util.*;
 
 public class OptiRefineBlackboard {
 
+    public static boolean IS_INDEV = Boolean.parseBoolean(System.getProperty("optirefine.dev", "false"));
+
+    public static final HashSet<String> TEST_INDEV_CLASS = Sets.newHashSet(
+            System.getProperty("optirefine.dev.classes").split(";")
+    );
+
+    public static final HashSet<String> INDEV_CLASS = Sets.newHashSet(
+            "net.minecraft.client.gui.FontRenderer",
+            "net.minecraft.client.renderer.block.model.BakedQuad",
+            "net.minecraft.client.renderer.block.model.BakedQuadRetextured",
+            "net.minecraft.client.renderer.block.model.FaceBakery",
+            "net.minecraft.client.renderer.block.model.FaceBakery$1",
+            "net.minecraft.client.renderer.block.model.FaceBakery$2",
+            "net.minecraft.client.renderer.block.model.FaceBakery$3",
+            "net.minecraft.client.renderer.block.model.FaceBakery$4",
+            "net.minecraft.client.renderer.block.model.FaceBakery$5",
+            "net.minecraft.client.renderer.block.model.FaceBakery$Rotation",
+            "net.minecraft.client.renderer.block.model.ItemOverrideList",
+            "net.minecraft.client.renderer.chunk.RenderChunk",
+            "net.minecraft.client.renderer.BlockModelRender",
+            "net.minecraft.client.renderer.BlockModelRender$AmbientOcclusionFace" //TODO
+    );
+
 
     public static final HashSet<String> CLASSES = Sets.newHashSet(
             "net.minecraft.block.material.MapColor", // Optifine -> make ‘colorValue’ not final -> accessTransformer
@@ -69,7 +92,6 @@ public class OptiRefineBlackboard {
             "net.minecraft.client.particle.ParticleManager$2",
             "net.minecraft.client.particle.ParticleManager$3",
             "net.minecraft.client.particle.ParticleManager$4",
-            /*
             "net.minecraft.client.renderer.block.model.BakedQuad",
             "net.minecraft.client.renderer.block.model.BakedQuadRetextured",
             "net.minecraft.client.renderer.block.model.FaceBakery",
@@ -80,8 +102,6 @@ public class OptiRefineBlackboard {
             "net.minecraft.client.renderer.block.model.FaceBakery$5",
             "net.minecraft.client.renderer.block.model.FaceBakery$Rotation",
             "net.minecraft.client.renderer.block.model.ItemOverrideList",
-
-             */
             "net.minecraft.client.renderer.block.model.ModelBakery",
             "net.minecraft.client.renderer.block.model.ModelBakery$1",
             "net.minecraft.client.renderer.block.model.ModelBakery$2",
@@ -94,7 +114,7 @@ public class OptiRefineBlackboard {
             "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher$PendingUpload",
             "net.minecraft.client.renderer.chunk.CompiledChunk",
             "net.minecraft.client.renderer.chunk.CompiledChunk$1",
-            //"net.minecraft.client.renderer.chunk.RenderChunk",
+            "net.minecraft.client.renderer.chunk.RenderChunk",
             "net.minecraft.client.renderer.chunk.SetVisibility",
             "net.minecraft.client.renderer.chunk.VisGraph",
             "net.minecraft.client.renderer.chunk.VisGraph$1",
@@ -140,8 +160,8 @@ public class OptiRefineBlackboard {
             "net.minecraft.client.renderer.vertex.DefaultVertexFormats",
             "net.minecraft.client.renderer.vertex.VertexBuffer",
             "net.minecraft.client.renderer.BlockFluidRenderer",
-//            "net.minecraft.client.renderer.BlockModelRender",
-//            "net.minecraft.client.renderer.BlockModelRender$AmbientOcclusionFace", //TODO
+            "net.minecraft.client.renderer.BlockModelRender",
+            "net.minecraft.client.renderer.BlockModelRender$AmbientOcclusionFace", //TODO
             "net.minecraft.client.renderer.BlockModelRender$EnumNeighborInfo",
             "net.minecraft.client.renderer.BlockModelRender$Orientation",
             "net.minecraft.client.renderer.BlockModelRender$VertexTranslations",
@@ -172,7 +192,7 @@ public class OptiRefineBlackboard {
             "net.minecraft.client.settings.GameSettings$1",
             "net.minecraft.client.settings.GameSettings$2",
             "net.minecraft.client.settings.GameSettings$Options",
-            //"net.minecraft.client.LoadingScreenRenderer",
+            "net.minecraft.client.LoadingScreenRenderer",
             "net.minecraft.crash.CrashReport",
             "net.minecraft.crash.CrashReport$1",
             "net.minecraft.crash.CrashReport$2",
@@ -259,55 +279,7 @@ public class OptiRefineBlackboard {
     });
 
     public static boolean isOverwritePatches(String className) {
-        if (REPATCH_CONFIG.get().containsKey(className) && REPATCH_CONFIG.get().getBoolean(className)) {
-            if (FMLLaunchHandler.isDeobfuscatedEnvironment()) {
-                return true;
-            } else {
-                try {
-                    return classHasAnnotation("Lmods/Hileb/optirefine/library/common/utils/Checked;", Launch.classLoader.testGetClassBytes(className));
-                } catch (IOException e) {
-                    return false;
-                }
-            }
-        } else return false;
-    }
-
-    public static boolean classHasAnnotation(String annotationDescriptor, byte[] classBytes) {
-        if (classBytes == null) return false;
-
-        ClassReader classReader = new ClassReader(classBytes);
-
-        ClassAnnotationVisitor visitor = new ClassAnnotationVisitor(annotationDescriptor);
-
-        try {
-            classReader.accept(visitor, ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
-        } catch (Exception e) {
-            return false;
-        }
-
-        return visitor.hasAnnotation();
-    }
-
-    private static class ClassAnnotationVisitor extends ClassVisitor {
-        private final String targetAnnotation;
-        private boolean found = false;
-
-        public ClassAnnotationVisitor(String targetAnnotation) {
-            super(Opcodes.ASM9);
-            this.targetAnnotation = targetAnnotation;
-        }
-
-        @Override
-        public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
-            if (descriptor.equals(targetAnnotation)) {
-                found = true;
-            }
-            return null;
-        }
-
-        public boolean hasAnnotation() {
-            return found;
-        }
+        return (IS_INDEV && TEST_INDEV_CLASS.contains(className)) || ( !INDEV_CLASS.contains(className) || (REPATCH_CONFIG.get().containsKey(className) && REPATCH_CONFIG.get().getBoolean(className)));
     }
 }
 

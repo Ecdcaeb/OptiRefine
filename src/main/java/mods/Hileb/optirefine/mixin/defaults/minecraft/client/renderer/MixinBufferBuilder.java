@@ -4,6 +4,7 @@ import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.sugar.Local;
+import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessTransformer;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
@@ -36,6 +37,7 @@ import java.nio.*;
 import java.util.Arrays;
 import java.util.BitSet;
 
+@Checked
 @Mixin(BufferBuilder.class)
 public abstract class MixinBufferBuilder {
 

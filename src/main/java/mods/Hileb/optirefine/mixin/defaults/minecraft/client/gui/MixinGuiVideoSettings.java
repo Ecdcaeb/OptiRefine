@@ -3,6 +3,7 @@ package mods.Hileb.optirefine.mixin.defaults.minecraft.client.gui;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import mods.Hileb.optirefine.Reference;
+import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.ChangeSuperClass;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
@@ -34,6 +35,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.List;
 
+@Checked // TODO
 @Mixin(GuiVideoSettings.class)
 @ChangeSuperClass(GuiScreenOF.class)
 public abstract class MixinGuiVideoSettings extends GuiScreen {

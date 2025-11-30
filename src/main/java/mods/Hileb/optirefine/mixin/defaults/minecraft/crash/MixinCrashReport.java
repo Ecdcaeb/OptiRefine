@@ -23,8 +23,6 @@ public abstract class MixinCrashReport {
     @Final
     private CrashReportCategory systemDetailsCategory;
 
-
-
     @Inject(method = "getCompleteReport", at = @At("HEAD"))
     public void injectGetCompleteReport(CallbackInfoReturnable<String> cir){
         if (!this.reported) {

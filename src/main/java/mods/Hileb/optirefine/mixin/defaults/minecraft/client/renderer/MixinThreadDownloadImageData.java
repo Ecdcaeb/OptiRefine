@@ -2,6 +2,7 @@ package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.Minecraft;
@@ -35,10 +36,13 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.net.Proxy;
 
+@Checked
 @Mixin(ThreadDownloadImageData.class)
 public abstract class MixinThreadDownloadImageData extends SimpleTexture{
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     public Boolean imageFound = null;
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     public boolean pipeline = false;
 
@@ -49,6 +53,7 @@ public abstract class MixinThreadDownloadImageData extends SimpleTexture{
         super(p_i1275_1);
     }
 
+    @SuppressWarnings("AddedMixinMembersNamePattern")
     @AccessibleOperation(opcode = Opcodes.INVOKEINTERFACE, desc = "net.minecraft.client.renderer.texture.ITextureObject getMultiTexID ()Lnet.optifine.shaders.MultiTexID;")
     private native static MultiTexID getMultiTexID(ITextureObject iTextureObject);
 

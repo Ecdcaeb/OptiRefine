@@ -34,7 +34,9 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Constant;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyConstant;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.io.*;
@@ -239,6 +241,18 @@ public abstract class MixinGameSettings {
 
     @AccessibleOperation
     private static native GameSettings cast_GameSettings(Object o);
+
+    @ModifyConstant(method = "<init>(Lnet/minecraft/client/Minecraft;Ljava/io/File;)V", constant = @Constant(floatValue = 32.0f))
+    public float make_RENDER_DISTANCE(float constant){
+        long var3 = 1000000L;
+        if (Runtime.getRuntime().maxMemory() >= 1500L * var3) {
+            return 48.0F;
+        }
+        if (Runtime.getRuntime().maxMemory() >= 2500L * var3) {
+            return 64.0F;
+        }
+        return constant;
+    }
 
     @Inject(method = "setOptionValue", at = @At("HEAD"))
     public void fosetOptionValue(GameSettings.Options settingsOption, int value, CallbackInfo ci) {

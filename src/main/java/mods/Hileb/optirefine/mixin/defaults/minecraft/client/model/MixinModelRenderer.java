@@ -1,7 +1,11 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.model;
 
-import com.llamalad7.mixinextras.sugar.Share;
-import com.llamalad7.mixinextras.sugar.ref.LocalIntRef;
+import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.llamalad7.mixinextras.sugar.Local;
+import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.optifine.Config;
@@ -32,7 +36,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.ArrayList;
 import java.util.List;
 
-
+@Checked
 @Mixin(ModelRenderer.class)
 public abstract class MixinModelRenderer {
     @SuppressWarnings("unused")
@@ -158,62 +162,56 @@ public abstract class MixinModelRenderer {
     @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net/minecraft/client/renderer/GlStateManager getBoundTexture ()I")
     private native static int _acc_GlStateManager_getBoundTexture_();
 
-    @Inject(method = "render", at = @At("HEAD"), cancellable = true)
-    public void injectPreRender(float p_78785_1_, CallbackInfo ci, @Share("lastTextureId") LocalIntRef lastTextureId){
+    @WrapMethod(method = "render")
+    public void injectPreRender(float scale, Operation<Void> original){
         if (!this.isHidden && this.showModel) {
             this.checkResetDisplayList();
 
-            lastTextureId.set(0);
+            int lastTextureId = 0;
             if (this.textureLocation != null && !_acc_RenderGlobal_renderOverlayDamaged_(this.renderGlobal)) {
                 if (_acc_RenderGlobal_renderOverlayEyes_(this.renderGlobal)) {
-                    ci.cancel();
+                    return;
                 }
 
-                lastTextureId.set(_acc_GlStateManager_getBoundTexture_());
+                lastTextureId = (_acc_GlStateManager_getBoundTexture_());
                 Config.getTextureManager().bindTexture(this.textureLocation);
             }
 
             if (this.modelUpdater != null) {
                 this.modelUpdater.update();
             }
-        }
-    }
 
-    @Inject(method = "render", at = @At("RETURN"))
-    public void injectPostRender(float p_78785_1_, CallbackInfo ci, @Share("lastTextureId") LocalIntRef lastTextureId){
-        if (!this.isHidden && this.showModel) {
-            if (lastTextureId.get() != 0) {
-                GlStateManager.bindTexture(lastTextureId.get());
+            original.call(scale);
+
+            if (lastTextureId != 0) {
+                GlStateManager.bindTexture(lastTextureId);
             }
         }
     }
 
-    @Inject(method = "renderWithRotation", at = @At("HEAD"), cancellable = true)
-    public void injectPreRenderWithRotation(float p_78785_1_, CallbackInfo ci, @Share("lastTextureId") LocalIntRef lastTextureId){
+    @WrapMethod(method = "renderWithRotation")
+    public void injectPreRenderWithRotation(float scale, Operation<Void> original){
         if (!this.isHidden && this.showModel) {
             this.checkResetDisplayList();
 
-            lastTextureId.set(0);
+            int lastTextureId = 0;
             if (this.textureLocation != null && !_acc_RenderGlobal_renderOverlayDamaged_(this.renderGlobal)) {
                 if (_acc_RenderGlobal_renderOverlayEyes_(this.renderGlobal)) {
-                    ci.cancel();
+                    return;
                 }
 
-                lastTextureId.set(_acc_GlStateManager_getBoundTexture_());
+                lastTextureId = (_acc_GlStateManager_getBoundTexture_());
                 Config.getTextureManager().bindTexture(this.textureLocation);
             }
 
             if (this.modelUpdater != null) {
                 this.modelUpdater.update();
             }
-        }
-    }
 
-    @Inject(method = "renderWithRotation", at = @At("RETURN"))
-    public void injectPostRenderWithRotation(float p_78785_1_, CallbackInfo ci, @Share("lastTextureId") LocalIntRef lastTextureId){
-        if (!this.isHidden && this.showModel) {
-            if (lastTextureId.get() != 0) {
-                GlStateManager.bindTexture(lastTextureId.get());
+
+
+            if (lastTextureId != 0) {
+                GlStateManager.bindTexture(lastTextureId);
             }
         }
     }
@@ -225,30 +223,17 @@ public abstract class MixinModelRenderer {
         }
     }
 
-    /**
-     * @author
-     * @reason
-     */
-    @SideOnly(Side.CLIENT)
-    @Overwrite
-    private void compileDisplayList(float scale) {
-        if (this.displayList == 0) {
-            this.displayList = GLAllocation.generateDisplayLists(1);
-        }
+    @WrapWithCondition(method = "compileDisplayList", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GLAllocation;generateDisplayLists(I)I"))
+    private boolean makeDisplayListGenerationLazy(int range){
+        return this.displayList == 0;
+    }
 
-        GlStateManager.glNewList(this.displayList, 4864);
-        BufferBuilder bufferbuilder = Tessellator.getInstance().getBuffer();
-
-        for (ModelBox box : cubeList) {
-            box.render(bufferbuilder, scale);
-        }
-
+    @WrapOperation(method = "compileDisplayList", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GlStateManager;glEndList()V"))
+    private void renderSpriteListForCompileDisplayList(Operation<Void> original, @Local(argsOnly = true) float scale){
         for (ModelSprite sprite : spriteList) {
             sprite.render(Tessellator.getInstance(), scale);
         }
-
-        GlStateManager.glEndList();
-        this.compiled = true;
+        original.call();
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
@@ -330,8 +315,8 @@ public abstract class MixinModelRenderer {
 
     @SuppressWarnings("unused")
     @Unique
-    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "getId ()I")
-    private static int _acc_ModelRenderer_getId(ModelRenderer renderer){
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "getId ()Ljava/lang/String;")
+    private static String _acc_ModelRenderer_getId(ModelRenderer renderer){
         throw new AbstractMethodError();
     }
 
@@ -339,21 +324,17 @@ public abstract class MixinModelRenderer {
     @Unique
     @Public
     public ModelRenderer getChild(String name) {
-        if (name == null) {
-            return null;
-        } else {
+        if (name != null) {
             if (this.childModels != null) {
-                for (int i = 0; i < this.childModels.size(); i++) {
-                    ModelRenderer child = this.childModels.get(i);
-                    //TODO
+                for (ModelRenderer child : this.childModels) {
                     if (name.equals(_acc_ModelRenderer_getId(child))) {
                         return child;
                     }
                 }
             }
 
-            return null;
         }
+        return null;
     }
 
     @SuppressWarnings("unused")
@@ -373,8 +354,7 @@ public abstract class MixinModelRenderer {
                 return mrChild;
             } else {
                 if (this.childModels != null) {
-                    for (int i = 0; i < this.childModels.size(); i++) {
-                        ModelRenderer child = this.childModels.get(i);
+                    for (ModelRenderer child : this.childModels) {
                         ModelRenderer mr = _acc_ModelRenderer_getChildDeep(child, name);
                         if (mr != null) {
                             return mr;

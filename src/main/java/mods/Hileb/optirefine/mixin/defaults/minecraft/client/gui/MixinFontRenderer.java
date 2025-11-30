@@ -9,10 +9,9 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.Share;
-import com.llamalad7.mixinextras.sugar.ref.LocalIntRef;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
-import mods.Hileb.optirefine.OptiRefine;
 import mods.Hileb.optirefine.core.OptiRefineLog;
+import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessTransformer;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Implements;
@@ -42,6 +41,9 @@ import java.util.Arrays;
 import java.util.Properties;
 import java.util.function.Predicate;
 
+
+@SuppressWarnings("deprecation")
+@Checked // TODO
 @Implements(
         value = ISelectiveResourceReloadListener.class,
         removes = IResourceManagerReloadListener.class
@@ -229,6 +231,8 @@ public abstract class MixinFontRenderer implements ISelectiveResourceReloadListe
         return FontUtils.getHdFontLocation(UNICODE_PAGE_LOCATIONS[page]);
     }
 
+    //TODO CharWidthFloat
+
     @Shadow
     private float alpha;
 
@@ -276,6 +280,28 @@ public abstract class MixinFontRenderer implements ISelectiveResourceReloadListe
         }
     }
 
+    @WrapOperation(method = "wrapFormattedStringToWidth", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/FontRenderer;sizeStringToWidth(Ljava/lang/String;I)I"))
+    public int quickManagerTheWrapFormattedStringToWidth(FontRenderer instance, String c0, int flag, Operation<Integer> original){
+        if (c0.length() <= 1) return 1;
+        return original.call(instance, c0, flag);
+    }
+
+    @Shadow @Final
+    private int[] colorCode;
+
+    @WrapMethod(method = "getColorCode")
+    public int __getColorCode(char character, Operation<Integer> original) {
+        int var2 = "0123456789abcdef".indexOf(character);
+        if (var2 >= 0 && var2 < this.colorCode.length) {
+            int var3 = this.colorCode[var2];
+            if (Config.isCustomColors()) {
+                var3 = CustomColors.getTextColor(var2, var3);
+            }
+            return var3;
+        } else {
+            return 16777215;
+        }
+    }
 
 }
 

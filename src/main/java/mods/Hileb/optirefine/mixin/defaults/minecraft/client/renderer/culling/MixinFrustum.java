@@ -1,5 +1,6 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer.culling;
 
+import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import net.minecraft.client.renderer.culling.ClippingHelper;
 import net.minecraft.client.renderer.culling.Frustum;
@@ -9,6 +10,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 
+@Checked
 @Mixin(Frustum.class)
 public abstract class MixinFrustum {
     @Shadow @Final

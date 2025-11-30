@@ -1,5 +1,6 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer.vertex;
 
+import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessTransformer;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.optifine.Config;
@@ -10,6 +11,7 @@ import net.optifine.shaders.SVertexFormat;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.*;
 
+@Checked
 @Mixin(DefaultVertexFormats.class)
 public abstract class MixinDefaultVertexFormats {
     @Mutable

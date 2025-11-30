@@ -3,6 +3,9 @@ package mods.Hileb.optirefine.mixin.defaults.minecraft.client.particle;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import mods.Hileb.optirefine.library.common.utils.Caster;
+import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.particle.Barrier;
 import net.minecraft.client.particle.Particle;
@@ -10,13 +13,12 @@ import net.minecraft.client.particle.ParticleFirework;
 import net.minecraft.client.particle.ParticleManager;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.ArrayDeque;
 import java.util.Iterator;
 import java.util.Queue;
 
+@Checked
 @Mixin(ParticleManager.class)
 public abstract class MixinParticleManager {
     @Shadow
@@ -67,21 +69,13 @@ public abstract class MixinParticleManager {
         }
     }
 
-    @Inject(method = "updateEffects", at = @At("RETURN"))
-    public void injectUpdateEffects(CallbackInfo ci){
-        if (!this.queue.isEmpty()) {
-            for (Particle particle = this.queue.poll(); particle != null; particle = this.queue.poll()) {
-                int j = particle.getFXLayer();
-                int k = particle.shouldDisableDepth() ? 0 : 1;
-                if (this.fxLayers[j][k].size() >= 16384) {
-                    this.fxLayers[j][k].removeFirst();
-                }
-
-                if (!(particle instanceof Barrier) || !this.reuseBarrierParticle(particle, this.fxLayers[j][k])) {
-                    this.fxLayers[j][k].add(particle);
-                }
-            }
+    @WrapOperation(method = "updateEffects", at = @At(value = "INVOKE", target = "Ljava/util/ArrayDeque;add(Ljava/lang/Object;)Z"))
+    public boolean fixLayers(ArrayDeque<Object> fxLayersJK, Object particle, Operation<Boolean> original){
+        if (!(particle instanceof Barrier) || !this.reuseBarrierParticle((Particle) particle, Caster.cast(fxLayersJK))) {
+            fxLayersJK.add(particle);
         }
+
+        return false;
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")

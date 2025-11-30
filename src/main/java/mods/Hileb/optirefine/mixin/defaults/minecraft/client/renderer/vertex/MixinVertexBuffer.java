@@ -2,6 +2,7 @@ package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer.vertex;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import mods.Hileb.optirefine.library.common.utils.Checked;
 import net.minecraft.client.renderer.vertex.VertexBuffer;
 import net.optifine.render.VboRange;
 import net.optifine.render.VboRegion;
@@ -11,6 +12,7 @@ import org.spongepowered.asm.mixin.Unique;
 
 import java.nio.ByteBuffer;
 
+@Checked
 @Mixin(VertexBuffer.class)
 public abstract class MixinVertexBuffer {
     @SuppressWarnings("AddedMixinMembersNamePattern")

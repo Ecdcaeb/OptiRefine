@@ -1,5 +1,6 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer;
 
+import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.NewConstructor;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.ShadowSuperConstructor;
 import net.minecraft.client.renderer.BufferBuilder;
@@ -7,6 +8,7 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.vertex.VertexFormat;
 import org.spongepowered.asm.mixin.*;
 
+@Checked
 @SuppressWarnings("MissingUnique")
 @Mixin(BufferBuilder.State.class)
 public abstract class MixinBufferBuilderState {

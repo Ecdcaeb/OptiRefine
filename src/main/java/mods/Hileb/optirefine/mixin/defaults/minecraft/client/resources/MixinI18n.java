@@ -1,5 +1,6 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.resources;
 
+import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import net.minecraft.client.resources.I18n;
@@ -11,6 +12,7 @@ import org.spongepowered.asm.mixin.Unique;
 
 import java.util.Map;
 
+@Checked
 @SuppressWarnings("ALL")
 @Mixin(I18n.class)
 public abstract class MixinI18n {
@@ -23,11 +25,8 @@ public abstract class MixinI18n {
         return _acc_Locale_properties(i18nLocale);
     }
 
-    @SuppressWarnings("unused")
-    @Unique @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.resources.Locale field_135032_a Ljava.util.Map;", deobf = true)
-    private static Map<String, String> _acc_Locale_properties(Locale locale){
-        throw new AbstractMethodError();
-    }
+    @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.resources.Locale field_135032_a Ljava.util.Map;", deobf = true)
+    private static native Map<String, String> _acc_Locale_properties(Locale locale);
 }
 /*
 --- net/minecraft/client/resources/I18n.java	Tue Aug 19 14:59:42 2025

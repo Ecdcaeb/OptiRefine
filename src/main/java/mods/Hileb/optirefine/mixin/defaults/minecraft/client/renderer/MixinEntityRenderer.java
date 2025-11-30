@@ -1,6 +1,85 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer;
 
-public class MixinEntityRenderer {
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessTransformer;
+import net.minecraft.client.renderer.EntityRenderer;
+import net.minecraft.client.renderer.ItemRenderer;
+import net.minecraft.client.renderer.OpenGlHelper;
+import net.minecraft.client.shader.ShaderGroup;
+import net.minecraft.util.MouseFilter;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.World;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
+
+@Mixin(EntityRenderer.class)
+public abstract class MixinEntityRenderer {
+
+    @AccessTransformer(deobf = true, name = "field_78516_c ")
+    public ItemRenderer acc_itemRenderer;
+
+    @AccessTransformer(name = "field_78526_w", deobf = true)
+    private MouseFilter acc$mouseFilterXAxis;
+
+    @AccessTransformer(name = "field_78527_v", deobf = true)
+    private MouseFilter acc$mouseFilterYAxis;
+
+    @AccessTransformer(name = "field_175080_Q", deobf = true)
+    public float acc$fogColorRed;
+
+    @AccessTransformer(name = "field_175082_R", deobf = true)
+    public float acc$fogColorGreen;
+
+    @AccessTransformer(name = "field_175081_S", deobf = true)
+    public float acc$fogColorBlue;
+
+    @AccessTransformer(name = "field_175084_ae", deobf = true)
+    public int frameCount;
+
+    @Unique
+    private boolean initialized = false;
+
+    @Unique
+    private World updatedWorld = null;
+
+    @Unique
+    public boolean fogStandard = false;
+
+    @Unique
+    private float clipDistance = 128.0F;
+
+    @Unique
+    private long lastServerTime = 0L;
+
+    @Unique
+    private int lastServerTicks = 0;
+
+    @Unique
+    private int serverWaitTime = 0;
+
+    @Unique
+    private int serverWaitTimeCurrent = 0;
+
+    @Unique
+    private float avgServerTimeDiff = 0.0F;
+
+    @Unique
+    private float avgServerTickDiff = 0.0F;
+
+    @Unique
+    private ShaderGroup[] fxaaShaders = new ShaderGroup[10];
+
+    @Unique
+    private boolean loadVisibleChunks = false;
+
+    @WrapMethod(method = "loadShader")
+    private void ifloadShader(ResourceLocation resourceLocationIn, Operation<Void> original){
+        if (OpenGlHelper.isFramebufferEnabled()) {
+            original.call(resourceLocationIn);
+        }
+    }
 }
 /*
 --- net/minecraft/client/renderer/EntityRenderer.java	Tue Aug 19 14:59:42 2025
