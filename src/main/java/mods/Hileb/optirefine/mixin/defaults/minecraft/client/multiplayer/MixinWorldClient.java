@@ -5,7 +5,6 @@ import com.llamalad7.mixinextras.expression.Expression;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
@@ -30,7 +29,6 @@ import net.minecraft.world.storage.WorldInfo;
 import net.optifine.CustomGuis;
 import net.optifine.DynamicLights;
 import net.optifine.override.PlayerControllerOF;
-import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -78,7 +76,7 @@ public abstract class MixinWorldClient extends World {
     @WrapMethod(method = "refreshVisibleChunks")
     public void injectRefreshVisibleChunks(Operation<Void> original){
         int cx = MathHelper.floor(this.mc.player.posX / 16.0);
-        int cy = MathHelper.floor(this.mc.player.posY / 16.0);
+        int cy = MathHelper.floor(this.mc.player.posZ / 16.0);
         if (cx != this.playerChunkX || cy != this.playerChunkY) {
             this.playerChunkX = cx;
             this.playerChunkY = cy;

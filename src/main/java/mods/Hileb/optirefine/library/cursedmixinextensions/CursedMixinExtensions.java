@@ -173,7 +173,9 @@ public class CursedMixinExtensions {
                 boolean deobf = Annotations.getValue(accessTransform, "deobf", Boolean.FALSE);
 
                 if ("<class>".equals(name)) {
-                    targetClass.access = access;
+                    if (access >= 0) {
+                        targetClass.access = access;
+                    }
                 } else {
                     String desc = method.desc;
                     if (access == -1) access = method.access;
@@ -461,10 +463,14 @@ public class CursedMixinExtensions {
     }
 
     private static void transformCalls(ClassNode classNode, CallTransformTask... tasks) {
-        for (CallTransformTask task : tasks) {
-            for (MethodNode method : classNode.methods) {
-                for (AbstractInsnNode insn : method.instructions) {
-                    if (insn instanceof MethodInsnNode call) {
+        for (MethodNode method : classNode.methods) {
+            List<MethodInsnNode> calls = new ArrayList<>();
+            for (AbstractInsnNode insn = method.instructions.getFirst(); insn != null; insn = insn.getNext()) {
+                if (insn instanceof MethodInsnNode mi) calls.add(mi);
+            }
+            for (CallTransformTask task : tasks) {
+                for (MethodInsnNode call : calls) {
+                    if (call.getPrevious() != null || call.getNext() != null || method.instructions.getFirst() == call) {
                         task.transform(method.instructions, call);
                     }
                 }

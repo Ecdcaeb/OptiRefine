@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.Unique;
 @Mixin(EntityRenderer.class)
 public abstract class MixinEntityRenderer {
 
-    @AccessTransformer(deobf = true, name = "field_78516_c ")
+    @AccessTransformer(deobf = true, name = "field_78516_c")
     public ItemRenderer acc_itemRenderer;
 
     @AccessTransformer(name = "field_78526_w", deobf = true)

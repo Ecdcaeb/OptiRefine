@@ -21,13 +21,6 @@ import java.util.Queue;
 @Checked
 @Mixin(ParticleManager.class)
 public abstract class MixinParticleManager {
-    @Shadow
-    @Final
-    private ArrayDeque<Particle>[][] fxLayers;
-
-    @Shadow
-    @Final
-    private Queue<Particle> queue;
 
     @WrapWithCondition(method = "addEffect", at = @At(value = "INVOKE", target = "Ljava/util/Queue;add(Ljava/lang/Object;)Z"))
     public boolean injectAddEffect(Queue<?> instance, Object effect) {

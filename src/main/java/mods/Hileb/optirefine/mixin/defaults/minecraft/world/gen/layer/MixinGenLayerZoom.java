@@ -7,6 +7,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
+
 @Checked
 @Mixin(GenLayerZoom.class)
 public abstract class MixinGenLayerZoom extends GenLayer {

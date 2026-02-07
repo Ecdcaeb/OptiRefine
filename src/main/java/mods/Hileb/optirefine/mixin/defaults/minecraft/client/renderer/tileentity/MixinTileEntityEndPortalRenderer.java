@@ -2,6 +2,7 @@ package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer.tileentit
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.renderer.tileentity.TileEntityEndPortalRenderer;
 import net.minecraft.tileentity.TileEntityEndPortal;
@@ -9,6 +10,7 @@ import net.optifine.shaders.ShadersRender;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
+@Checked
 @Mixin(TileEntityEndPortalRenderer.class)
 public abstract class MixinTileEntityEndPortalRenderer {
 

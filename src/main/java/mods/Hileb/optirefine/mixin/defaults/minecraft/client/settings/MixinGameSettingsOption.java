@@ -111,7 +111,7 @@ public abstract class MixinGameSettingsOption {
     @SuppressWarnings("unused")
     @Unique @Public private static final GameSettings.Options CUSTOM_COLORS = EnumHelper.addEnum(GameSettings.Options.class, "CUSTOM_COLORS", _optirefine_args0, "of.options.CUSTOM_COLORS", false, false);
     @SuppressWarnings("unused")
-    @Unique @Public private static final GameSettings.Options SHOW_CAPES = EnumHelper.addEnum(GameSettings.Options.class, "", _optirefine_args0, "of.options.SHOW_CAPES", false, false);
+    @Unique @Public private static final GameSettings.Options SHOW_CAPES = EnumHelper.addEnum(GameSettings.Options.class, "SHOW_CAPES", _optirefine_args0, "of.options.SHOW_CAPES", false, false);
     @SuppressWarnings("unused")
     @Unique @Public private static final GameSettings.Options CONNECTED_TEXTURES = EnumHelper.addEnum(GameSettings.Options.class, "CONNECTED_TEXTURES", _optirefine_args0, "of.options.CONNECTED_TEXTURES", false, false);
     @SuppressWarnings("unused")

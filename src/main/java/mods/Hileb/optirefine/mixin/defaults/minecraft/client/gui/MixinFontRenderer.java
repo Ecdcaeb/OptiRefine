@@ -3,14 +3,12 @@ package mods.Hileb.optirefine.mixin.defaults.minecraft.client.gui;
 import com.llamalad7.mixinextras.expression.Definition;
 import com.llamalad7.mixinextras.expression.Expression;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
-import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
-import mods.Hileb.optirefine.core.OptiRefineLog;
 import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessTransformer;
@@ -20,8 +18,8 @@ import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.client.resources.IResource;
 import net.minecraft.client.resources.IResourceManager;
-import net.minecraft.client.resources.IResourceManagerReloadListener;
 import net.minecraft.client.settings.GameSettings;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.resource.IResourceType;
@@ -37,6 +35,7 @@ import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Properties;
 import java.util.function.Predicate;
@@ -46,65 +45,156 @@ import java.util.function.Predicate;
 @Checked // TODO
 @Implements(
         value = ISelectiveResourceReloadListener.class,
-        removes = IResourceManagerReloadListener.class
+        removes = net.minecraft.client.resources.IResourceManagerReloadListener.class
 )
 @Mixin(FontRenderer.class)
-public abstract class MixinFontRenderer implements ISelectiveResourceReloadListener{
+public abstract class MixinFontRenderer implements ISelectiveResourceReloadListener {
 
     @AccessTransformer(name = "field_111273_g", deobf = true)
     private ResourceLocation optirefine$acc$locationFontTexture;
 
-    @Shadow @Final @Mutable
+    @Shadow
+    @Final
+    @Mutable
     protected ResourceLocation locationFontTexture;
 
-    @Shadow @Final protected int[] charWidth;
+    @Shadow
+    @Final
+    protected int[] charWidth;
 
-    @SuppressWarnings("unused")
-    @Shadow private float red;
+    @Shadow
+    @Final
+    protected byte[] glyphWidth;
 
-    @Unique @Public
-    public GameSettings gameSettings;
-    @Unique
-    public ResourceLocation locationFontTextureBase;
-    @Unique
-    public float offsetBold = 1.0F;
-    @Unique
-    private float[] charWidthFloat = new float[256];
-    @Unique
-    private boolean blend = false;
-    @Unique
-    private GlBlendState oldBlendState = new GlBlendState();
+    @Shadow
+    @Final
+    private int[] colorCode;
 
-    @Inject(method = "<init>", at = @At(value = "CTOR_HEAD", unsafe = true))
-    private void extraForInit(GameSettings p_i1035_1, ResourceLocation p_i1035_2, TextureManager p_i1035_3, boolean p_i1035_4, CallbackInfo ci){
-        this.gameSettings = p_i1035_1;
-        this.locationFontTextureBase = p_i1035_2;
-    }
+    @Shadow
+    protected float posX;
 
-    @WrapOperation(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/FontRenderer;bindTexture(Lnet/minecraft/util/ResourceLocation;)V"))
-    public void extraForInitNextPart(FontRenderer instance, ResourceLocation location, Operation<Void> original){
-        this.locationFontTexture = FontUtils.getHdFontLocation(this.locationFontTextureBase);
-        original.call(instance, this.locationFontTexture);
-    }
+    @Shadow
+    protected float posY;
 
-    @Shadow @Final
+    @Shadow
+    private boolean unicodeFlag;
+
+    @Shadow
+    private boolean randomStyle;
+
+    @Shadow
+    private boolean boldStyle;
+
+    @Shadow
+    private boolean italicStyle;
+
+    @Shadow
+    private boolean underlineStyle;
+
+    @Shadow
+    private boolean strikethroughStyle;
+
+    @Shadow
+    private int textColor;
+
+    @Shadow
+    private float red;
+
+    @Shadow
+    private float blue;
+
+    @Shadow
+    private float green;
+
+    @Shadow
+    private float alpha;
+
+    @Shadow
+    @Final
+    private TextureManager renderEngine;
+
+    @Shadow
+    @Final
     private static ResourceLocation[] UNICODE_PAGE_LOCATIONS;
 
+    @Shadow
+    protected abstract void resetStyles();
+
+    @Shadow
+    protected abstract float renderUnicodeChar(char ch, boolean italic);
+
+    @Shadow
+    protected abstract void setColor(float r, float g, float b, float a);
+
+    @Shadow
+    protected abstract void enableAlpha();
+
+    @Shadow
+    protected abstract void bindTexture(ResourceLocation location);
+
+    @Shadow
+    protected abstract IResource getResource(ResourceLocation location) throws IOException;
+
+    @Unique
+    @Public
+    public GameSettings gameSettings;
+
+    @Unique
+    public ResourceLocation locationFontTextureBase;
+
+    @Unique
+    public float offsetBold = 1.0F;
+
+    @Unique
+    private final float[] charWidthFloat = new float[256];
+
+    @Unique
+    private boolean blend = false;
+
+    @Unique
+    private final GlBlendState oldBlendState = new GlBlendState();
+
+    // ====== Charset mapping used by vanilla FontRenderer ======
+    @Unique
+    private static final String OPTIREFINE_CHARSET =
+            "ÀÁÂÈÊËÍÓÔÕÚßãõğİıŒœŞşŴŵžȇ\u0000\u0000\u0000\u0000\u0000\u0000\u0000 !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\u0000" +
+                    "ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜø£Ø×ƒáíóúñÑªº¿®¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αβΓπΣσμτΦΘΩδ∞∅∈∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■\u0000";
+
+
+    @Inject(method = "<init>", at = @At(value = "CTOR_HEAD", unsafe = true))
+    private void optiRefine$ctorHead(GameSettings gs, ResourceLocation base, TextureManager tm, boolean unicode, CallbackInfo ci) {
+        this.gameSettings = gs;
+        this.locationFontTextureBase = base;
+        Arrays.fill(this.charWidthFloat, -1.0F);
+    }
+
+    @WrapOperation(
+            method = "<init>",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/FontRenderer;bindTexture(Lnet/minecraft/util/ResourceLocation;)V")
+    )
+    private void optiRefine$ctorBindHd(FontRenderer self, ResourceLocation ignored, Operation<Void> original) {
+        this.locationFontTexture = FontUtils.getHdFontLocation(this.locationFontTextureBase);
+        original.call(self, this.locationFontTexture);
+    }
+
+
     @WrapMethod(method = "onResourceManagerReload(Lnet/minecraft/client/resources/IResourceManager;)V")
-    private void $onResourceManagerReload(IResourceManager resourceManager, Operation<Void> original){
-        this.onResourceManagerReload(resourceManager, SelectiveReloadStateHandler.INSTANCE.get());
+    private void optiRefine$onReloadBridge(IResourceManager rm, Operation<Void> original) {
+        this.onResourceManagerReload(rm, SelectiveReloadStateHandler.INSTANCE.get());
     }
 
     @Shadow
-    private void readGlyphSizes(){}
+    private void readGlyphSizes() {
+    }
 
     @Shadow
-    private void readFontTexture(){}
+    private void readFontTexture() {
+    }
 
     @Override
-    public void onResourceManagerReload(IResourceManager iResourceManager, Predicate<IResourceType> predicate) {
+    public void onResourceManagerReload(IResourceManager rm, Predicate<IResourceType> predicate) {
         this.readGlyphSizes();
-        if (predicate.test(VanillaResourceType.TEXTURES)){
+        if (predicate.test(VanillaResourceType.TEXTURES)) {
             this.locationFontTexture = FontUtils.getHdFontLocation(this.locationFontTextureBase);
             Arrays.fill(UNICODE_PAGE_LOCATIONS, null);
             this.readFontTexture();
@@ -112,163 +202,161 @@ public abstract class MixinFontRenderer implements ISelectiveResourceReloadListe
     }
 
     @Inject(method = "readFontTexture", at = @At("HEAD"))
-    private void init$readFontTexture(CallbackInfo ci,
-                                      @Share(namespace = "optirefine", value = "properties")LocalRef<Properties> propertiesLocalRef
-    ){
-        Properties var3 = FontUtils.readFontProperties(this.locationFontTexture);
-        this.blend = FontUtils.readBoolean(var3, "blend", false);
-        propertiesLocalRef.set(var3);
-        Arrays.fill(this.charWidthFloat, -1f);
+    private void optiRefine$readFontTextureHead(
+            CallbackInfo ci,
+            @Share(namespace = "optirefine", value = "props") LocalRef<Properties> propsRef
+    ) {
+        Properties props = FontUtils.readFontProperties(this.locationFontTexture);
+        this.blend = FontUtils.readBoolean(props, "blend", false);
+        propsRef.set(props);
+
+        Arrays.fill(this.charWidth, -1);
+        Arrays.fill(this.charWidthFloat, -1.0F);
     }
 
     @Inject(method = "readFontTexture", at = @At("TAIL"))
-    private void postinit$readFontTexture(CallbackInfo ci,
-                                      @Share(namespace = "optirefine", value = "properties")LocalRef<Properties> propertiesLocalRef
-    ){
+    private void optiRefine$readFontTextureTail(
+            CallbackInfo ci,
+            @Share(namespace = "optirefine", value = "props") LocalRef<Properties> propsRef
+    ) {
         for (int i = 0; i < this.charWidthFloat.length; i++) {
-            if (charWidthFloat[i] < 0) {
-                this.charWidthFloat[i] = this.charWidth[i];
+            if (this.charWidthFloat[i] < 0.0F) {
+                this.charWidthFloat[i] = this.charWidth[i] < 0 ? 0.0F : this.charWidth[i];
             }
         }
     }
 
-    @WrapOperation(method = "readFontTexture", at = @At(value = "INVOKE", target = "Ljava/awt/image/BufferedImage;getRGB(IIII[III)[I"))
-    private int[] readFontTexture$customRGB(BufferedImage instance, int data0_, int data0_1, int imgWidth, int imgHeight, int[] array, int data0_2, int data3, Operation<int[]> original, @Share(namespace = "optirefine", value = "properties")LocalRef<Properties> propertiesLocalRef){
-        Arrays.fill(this.charWidth, -1);
-        int charW = imgWidth / 16;
-        int charH = imgHeight / 16;
-        float kx = imgWidth / 128.0F;
-        float boldScaleFactor = Config.limit(kx, 1.0F, 2.0F);
-        this.offsetBold = 1.0F / boldScaleFactor;
-        float offsetBoldConfig = FontUtils.readFloat(propertiesLocalRef.get(), "offsetBold", -1.0F);
-        if (offsetBoldConfig >= 0.0F) {
-            this.offsetBold = offsetBoldConfig;
-        }
+    @WrapOperation(
+            method = "readFontTexture",
+            at = @At(value = "INVOKE", target = "Ljava/awt/image/BufferedImage;getRGB(IIII[III)[I")
+    )
+    private int[] optiRefine$readFontTextureComputeWidths(
+            BufferedImage img,
+            int x, int y, int w, int h,
+            int[] pixels, int offset, int scansize,
+            Operation<int[]> original,
+            @Share(namespace = "optirefine", value = "props") LocalRef<Properties> propsRef
+    ) {
+        int imgW = w;
+        int imgH = h;
 
-        array = original.call(instance, 0, 0, imgWidth, imgHeight, array, 0, imgWidth);
+        int charW = imgW / 16;
+        int charH = imgH / 16;
+
+        float kx = imgW / 128.0F;
+        float boldScale = Config.limit(kx, 1.0F, 2.0F);
+        this.offsetBold = 1.0F / boldScale;
+
+        float cfgOffsetBold = FontUtils.readFloat(propsRef.get(), "offsetBold", -1.0F);
+        if (cfgOffsetBold >= 0.0F) this.offsetBold = cfgOffsetBold;
+
+        // read pixels
+        pixels = original.call(img, 0, 0, imgW, imgH, pixels, 0, imgW);
 
         for (int k = 0; k < 256; k++) {
             int cx = k % 16;
             int cy = k / 16;
-            int px = 0;
 
+            int px;
             for (px = charW - 1; px >= 0; px--) {
-                int x = cx * charW + px;
-                boolean flag = true;
+                int xx = cx * charW + px;
+                boolean emptyCol = true;
 
                 for (int py = 0; py < charH; py++) {
-                    int ypos = (cy * charH + py) * imgWidth;
-                    int col = array[x + ypos];
-                    int al = col >> 24 & 0xFF;
-                    if (al > 16) {
-                        flag = false;
+                    int row = (cy * charH + py) * imgW;
+                    int col = pixels[xx + row];
+                    int a = (col >>> 24) & 0xFF;
+                    if (a > 16) { // OF threshold
+                        emptyCol = false;
                         break;
                     }
                 }
-
-                if (!flag) {
-                    break;
-                }
+                if (!emptyCol) break;
             }
 
             if (k == 32) {
-                if (charW <= 8) {
-                    px = (int)(2.0F * kx);
-                } else {
-                    px = (int)(1.5F * kx);
-                }
+                px = (charW <= 8) ? (int) (2.0F * kx) : (int) (1.5F * kx);
             }
 
             this.charWidthFloat[k] = (px + 1) / kx + 1.0F;
         }
 
-        FontUtils.readCustomCharWidths(propertiesLocalRef.get(), this.charWidthFloat);
+        FontUtils.readCustomCharWidths(propsRef.get(), this.charWidthFloat);
+
         for (int i = 0; i < this.charWidth.length; i++) {
             this.charWidth[i] = Math.round(this.charWidthFloat[i]);
-            OptiRefineLog.log.info("A_CharFloat {} : {}", i, charWidthFloat[i]);
         }
-        return array;
+
+        return pixels;
     }
 
     @Definition(id = "charWidth", field = "Lnet/minecraft/client/gui/FontRenderer;charWidth:[I")
     @Expression("this.charWidth[?] = ?")
     @WrapOperation(method = "readFontTexture", at = @At("MIXINEXTRAS:EXPRESSION"))
-    private void customWight$catchArrayValue(int[] array, int index, int value, Operation<Void> original){
-        OptiRefineLog.log.info("A_CharInt {} : {}", index, value);
-        if (array[index] < 0 || this.charWidthFloat[index] < 0) {
+    private void optiRefine$guardCharWidthWrite(int[] array, int index, int value, Operation<Void> original) {
+        if (this.charWidthFloat[index] < 0.0F) {
             original.call(array, index, value);
         }
     }
 
-    @ModifyReturnValue(method = "getColorCode", at = @At("RETURN"))
-    public int injectGetColorCode(int cir, @Local(argsOnly = true) char character){
-        if (Config.isCustomColors()) {
-            return CustomColors.getTextColor("0123456789abcdef".indexOf(character), cir);
-        } else return cir;
+
+
+    @WrapOperation(
+            method = "getUnicodePageLocation",
+            at = @At(value = "NEW", target = "(Ljava/lang/String;)Lnet/minecraft/util/ResourceLocation;")
+    )
+    private ResourceLocation optiRefine$unicodePageHd(String path, Operation<ResourceLocation> original) {
+        ResourceLocation rl = original.call(path);
+        return FontUtils.getHdFontLocation(rl);
     }
 
-    @Shadow
-    private boolean unicodeFlag;
-
-    @ModifyConstant(method = "renderChar", constant = @Constant(floatValue = 4.0F))
-    public float floatWeightChar$renderChar(float constant, @Local(argsOnly = true) char ch){
-        return !this.unicodeFlag ? this.charWidthFloat[ch] : 4.0F;
-    }
-
-    @Expression("? = @((float)? - 0.01)")
-    @ModifyExpressionValue(method = "renderDefaultChar", at = @At("MIXINEXTRAS:EXPRESSION"))
-    public float renderDefaultChar$WithFloatChar(float original, @Local(argsOnly = true) char ch){
-        return this.charWidthFloat[ch] - 0.01f;
-    }
-
-    @WrapOperation(method = "getUnicodePageLocation", at = @At(value = "INVOKE", target = "Ljava/lang/String;format(Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;"))
-    public String getUnicodePageLocation$UseOptiHelper$disableStringFormat(String format, Object[] args, Operation<String> original){
-        return null;
-    }
-
-    @Redirect(method = "getUnicodePageLocation", at = @At(value = "NEW", target = "(Ljava/lang/String;)Lnet/minecraft/util/ResourceLocation;"))
-    public ResourceLocation getUnicodePageLocation$UseOptiHelper(String p_i1293_1, @Local(argsOnly = true) int page){
-        return FontUtils.getHdFontLocation(UNICODE_PAGE_LOCATIONS[page]);
-    }
-
-    //TODO CharWidthFloat
-
-    @Shadow
-    private float alpha;
 
     @Definition(id = "colorCode", field = "Lnet/minecraft/client/gui/FontRenderer;colorCode:[I")
     @Expression("this.colorCode[?]")
     @WrapOperation(method = "renderStringAtPos", at = @At("MIXINEXTRAS:EXPRESSION"))
-    public int renderStringAtPos$color(int[] array, int index, Operation<Integer> original){
-        int value = original.call(array, index);
+    private int optiRefine$colorCodeHook(int[] array, int idx, Operation<Integer> original) {
+        int v = original.call(array, idx);
         if (Config.isCustomColors()) {
-            value = CustomColors.getTextColor(index, value);
+            v = CustomColors.getTextColor(idx, v);
         }
-        return value;
+        return v;
     }
 
-    @WrapMethod(method = "drawString(Ljava/lang/String;FFIZ)I")
-    public int drawString$blend(String text, float x, float y, int color, boolean dropShadow, Operation<Integer> original) {
-        if (this.blend) {
-            GlStateManager_getBlendState(this.oldBlendState);
-            GlStateManager.enableBlend();
-            GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
-            int returnValue = original.call(text, x, y, color, dropShadow);
-            GlStateManager_setBlendState(this.oldBlendState);
-            return returnValue;
-        } else return original.call(text, x, y, color, dropShadow);
+    @ModifyConstant(method = "renderChar", constant = @Constant(floatValue = 4.0F))
+    private float optiRefine$renderCharSpaceWidth(float constant, char ch) {
+        return (!this.unicodeFlag) ? this.charWidthFloat[ch] : 4.0F;
+    }
+
+    @Expression("? = @((float)? - 0.01)")
+    @ModifyExpressionValue(method = "renderDefaultChar", at = @At("MIXINEXTRAS:EXPRESSION"))
+    private float optiRefine$renderDefaultCharUseFloat(float original, @Local(argsOnly = true) int ch) {
+        return this.charWidthFloat[ch] - 0.01F;
     }
 
     @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.client.renderer.GlStateManager setBlendState (Lnet.optifine.render.GlBlendState;)V")
-    private static native void GlStateManager_setBlendState(GlBlendState glBlendState);
+    private static native void optiRefine$setBlendState(GlBlendState glBlendState);
 
     @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.client.renderer.GlStateManager getBlendState (Lnet.optifine.render.GlBlendState;)V")
-    private static native void GlStateManager_getBlendState(GlBlendState glBlendState);
+    private static native void optiRefine$getBlendState(GlBlendState glBlendState);
+
+    @WrapMethod(method = "drawString(Ljava/lang/String;FFIZ)I")
+    private int optiRefine$drawStringBlend(String text, float x, float y, int color, boolean dropShadow, Operation<Integer> original) {
+        if (!this.blend) return original.call(text, x, y, color, dropShadow);
+
+        optiRefine$getBlendState(this.oldBlendState);
+        GlStateManager.enableBlend();
+        GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+
+        int ret = original.call(text, x, y, color, dropShadow);
+
+        optiRefine$setBlendState(this.oldBlendState);
+        return ret;
+    }
 
     @WrapMethod(method = "drawSplitString")
-    public void drawSplitString$blend(String str, int x, int y, int wrapWidth, int textColor, Operation<Void> original) {
+    private void optiRefine$drawSplitStringBlend(String str, int x, int y, int wrapWidth, int textColor, Operation<Void> original) {
         if (this.blend) {
-            GlStateManager_getBlendState(this.oldBlendState);
+            optiRefine$getBlendState(this.oldBlendState);
             GlStateManager.enableBlend();
             GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
         }
@@ -276,33 +364,217 @@ public abstract class MixinFontRenderer implements ISelectiveResourceReloadListe
         original.call(str, x, y, wrapWidth, textColor);
 
         if (this.blend) {
-            GlStateManager_setBlendState(this.oldBlendState);
+            optiRefine$setBlendState(this.oldBlendState);
         }
     }
 
-    @WrapOperation(method = "wrapFormattedStringToWidth", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/FontRenderer;sizeStringToWidth(Ljava/lang/String;I)I"))
-    public int quickManagerTheWrapFormattedStringToWidth(FontRenderer instance, String c0, int flag, Operation<Integer> original){
-        if (c0.length() <= 1) return 1;
-        return original.call(instance, c0, flag);
+    @WrapOperation(
+            method = "wrapFormattedStringToWidth",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/FontRenderer;sizeStringToWidth(Ljava/lang/String;I)I")
+    )
+    private int optiRefine$wrapWidthFast(FontRenderer self, String s, int width, Operation<Integer> original) {
+        if (s.length() <= 1) return 1;
+        return original.call(self, s, width);
     }
 
-    @Shadow @Final
-    private int[] colorCode;
+    @Unique
+    private float optiRefine$getCharWidthFloat(char ch) {
+        if (ch == 167) return -1.0F; // '§'
+        if (ch == ' ' || ch == 160) return this.charWidthFloat[32];
+
+        int idx = OPTIREFINE_CHARSET.indexOf(ch);
+        if (ch > 0 && idx != -1 && !this.unicodeFlag) {
+            return this.charWidthFloat[idx];
+        }
+
+        int gw = this.glyphWidth[ch] & 0xFF;
+        if (gw != 0) {
+            int left = gw >>> 4;
+            int right = gw & 15;
+            right++;
+            return (right - left) / 2.0F + 1.0F;
+        }
+
+        return 0.0F;
+    }
+
+    @WrapMethod(method = "getCharWidth")
+    private int optiRefine$getCharWidth(char ch, Operation<Integer> original) {
+        return Math.round(this.optiRefine$getCharWidthFloat(ch));
+    }
+
+    @WrapMethod(method = "getStringWidth")
+    private int optiRefine$getStringWidth(String text, Operation<Integer> original) {
+        if (text == null) return 0;
+
+        float w = 0.0F;
+        boolean bold = false;
+
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            float cw = this.optiRefine$getCharWidthFloat(c);
+
+            if (cw < 0.0F && i < text.length() - 1) {
+                c = text.charAt(++i);
+                if (c == 'l' || c == 'L') bold = true;
+                else if (c == 'r' || c == 'R') bold = false;
+                cw = 0.0F;
+            }
+
+            w += cw;
+
+            if (bold && cw > 0.0F) {
+                w += this.unicodeFlag ? 1.0F : this.offsetBold;
+            }
+        }
+
+        return Math.round(w);
+    }
+
+    @WrapMethod(method = "trimStringToWidth(Ljava/lang/String;IZ)Ljava/lang/String;")
+    private String optiRefine$trimStringToWidth(String text, int width, boolean reverse, Operation<String> original) {
+        if (text == null) return "";
+
+        StringBuilder out = new StringBuilder();
+        float w = 0.0F;
+
+        int i = reverse ? text.length() - 1 : 0;
+        int step = reverse ? -1 : 1;
+
+        boolean expectingFormat = false;
+        boolean bold = false;
+
+        for (; i >= 0 && i < text.length() && w < width; i += step) {
+            char c = text.charAt(i);
+            float cw = this.optiRefine$getCharWidthFloat(c);
+
+            if (expectingFormat) {
+                expectingFormat = false;
+                if (c == 'l' || c == 'L') bold = true;
+                else if (c == 'r' || c == 'R') bold = false;
+            } else if (cw < 0.0F) {
+                expectingFormat = true;
+            } else {
+                w += cw;
+                if (bold && cw > 0.0F) {
+                    w += this.unicodeFlag ? 1.0F : this.offsetBold;
+                }
+            }
+
+            if (w > width) break;
+
+            if (reverse) out.insert(0, c);
+            else out.append(c);
+        }
+
+        return out.toString();
+    }
+
+    @WrapMethod(method = "sizeStringToWidth")
+    private int optiRefine$sizeStringToWidth(String str, int wrapWidth, Operation<Integer> original) {
+        int len = str.length();
+        float w = 0.0F;
+        int i = 0;
+        int lastSpace = -1;
+        boolean bold = false;
+
+        for (; i < len; ++i) {
+            char c = str.charAt(i);
+
+            switch (c) {
+                case '\n':
+                    --i;
+                    break;
+                case ' ':
+                    lastSpace = i;
+                case '§':
+                    if (i < len - 1) {
+                        ++i;
+                        char f = str.charAt(i);
+                        if (f == 'l' || f == 'L') {
+                            bold = true;
+                        } else if (f == 'r' || f == 'R'
+                                || (f >= '0' && f <= '9')
+                                || (f >= 'a' && f <= 'f')
+                                || (f >= 'A' && f <= 'F')) {
+                            bold = false;
+                        }
+                    }
+                    break;
+                default:
+                    w += this.optiRefine$getCharWidthFloat(c);
+                    if (bold) {
+                        w += this.unicodeFlag ? 1.0F : this.offsetBold;
+                    }
+                    break;
+            }
+
+            if (c == '\n') {
+                lastSpace = ++i;
+                break;
+            }
+
+            if (Math.round(w) > wrapWidth) {
+                break;
+            }
+        }
+
+        return i != len && lastSpace != -1 && lastSpace < i ? lastSpace : i;
+    }
+
+    @WrapMethod(method = "renderChar")
+    private float optiRefine$renderChar(char ch, boolean italic, Operation<Float> original) {
+        if (ch == ' ' || ch == 160) {
+            return !this.unicodeFlag ? this.charWidthFloat[32] : 4.0F;
+        }
+        return original.call(ch, italic);
+    }
+
+    @WrapMethod(method = "doDraw")
+    private void optiRefine$doDrawFloat(float f, Operation<Void> original) {
+        if (this.strikethroughStyle) {
+            net.minecraft.client.renderer.Tessellator tess = net.minecraft.client.renderer.Tessellator.getInstance();
+            net.minecraft.client.renderer.BufferBuilder buf = tess.getBuffer();
+            GlStateManager.disableTexture2D();
+            buf.begin(7, net.minecraft.client.renderer.vertex.DefaultVertexFormats.POSITION);
+            buf.pos(this.posX, this.posY + (float) (9 / 2), 0.0).endVertex();
+            buf.pos(this.posX + f, this.posY + (float) (9 / 2), 0.0).endVertex();
+            buf.pos(this.posX + f, this.posY + (float) (9 / 2) - 1.0F, 0.0).endVertex();
+            buf.pos(this.posX, this.posY + (float) (9 / 2) - 1.0F, 0.0).endVertex();
+            tess.draw();
+            GlStateManager.enableTexture2D();
+        }
+
+        if (this.underlineStyle) {
+            net.minecraft.client.renderer.Tessellator tess = net.minecraft.client.renderer.Tessellator.getInstance();
+            net.minecraft.client.renderer.BufferBuilder buf = tess.getBuffer();
+            GlStateManager.disableTexture2D();
+            buf.begin(7, net.minecraft.client.renderer.vertex.DefaultVertexFormats.POSITION);
+            int l = this.underlineStyle ? -1 : 0;
+            buf.pos(this.posX + (float) l, this.posY + 9.0F, 0.0).endVertex();
+            buf.pos(this.posX + f, this.posY + 9.0F, 0.0).endVertex();
+            buf.pos(this.posX + f, this.posY + 9.0F - 1.0F, 0.0).endVertex();
+            buf.pos(this.posX + (float) l, this.posY + 9.0F - 1.0F, 0.0).endVertex();
+            tess.draw();
+            GlStateManager.enableTexture2D();
+        }
+
+        this.posX += f;
+    }
+
 
     @WrapMethod(method = "getColorCode")
-    public int __getColorCode(char character, Operation<Integer> original) {
-        int var2 = "0123456789abcdef".indexOf(character);
-        if (var2 >= 0 && var2 < this.colorCode.length) {
-            int var3 = this.colorCode[var2];
+    private int optiRefine$getColorCode(char character, Operation<Integer> original) {
+        int idx = "0123456789abcdef".indexOf(character);
+        if (idx >= 0 && idx < this.colorCode.length) {
+            int v = this.colorCode[idx];
             if (Config.isCustomColors()) {
-                var3 = CustomColors.getTextColor(var2, var3);
+                v = CustomColors.getTextColor(idx, v);
             }
-            return var3;
-        } else {
-            return 16777215;
+            return v;
         }
+        return 16777215;
     }
-
 }
 
 /*

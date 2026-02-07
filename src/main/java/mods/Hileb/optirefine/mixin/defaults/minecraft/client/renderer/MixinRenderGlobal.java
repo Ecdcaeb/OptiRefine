@@ -1,6 +1,22 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer;
 
-public class MixinRenderGlobal {
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ChunkProviderClient;
+import net.minecraft.client.multiplayer.WorldClient;
+import net.minecraft.client.renderer.RenderGlobal;
+import net.minecraft.client.renderer.ViewFrustum;
+import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
+import net.minecraft.world.chunk.Chunk;
+import org.spongepowered.asm.mixin.Final;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
+
+import java.util.List;
+
+public abstract class MixinRenderGlobal {
+
 }
 /*
 --- net/minecraft/client/renderer/RenderGlobal.java	Tue Aug 19 14:59:42 2025

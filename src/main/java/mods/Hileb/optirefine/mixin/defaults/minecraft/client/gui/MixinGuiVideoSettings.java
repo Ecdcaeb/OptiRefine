@@ -1,7 +1,6 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.gui;
 
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.cleanroommc.common.CleanroomVersion;
 import mods.Hileb.optirefine.Reference;
 import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
@@ -9,19 +8,11 @@ import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.ChangeSup
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.optifine.Config;
 import mods.Hileb.optirefine.optifine.client.GameSettingsOptionOF;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.*;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.settings.GameSettings;
 import net.optifine.Lang;
-import net.optifine.gui.GuiAnimationSettingsOF;
-import net.optifine.gui.GuiDetailSettingsOF;
-import net.optifine.gui.GuiOtherSettingsOF;
-import net.optifine.gui.GuiPerformanceSettingsOF;
-import net.optifine.gui.GuiQualitySettingsOF;
-import net.optifine.gui.GuiScreenOF;
-import net.optifine.gui.TooltipManager;
-import net.optifine.gui.TooltipProviderOptions;
+import net.optifine.gui.*;
 import net.optifine.shaders.gui.GuiShaders;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Final;
@@ -30,217 +21,226 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.List;
+import java.io.IOException;
 
 @Checked // TODO
 @Mixin(GuiVideoSettings.class)
 @ChangeSuperClass(GuiScreenOF.class)
 public abstract class MixinGuiVideoSettings extends GuiScreen {
 
-    @Shadow
-    @Final
-    private GuiScreen parentGuiScreen;
+    @Shadow @Final private GuiScreen parentGuiScreen;
+    @Shadow protected String screenTitle;
+    @Shadow @Final private GameSettings guiGameSettings;
 
-    @Shadow
-    protected String screenTitle;
-
-    @Shadow
-    @Final
-    private GameSettings guiGameSettings;
-
-    @SuppressWarnings("unused")
     @Unique
-    private static final String __OBFID = "CL_00000718";
+    private static final GameSettings.Options[] optiRefine$videoOptions = new GameSettings.Options[]{
+            GameSettings.Options.GRAPHICS,
+            GameSettings.Options.RENDER_DISTANCE,
+            GameSettings.Options.AMBIENT_OCCLUSION,
+            GameSettings.Options.FRAMERATE_LIMIT,
+            GameSettingsOptionOF.AO_LEVEL,              // OF
+            GameSettings.Options.VIEW_BOBBING,
+            GameSettings.Options.GUI_SCALE,
+            GameSettings.Options.USE_VBO,
+            GameSettings.Options.GAMMA,
+            GameSettings.Options.ATTACK_INDICATOR,
+            GameSettingsOptionOF.DYNAMIC_LIGHTS,        // OF
+            GameSettingsOptionOF.DYNAMIC_FOV            // OF
+    };
 
-    @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
-    private static GameSettings.Options[] videoOptions = new GameSettings.Options[]{GameSettings.Options.GRAPHICS, GameSettings.Options.RENDER_DISTANCE, GameSettings.Options.AMBIENT_OCCLUSION, GameSettings.Options.FRAMERATE_LIMIT, GameSettingsOptionOF.AO_LEVEL, GameSettings.Options.VIEW_BOBBING, GameSettings.Options.GUI_SCALE, GameSettings.Options.USE_VBO, GameSettings.Options.GAMMA, GameSettings.Options.ATTACK_INDICATOR, GameSettingsOptionOF.DYNAMIC_LIGHTS, GameSettingsOptionOF.DYNAMIC_FOV};
+    private final TooltipManager optiRefine$tooltipManager =
+            new TooltipManager(this, new TooltipProviderOptions());
 
-    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
-    private TooltipManager tooltipManager = new TooltipManager(this, new TooltipProviderOptions());
+    @Inject(method = "initGui", at = @At("HEAD"), cancellable = true)
+    private void optiRefine$initGui(CallbackInfo ci) {
+        this.screenTitle = I18n.format("options.videoTitle");
+        this.buttonList.clear();
 
-    @Redirect(method = "initGui", at = @At(value = "FIELD", target = "Lnet/minecraft/client/gui/GuiVideoSettings;VIDEO_OPTIONS:[Lnet/minecraft/client/settings/GameSettings$Options;"))
-    private GameSettings.Options[] redirectUpdatedEnumVideoSettings(){
-        return videoOptions;
-    }
+        // OF patch: build options as individual buttons/sliders (2 columns)
+        for (int i = 0; i < optiRefine$videoOptions.length; i++) {
+            GameSettings.Options opt = optiRefine$videoOptions[i];
+            if (opt == null) continue;
 
-    @Redirect(method = "initGui", at = @At(value = "NEW", target = "(Lnet/minecraft/client/Minecraft;IIIII[Lnet/minecraft/client/settings/GameSettings$Options;)Lnet/minecraft/client/gui/GuiOptionsRowList;"))
-    public GuiOptionsRowList adjustRollHight(Minecraft p_i45015_1, int p_i45015_2, int p_i45015_3, int p_i45015_4, int p_i45015_5, int p_i45015_6, GameSettings.Options[] p_i45015_7){
-        return new GuiOptionsRowList(p_i45015_1, p_i45015_2, p_i45015_3, p_i45015_4, p_i45015_5 - 48, p_i45015_6, p_i45015_7);
-    }
+            int x = this.width / 2 - 155 + (i % 2) * 160;
+            int y = this.height / 6 + 21 * (i / 2) - 12;
 
-    @WrapOperation(method = "initGui", at = @At(value = "INVOKE", target = "Ljava/util/List;add(Ljava/lang/Object;)Z", ordinal = 0))
-    public boolean addExtraInitGui(List<?> instance, Object e, Operation<Boolean> original) {
-        int y = this.height / 6 + 21 * (videoOptions.length / 2) - 12;
-        int x = 0;
-        x = this.width / 2 - 155;
+            if (opt.isFloat()) {
+                // OptiFine style slider
+                this.buttonList.add(new GuiOptionSliderOF(opt.getOrdinal(), x, y, opt));
+            } else {
+                // OptiFine style option button
+                this.buttonList.add(new GuiOptionButtonOF(opt.getOrdinal(), x, y, opt, this.guiGameSettings.getKeyBinding(opt)));
+            }
+        }
+
+        // OF patch: extra sub-menus (layout matches your earlier code)
+        int y = this.height / 6 + 21 * (optiRefine$videoOptions.length / 2) - 12;
+        int x = this.width / 2 - 155;
+
         this.buttonList.add(new GuiOptionButton(231, x, y, Lang.get("of.options.shaders")));
-        x = this.width / 2 - 155 + 160;
-        this.buttonList.add(new GuiOptionButton(202, x, y, Lang.get("of.options.quality")));
+        this.buttonList.add(new GuiOptionButton(202, x + 160, y, Lang.get("of.options.quality")));
+
         y += 21;
-        x = this.width / 2 - 155;
         this.buttonList.add(new GuiOptionButton(201, x, y, Lang.get("of.options.details")));
-        x = this.width / 2 - 155 + 160;
-        this.buttonList.add(new GuiOptionButton(212, x, y, Lang.get("of.options.performance")));
+        this.buttonList.add(new GuiOptionButton(212, x + 160, y, Lang.get("of.options.performance")));
+
         y += 21;
-        x = this.width / 2 - 155;
         this.buttonList.add(new GuiOptionButton(211, x, y, Lang.get("of.options.animations")));
-        x = this.width / 2 - 155 + 160;
-        this.buttonList.add(new GuiOptionButton(222, x, y, Lang.get("of.options.other")));
+        this.buttonList.add(new GuiOptionButton(222, x + 160, y, Lang.get("of.options.other")));
+
+        y += 21;
         this.buttonList.add(new GuiButton(200, this.width / 2 - 100, this.height / 6 + 168 + 11, I18n.format("gui.done")));
 
-        return true;
+        ci.cancel(); // stop vanilla initGui
     }
 
-    @Inject(method = "actionPerformed", at = @At("RETURN"))
-    public void injectActionPerformed(GuiButton button, CallbackInfo ci){
-        if (button.enabled && button.id != 200) {
-            actionPerformed(button, 1);
+    @Inject(method = "actionPerformed", at = @At("HEAD"), cancellable = true)
+    private void optiRefine$actionPerformed(GuiButton button, CallbackInfo ci) {
+        if (button == null || !button.enabled) {
+            ci.cancel();
+            return;
         }
+
+        optiRefine$actionPerformedImpl(button, 1);
+        ci.cancel();
+    }
+
+    @Unique
+    private void optiRefine$actionPerformedImpl(GuiButton button, int val) {
+        int guiScaleBefore = this.guiGameSettings.guiScale;
+
+        // Option buttons: ids < 200
+        if (button.id < 200 && button instanceof GuiOptionButton) {
+            this.guiGameSettings.setOptionValue(((GuiOptionButton) button).getOption(), val);
+            button.displayString = this.guiGameSettings.getKeyBinding(GameSettings.Options.byOrdinal(button.id));
+        }
+
+        // Done
+        if (button.id == 200) {
+            this.mc.gameSettings.saveOptions();
+            this.mc.displayGuiScreen(this.parentGuiScreen);
+            return;
+        }
+
+        // guiScale change triggers resize
+        if (this.guiGameSettings.guiScale != guiScaleBefore) {
+            ScaledResolution sr = new ScaledResolution(this.mc);
+            this.setWorldAndResolution(this.mc, sr.getScaledWidth(), sr.getScaledHeight());
+        }
+
+        // OF sub-screens
+        if (button.id == 201) {
+            this.mc.gameSettings.saveOptions();
+            this.mc.displayGuiScreen(new GuiDetailSettingsOF(this, this.guiGameSettings));
+            return;
+        }
+        if (button.id == 202) {
+            this.mc.gameSettings.saveOptions();
+            this.mc.displayGuiScreen(new GuiQualitySettingsOF(this, this.guiGameSettings));
+            return;
+        }
+        if (button.id == 211) {
+            this.mc.gameSettings.saveOptions();
+            this.mc.displayGuiScreen(new GuiAnimationSettingsOF(this, this.guiGameSettings));
+            return;
+        }
+        if (button.id == 212) {
+            this.mc.gameSettings.saveOptions();
+            this.mc.displayGuiScreen(new GuiPerformanceSettingsOF(this, this.guiGameSettings));
+            return;
+        }
+        if (button.id == 222) {
+            this.mc.gameSettings.saveOptions();
+            this.mc.displayGuiScreen(new GuiOtherSettingsOF(this, this.guiGameSettings));
+            return;
+        }
+
+        // Shaders button: keep your AA/AF/FastRender/anaglyph guards
+        if (button.id == 231) {
+            if (Config.isAntialiasing() || Config.isAntialiasingConfigured()) {
+                Config.showGuiMessage(Lang.get("of.message.shaders.aa1"), Lang.get("of.message.shaders.aa2"));
+                return;
+            }
+            if (Config.isAnisotropicFiltering()) {
+                Config.showGuiMessage(Lang.get("of.message.shaders.af1"), Lang.get("of.message.shaders.af2"));
+                return;
+            }
+            if (Config.isFastRender()) {
+                Config.showGuiMessage(Lang.get("of.message.shaders.fr1"), Lang.get("of.message.shaders.fr2"));
+                return;
+            }
+            if (Config.getGameSettings().anaglyph) {
+                Config.showGuiMessage(Lang.get("of.message.shaders.an1"), Lang.get("of.message.shaders.an2"));
+                return;
+            }
+
+            this.mc.gameSettings.saveOptions();
+            this.mc.displayGuiScreen(new GuiShaders(this, this.guiGameSettings));
+        }
+    }
+
+    @Unique
+    protected void optiRefine$actionPerformedRightClick(GuiButton button) {
+        if (button != null && button.id == GameSettings.Options.GUI_SCALE.ordinal()) {
+            optiRefine$actionPerformedImpl(button, -1);
+        }
+    }
+
+    @Inject(method = "drawScreen", at = @At("HEAD"))
+    private void optiRefine$drawScreenHead(int mouseX, int mouseY, float partialTicks, CallbackInfo ci) {
+        this.drawCenteredString(this.fontRenderer, this.screenTitle, this.width / 2, 15, 0xFFFFFF);
+
+        final String ver = "OptiFine HD G5 Ultra + " + Reference.BRAND;
+        this.drawString(this.fontRenderer, ver, 2, this.height - 10, 8421504);
+
+        final String verMc = "Cleanroom " + CleanroomVersion.getVersion();
+        int len = this.fontRenderer.getStringWidth(verMc);
+        this.drawString(this.fontRenderer, verMc, this.width - len - 2, this.height - 10, 8421504);
+    }
+
+    @Inject(method = "drawScreen", at = @At("TAIL"))
+    private void optiRefine$drawScreenTail(int mouseX, int mouseY, float partialTicks, CallbackInfo ci) {
+        this.optiRefine$tooltipManager.drawTooltips(mouseX, mouseY, this.buttonList);
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
+    @Unique @Public
+    private static int getButtonWidth(GuiButton btn) { return btn.width; }
+
+    @SuppressWarnings("AddedMixinMembersNamePattern")
+    @Unique @Public
+    private static int getButtonHeight(GuiButton btn) { return btn.height; }
+
     @Unique
-    public void actionPerformed(GuiButton button, int val) {
-        if (button.enabled) {
-            int guiScale = this.guiGameSettings.guiScale;
-            if (button.id < 200 && button instanceof GuiOptionButton) {
-                this.guiGameSettings.setOptionValue(((GuiOptionButton)button).getOption(), val);
-                button.displayString = this.guiGameSettings.getKeyBinding(GameSettings.Options.byOrdinal(button.id));
-            }
-
-            if (button.id == 200) {
-                this.mc.gameSettings.saveOptions();
-                this.mc.displayGuiScreen(this.parentGuiScreen);
-            }
-
-            if (this.guiGameSettings.guiScale != guiScale) {
-                ScaledResolution var3 = new ScaledResolution(this.mc);
-                int var4 = var3.getScaledWidth();
-                int var5 = var3.getScaledHeight();
-                this.setWorldAndResolution(this.mc, var4, var5);
-            }
-
-            if (button.id == 201) {
-                this.mc.gameSettings.saveOptions();
-                GuiDetailSettingsOF scr = new GuiDetailSettingsOF(this, this.guiGameSettings);
-                this.mc.displayGuiScreen(scr);
-            }
-
-            if (button.id == 202) {
-                this.mc.gameSettings.saveOptions();
-                GuiQualitySettingsOF scr = new GuiQualitySettingsOF(this, this.guiGameSettings);
-                this.mc.displayGuiScreen(scr);
-            }
-
-            if (button.id == 211) {
-                this.mc.gameSettings.saveOptions();
-                GuiAnimationSettingsOF scr = new GuiAnimationSettingsOF(this, this.guiGameSettings);
-                this.mc.displayGuiScreen(scr);
-            }
-
-            if (button.id == 212) {
-                this.mc.gameSettings.saveOptions();
-                GuiPerformanceSettingsOF scr = new GuiPerformanceSettingsOF(this, this.guiGameSettings);
-                this.mc.displayGuiScreen(scr);
-            }
-
-            if (button.id == 222) {
-                this.mc.gameSettings.saveOptions();
-                GuiOtherSettingsOF scr = new GuiOtherSettingsOF(this, this.guiGameSettings);
-                this.mc.displayGuiScreen(scr);
-            }
-
-            if (button.id == 231) {
-                if (Config.isAntialiasing() || Config.isAntialiasingConfigured()) {
-                    Config.showGuiMessage(Lang.get("of.message.shaders.aa1"), Lang.get("of.message.shaders.aa2"));
-                    return;
-                }
-
-                if (Config.isAnisotropicFiltering()) {
-                    Config.showGuiMessage(Lang.get("of.message.shaders.af1"), Lang.get("of.message.shaders.af2"));
-                    return;
-                }
-
-                if (Config.isFastRender()) {
-                    Config.showGuiMessage(Lang.get("of.message.shaders.fr1"), Lang.get("of.message.shaders.fr2"));
-                    return;
-                }
-
-                if (Config.getGameSettings().anaglyph) {
-                    Config.showGuiMessage(Lang.get("of.message.shaders.an1"), Lang.get("of.message.shaders.an2"));
-                    return;
-                }
-
-                this.mc.gameSettings.saveOptions();
-                GuiShaders scr = new GuiShaders(this, this.guiGameSettings);
-                this.mc.displayGuiScreen(scr);
-            }
-        }
-    }
-
-    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
-    protected void actionPerformedRightClick(GuiButton button) {
-        if (button.id == GameSettings.Options.GUI_SCALE.ordinal()) {
-            this.actionPerformed(button, -1);
-        }
-    }
-
-    @WrapOperation(method = "drawScreen", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiListExtended;drawScreen(IIF)V"))
-    public void injectDrawScreen(GuiListExtended instance, int x, int y, float v, Operation<Void> original){
-        this.drawString(this.fontRenderer, this.screenTitle, this.width / 2, 15, 16777215);
-        final String ver = "OptiFine HD G5 Ultra + " + Reference.BRAND;
-        this.drawCenteredString(this.fontRenderer, ver, 2, this.height - 10, 8421504);
-        final String verMc = "Minecraft 1.12.2";
-        int lenMc = this.fontRenderer.getStringWidth(verMc);
-        this.drawCenteredString(this.fontRenderer, verMc, this.width - lenMc - 2, this.height - 10, 8421504);
-        original.call(instance, x, y, v);
-    }
-
-    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
-    @Public
-    private static int getButtonWidth(GuiButton btn) {
-        return btn.width;
-    }
-
-    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
-    @Public
-    private static int getButtonHeight(GuiButton btn) {
-        return btn.height;
-    }
-
-    @SuppressWarnings("unused")
-    @Unique
-    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.gui.GuiScreen func_73733_a (IIIIII)V", deobf = true)
-    private static void _acc_GuiScreen_draw(GuiScreen guiScreen, int left, int top, int right, int bottom, int startColor, int endColor){
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL,
+            desc = "net.minecraft.client.gui.GuiScreen func_73733_a (IIIIII)V", deobf = true)
+    private static void _acc_GuiScreen_draw(GuiScreen guiScreen,
+                                            int left, int top, int right, int bottom,
+                                            int startColor, int endColor) {
         throw new AbstractMethodError();
     }
 
-    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
-    @Public
-    private static void drawGradientRect(GuiScreen guiScreen, int left, int top, int right, int bottom, int startColor, int endColor) {
+    @SuppressWarnings("AddedMixinMembersNamePattern")
+    @Unique @Public
+    private static void drawGradientRect(GuiScreen guiScreen,
+                                         int left, int top, int right, int bottom,
+                                         int startColor, int endColor) {
         _acc_GuiScreen_draw(guiScreen, left, top, right, bottom, startColor, endColor);
     }
 
-    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
-    @Public
+    @SuppressWarnings("AddedMixinMembersNamePattern")
+    @Unique @Public
     private static String getGuiChatText(GuiChat guiChat) {
         return _acc_GuiChatAccessor_getInputField(guiChat).getText();
     }
 
     @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.gui.GuiChat field_146415_a Lnet.minecraft.client.gui.GuiTextField;", deobf = true)
+    @AccessibleOperation(opcode = Opcodes.GETFIELD,
+            desc = "net.minecraft.client.gui.GuiChat field_146415_a Lnet.minecraft.client.gui.GuiTextField;", deobf = true)
     private static native GuiTextField _acc_GuiChatAccessor_getInputField(GuiChat guiChat);
-
 }
 
 /*

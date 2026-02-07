@@ -2,8 +2,8 @@ plugins {
     id 'java'
     id 'java-library'
     id 'maven-publish'
-    id 'com.gradleup.shadow' version '9.0.2'
-    id 'xyz.wagyourtail.unimined' version '1.4.1'
+    id 'com.gradleup.shadow' version '9.2.2'
+    id 'xyz.wagyourtail.unimined' version '1.4.9-kappa'
     id 'net.kyori.blossom'  version '2.1.0'
 }
 
@@ -28,7 +28,7 @@ version = propertyString('mod_version')
 group = propertyString('root_package')
 
 base {
-    archivesName.set("+" + propertyString('mod_id'))
+    archivesName.set("+" +propertyString('mod_id'))
 }
 
 
@@ -64,15 +64,14 @@ unimined.minecraft {
 
     cleanroom {
         if (propertyBool('use_access_transformer')) {
-            accessTransformer "${rootProject.projectDir}/src/main/resources/" +  propertyString('access_transformer_locations')
+            accessTransformer "${rootProject.projectDir}/src/main/resources/${propertyString('access_transformer_locations')}"
         }
-        loader "0.3.27-alpha"
+        loader "0.4.2-alpha"
         runs.auth.username = minecraft_username
         runs.all {
-            systemProperty("cleanroom.dev.mixin", "${mod_id}.default.mixin.json,${mod_id}.mod.mixin.json")
             def extraArgs = propertyString('extra_jvm_args')
             if (extraArgs != null && !extraArgs.trim().isEmpty()) {
-                jvmArgs += extraArgs.split("\\s+").toList()
+                jvmArgs += extraArgs.split { "\\s+" }.toList()
             }
             if (propertyBool('enable_foundation_debug')) {
                 systemProperty("foundation.dump", "true")
@@ -107,6 +106,7 @@ unimined.minecraft {
 
     mods {
         remap(configurations.modCompileOnly)
+        remap(configurations.modRuntimeOnly)
     }
 }
 
@@ -181,7 +181,6 @@ jar {
         manifest {
             def attribute_map = [:]
             attribute_map['ModType'] = "CRL"
-            attribute_map['MixinConfigs'] = "${mod_id}.default.mixin.json,${mod_id}.mod.mixin.json"
             if (configurations.contain.size() > 0) {
                 attribute_map['ContainedDeps'] = configurations.contain.collect { it.name }.join(' ')
                 attribute_map['NonModDeps'] = true

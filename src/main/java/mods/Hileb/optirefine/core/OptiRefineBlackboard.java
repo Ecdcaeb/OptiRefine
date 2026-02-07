@@ -4,6 +4,7 @@ import com.google.common.collect.Sets;
 import com.google.gson.*;
 import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
+import mods.Hileb.optirefine.library.common.utils.Initializer;
 import mods.Hileb.optirefine.library.common.utils.Lazy;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraftforge.fml.relauncher.FMLLaunchHandler;
@@ -31,9 +32,11 @@ public class OptiRefineBlackboard {
 
     public static boolean IS_INDEV = Boolean.parseBoolean(System.getProperty("optirefine.dev", "false"));
 
-    public static final HashSet<String> TEST_INDEV_CLASS = Sets.newHashSet(
-            System.getProperty("optirefine.dev.classes").split(";")
-    );
+    public static final Set<String> TEST_INDEV_CLASS = Initializer.initializeSystemProperty(
+            "optirefine.dev.classes",
+            str -> Sets.newHashSet(str.split(";")) ,
+            Set.of()
+        );
 
     public static final HashSet<String> INDEV_CLASS = Sets.newHashSet(
             "net.minecraft.client.gui.FontRenderer",

@@ -53,7 +53,8 @@ public abstract class MixinGuiOverlayDebug extends Gui {
 
     @WrapMethod(method = "call")
     public List<String> injectCall(Operation<List<String>> original){
-        if (Minecraft.getMinecraft().debug.equals(this.debugOF)) {
+        //noinspection StringEquality
+        if (Minecraft.getMinecraft().debug != this.debugOF) {
             StringBuilder sb = new StringBuilder(Minecraft.getMinecraft().debug);
             int fpsMin = Config.getFpsMin();
             int posFps = Minecraft.getMinecraft().debug.indexOf(" fps ");
@@ -93,11 +94,11 @@ public abstract class MixinGuiOverlayDebug extends Gui {
         TextureMap tm = Config.getTextureMap();
         sbx.append(", A: ");
         if (SmartAnimations.isActive()) {
-            sbx.append(_acc_TextureMap_getCountAnimationsActive_(tm) + TextureAnimations.getCountAnimationsActive());
+            if (tm != null) sbx.append(_acc_TextureMap_getCountAnimationsActive_(tm) + TextureAnimations.getCountAnimationsActive());
             sbx.append("/");
         }
 
-        sbx.append(_acc_TextureMap_getCountAnimations_(tm) + TextureAnimations.getCountAnimations());
+        if (tm != null) sbx.append(_acc_TextureMap_getCountAnimations_(tm) + TextureAnimations.getCountAnimations());
         String ofInfo = sbx.toString();
 
         return original.call().stream().map((s) -> s.startsWith("P: ") ? s + ofInfo : s).toList();
