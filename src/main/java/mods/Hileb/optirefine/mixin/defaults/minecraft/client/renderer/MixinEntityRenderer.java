@@ -119,9 +119,14 @@ public abstract class MixinEntityRenderer {
 
     // ===== access-transformed fields (publicized by OptiFine) =====
 
-    @AccessTransformer(deobf = true, name = "field_78516_c")
-// [AUDIT-OK] vanilla SRG field_78516_c = itemRenderer, deobf=true
-    public ItemRenderer acc_itemRenderer;
+    // [AUDIT-FIXED] @Shadow provides the MCP-named reference (remapped to SRG field_78516_c);
+    // AT placeholder is separate - the old public acc_itemRenderer placeholder was deleted by cursed AT
+    // processing, leaving this.itemRenderer refs dangling -> NoSuchFieldError
+    @Shadow
+    public ItemRenderer itemRenderer;
+
+    @AccessTransformer(name = "field_78516_c", deobf = true, access = org.objectweb.asm.Opcodes.ACC_PUBLIC)
+    private ItemRenderer acc_itemRenderer_placeholder;
 
     // Note: field_78527_v = mouseFilterXAxis, field_78526_w = mouseFilterYAxis (srg_to_stable_39-1.12.tsrg)
     @AccessTransformer(name = "field_78527_v", deobf = true)
@@ -562,9 +567,9 @@ public abstract class MixinEntityRenderer {
                         && !this.mc.gameSettings.hideGUI && !this.mc.playerController.isSpectator()) {
                     this.enableLightmap();
                     if (Config.isShaders()) {
-                        ShadersRender.renderItemFP(this.acc_itemRenderer, partialTicks, isMainHand);
+                        ShadersRender.renderItemFP(this.itemRenderer, partialTicks, isMainHand);
                     } else {
-                        this.acc_itemRenderer.renderItemInFirstPerson(partialTicks);
+                        this.itemRenderer.renderItemInFirstPerson(partialTicks);
                     }
                     this.disableLightmap();
                 }
@@ -575,7 +580,7 @@ public abstract class MixinEntityRenderer {
             }
             this.disableLightmap();
             if (this.mc.gameSettings.thirdPersonView == 0 && !sleeping) {
-                this.acc_itemRenderer.renderOverlays(partialTicks);
+                this.itemRenderer.renderOverlays(partialTicks);
                 this.hurtCameraEffect(partialTicks);
             }
             if (this.mc.gameSettings.viewBobbing) {
