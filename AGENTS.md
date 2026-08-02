@@ -1,7 +1,7 @@
 # Repository Guidelines
 
-> 面向 AI 助手的代码库指南。最后更新 2026-08-02（由并行 scout 扫描综合）。
-> 运行时崩溃修复循环进行中：优先读 `AGENT.md`（现行交接手册，含逐轮修复记录与硬规则）。
+> 面向 AI 助手的代码库指南。最后更新 2026-08-03（渲染链三路语义审计 + 全量修复后）。
+> 优先读 `AGENT.md`（现行交接手册，含逐轮修复记录与硬规则）。
 
 ## Project Overview
 
@@ -36,6 +36,29 @@ Minecraft 启动 → OptiRefineCore (@IFMLLoadingPlugin, SortingIndex 1000)
 **desc 规则**：`@AccessibleOperation`/`@AccessTransformer` 的 desc/name 写 **SRG 名**（vanilla 成员）
 或 **OF 成员名**（MCP，tsrg 无），并开 `deobf=true`；`CursedMixinExtensions` 用 `isSrgRuntime()`
 探测 + 双匹配自动适配 SRG/MCP 两种运行时（未来 Cleanroom 切 MCP 成员名运行时零改动）。
+
+## 运行时大坑（2026-08-03 实锤，每条都崩过）
+
+- **cleanmix 不注入 `@Unique` 字段初始化器**（行号启发式失败）→ 带初始化器的字段用
+  `@Inject(method = "<init>*", at = @At("RETURN"))` 通配构造器注入（handler 只收 `CallbackInfo`，
+  无需匹配构造器参数）；字段声明**不要写 `= expr`**（单一初始化路径）。
+- **`@Unique` 对 public 字段无效**（官方 javadoc）→ 需要初始化的 OF 公开字段：
+  `private @Unique @Public`（private 注入初始化器、无冲突不重命名；cursed `@Public` 运行时转 public）。
+- **cursed `@NewConstructor` 生成的构造器不含目标类字段初始化**（vanilla 声明初始化器丢失）
+  → 生成体内手动补（如 `AmbientOcclusionFace` 的 `vertexBrightness`/`blockPosArr`）。
+- **`@NewConstructor` 构造器不经过 Mixin 的 `<init>*` 注入** → 该路径的字段必须方法体内手动初始化。
+- **vanilla `growBuffer` 后 `rawFloatBuffer` 是只读**（`asReadOnlyBuffer`）；OF 保持可写
+  → `@Inject(growBuffer, TAIL)` 恢复 `byteBuffer.asFloatBuffer()`（shaders `SVertexBuilder.calcNormal` 要写）。
+- **运行时构造器 arity 以实际崩溃为准**：`ContainerLocalRenderInformation` 三方资料是 3 参（Forge），
+  实际运行时是 **vanilla 4 参**（`RenderGlobal,RenderChunk,EnumFacing,int`）→ 二分实测。
+- **FML AT 的 `<init>` 条目在 Cleanroom 不生效** → 用 cursed `@AccessTransformer`（postApply 双匹配）
+  放在对应 mixin 里（`MixinContainerLocalRenderInformation` 范例）。
+- **`@At("INVOKE")` 默认在调用前**（BEFORE）→ 需要调用后执行时显式 `shift = At.Shift.AFTER`
+  （Render 火贴图清理踩过）。
+- **`@Redirect`/`@Inject` 的 method 选择**：目标方法有重载时必须写**完整签名**，否则 remap 报
+  `ambiguous ... use FLAG_FIRST`。
+- **Forge 基线方法可能与 vanilla 不同**（`VertexBufferUploader.draw` 开头有 `reset()`）→
+  注入位置要对运行时（patch/forge + patch/patches）而非 deobf 假设。
 
 ## Key Directories
 
@@ -119,3 +142,15 @@ cp build/libs/optirefine-0.0.1-indev.jar "D:\Program Disk\HMCL\.minecraft\versio
   `crash-reports\crash-*.txt`；修一个 → build → commit → 拷贝 jar → 再测。日志 grep 模式：
   `FATAL|Mixin apply|InvalidInjection|NoSuchField|NoSuchMethod|IllegalAccess`
 - 行为对照基准：`diff -u patch/deobf/... patch/optifine/...`（OF 增量 = mixin 要做的事）
+
+## 渲染链已知遗留（2026-08-03 审计后，不崩但功能缺失）
+
+- `getRenderQuads` face 传 `null`（OF 按 quad face 传）→ 智能树叶等 per-face 定制失效（LOW-MED）
+- `AmbientOcclusionFace.updateVertexBrightness` 用 vanilla 版（OF 重写含 `fixAoLightValue` 未移植）
+  → `Config.getAmbientOcclusionLevel` 只影响 `aoLightValueOpaque`（已接线），平滑光照细节与 OF 有差
+- `MixinModelBakery` loadModel basePath 缺 `models/` 前缀（LOW）
+- `CustomColors.getDurabilityColor` 挂钩 TODO（Cleanroom patch 删了 hsvToRGB，改 Forge `getRGBDurabilityForDisplay` 路径）
+- `quadsToTriangles`/`isQuadsToTriangles` 依赖 OF 性能选项（默认关；已修 getVertexCount/uploader 顺序）
+- `putBulkData` 运行时版（Cleanroom patch）无 SVertexBuilder shaders 钩子（MED，已知）
+- `MixinWorldEntitySpawner.findChunksForSpawning` OF 逻辑未实现（注释掉）
+- `MixinFMLClientHandler` brand 追加需运行时验证
