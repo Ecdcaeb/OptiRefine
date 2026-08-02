@@ -24,7 +24,6 @@ public abstract class MixinAbstractClientPlayer {
 
 
 // [AUDIT-OK] OF-added member (OF private ResourceLocation locationOfCape), not in baseline
-    @Unique
     private ResourceLocation locationOfCape = null;
 
 // [AUDIT-OK] OF-added member, not in baseline
@@ -32,7 +31,6 @@ public abstract class MixinAbstractClientPlayer {
     private long reloadCapeTimeMs = 0L;
 
 // [AUDIT-OK] OF-added member, not in baseline
-    @Unique
     private boolean elytraOfCape = false;
 
 // [AUDIT-OK] OF-added member, not in baseline

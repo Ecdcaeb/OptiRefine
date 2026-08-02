@@ -238,7 +238,6 @@ public abstract class MixinBlockModelRenderer {
 // [AUDIT-OK] baseline member blockColors (SRG field_187499_a)
     private BlockColors blockColors;
 
-    @Unique
 // [AUDIT-OK] OF-added private helper (name matches vanilla renderQuadsSmooth but different signature; private @Unique avoids the public-collision discard)
     private void renderQuadsSmooth(IBlockAccess blockAccessIn, IBlockState stateIn, BlockPos posIn, BufferBuilder buffer, List<BakedQuad> list, RenderEnv renderEnv) {
         float[] quadBounds = renderEnv.getQuadBounds();
@@ -377,7 +376,6 @@ public abstract class MixinBlockModelRenderer {
         }
     }
 
-    @Unique
 // [AUDIT-OK] OF-added private helper (name matches vanilla renderQuadsFlat; private @Unique, different sig)
     private void renderQuadsFlat(
             IBlockAccess blockAccessIn,

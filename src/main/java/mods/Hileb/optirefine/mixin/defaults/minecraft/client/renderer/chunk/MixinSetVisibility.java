@@ -12,7 +12,6 @@ public abstract class MixinSetVisibility {
     // [AUDIT-OK] baseline static final COUNT_FACES (deobf)
     private static int COUNT_FACES;
 
-    @Unique
     // [AUDIT-OK] OF-added field (OF 'private long bits') — renamed to avoid shadow collision; vanilla BitSet field stays unused
     private long optiRefine$bits;
 
@@ -56,7 +55,6 @@ public abstract class MixinSetVisibility {
         return (this.optiRefine$bits & 1L << i) != 0L;
     }
 
-    @Unique
     private void optiRefine$setBit(int i, boolean on) {
         if (on) {
             this.optiRefine$setBit(i);

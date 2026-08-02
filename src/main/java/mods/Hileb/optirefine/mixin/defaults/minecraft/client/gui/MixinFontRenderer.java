@@ -148,7 +148,6 @@ public abstract class MixinFontRenderer implements ISelectiveResourceReloadListe
     public GameSettings gameSettings;
 
 // [AUDIT-OK] OF-added member, not in baseline
-    @Unique
     public ResourceLocation locationFontTextureBase;
 
 // [AUDIT-OK] OF-added member, not in baseline
@@ -156,7 +155,6 @@ public abstract class MixinFontRenderer implements ISelectiveResourceReloadListe
     public float offsetBold = 1.0F;
 
 // [AUDIT-OK] OF-added member, not in baseline
-    @Unique
     private final float[] charWidthFloat = new float[256];
 
 // [AUDIT-OK] OF-added member, not in baseline
@@ -164,7 +162,6 @@ public abstract class MixinFontRenderer implements ISelectiveResourceReloadListe
     private boolean blend = false;
 
 // [AUDIT-OK] OF-added member, not in baseline
-    @Unique
     private final GlBlendState oldBlendState = new GlBlendState();
 
     // ====== Charset mapping used by vanilla FontRenderer ======

@@ -24,7 +24,6 @@ public abstract class MixinMathHelper {
 // [AUDIT-OK] baseline member SQRT_2 exists in target class (@Public on shadow = no-op)
     private static float SQRT_2;
     @SuppressWarnings("unused")
-    @Unique
 // [AUDIT-OK] OF-added constant SIN_BITS (in OF MathHelper, not in baseline)
     private static final int SIN_BITS = 12;
     @SuppressWarnings("unused")
@@ -32,7 +31,6 @@ public abstract class MixinMathHelper {
 // [AUDIT-OK] OF-added constant SIN_MASK (in OF MathHelper, not in baseline)
     private static final int SIN_MASK = 4095;
     @SuppressWarnings("unused")
-    @Unique
 // [AUDIT-OK] OF-added constant SIN_COUNT (in OF MathHelper, not in baseline)
     private static final int SIN_COUNT = 4096;
     @SuppressWarnings("unused")

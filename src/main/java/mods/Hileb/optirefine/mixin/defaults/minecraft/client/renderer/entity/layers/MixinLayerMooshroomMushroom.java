@@ -30,7 +30,6 @@ public abstract class MixinLayerMooshroomMushroom {
     private RenderMooshroom mooshroomRenderer;
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
     // [AUDIT-OK] OF-added members modelRendererMushroom/LOCATION_MUSHROOM_RED/hasTextureMushroom (OF)
     private ModelRenderer modelRendererMushroom;
     @Unique

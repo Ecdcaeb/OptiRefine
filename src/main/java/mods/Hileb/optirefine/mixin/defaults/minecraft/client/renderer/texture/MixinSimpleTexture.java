@@ -28,7 +28,6 @@ public abstract class MixinSimpleTexture {
     protected ResourceLocation textureLocation;
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
     // [AUDIT-OK] OF-added fields locationEmissive/isEmissive (@Unique), not in baseline
     public ResourceLocation locationEmissive;
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})

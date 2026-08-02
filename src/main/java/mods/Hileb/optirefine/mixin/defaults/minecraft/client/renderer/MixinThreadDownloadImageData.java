@@ -38,12 +38,12 @@ import java.net.Proxy;
 public abstract class MixinThreadDownloadImageData extends SimpleTexture{
 // [AUDIT] 2026-08-03 — see AGENT.md; issues: 0
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
 // [AUDIT-OK] OF-added field (OF: public Boolean imageFound = null), not in baseline
+    @Unique
     public Boolean imageFound = null;
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
 // [AUDIT-OK] OF-added field (OF: public boolean pipeline = false), not in baseline
+    @Unique
     public boolean pipeline = false;
 
     @Shadow
@@ -86,7 +86,6 @@ public abstract class MixinThreadDownloadImageData extends SimpleTexture{
     }
 
 
-    @Unique
     private boolean optiRefine$shouldPipeline() {
         if (!this.pipeline) {
             return false;
@@ -148,7 +147,6 @@ public abstract class MixinThreadDownloadImageData extends SimpleTexture{
 // [AUDIT-OK] baseline member imageThread (SRG field_110561_e)
     @Shadow @Nullable private Thread imageThread;
 
-    @Unique
 // [AUDIT-OK] OF-added method (OF: private loadingFinished), not in baseline
     private void optiRefine$loadingFinished() {
         this.imageFound = this.bufferedImage != null;

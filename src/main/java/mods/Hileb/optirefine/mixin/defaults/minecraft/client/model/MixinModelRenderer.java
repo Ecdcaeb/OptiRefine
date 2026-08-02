@@ -125,6 +125,7 @@ public abstract class MixinModelRenderer {
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
 // [AUDIT-OK] OF-added member (public in OF), not in baseline; @Public for OF-jar access
+    @Unique
     @Public
     public boolean mirrorV = false;
 
@@ -135,6 +136,7 @@ public abstract class MixinModelRenderer {
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
 // [AUDIT-OK] OF-added member (public in OF), not in baseline; @Public for OF-jar access
+    @Unique
     @Public
     public float scaleY = 1.0F;
 
@@ -150,6 +152,7 @@ public abstract class MixinModelRenderer {
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
 // [AUDIT-OK] OF-added member, not in baseline; @Public informational (OF keeps private)
+    @Unique
     @Public
     private ResourceLocation textureLocation = null;
 
@@ -165,11 +168,11 @@ public abstract class MixinModelRenderer {
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
 // [AUDIT-OK] OF-added member, not in baseline; @Public informational (OF keeps private)
+    @Unique
     @Public
     private RenderGlobal renderGlobal = Config.getRenderGlobal();
 
     @SuppressWarnings({"unused", "BooleanMethodIsAlwaysInverted"})
-    @Unique
 // [AUDIT-OK] OF-added member (not in tsrg): MCP name renderOverlayDamaged correct
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net/minecraft/client/renderer/RenderGlobal renderOverlayDamaged Z")
     private native static boolean _acc_RenderGlobal_renderOverlayDamaged_(RenderGlobal global);
@@ -180,7 +183,6 @@ public abstract class MixinModelRenderer {
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net/minecraft/client/renderer/RenderGlobal renderOverlayEyes Z")
     private static native boolean _acc_RenderGlobal_renderOverlayEyes_(RenderGlobal global);
 
-    @Unique
 // [AUDIT-OK] OF-added member (not in tsrg): MCP name getBoundTexture correct
     @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net/minecraft/client/renderer/GlStateManager getBoundTexture ()I")
     private native static int _acc_GlStateManager_getBoundTexture_();
@@ -336,7 +338,6 @@ public abstract class MixinModelRenderer {
         this.cubeList.add(_new_ModelBox(AccessibleOperation.Construction.construction(), _cast_this(), faceUvs, x, y, z, dx, dy, dz, delta, this.mirror));
     }
 
-    @Unique
 // [AUDIT-OK] cast helper (no member lookup)
     @AccessibleOperation
     public ModelRenderer _cast_this(){

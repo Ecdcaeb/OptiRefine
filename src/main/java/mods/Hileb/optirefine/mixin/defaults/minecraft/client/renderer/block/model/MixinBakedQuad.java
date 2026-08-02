@@ -23,7 +23,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class MixinBakedQuad {
 // [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
 
-    @Unique
     @AccessTransformer(name = "field_178215_a", deobf = true)
     // [AUDIT-OK] AT fields: field_178215_a vertexData / field_178213_b tintIndex / field_178214_c face / field_187509_d sprite (tsrg, SRG+deobf) and format / applyDiffuseLighting (Forge-added, tsrg-less, MCP) — all present in runtime (cleanroom BakedQuad patch)
     public int[] optirefine$acc_vertexData;
@@ -31,14 +30,12 @@ public abstract class MixinBakedQuad {
     @Unique
     @AccessTransformer(name = "field_178213_b", deobf = true)
     public int optirefine$acc_tintIndex;
-    @Unique
     @AccessTransformer(name = "field_178214_c", deobf = true)
     public EnumFacing optirefine$acc_face;
     @Unique
     @AccessTransformer(name = "field_187509_d", deobf = true)
     public TextureAtlasSprite optirefine$acc_sprite;
 
-    @Unique
     @AccessTransformer(name = "format")
     public VertexFormat  optirefine$acc_format;
 
@@ -57,11 +54,9 @@ public abstract class MixinBakedQuad {
     @Shadow @Final @Mutable
     protected TextureAtlasSprite sprite;
 
-    @Unique
     private int[] vertexDataSingle = null;
     @Unique
     private QuadBounds quadBounds;
-    @Unique
     private boolean quadEmissiveChecked;
     @Unique
     private BakedQuad quadEmissive;
@@ -101,7 +96,6 @@ public abstract class MixinBakedQuad {
     @Shadow
     public abstract TextureAtlasSprite getSprite();
 
-    @Unique
     @SuppressWarnings("AddedMixinMembersNamePattern")
     // [AUDIT-OK] OF-added member (OF:72); toSingleU/toSingleV/getIconByUV are OF members (MCP, no deobf) provided by MixinTextureAtlasSprite/MixinTextureMap
     public int[] getVertexDataSingle() {
@@ -138,7 +132,6 @@ public abstract class MixinBakedQuad {
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite toSingleV (F)F")
     private static native float TextureAtlasSprite_toSingleV(TextureAtlasSprite textureAtlasSprite, float arg1);
 
-    @Unique
     private static TextureAtlasSprite optiRefine$getSpriteByUv(int[] vertexData) {
         float uMin = 1.0F;
         float vMin = 1.0F;
@@ -178,7 +171,6 @@ public abstract class MixinBakedQuad {
         }
     }
 
-    @Unique
     private static int[] optiRefine$expandVertexData(int[] vd) {
         int step = vd.length / 4;
         int stepNew = step * 2;
@@ -205,7 +197,6 @@ public abstract class MixinBakedQuad {
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
     // [AUDIT-OK] OF-added members getQuadBounds/getMidX/getMidY/getMidZ/isFaceQuad/isFullQuad/isFullFaceQuad (OF:165-199)
     public QuadBounds getQuadBounds() {
         if (this.quadBounds == null) {
@@ -223,7 +214,6 @@ public abstract class MixinBakedQuad {
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
     public double getMidY() {
         QuadBounds qb = this.getQuadBounds();
         return (qb.getMaxY() + qb.getMinY()) / 2.0F;
@@ -237,7 +227,6 @@ public abstract class MixinBakedQuad {
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
     public boolean isFaceQuad() {
         QuadBounds qb = this.getQuadBounds();
         return qb.isFaceQuad(this.face);
@@ -251,7 +240,6 @@ public abstract class MixinBakedQuad {
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
     public boolean isFullFaceQuad() {
         return this.isFullQuad() && this.isFaceQuad();
     }

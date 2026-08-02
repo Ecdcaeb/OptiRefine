@@ -38,15 +38,14 @@ public abstract class MixinIntegratedServer extends MinecraftServer {
 // [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
 // [AUDIT-OK] OF-added field ticksSaveLast (in OF IntegratedServer, not in baseline), MCP name matches
+    @Unique
     private long ticksSaveLast = 0L;
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
 // [AUDIT-OK] OF-added fields difficultyUpdateWorld/difficultyUpdatePos/difficultyLast (in OF, not in baseline; public in OF)
+    @Unique
     public World difficultyUpdateWorld = null;
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
     public BlockPos difficultyUpdatePos = null;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
@@ -88,7 +87,6 @@ public abstract class MixinIntegratedServer extends MinecraftServer {
     }
 
     @SuppressWarnings("unused")
-    @Unique
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.settings.GameSettings ofAutoSaveTicks I")
 // [AUDIT-OK] OF member GameSettings.ofAutoSaveTicks (in OF GameSettings, not in baseline; provided by MixinGameSettings), MCP name OK
     private static int _acc_GameSettings_ofAutoSaveTicks_(GameSettings settings) {
@@ -148,7 +146,6 @@ public abstract class MixinIntegratedServer extends MinecraftServer {
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
 // [AUDIT-OK] OF-added member fixWorldWeather, matches OF
     private void fixWorldWeather(WorldServer ws) {
         WorldInfo worldInfo = ws.getWorldInfo();

@@ -24,13 +24,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(VboRenderList.class)
 public abstract class MixinVboRenderList extends ChunkRenderContainer {
 // [AUDIT] 2026-08-03 — see AGENT.md; issues: 0
-    @Unique
 // [AUDIT-OK] OF field viewEntityX equivalent (prefixed @Unique private, internal only)
     private double optiRefine$viewEntityX;
     @Unique
 // [AUDIT-OK] OF field viewEntityY equivalent
     private double optiRefine$viewEntityY;
-    @Unique
 // [AUDIT-OK] OF field viewEntityZ equivalent
     private double optiRefine$viewEntityZ;
 

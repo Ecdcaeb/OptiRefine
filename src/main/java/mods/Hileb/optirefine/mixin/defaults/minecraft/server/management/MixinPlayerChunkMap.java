@@ -35,7 +35,6 @@ public abstract class MixinPlayerChunkMap {
     private int playerViewRadius;
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
 // [AUDIT-OK] OF-added field mapPlayerPendingEntries (in OF, not in baseline), MCP name matches
     private final Map<EntityPlayerMP, Set<ChunkPos>> mapPlayerPendingEntries = new HashMap<>();
 

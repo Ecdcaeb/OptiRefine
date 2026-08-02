@@ -52,7 +52,6 @@ public abstract class MixinGlStateManager {
 // [AUDIT-OK] OF-added static member (OF: public static boolean clearEnabled = true), not in baseline
     private static boolean clearEnabled = true;
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
 // [AUDIT-OK] OF-added static member, not in baseline
     private static LockCounter alphaLock = new LockCounter();
     @SuppressWarnings("AddedMixinMembersNamePattern")
@@ -60,7 +59,6 @@ public abstract class MixinGlStateManager {
 // [AUDIT-OK] OF-added static member, not in baseline
     private static GlAlphaState alphaLockState = new GlAlphaState();
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
 // [AUDIT-OK] OF-added static member, not in baseline
     private static LockCounter blendLock = new LockCounter();
     @SuppressWarnings("AddedMixinMembersNamePattern")

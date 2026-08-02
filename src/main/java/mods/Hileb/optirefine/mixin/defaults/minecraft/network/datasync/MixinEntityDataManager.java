@@ -18,5 +18,6 @@ public abstract class MixinEntityDataManager {
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Public
 // [AUDIT-OK] OF-added field spawnPosition (in OF, not in baseline), initializer matches OF (BlockPos.ORIGIN)
+    @Unique
     public BlockPos spawnPosition = BlockPos.ORIGIN;
 }

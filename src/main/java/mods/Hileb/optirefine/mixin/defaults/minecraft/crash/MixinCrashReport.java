@@ -15,8 +15,8 @@ public abstract class MixinCrashReport {
 // [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
 // [AUDIT-OK] OF-added field reported (in OF CrashReport, not in baseline)
+    @Unique
     private boolean reported = false;
 
     @Shadow

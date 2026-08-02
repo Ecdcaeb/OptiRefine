@@ -30,8 +30,8 @@ public abstract class MixinDynamicTexture extends AbstractTexture {
     @Shadow @Final
     private int height;
 
-    @Unique
     // [AUDIT-OK] OF-added field shadersInitialized (@Unique), not in baseline
+    @Unique
     private boolean shadersInitialized = false;
 
     @Redirect(method = "<init>(II)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/texture/TextureUtil;allocateTexture(III)V"))

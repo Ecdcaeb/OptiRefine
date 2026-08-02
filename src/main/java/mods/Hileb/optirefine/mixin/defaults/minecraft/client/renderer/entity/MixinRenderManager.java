@@ -25,7 +25,6 @@ import java.util.Map;
 public abstract class MixinRenderManager {
 // [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
 
-    @Unique
     // [AUDIT-OK] OF-added field (OF:142 public); nit: '= null' initializer on @Unique instance field (AGENT.md §4 convention)
     public Render<?> renderRender = null;
 

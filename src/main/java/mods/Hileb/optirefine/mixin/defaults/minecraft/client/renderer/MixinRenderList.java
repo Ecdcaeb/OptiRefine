@@ -21,13 +21,11 @@ import java.nio.IntBuffer;
 @Mixin(RenderList.class)
 public abstract class MixinRenderList extends ChunkRenderContainer {
 // [AUDIT] 2026-08-03 — see AGENT.md; issues: 0
-    @Unique
 // [AUDIT-OK] OF field viewEntityX equivalent (prefixed @Unique private, internal only)
     private double optiRefine$viewEntityX;
     @Unique
 // [AUDIT-OK] OF field viewEntityY equivalent
     private double optiRefine$viewEntityY;
-    @Unique
 // [AUDIT-OK] OF field viewEntityZ equivalent
     private double optiRefine$viewEntityZ;
 

@@ -40,7 +40,6 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
     @Shadow private GuiListExtended optionsRowList;
 
 // [AUDIT-OK] OF-added static field, not in baseline
-    @Unique
     private static final GameSettings.Options[] optiRefine$videoOptions = new GameSettings.Options[]{
             GameSettings.Options.GRAPHICS,
             GameSettings.Options.RENDER_DISTANCE,
@@ -121,7 +120,6 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
     }
 
 // [AUDIT-OK] OF-added helper, not in baseline
-    @Unique
     private void optiRefine$actionPerformedImpl(GuiButton button, int val) {
         int guiScaleBefore = this.guiGameSettings.guiScale;
 

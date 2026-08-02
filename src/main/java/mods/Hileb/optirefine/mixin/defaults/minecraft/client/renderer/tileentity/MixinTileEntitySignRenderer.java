@@ -21,7 +21,6 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 public abstract class MixinTileEntitySignRenderer {
 // [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
     // [AUDIT-OK] OF-added static (OF:21)
     private static double textRenderDistanceSq = 4096.0;
 

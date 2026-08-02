@@ -13,23 +13,23 @@ public abstract class MixinBlockStateBase implements IBlockState {
 
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
 // [AUDIT-OK] OF-added field blockId (in OF BlockStateBase, not in baseline), MCP name matches
+    @Unique
     private int blockId = -1;
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
 // [AUDIT-OK] OF-added field blockStateId (in OF, not in baseline)
+    @Unique
     private int blockStateId = -1;
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
 // [AUDIT-OK] OF-added field metadata (in OF, not in baseline; BlockStateBase itself does not implement IBlockState.getMetadata)
+    @Unique
     private int metadata = -1;
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
 // [AUDIT-OK] OF-added field blockLocation (in OF, not in baseline)
+    @Unique
     private ResourceLocation blockLocation = null;
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})

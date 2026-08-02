@@ -25,7 +25,6 @@ public abstract class MixinExtendedBlockStorage {
 // [AUDIT-OK] baseline member data exists in target class
     private BlockStateContainer data;
 
-    @Unique
 // [AUDIT-OK] mixin-private static constant (private static per rules), replicates OF "Blocks.AIR.getDefaultState()" compare value
     private static final IBlockState OPTIREFINE_STATE_AIR = Blocks.AIR.getDefaultState();
 

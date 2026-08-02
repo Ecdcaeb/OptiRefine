@@ -16,7 +16,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class MixinBakedQuadRetextured {
 // [AUDIT] 2026-08-03 - see AGENT.md; issues: 1
 
-    @Unique
     // [AUDIT-OK] OF-added field (OF BakedQuadRetextured:8), not in baseline
     private TextureAtlasSprite spriteOld;
 

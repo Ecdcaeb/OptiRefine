@@ -27,7 +27,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class MixinRender {
 // [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
     // [AUDIT-OK] OF-added fields entityClass/locationTextureCustom (OF Render:35-36)
     private Class<? extends Entity> entityClass = null;
     @SuppressWarnings("AddedMixinMembersNamePattern")
@@ -73,7 +72,6 @@ public abstract class MixinRender {
     private static native void GlStateManager_bindCurrentTexture();
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
     // [AUDIT-OK] OF-added IEntityRenderer members (OF:334-346)
     public Class<? extends Entity> getEntityClass() {
         return this.entityClass;
@@ -86,7 +84,6 @@ public abstract class MixinRender {
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
     public ResourceLocation getLocationTextureCustom() {
         return this.locationTextureCustom;
     }

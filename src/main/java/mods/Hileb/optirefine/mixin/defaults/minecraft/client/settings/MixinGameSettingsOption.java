@@ -15,7 +15,6 @@ import org.spongepowered.asm.mixin.Unique;
 @Mixin(GameSettings.Options.class)
 // [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
 public abstract class MixinGameSettingsOption {
-    @Unique
     // [AUDIT-NOTE] dead @Unique fields (no longer used; enum creation unified via GameSettingsOptionOF)
     private static final Class<?>[] _optirefine_args0 = new Class[]{String.class, boolean.class, boolean.class};
     @Unique

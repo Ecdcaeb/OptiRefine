@@ -134,6 +134,7 @@ public abstract class MixinRenderGlobal {
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
 // [AUDIT-OK] OF-added field, not in baseline (@Public)
+    @Unique
     public boolean renderOverlayEyes = false;
 
     // ===== shadowed fields =====
@@ -468,7 +469,6 @@ public abstract class MixinRenderGlobal {
     @AccessTransformer(name = "field_147595_R", deobf = true, access = org.objectweb.asm.Opcodes.ACC_PUBLIC)
     private boolean acc_displayListEntitiesDirty;
 
-    @Unique
     private boolean firstWorldLoad = false;
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
@@ -482,7 +482,6 @@ public abstract class MixinRenderGlobal {
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
 // [AUDIT-OK] OF-added method, not in baseline
     public void pauseChunkUpdates() {
         if (this.renderDispatcher != null) {

@@ -10,8 +10,8 @@ public abstract class MixinChunkPos {
 // [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
 // [AUDIT-OK] OF-added field cachedHashCode (in OF ChunkPos, not in baseline), MCP name matches
+    @Unique
     private int cachedHashCode = 0;
 
     @WrapMethod(method = "hashCode", remap = false)

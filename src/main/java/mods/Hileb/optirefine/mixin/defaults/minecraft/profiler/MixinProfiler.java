@@ -34,27 +34,22 @@ public abstract class MixinProfiler {
 // [AUDIT-OK] OF-added constants SCHEDULED_EXECUTABLES/TICK/PRE_RENDER_ERRORS/RENDER/DISPLAY, match OF
     private static final String SCHEDULED_EXECUTABLES = "scheduledExecutables";
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
     private static final String TICK = "tick";
     @SuppressWarnings("unused")
     @Unique
     private static final String PRE_RENDER_ERRORS = "preRenderErrors";
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
     private static final String RENDER = "render";
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     private static final String DISPLAY = "display";
-    @Unique
 // [AUDIT-OK] OF-added hash constants, match OF
     private static final int HASH_SCHEDULED_EXECUTABLES = "scheduledExecutables".hashCode();
     @Unique
     private static final int HASH_TICK = "tick".hashCode();
-    @Unique
     private static final int HASH_PRE_RENDER_ERRORS = "preRenderErrors".hashCode();
     @Unique
     private static final int HASH_RENDER = "render".hashCode();
-    @Unique
     private static final int HASH_DISPLAY = "display".hashCode();
 
     @Inject(method = "clearProfiling", at = @At("RETURN"))

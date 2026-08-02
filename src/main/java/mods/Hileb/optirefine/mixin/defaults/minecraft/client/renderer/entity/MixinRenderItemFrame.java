@@ -24,7 +24,6 @@ public abstract class MixinRenderItemFrame {
     private Minecraft mc;
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
     // [AUDIT-OK] OF-added static (OF:33)
     private static double itemRenderDistanceSq = 4096.0;
 

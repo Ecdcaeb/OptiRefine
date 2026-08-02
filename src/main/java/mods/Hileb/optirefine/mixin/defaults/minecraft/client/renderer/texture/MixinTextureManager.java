@@ -33,7 +33,6 @@ import java.util.function.Predicate;
 @Mixin(TextureManager.class)
 // [AUDIT] 2026-08-03 - selective reload listener; issues: 0
 public abstract class MixinTextureManager implements ISelectiveResourceReloadListener {
-    @Unique
     // [AUDIT-OK] OF-added fields boundTexture/boundTextureLocation (@Unique), not in baseline
     private ITextureObject boundTexture;
     @Unique
@@ -88,7 +87,6 @@ public abstract class MixinTextureManager implements ISelectiveResourceReloadLis
     // [AUDIT-OK] baseline member mapTextureObjects exists in TextureManager
     private Map<ResourceLocation, ITextureObject> mapTextureObjects;
 
-    @Unique
     // [AUDIT-OK] OF-added @Unique method reloadBannerTextures (ImmutableSet copy == OF HashSet copy), not in baseline
     public void reloadBannerTextures() {
         for (Map.Entry<ResourceLocation, ITextureObject> entry : ImmutableSet.copyOf(this.mapTextureObjects.entrySet())) {

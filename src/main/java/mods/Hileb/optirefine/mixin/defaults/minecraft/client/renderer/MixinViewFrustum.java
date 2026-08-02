@@ -32,7 +32,6 @@ public abstract class MixinViewFrustum {
 // [AUDIT-OK] baseline member renderChunks (SRG field_178164_f)
     public RenderChunk[] renderChunks;
 
-    @Unique
 // [AUDIT-OK] OF-added field (OF: mapVboRegions), not in baseline
     private Map<ChunkPos, VboRegion[]> optiRefine$mapVboRegions = new HashMap<>();
 

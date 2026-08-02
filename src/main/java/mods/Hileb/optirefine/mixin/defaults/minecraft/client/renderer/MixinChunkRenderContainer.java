@@ -18,12 +18,11 @@ import java.util.BitSet;
 public abstract class MixinChunkRenderContainer {
 // [AUDIT] 2026-08-03 — see AGENT.md; issues: 1
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
 // [AUDIT-OK] OF-added field, not in baseline
     private BitSet animatedSpritesRendered;
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
 // [AUDIT-OK] OF-added field, not in baseline
+    @Unique
     private final BitSet animatedSpritesCached = new BitSet();
 
     @Inject(method = "<init>", at = @At("RETURN"))

@@ -20,11 +20,10 @@ public abstract class MixinEntityLiving extends EntityLivingBase {
 // [AUDIT] 2026-08-03 - see AGENT.md; issues: 1
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
 // [AUDIT-OK] OF-added fields teamUuid/teamUuidString (in OF EntityLiving, not in baseline), MCP names match
+    @Unique
     private UUID teamUuid = null;
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
     private String teamUuidString = null;
 
     @SuppressWarnings("unused")
@@ -70,7 +69,6 @@ public abstract class MixinEntityLiving extends EntityLivingBase {
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
 // [AUDIT-OK] matches OF onUpdateMinimal (idleTime++, EntityMob brightness >0.5F -> idleTime+=2, despawnEntity)
     private void onUpdateMinimal() {
         ++this.idleTime;

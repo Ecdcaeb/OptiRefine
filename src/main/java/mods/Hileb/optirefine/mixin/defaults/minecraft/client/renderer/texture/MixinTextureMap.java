@@ -113,18 +113,15 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
     // [AUDIT-OK] baseline member missingImage (field_94249_f) exists in TextureMap
     private TextureAtlasSprite missingImage;
 
-    @Unique
     // [AUDIT-OK] OF-added fields (iconGrid/iconGridSize/iconGridCountX/Y/iconGridSizeU/V/counterIndexInMap/countAnimationsActive/frameCountAnimations), not in baseline
-    private TextureAtlasSprite[] iconGrid = null;
     @Unique
+    private TextureAtlasSprite[] iconGrid = null;
     private int iconGridSize = -1;
     @Unique
     private int iconGridCountX = -1;
-    @Unique
     private int iconGridCountY = -1;
     @Unique
     private double iconGridSizeU = -1.0;
-    @Unique
     private double iconGridSizeV = -1.0;
     @Unique
     private CounterInt counterIndexInMap = new CounterInt(0);
@@ -132,6 +129,7 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
     @Public
     // [AUDIT-OK] OF-added fields atlasWidth/atlasHeight (@Public), not in baseline
     public int atlasWidth = 0;
+    @Unique
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
     public int atlasHeight = 0;
@@ -256,7 +254,6 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
     // [AUDIT-OK] vanilla SRG func_94277_a = TextureUtil.bindTexture(I)V
     private static native void TextureUtil_bindTexture(int texture);
 
-    @Unique
     private int countAnimationsActive;
     @Unique
     private int frameCountAnimations;
@@ -723,7 +720,6 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
         return this.mapRegisteredSprites.get(location.toString());
     }
 
-    @Unique
     // [AUDIT-OK] OF-added @Unique method isTerrainAnimationActive, not in baseline
     private boolean isTerrainAnimationActive(TextureAtlasSprite sprite) {
         if (sprite == TextureUtils.iconWaterStill || sprite == TextureUtils.iconWaterFlow) {
@@ -763,7 +759,6 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
         return j;
     }
 
-    @Unique
     // [AUDIT-OK] OF-added @Unique method detectMinimumSpriteSize, not in baseline
     private int detectMinimumSpriteSize(Map<String, TextureAtlasSprite> map, IResourceManager resourceManager, int maxCount) {
         HashMap<Integer, Integer> hashmap = new HashMap<>();
@@ -825,7 +820,6 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
         return i;
     }
 
-    @Unique
     // [AUDIT-OK] OF-added @Unique method getMissingImageData, not in baseline
     private int[] getMissingImageData(int size) {
         BufferedImage bufferedimage = new BufferedImage(16, 16, 2);

@@ -57,38 +57,32 @@ public abstract class MixinRenderChunk {
     @Public
     // [AUDIT-OK] OF-added static final (OF:70 public); @Public private static correct
     private static final BlockRenderLayer[] ENUM_WORLD_BLOCK_LAYERS = BlockRenderLayer.values();
-    @Unique
     // [AUDIT-OK] OF-added fields blockLayersSingle/isMipmaps/fixBlockLayer (OF:71-73)
-    private final BlockRenderLayer[] blockLayersSingle = new BlockRenderLayer[1];
     @Unique
+    private final BlockRenderLayer[] blockLayersSingle = new BlockRenderLayer[1];
     private final boolean isMipmaps = Config.isMipmaps();
     @Unique
     private final boolean fixBlockLayer = !Reflector.BetterFoliageClient.exists();
-    @Unique
     // [AUDIT-OK] OF-added field (OF:74)
-    private boolean playerUpdate = false;
     @Unique
+    private boolean playerUpdate = false;
     // [AUDIT-OK] OF-added public fields regionX/regionZ (OF:75-76)
     public int regionX;
     @Unique
     public int regionZ;
-    @Unique
     // [AUDIT-OK] OF-added fields renderChunksOfset16/renderChunksOffset16Updated/chunk/renderChunkNeighbours/renderChunkNeighboursValid/renderChunkNeighboursUpated (OF:77-82)
-    private final RenderChunk[] renderChunksOfset16 = new RenderChunk[6];
     @Unique
+    private final RenderChunk[] renderChunksOfset16 = new RenderChunk[6];
     private boolean renderChunksOffset16Updated = false;
     @Unique
     private Chunk chunk;
-    @Unique
     private RenderChunk[] renderChunkNeighbours = new RenderChunk[EnumFacing.VALUES.length];
     @Unique
     private RenderChunk[] renderChunkNeighboursValid = new RenderChunk[EnumFacing.VALUES.length];
-    @Unique
     private boolean renderChunkNeighboursUpated = false;
     @Unique
     // [AUDIT-FIXED] field init moved to <init> RETURN: field initializer runs before javac assigns ctor params, so this.renderGlobal was null -> 4-arg vanilla ctor requireNonNull NPE
     private Object renderInfo_RenderGlobal_ContainerLocalRenderInformation;
-    @Unique
     public AabbFrame boundingBoxParent;
 
     @Inject(method = "<init>", at = @At("RETURN"))
@@ -265,7 +259,6 @@ public abstract class MixinRenderChunk {
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.multiplayer.WorldClient isPlayerUpdate ()Z")
     private static native boolean WorldClient_isPlayerUpdate(WorldClient world);
 
-    @Unique
     // [AUDIT-OK] OF-added member (OF RenderChunk)
     public boolean isPlayerUpdate() {
         return this.playerUpdate;
@@ -305,7 +298,6 @@ public abstract class MixinRenderChunk {
         }
     }
 
-    @Unique
     // [AUDIT-OK] matches OF postRenderOverlays; BufferBuilder.isDrawing is OF-added (OF BufferBuilder:767, provided by MixinBufferBuilder)
     private void optiRefine$postRenderOverlays(RegionRenderCacheBuilder regionRenderCacheBuilder, CompiledChunk compiledChunk, boolean[] layerFlags) {
         this.optiRefine$postRenderOverlay(BlockRenderLayer.CUTOUT, regionRenderCacheBuilder, compiledChunk, layerFlags);
@@ -360,7 +352,6 @@ public abstract class MixinRenderChunk {
         original.call(instance, visibility);
     }
 
-    @Unique
     private ChunkCacheOF optiRefine$makeChunkCacheOF(BlockPos posIn) {
         BlockPos posFrom = posIn.add(-1, -1, -1);
         BlockPos posTo = posIn.add(16, 16, 16);
@@ -384,7 +375,6 @@ public abstract class MixinRenderChunk {
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.ViewFrustum func_178161_a (Lnet.minecraft.util.math.BlockPos;)Lnet.minecraft.client.renderer.chunk.RenderChunk;")
     // [AUDIT-ISSUE] SRG func_178161_a (=ViewFrustum.getRenderChunk, tsrg) correct for SRG runtime but missing deobf=true — MCP (devrun) runtime would fail; add deobf=true
     private static native RenderChunk ViewFrustum_getRenderChunk(ViewFrustum viewFrustum, BlockPos b);
-    @Unique
     @SuppressWarnings("AddedMixinMembersNamePattern")
     // [AUDIT-OK] OF-added member (OF:534); matches OF:534-544
     public RenderChunk getRenderChunkOffset16(ViewFrustum viewFrustum, EnumFacing facing) {
@@ -415,7 +405,6 @@ public abstract class MixinRenderChunk {
     private World world;
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
     private Chunk getChunk(BlockPos posIn) {
         Chunk chunkLocal = this.chunk;
         if (chunkLocal != null && chunkLocal.isLoaded()) {
@@ -433,7 +422,6 @@ public abstract class MixinRenderChunk {
         return this.optiRefine$isChunkRegionEmpty(this.position);
     }
 
-    @Unique
     private boolean optiRefine$isChunkRegionEmpty(BlockPos posIn) {
         int yStart = posIn.getY();
         int yEnd = yStart + 15;
@@ -449,7 +437,6 @@ public abstract class MixinRenderChunk {
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
     public RenderChunk getRenderChunkNeighbour(EnumFacing facing) {
         if (!this.renderChunkNeighboursUpated) {
             this.optiRefine$updateRenderChunkNeighboursValid();
@@ -473,7 +460,6 @@ public abstract class MixinRenderChunk {
 
     @Shadow public abstract void rebuildChunk(float x, float y, float z, ChunkCompileTaskGenerator generator);
 
-    @Unique
     private void optiRefine$updateRenderChunkNeighboursValid() {
         int x = this.getPosition().getX();
         int z = this.getPosition().getZ();

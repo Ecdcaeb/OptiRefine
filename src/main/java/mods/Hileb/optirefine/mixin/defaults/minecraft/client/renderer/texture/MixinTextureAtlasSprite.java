@@ -48,8 +48,8 @@ public abstract class MixinTextureAtlasSprite {
 
     // ===== new fields =====
 
-    @Unique
     // [AUDIT-OK] OF-added fields (indexInMap/animationIndex/animationActive), not in baseline
+    @Unique
     private int indexInMap = -1;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
@@ -72,6 +72,7 @@ public abstract class MixinTextureAtlasSprite {
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
     // [AUDIT-OK] OF-added fields spriteSingle/isSpriteSingle (@Public), not in baseline
+    @Unique
     public TextureAtlasSprite spriteSingle = null;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
@@ -79,11 +80,13 @@ public abstract class MixinTextureAtlasSprite {
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
     // [AUDIT-OK] OF-added field mipmapLevels (@Public), not in baseline
+    @Unique
     public int mipmapLevels = 0;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
     // [AUDIT-OK] OF-added fields spriteNormal/spriteSpecular (@Public), not in baseline
     public TextureAtlasSprite spriteNormal = null;
+    @Unique
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
     public TextureAtlasSprite spriteSpecular = null;
@@ -91,6 +94,7 @@ public abstract class MixinTextureAtlasSprite {
     @Public
     // [AUDIT-OK] OF-added fields isShadersSprite/isDependencyParent/isEmissive (@Public), not in baseline
     public boolean isShadersSprite = false;
+    @Unique
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
     public boolean isDependencyParent = false;
@@ -100,8 +104,8 @@ public abstract class MixinTextureAtlasSprite {
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
     // [AUDIT-OK] OF-added field spriteEmissive (@Public), not in baseline
-    public TextureAtlasSprite spriteEmissive = null;
     @Unique
+    public TextureAtlasSprite spriteEmissive = null;
     private int animationIndex = -1;
     @Unique
     private boolean animationActive = false;
@@ -434,7 +438,6 @@ public abstract class MixinTextureAtlasSprite {
         return null;
     }
 
-    @Unique
     // [AUDIT-OK] OF-added @Unique method fixTransparentColor, not in baseline
     private void fixTransparentColor(int[] data) {
         if (data != null) {

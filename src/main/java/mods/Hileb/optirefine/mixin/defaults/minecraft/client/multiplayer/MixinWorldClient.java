@@ -49,7 +49,6 @@ public abstract class MixinWorldClient extends World {
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
 // [AUDIT-OK] OF-added member, not in baseline
-    @Unique
     private int playerChunkX = Integer.MIN_VALUE;
     @SuppressWarnings("AddedMixinMembersNamePattern")
 // [AUDIT-OK] OF-added member, not in baseline

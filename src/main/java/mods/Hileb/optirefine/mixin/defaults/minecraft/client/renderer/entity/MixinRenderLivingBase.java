@@ -48,24 +48,19 @@ public abstract class MixinRenderLivingBase<T extends EntityLivingBase> {
     protected ModelBase mainModel;
 
 
-    @Unique
     // [AUDIT-OK] OF-added fields renderEntity/renderLimbSwing/renderLimbSwingAmount/renderAgeInTicks/renderHeadYaw/renderHeadPitch/renderScaleFactor/renderPartialTicks/renderModelPushMatrix/renderLayersPushMatrix (OF:39-48)
     public EntityLivingBase renderEntity;
     @Unique
     public float renderLimbSwing;
-    @Unique
     public float renderLimbSwingAmount;
     @Unique
     public float renderAgeInTicks;
-    @Unique
     public float renderHeadYaw;
     @Unique
     public float renderHeadPitch;
-    @Unique
     public float renderScaleFactor;
     @Unique
     public float renderPartialTicks;
-    @Unique
     private boolean renderModelPushMatrix;
     @Unique
     private boolean renderLayersPushMatrix;

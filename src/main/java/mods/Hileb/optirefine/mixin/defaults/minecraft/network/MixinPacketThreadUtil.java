@@ -24,7 +24,6 @@ public abstract class MixinPacketThreadUtil {
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Public
-    @Unique
 // [AUDIT-OK] OF-added static field lastDimensionId (in OF PacketThreadUtil: public static int = Integer.MIN_VALUE, not in baseline), MCP name OK; private static + @Public per rules
     private static int lastDimensionId = Integer.MIN_VALUE;
 

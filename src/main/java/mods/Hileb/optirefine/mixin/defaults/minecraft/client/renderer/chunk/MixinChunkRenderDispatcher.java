@@ -16,8 +16,8 @@ import java.util.concurrent.TimeUnit;
 public abstract class MixinChunkRenderDispatcher {
 // [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
 
-    @Unique
     // [AUDIT-OK] OF-added field (OF ChunkRenderDispatcher:42)
+    @Unique
     private List<RegionRenderCacheBuilder> listPausedBuilders = new ArrayList<>();
 
     @Shadow @Final
@@ -31,7 +31,6 @@ public abstract class MixinChunkRenderDispatcher {
     private BlockingQueue<RegionRenderCacheBuilder> queueFreeRenderBuilders;
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
     // [AUDIT-OK] body identical to OF:286-297 (OF addition)
     public void pauseChunkUpdates() {
         while (this.listPausedBuilders.size() != this.countRenderBuilders) {

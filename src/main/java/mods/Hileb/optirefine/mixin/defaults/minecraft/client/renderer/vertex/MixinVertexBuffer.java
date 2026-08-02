@@ -14,14 +14,12 @@ import java.nio.ByteBuffer;
 public abstract class MixinVertexBuffer {
 // [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
     // [AUDIT-OK] OF-added fields vboRegion/vboRange/drawMode (OF VertexBuffer:13-15)
     private VboRegion vboRegion;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private VboRange vboRange;
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
     private int drawMode;
 
     @WrapMethod(method = "bufferData")
@@ -64,7 +62,6 @@ public abstract class MixinVertexBuffer {
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
     public VboRegion getVboRegion() {
         return this.vboRegion;
     }
@@ -76,7 +73,6 @@ public abstract class MixinVertexBuffer {
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
     public int getDrawMode() {
         return this.drawMode;
     }

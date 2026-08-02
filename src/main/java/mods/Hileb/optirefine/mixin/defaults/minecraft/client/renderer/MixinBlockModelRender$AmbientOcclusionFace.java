@@ -30,8 +30,8 @@ public abstract class MixinBlockModelRender$AmbientOcclusionFace {
 // [AUDIT-OK] baseline member vertexBrightness (SRG field_178207_c)
     private int[] vertexBrightness;
 
-    @Unique
 // [AUDIT-OK] OF-added field, not in baseline
+    @Unique
     private final BlockPos.MutableBlockPos[] blockPosArr = new BlockPos.MutableBlockPos[5];
 
     @ShadowSuper("<init>")

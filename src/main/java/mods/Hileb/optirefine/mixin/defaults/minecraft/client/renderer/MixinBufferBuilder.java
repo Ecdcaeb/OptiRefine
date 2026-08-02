@@ -66,24 +66,24 @@ public abstract class MixinBufferBuilder {
 
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
 // [AUDIT-OK] OF-added field, not in baseline
+    @Unique
     private BlockRenderLayer blockLayer = null;
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
 // [AUDIT-OK] OF-added field, not in baseline
+    @Unique
     private boolean[] drawnIcons = new boolean[256];
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
 // [AUDIT-OK] OF-added field, not in baseline
+    @Unique
     private TextureAtlasSprite[] quadSprites = null;
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
 // [AUDIT-OK] OF-added field, not in baseline
+    @Unique
     private TextureAtlasSprite[] quadSpritesPrev = null;
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
 // [AUDIT-OK] OF-added field, not in baseline
+    @Unique
     private TextureAtlasSprite quadSprite = null;
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Public
@@ -96,6 +96,7 @@ public abstract class MixinBufferBuilder {
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
 // [AUDIT-OK] OF-added field, not in baseline (@Public)
+    @Unique
     private BitSet animatedSprites = null;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
@@ -349,7 +350,6 @@ public abstract class MixinBufferBuilder {
 
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
 // [AUDIT-OK] OF-added method, not in baseline
     public void putSprite(TextureAtlasSprite sprite) {
         if (this.animatedSprites != null && sprite != null && TextureAtlasSprite_getAnimationIndex(sprite) >= 0) {
@@ -376,7 +376,6 @@ public abstract class MixinBufferBuilder {
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
 // [AUDIT-OK] OF-added method, not in baseline
     public boolean isMultiTexture() {
         return this.quadSprites != null;
@@ -444,7 +443,6 @@ public abstract class MixinBufferBuilder {
     private static native int TextureAtlasSprite_glSpriteTextureId_get(TextureAtlasSprite textureAtlasSprite);
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
 // [AUDIT-OK] OF-added method, not in baseline
     private int drawForIcon(TextureAtlasSprite sprite, int startQuadPos) {
         GL11.glBindTexture(3553, TextureAtlasSprite_glSpriteTextureId_get(sprite));
@@ -499,7 +497,6 @@ public abstract class MixinBufferBuilder {
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
 // [AUDIT-OK] OF-added method, not in baseline
     public void setBlockLayer(BlockRenderLayer blockLayer) {
         this.blockLayer = blockLayer;
@@ -525,7 +522,6 @@ public abstract class MixinBufferBuilder {
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
 // [AUDIT-OK] OF-added method, not in baseline
     public RenderEnv getRenderEnv(IBlockState blockStateIn, BlockPos blockPosIn) {
         if (this.renderEnv == null) {
@@ -558,7 +554,6 @@ public abstract class MixinBufferBuilder {
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
 // [AUDIT-OK] OF-added method, not in baseline
     public double getXOffset() {
         return this.xOffset;
@@ -572,7 +567,6 @@ public abstract class MixinBufferBuilder {
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
 // [AUDIT-OK] OF-added method, not in baseline
     public double getZOffset() {
         return this.zOffset;
@@ -594,7 +588,6 @@ public abstract class MixinBufferBuilder {
     public int getColorIndex(int p_78909_1_) {return 0;}
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
 // [AUDIT-OK] OF-added method, not in baseline
     public void putColorMultiplierRgba(float red, float green, float blue, float alpha, int vertexIndex) {
         int index = this.getColorIndex(vertexIndex);
@@ -661,7 +654,6 @@ public abstract class MixinBufferBuilder {
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
 // [AUDIT-OK] member provided by Cleanroom patch (patch/patches adds 5-arg putColorRGBA/isColorDisabled/putBulkData); mixin @Unique copy is discarded at apply (AGENT.md S5) — harmless, but mixin putBulkData SVertexBuilder shaders hooks are lost to the runtime version
     public void putColorRGBA(int index, int red, int green, int blue, int alpha) {
         if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN) {

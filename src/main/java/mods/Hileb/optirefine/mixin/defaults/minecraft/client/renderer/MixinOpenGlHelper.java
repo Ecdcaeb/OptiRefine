@@ -61,7 +61,6 @@ public abstract class MixinOpenGlHelper {
 // [AUDIT-OK] OF-added static member, not in baseline
     private static int GL_COPY_WRITE_BUFFER;
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
     @Public
 // [AUDIT-OK] OF-added static member (AGENT.md S5 crash fix: private static final + @Public)
     private static final int GL_QUADS = 7;

@@ -366,52 +366,52 @@ public abstract class MixinEntityRenderer {
 // [AUDIT-ISSUE] vanilla SRG func_184384_n = hasNoChunkUpdates verified, but deobf=true missing -> devrun breaks; SRG runtime OK
     private static native boolean RenderGlobal_hasNoChunkUpdates(RenderGlobal renderGlobal);    // ===== new fields (OptiFine) =====
 
-    @Unique
 // [AUDIT-OK] OF-added field, not in baseline
+    @Unique
     private boolean initialized = false;
 
-    @Unique
 // [AUDIT-OK] OF-added field, not in baseline
+    @Unique
     private World updatedWorld = null;
 
-    @Unique
 // [AUDIT-OK] OF-added field, not in baseline (@Unique public; OF: public boolean fogStandard)
+    @Unique
     public boolean fogStandard = false;
 
-    @Unique
 // [AUDIT-OK] OF-added field, not in baseline
+    @Unique
     private float clipDistance = 128.0F;
 
-    @Unique
 // [AUDIT-OK] OF-added field, not in baseline
+    @Unique
     private long lastServerTime = 0L;
 
-    @Unique
 // [AUDIT-OK] OF-added field, not in baseline
+    @Unique
     private int lastServerTicks = 0;
 
-    @Unique
 // [AUDIT-OK] OF-added field, not in baseline
+    @Unique
     private int serverWaitTime = 0;
 
-    @Unique
 // [AUDIT-OK] OF-added field, not in baseline
+    @Unique
     private int serverWaitTimeCurrent = 0;
 
-    @Unique
 // [AUDIT-OK] OF-added field, not in baseline
+    @Unique
     private float avgServerTimeDiff = 0.0F;
 
-    @Unique
 // [AUDIT-OK] OF-added field, not in baseline
+    @Unique
     private float avgServerTickDiff = 0.0F;
 
-    @Unique
 // [AUDIT-OK] OF-added field, not in baseline
+    @Unique
     private ShaderGroup[] fxaaShaders = new ShaderGroup[10];
 
-    @Unique
 // [AUDIT-OK] OF-added field, not in baseline
+    @Unique
     private boolean loadVisibleChunks = false;
 
     // ===== loadShader =====
@@ -534,7 +534,6 @@ public abstract class MixinEntityRenderer {
      * The Forge {@code ForgeHooksClient.renderFirstPersonHand} hook is kept.
      */
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
 // [AUDIT-OK] OF-added overload renderHand(FI...ZZZ)V, not in baseline (OF: public; called by ShadersRender)
     public void renderHand(float partialTicks, int pass, boolean renderItem, boolean renderOverlays, boolean isMainHand) {
         if (!this.debugView) {
@@ -1159,7 +1158,6 @@ public abstract class MixinEntityRenderer {
      * OptiFine first-frame init. The new-version/64-bit chat notifications and the GuiChatOF swap
      * are cosmetic and left as TODO.
      */
-    @Unique
 // [AUDIT-OK] OF-added method, not in baseline
     private void frameInit() {
         GlErrors.frameStart();
@@ -1209,7 +1207,6 @@ public abstract class MixinEntityRenderer {
     /**
      * OptiFine smooth-world server thread synchronization.
      */
-    @Unique
 // [AUDIT-OK] OF-added method, not in baseline
     private void waitForServerThread() {
         this.serverWaitTimeCurrent = 0;

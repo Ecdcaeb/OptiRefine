@@ -47,146 +47,111 @@ import java.util.Arrays;
 // [AUDIT] 2026-08-03 - see AGENT.md; issues: 4
 public abstract class MixinGameSettings {
 
-    @Unique
     // [AUDIT-OK] OF-added fields (ofFogType..ofAnimatedTextures; 80+), not in baseline
-    public int ofFogType = 1;
     @Unique
+    public int ofFogType = 1;
     public float ofFogStart = 0.8F;
     @Unique
     public int ofMipmapType = 0;
-    @Unique
     public boolean ofOcclusionFancy = false;
     @Unique
     public boolean ofSmoothFps = false;
-    @Unique
     public boolean ofSmoothWorld = Config.isSingleProcessor();
     @Unique
     public boolean ofLazyChunkLoading = Config.isSingleProcessor();
-    @Unique
     public boolean ofRenderRegions = false;
     @Unique
     public boolean ofSmartAnimations = false;
-    @Unique
     public float ofAoLevel = 1.0F;
     @Unique
     public int ofAaLevel = 0;
-    @Unique
     public int ofAfLevel = 1;
     @Unique
     public int ofClouds = 0;
-    @Unique
     public float ofCloudsHeight = 0.0F;
     @Unique
     public int ofTrees = 0;
-    @Unique
     public int ofRain = 0;
     @Unique
     public int ofDroppedItems = 0;
-    @Unique
     public int ofBetterGrass = 3;
     @Unique
     public int ofAutoSaveTicks = 4000;
-    @Unique
     public boolean ofLagometer = false;
     @Unique
     public boolean ofProfiler = false;
-    @Unique
     public boolean ofShowFps = false;
     @Unique
     public boolean ofWeather = true;
-    @Unique
     public boolean ofSky = true;
     @Unique
     public boolean ofStars = true;
-    @Unique
     public boolean ofSunMoon = true;
     @Unique
     public int ofVignette = 0;
-    @Unique
     public int ofChunkUpdates = 1;
     @Unique
     public boolean ofChunkUpdatesDynamic = false;
-    @Unique
     public int ofTime = 0;
     @Unique
     public boolean ofClearWater = false;
-    @Unique
     public boolean ofBetterSnow = false;
     @Unique
     public String ofFullscreenMode = "Default";
-    @Unique
     public boolean ofSwampColors = true;
     @Unique
     public boolean ofRandomEntities = true;
-    @Unique
     public boolean ofSmoothBiomes = true;
     @Unique
     public boolean ofCustomFonts = true;
-    @Unique
     public boolean ofCustomColors = true;
     @Unique
     public boolean ofCustomSky = true;
-    @Unique
     public boolean ofShowCapes = true;
     @Unique
     public int ofConnectedTextures = 2;
-    @Unique
     public boolean ofCustomItems = true;
     @Unique
     public boolean ofNaturalTextures = false;
-    @Unique
     public boolean ofEmissiveTextures = true;
     @Unique
     public boolean ofFastMath = false;
-    @Unique
     public boolean ofFastRender = false;
     @Unique
     public int ofTranslucentBlocks = 0;
-    @Unique
     public boolean ofDynamicFov = true;
     @Unique
     public boolean ofAlternateBlocks = true;
-    @Unique
     public int ofDynamicLights = 3;
     @Unique
     public boolean ofCustomEntityModels = true;
-    @Unique
     public boolean ofCustomGuis = true;
     @Unique
     public boolean ofShowGlErrors = true;
-    @Unique
     public int ofScreenshotSize = 1;
     @Unique
     public int ofAnimatedWater = 0;
-    @Unique
     public int ofAnimatedLava = 0;
     @Unique
     public boolean ofAnimatedFire = true;
-    @Unique
     public boolean ofAnimatedPortal = true;
     @Unique
     public boolean ofAnimatedRedstone = true;
-    @Unique
     public boolean ofAnimatedExplosion = true;
     @Unique
     public boolean ofAnimatedFlame = true;
-    @Unique
     public boolean ofAnimatedSmoke = true;
     @Unique
     public boolean ofVoidParticles = true;
-    @Unique
     public boolean ofWaterParticles = true;
     @Unique
     public boolean ofRainSplash = true;
-    @Unique
     public boolean ofPortalParticles = true;
     @Unique
     public boolean ofPotionParticles = true;
-    @Unique
     public boolean ofFireworkParticles = true;
     @Unique
     public boolean ofDrippingWaterLava = true;
-    @Unique
     public boolean ofAnimatedTerrain = true;
     @Unique
     public boolean ofAnimatedTextures = true;
@@ -211,17 +176,14 @@ public abstract class MixinGameSettings {
     @Public
     // [AUDIT-OK] OF-added static constant DEFAULT_STR (private static + @Public)
     private static final String DEFAULT_STR = "Default";
-    @Unique
     // [AUDIT-OK] OF-added static arrays OF_TREES_VALUES/OF_DYNAMIC_LIGHTS/KEYS_DYNAMIC_LIGHTS (matches OF values)
     private static final int[] OF_TREES_VALUES = new int[]{0, 1, 4, 2};
     @Unique
     private static final int[] OF_DYNAMIC_LIGHTS = new int[]{3, 1, 2};
-    @Unique
     private static final String[] KEYS_DYNAMIC_LIGHTS = new String[]{"options.off", "options.graphics.fast", "options.graphics.fancy"};
     @Unique
     // [AUDIT-OK] OF-added fields ofKeyBindZoom/optionsFileOF (@Unique), not in baseline
     public KeyBinding ofKeyBindZoom;
-    @Unique
     private File optionsFileOF;
 
     @Shadow
@@ -413,7 +375,6 @@ public abstract class MixinGameSettings {
     // [AUDIT-OK] baseline member enableVsync exists in GameSettings
     public boolean enableVsync;
 
-    @Unique
     // [AUDIT-ISSUE] DEAD CODE: same as setOptionFloatValueOF - never called; getOptionFloatValue never dispatches to OF branch. Fix: WrapMethod getOptionFloatValue (return OF value if != Float.MAX_VALUE, else original)
     private float optiRefine$getOptionFloatValueOF(GameSettings.Options settingOption) {
         if (settingOption == GameSettingsOptionOF.CLOUD_HEIGHT) {
@@ -857,7 +818,6 @@ public abstract class MixinGameSettings {
         else return original.call(settingOption);
     }
 
-    @Unique
     @SuppressWarnings("AddedMixinMembersNamePattern")
     // [AUDIT-OK] branch chain mirrors OF getKeyBindingOF; every GameSettingsOptionOF.* constant exists in GameSettingsOptionOF.java; FRAMERATE_LIMIT branch uses Options_valueMax_get like OF
     private String getKeyBindingOF(GameSettings.Options par1EnumOptions) {
@@ -1502,7 +1462,6 @@ public abstract class MixinGameSettings {
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
     // [AUDIT-OK] OF-added @Unique method saveOfOptions; key set matches OF
     public void saveOfOptions() {
         try {
@@ -1644,7 +1603,6 @@ public abstract class MixinGameSettings {
     public int particleSetting;
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
     // [AUDIT-OK] OF-added @Unique method resetSettings, body matches OF (incl. Shaders.setShaderPack("OFF")/uninit/storeConfig)
     public void resetSettings() {
         this.renderDistanceChunks = 8;
@@ -1755,7 +1713,6 @@ public abstract class MixinGameSettings {
         Display.setVSyncEnabled(this.enableVsync);
     }
 
-    @Unique
     // [AUDIT-OK] OF-added @Unique method updateWaterOpacity, matches OF
     private void optiRefine$updateWaterOpacity() {
         if (Config.isIntegratedServerRunning()) {
@@ -1790,7 +1747,6 @@ public abstract class MixinGameSettings {
         this.ofAnimatedTextures = flag;
     }
 
-    @Unique
     // [AUDIT-OK] OF-added @Unique static helper nextValue, matches OF
     private static int optiRefine$nextValue(int val, int[] vals) {
         int index = org.apache.commons.lang3.ArrayUtils.indexOf(vals, val);

@@ -16,8 +16,7 @@ import java.util.Map;
 public abstract class MixinWorldEntitySpawner {
 // [AUDIT] 2026-08-03 - see AGENT.md; issues: 1
 
-//    @Unique
-//    private final Map<Class<?>, EntityLiving> mapSampleEntitiesByClass = new HashMap<>();
+////    private final Map<Class<?>, EntityLiving> mapSampleEntitiesByClass = new HashMap<>();
 //    @Unique
 //    private int lastPlayerChunkX = Integer.MAX_VALUE;
 //    @Unique
@@ -158,11 +157,9 @@ public abstract class MixinWorldEntitySpawner {
 // [AUDIT-ISSUE] findChunksForSpawning OF override is commented out - OF chunk-spawn cache/eligible-chunks logic is NOT implemented (behavioral gap vs OF, perf only)
 // [AUDIT-OK] OF-added fields mapSampleEntitiesByClass/lastPlayerChunkX/lastPlayerChunkZ/countChunkPos (in OF WorldEntitySpawner, not in baseline), MCP names - currently dead code
     private Map<Class<?>, EntityLiving> mapSampleEntitiesByClass = new HashMap<>();
-    @Unique
     private int lastPlayerChunkX = Integer.MAX_VALUE;
     @Unique
     private int lastPlayerChunkZ = Integer.MAX_VALUE;
-    @Unique
     private int countChunkPos;
 
     @Unique
