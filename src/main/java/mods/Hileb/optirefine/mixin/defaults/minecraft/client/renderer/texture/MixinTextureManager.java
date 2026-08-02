@@ -103,8 +103,6 @@ public abstract class MixinTextureManager {
         Config.dbg("*** Reloading textures ***");
         Config.log("Resource packs: " + Config.getResourcePackNames());
 
-        final ProgressManager.ProgressBar bar = ProgressManager.push("Excluding Optifine Texture Manager", this.mapTextureObjects.size(), true);
-
         this.mapTextureObjects.entrySet().removeIf(
                 (entry) -> {
                     var location = entry.getKey();
@@ -116,12 +114,9 @@ public abstract class MixinTextureManager {
                         }
                         return true;
                     }
-                    bar.step(location.toString());
                     return false;
                 }
         );
-
-        ProgressManager.pop(bar);
 
         EmissiveTextures.update();
 

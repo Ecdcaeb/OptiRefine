@@ -11,7 +11,7 @@ public class GameSettingsOptionOF {
     
     public static final GameSettings.Options FOG_FANCY = EnumHelper.addEnum(GameSettings.Options.class, "FOG_FANCY", args0, "of.options.FOG_FANCY", false, false);
     public static final GameSettings.Options FOG_START = EnumHelper.addEnum(GameSettings.Options.class, "FOG_START", args0, "of.options.FOG_START", false, false);
-    public static final GameSettings.Options MIPMAP_TYPE = EnumHelper.addEnum(GameSettings.Options.class, "MIPMAP_TYPE", args1, "of.options.MIPMAP_TYPE", true, false, 0.0F, 3.0F, 1.0F);
+    public static final GameSettings.Options MIPMAP_TYPE = EnumHelper.addEnum(GameSettings.Options.class, "MIPMAP_TYPE", args0, "of.options.MIPMAP_TYPE", false, false);
     public static final GameSettings.Options SMOOTH_FPS = EnumHelper.addEnum(GameSettings.Options.class, "SMOOTH_FPS", args0, "of.options.SMOOTH_FPS", false, false);
     public static final GameSettings.Options CLOUDS = EnumHelper.addEnum(GameSettings.Options.class, "CLOUDS", args0, "of.options.CLOUDS", false, false);
     public static final GameSettings.Options CLOUD_HEIGHT = EnumHelper.addEnum(GameSettings.Options.class, "CLOUD_HEIGHT", args0, "of.options.CLOUD_HEIGHT", true, false);
@@ -49,7 +49,7 @@ public class GameSettingsOptionOF {
     public static final GameSettings.Options PROFILER = EnumHelper.addEnum(GameSettings.Options.class, "PROFILER", args0, "of.options.PROFILER", false, false);
     public static final GameSettings.Options DRIPPING_WATER_LAVA = EnumHelper.addEnum(GameSettings.Options.class, "DRIPPING_WATER_LAVA", args0, "of.options.DRIPPING_WATER_LAVA", false, false);
     public static final GameSettings.Options BETTER_SNOW = EnumHelper.addEnum(GameSettings.Options.class, "BETTER_SNOW", args0, "of.options.BETTER_SNOW", false, false);
-    public static final GameSettings.Options FULLSCREEN_MODE = EnumHelper.addEnum(GameSettings.Options.class, "FULLSCREEN_MODE", args1, "of.options.FULLSCREEN_MODE", true, false, 0.0F, (float) Config.getDisplayModes().length, 1.0F);
+    public static final GameSettings.Options FULLSCREEN_MODE = EnumHelper.addEnum(GameSettings.Options.class, "FULLSCREEN_MODE", args0, "of.options.FULLSCREEN_MODE", false, false);
     public static final GameSettings.Options ANIMATED_TERRAIN = EnumHelper.addEnum(GameSettings.Options.class, "ANIMATED_TERRAIN", args0, "of.options.ANIMATED_TERRAIN", false, false);
     public static final GameSettings.Options SWAMP_COLORS = EnumHelper.addEnum(GameSettings.Options.class, "SWAMP_COLORS", args0, "of.options.SWAMP_COLORS", false, false);
     public static final GameSettings.Options RANDOM_ENTITIES = EnumHelper.addEnum(GameSettings.Options.class, "RANDOM_ENTITIES", args0, "of.options.RANDOM_ENTITIES", false, false);
@@ -59,8 +59,8 @@ public class GameSettingsOptionOF {
     public static final GameSettings.Options SHOW_CAPES = EnumHelper.addEnum(GameSettings.Options.class, "SHOW_CAPES", args0, "of.options.SHOW_CAPES", false, false);
     public static final GameSettings.Options CONNECTED_TEXTURES = EnumHelper.addEnum(GameSettings.Options.class, "CONNECTED_TEXTURES", args0, "of.options.CONNECTED_TEXTURES", false, false);
     public static final GameSettings.Options CUSTOM_ITEMS = EnumHelper.addEnum(GameSettings.Options.class, "CUSTOM_ITEMS", args0, "of.options.CUSTOM_ITEMS", false, false);
-    public static final GameSettings.Options AA_LEVEL = EnumHelper.addEnum(GameSettings.Options.class, "AA_LEVEL", args1, "of.options.AA_LEVEL", true, false, 0.0F, 16.0F, 1.0F);
-    public static final GameSettings.Options AF_LEVEL = EnumHelper.addEnum(GameSettings.Options.class, "AF_LEVEL", args1, "of.options.AF_LEVEL", true, false, 1.0F, 16.0F, 1.0F);
+    public static final GameSettings.Options AA_LEVEL = EnumHelper.addEnum(GameSettings.Options.class, "AA_LEVEL", args0, "of.options.AA_LEVEL", false, false);
+    public static final GameSettings.Options AF_LEVEL = EnumHelper.addEnum(GameSettings.Options.class, "AF_LEVEL", args0, "of.options.AF_LEVEL", false, false);
     public static final GameSettings.Options ANIMATED_TEXTURES = EnumHelper.addEnum(GameSettings.Options.class, "ANIMATED_TEXTURES", args0, "of.options.ANIMATED_TEXTURES", false, false);
     public static final GameSettings.Options NATURAL_TEXTURES = EnumHelper.addEnum(GameSettings.Options.class, "NATURAL_TEXTURES", args0, "of.options.NATURAL_TEXTURES", false, false);
     public static final GameSettings.Options EMISSIVE_TEXTURES = EnumHelper.addEnum(GameSettings.Options.class, "EMISSIVE_TEXTURES", args0, "of.options.EMISSIVE_TEXTURES", false, false);
