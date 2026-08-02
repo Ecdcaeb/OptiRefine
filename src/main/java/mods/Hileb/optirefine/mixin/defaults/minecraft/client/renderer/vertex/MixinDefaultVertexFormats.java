@@ -40,7 +40,7 @@ public abstract class MixinDefaultVertexFormats {
     @Unique
     private static final VertexFormat ITEM_VANILLA = DefaultVertexFormats.ITEM;
     @Unique
-    private static final VertexFormat FORGE_BAKED = Attributes.DEFAULT_BAKED_FORMAT;
+    private static final VertexFormat FORGE_BAKED = SVertexFormat.duplicate(Attributes.DEFAULT_BAKED_FORMAT);
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Public
