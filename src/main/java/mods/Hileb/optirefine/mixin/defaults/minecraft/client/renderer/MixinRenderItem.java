@@ -2,7 +2,6 @@ package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.renderer.GlStateManager;
@@ -44,7 +43,6 @@ import javax.annotation.Nullable;
  * showDurabilityBar/getDurabilityForDisplay/getRGBDurabilityForDisplay) are already
  * present via the Cleanroom patches and thus skipped here.</p>
  */
-@Checked
 @Mixin(RenderItem.class)
 public abstract class MixinRenderItem {
 

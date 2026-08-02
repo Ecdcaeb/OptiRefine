@@ -1,6 +1,5 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.resources;
 
-import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import net.minecraft.client.resources.I18n;
@@ -11,8 +10,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 
 import java.util.Map;
-
-@Checked
 @SuppressWarnings("ALL")
 @Mixin(I18n.class)
 public abstract class MixinI18n {

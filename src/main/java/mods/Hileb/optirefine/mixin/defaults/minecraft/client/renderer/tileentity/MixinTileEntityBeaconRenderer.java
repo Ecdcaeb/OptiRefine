@@ -3,7 +3,6 @@ package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer.tileentit
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.tileentity.TileEntityBeaconRenderer;
@@ -13,8 +12,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
 import java.util.List;
-
-@Checked
 @Mixin(TileEntityBeaconRenderer.class)
 public abstract class MixinTileEntityBeaconRenderer {
 

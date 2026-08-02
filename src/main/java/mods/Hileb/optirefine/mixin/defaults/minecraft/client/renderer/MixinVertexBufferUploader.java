@@ -1,6 +1,5 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer;
 
-import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.renderer.BufferBuilder;
@@ -12,8 +11,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-@Checked
 @Mixin(VertexBufferUploader.class)
 public abstract class MixinVertexBufferUploader {
     @Shadow

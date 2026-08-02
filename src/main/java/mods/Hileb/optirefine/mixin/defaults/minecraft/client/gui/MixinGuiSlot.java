@@ -1,6 +1,5 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.gui;
 
-import mods.Hileb.optirefine.library.common.utils.Checked;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -13,8 +12,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
-
-@Checked
 @Mixin(GuiSlot.class)
 public abstract class MixinGuiSlot{
     @SuppressWarnings("unused")

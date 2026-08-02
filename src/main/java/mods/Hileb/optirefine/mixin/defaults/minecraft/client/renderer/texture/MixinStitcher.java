@@ -1,6 +1,5 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer.texture;
 
-import mods.Hileb.optirefine.library.common.utils.Checked;
 import net.minecraft.client.renderer.texture.Stitcher;
 import net.minecraft.util.math.MathHelper;
 import net.optifine.util.MathUtils;
@@ -25,7 +24,6 @@ import java.util.List;
  * and the {@code addSprite} flow are already identical between vanilla and OptiFine, so they are
  * not re-implemented here.</p>
  */
-@Checked
 @Mixin(Stitcher.class)
 public abstract class MixinStitcher {
 

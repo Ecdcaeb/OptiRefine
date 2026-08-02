@@ -1,6 +1,5 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer;
 
-import mods.Hileb.optirefine.library.common.utils.Checked;
 
 import com.llamalad7.mixinextras.expression.Definition;
 import com.llamalad7.mixinextras.expression.Expression;
@@ -30,7 +29,6 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @SuppressWarnings("unused")
-@Checked
 @Mixin(BlockFluidRenderer.class)
 public abstract class MixinBlockFluidRenderer {
 

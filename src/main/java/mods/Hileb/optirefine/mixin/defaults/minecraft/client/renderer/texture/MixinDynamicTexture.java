@@ -1,7 +1,6 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer.texture;
 
 import java.nio.IntBuffer;
-import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.renderer.texture.AbstractTexture;
@@ -15,8 +14,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
-
-@Checked
 @SuppressWarnings("ALL")
 @Mixin(DynamicTexture.class)
 public abstract class MixinDynamicTexture extends AbstractTexture {

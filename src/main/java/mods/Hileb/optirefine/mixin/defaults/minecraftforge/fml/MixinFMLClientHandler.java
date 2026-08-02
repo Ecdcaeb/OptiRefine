@@ -3,7 +3,6 @@ package mods.Hileb.optirefine.mixin.defaults.minecraftforge.fml;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import mods.Hileb.optirefine.Reference;
 import mods.Hileb.optirefine.core.OptiRefineCore;
-import mods.Hileb.optirefine.library.common.utils.Checked;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraftforge.fml.client.FMLClientHandler;
 import net.optifine.CustomLoadingScreen;
@@ -14,8 +13,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.List;
-
-@Checked
 @Mixin(FMLClientHandler.class)
 public abstract class MixinFMLClientHandler {
     @Inject(method = "handleLoadingScreen", at = @At("RETURN"), remap = false, cancellable = true)

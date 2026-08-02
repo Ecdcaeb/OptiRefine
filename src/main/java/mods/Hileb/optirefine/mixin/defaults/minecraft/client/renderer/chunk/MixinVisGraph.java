@@ -1,14 +1,11 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer.chunk;
 
-import mods.Hileb.optirefine.library.common.utils.Checked;
 
 import net.minecraft.client.renderer.chunk.VisGraph;
 import net.minecraft.util.EnumFacing;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
-
-@Checked
 @Mixin(VisGraph.class)
 public abstract class MixinVisGraph {
 

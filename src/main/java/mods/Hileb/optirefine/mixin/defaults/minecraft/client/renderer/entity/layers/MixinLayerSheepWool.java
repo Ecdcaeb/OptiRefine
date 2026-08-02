@@ -1,6 +1,5 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer.entity.layers;
 
-import mods.Hileb.optirefine.library.common.utils.Checked;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -10,8 +9,6 @@ import net.minecraft.item.EnumDyeColor;
 import net.optifine.CustomColors;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-
-@Checked
 @Mixin(LayerSheepWool.class)
 public abstract class MixinLayerSheepWool {
 

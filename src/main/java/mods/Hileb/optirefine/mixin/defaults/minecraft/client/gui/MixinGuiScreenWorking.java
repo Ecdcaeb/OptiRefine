@@ -3,7 +3,6 @@ package mods.Hileb.optirefine.mixin.defaults.minecraft.client.gui;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import mods.Hileb.optirefine.library.common.utils.Checked;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiScreenWorking;
@@ -13,8 +12,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
-
-@Checked
 @Mixin(GuiScreenWorking.class)
 public abstract class MixinGuiScreenWorking extends GuiScreen {
 

@@ -1,6 +1,5 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer.texture;
 
-import mods.Hileb.optirefine.library.common.utils.Checked;
 import com.google.common.collect.ImmutableSet;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
@@ -20,8 +19,6 @@ import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 
 import java.util.Map;
-
-@Checked
 @Mixin(TextureManager.class)
 public abstract class MixinTextureManager {
     @Unique

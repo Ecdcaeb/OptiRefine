@@ -1,6 +1,5 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer.entity;
 
-import mods.Hileb.optirefine.library.common.utils.Checked;
 import com.llamalad7.mixinextras.expression.Expression;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.sugar.Share;
@@ -16,8 +15,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-@Checked
 @Mixin(RenderXPOrb.class)
 public abstract class MixinRenderXPOrb {
     //float u = ((float)entity.xpColor + partialTicks) / 2.0F;

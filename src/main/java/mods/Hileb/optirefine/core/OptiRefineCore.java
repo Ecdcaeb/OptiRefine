@@ -188,7 +188,7 @@ public class OptiRefineCore implements IFMLLoadingPlugin {
         public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
             targetClassName = targetClassName.replace('/', '.');
 
-            boolean should = !targetClassName.startsWith("net.minecraft.") || OptiRefineBlackboard.isOverwritePatches(targetClassName);
+            boolean should = true;
 
             LOGGER.debug("OptiRefine ShouldApply For {} ? {}", targetClassName, should);
 

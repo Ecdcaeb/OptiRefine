@@ -1,7 +1,6 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.util;
 
 import mods.Hileb.optirefine.library.common.utils.Caster;
-import mods.Hileb.optirefine.library.common.utils.Checked;
 import net.minecraft.util.ClassInheritanceMultiMap;
 import net.optifine.util.IteratorCache;
 import org.spongepowered.asm.mixin.*;
@@ -15,8 +14,6 @@ import java.util.AbstractSet;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-
-@Checked
 @Mixin(ClassInheritanceMultiMap.class)
 public abstract class MixinClassInheritanceMultiMap<T> extends AbstractSet<T> {
 

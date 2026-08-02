@@ -2,13 +2,10 @@ package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer.debug;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.renderer.debug.DebugRendererChunkBorder;
 import net.optifine.shaders.Shaders;
 import org.spongepowered.asm.mixin.Mixin;
-
-@Checked
 @Mixin(DebugRendererChunkBorder.class)
 public abstract class MixinDebugRendererChunkBorder {
     @WrapMethod(method = "render")

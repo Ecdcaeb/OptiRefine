@@ -1,7 +1,6 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
-import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.renderer.OpenGlHelper;
 import org.lwjgl.opengl.ARBCopyBuffer;
@@ -32,7 +31,6 @@ import java.util.ArrayList;
  *     <li>new glBufferData / glBufferSubData / glCopyBufferSubData helpers</li>
  * </ul>
  */
-@Checked
 @Mixin(OpenGlHelper.class)
 public abstract class MixinOpenGlHelper {
 

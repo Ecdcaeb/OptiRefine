@@ -2,14 +2,11 @@ package mods.Hileb.optirefine.mixin.defaults.minecraft.util;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import mods.Hileb.optirefine.library.common.utils.Checked;
 import org.apache.logging.log4j.Logger;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
 import java.util.concurrent.ExecutionException;
-
-@Checked
 @Mixin(net.minecraft.util.Util.class)
 public abstract class MixinUtil {
 

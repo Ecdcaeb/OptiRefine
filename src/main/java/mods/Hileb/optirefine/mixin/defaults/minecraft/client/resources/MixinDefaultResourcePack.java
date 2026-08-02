@@ -3,7 +3,6 @@ package mods.Hileb.optirefine.mixin.defaults.minecraft.client.resources;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.optifine.OptifineHelper;
 import net.minecraft.client.resources.DefaultResourcePack;
 import net.minecraft.util.ResourceLocation;
@@ -15,8 +14,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-
-@Checked
 @Mixin(DefaultResourcePack.class)
 public abstract class MixinDefaultResourcePack {
     @SuppressWarnings("unused")

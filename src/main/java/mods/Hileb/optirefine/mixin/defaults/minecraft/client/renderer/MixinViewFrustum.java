@@ -2,7 +2,6 @@ package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.renderer.ViewFrustum;
@@ -24,8 +23,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.HashMap;
 import java.util.Map;
-
-@Checked
 @SuppressWarnings("SpellCheckingInspection")
 @Mixin(ViewFrustum.class)
 public abstract class MixinViewFrustum {

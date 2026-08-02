@@ -1,12 +1,9 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer.chunk;
 
-import mods.Hileb.optirefine.library.common.utils.Checked;
 
 import net.minecraft.client.renderer.chunk.SetVisibility;
 import net.minecraft.util.EnumFacing;
 import org.spongepowered.asm.mixin.*;
-
-@Checked
 @Mixin(SetVisibility.class)
 public abstract class MixinSetVisibility {
 

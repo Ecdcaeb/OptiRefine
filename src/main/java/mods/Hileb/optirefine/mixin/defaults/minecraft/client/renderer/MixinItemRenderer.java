@@ -3,7 +3,6 @@ package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.sugar.Local;
-import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.entity.AbstractClientPlayer;
@@ -47,7 +46,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * {@code instanceof ItemMap} check, {@code ForgeEventFactory} overlay events,
  * {@code ForgeHooksClient.shouldCauseReequipAnimation} logic.</p>
  */
-@Checked
 @Mixin(ItemRenderer.class)
 public abstract class MixinItemRenderer {
 

@@ -2,7 +2,6 @@ package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer.texture;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.NewConstructor;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
@@ -43,7 +42,6 @@ import java.util.List;
  * methods and the UV inset change in {@code initSprite} are already provided by the Cleanroom
  * patches and thus skipped here.</p>
  */
-@Checked
 @Mixin(TextureAtlasSprite.class)
 public abstract class MixinTextureAtlasSprite {
 

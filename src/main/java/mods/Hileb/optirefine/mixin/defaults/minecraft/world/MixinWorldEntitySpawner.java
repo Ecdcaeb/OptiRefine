@@ -1,6 +1,5 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.world;
 
-import mods.Hileb.optirefine.library.common.utils.Checked;
 
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.util.math.MathHelper;
@@ -13,8 +12,6 @@ import org.spongepowered.asm.mixin.Unique;
 
 import java.util.HashMap;
 import java.util.Map;
-
-@Checked
 @Mixin(WorldEntitySpawner.class)
 public abstract class MixinWorldEntitySpawner {
 //    @Unique

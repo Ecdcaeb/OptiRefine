@@ -1,14 +1,11 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.world.gen.layer;
 
-import mods.Hileb.optirefine.library.common.utils.Checked;
 import net.minecraft.world.gen.layer.GenLayer;
 import net.minecraft.world.gen.layer.GenLayerZoom;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
-
-@Checked
 @Mixin(GenLayerZoom.class)
 public abstract class MixinGenLayerZoom extends GenLayer {
     @SuppressWarnings("unused")

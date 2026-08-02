@@ -2,7 +2,6 @@ package mods.Hileb.optirefine.mixin.defaults.optifine;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import mods.Hileb.optirefine.library.common.utils.Checked;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.GameSettings;
 import net.optifine.config.GlVersion;
@@ -13,8 +12,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-@Checked
 @Mixin(targets = "Config")
 public abstract class MixinConfig {
 

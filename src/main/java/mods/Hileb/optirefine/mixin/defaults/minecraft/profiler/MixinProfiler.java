@@ -2,7 +2,6 @@ package mods.Hileb.optirefine.mixin.defaults.minecraft.profiler;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.optifine.Config;
@@ -18,8 +17,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
-
-@Checked
 @Mixin(Profiler.class)
 public abstract class MixinProfiler {
     @SuppressWarnings("AddedMixinMembersNamePattern")

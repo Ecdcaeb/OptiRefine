@@ -1,6 +1,5 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer.texture;
 
-import mods.Hileb.optirefine.library.common.utils.Checked;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
@@ -20,8 +19,6 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 
 import java.awt.image.BufferedImage;
-
-@Checked
 @Mixin(SimpleTexture.class)
 public abstract class MixinSimpleTexture {
 

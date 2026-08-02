@@ -1,7 +1,6 @@
 package mods.Hileb.optirefine.core.transformer;
 
 import com.google.common.collect.ImmutableList;
-import mods.Hileb.optirefine.core.OptiRefineBlackboard;
 import mods.Hileb.optirefine.core.OptiRefineLog;
 import mods.Hileb.optirefine.library.foundationx.TransformerHelper;
 import org.apache.logging.log4j.LogManager;
@@ -89,18 +88,9 @@ public class OptifineTransformerTransformer implements TransformerHelper.Targete
     }
 
     public static boolean couldNotTransform(String transformedName) {
-
-        LOGGER.debug("Optifine try class {}", transformedName);
-
-        if (OptiRefineBlackboard.isOverwritePatches(transformedName)) {
-
-            LOGGER.debug("Optifine skipped class {}", transformedName);
-
-            return true;
-
-        }
-
-        return false;
-
+        // OptiRefine reimplements all OptiFine patches via mixins; OptiFine's own
+        // transformer must never touch runtime classes.
+        LOGGER.debug("Optifine skipped class {}", transformedName);
+        return true;
     }
 }

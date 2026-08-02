@@ -1,6 +1,5 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer.texture;
 
-import mods.Hileb.optirefine.library.common.utils.Checked;
 
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import net.minecraft.client.renderer.GlStateManager;
@@ -15,7 +14,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @SuppressWarnings("unused")
-@Checked
 @Mixin(AbstractTexture.class)
 public abstract class MixinAbstractTexture {
 

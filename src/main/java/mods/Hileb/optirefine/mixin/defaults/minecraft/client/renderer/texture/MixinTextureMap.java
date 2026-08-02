@@ -2,7 +2,6 @@ package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer.texture;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.optifine.Config;
@@ -66,7 +65,6 @@ import java.util.TreeSet;
  * {@code getBasePath}/{@code getMipmapLevels} are already provided by the Cleanroom patches and
  * thus skipped here.</p>
  */
-@Checked
 @Mixin(TextureMap.class)
 public abstract class MixinTextureMap implements ITickableTextureObject {
 

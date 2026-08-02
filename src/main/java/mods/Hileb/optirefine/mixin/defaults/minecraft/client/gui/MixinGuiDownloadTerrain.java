@@ -2,7 +2,6 @@ package mods.Hileb.optirefine.mixin.defaults.minecraft.client.gui;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import mods.Hileb.optirefine.library.common.utils.Checked;
 import net.minecraft.client.gui.GuiDownloadTerrain;
 import net.minecraft.client.gui.GuiScreen;
 import net.optifine.CustomLoadingScreen;
@@ -10,8 +9,6 @@ import net.optifine.CustomLoadingScreens;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
-
-@Checked
 @Mixin(GuiDownloadTerrain.class)
 public abstract class MixinGuiDownloadTerrain extends GuiScreen {
 

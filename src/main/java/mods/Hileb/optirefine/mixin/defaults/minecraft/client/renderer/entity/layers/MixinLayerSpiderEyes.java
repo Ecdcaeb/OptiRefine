@@ -1,6 +1,5 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer.entity.layers;
 
-import mods.Hileb.optirefine.library.common.utils.Checked;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -14,8 +13,6 @@ import net.optifine.shaders.Shaders;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-
-@Checked
 @Mixin(LayerSpiderEyes.class)
 public abstract class MixinLayerSpiderEyes {
 

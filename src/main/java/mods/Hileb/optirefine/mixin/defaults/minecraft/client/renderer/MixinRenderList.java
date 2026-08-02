@@ -2,7 +2,6 @@ package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.renderer.ChunkRenderContainer;
@@ -18,8 +17,6 @@ import org.spongepowered.asm.mixin.Unique;
 
 import java.nio.Buffer;
 import java.nio.IntBuffer;
-
-@Checked
 
 @Mixin(RenderList.class)
 public abstract class MixinRenderList extends ChunkRenderContainer {

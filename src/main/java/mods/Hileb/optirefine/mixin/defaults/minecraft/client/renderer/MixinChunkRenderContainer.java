@@ -1,6 +1,5 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer;
 
-import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import net.minecraft.client.renderer.ChunkRenderContainer;
 import net.minecraft.client.renderer.chunk.CompiledChunk;
@@ -15,8 +14,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.BitSet;
-
-@Checked
 @Mixin(ChunkRenderContainer.class)
 public abstract class MixinChunkRenderContainer {
     @SuppressWarnings("AddedMixinMembersNamePattern")

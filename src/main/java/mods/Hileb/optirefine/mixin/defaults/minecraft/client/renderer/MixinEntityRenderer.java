@@ -2,7 +2,6 @@ package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessTransformer;
 import mods.Hileb.optirefine.optifine.Config;
@@ -114,7 +113,6 @@ import java.nio.FloatBuffer;
  * rain hooks in {@code renderRainSnow}. The {@code ShaderLinkHelper} init in {@code updateRenderer}
  * is already present in the vanilla runtime body, so no hook is needed.</p>
  */
-@Checked
 @Mixin(EntityRenderer.class)
 public abstract class MixinEntityRenderer {
 

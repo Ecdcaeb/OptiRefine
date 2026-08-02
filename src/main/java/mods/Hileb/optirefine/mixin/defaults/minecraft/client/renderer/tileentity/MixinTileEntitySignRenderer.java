@@ -1,6 +1,5 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer.tileentity;
 
-import mods.Hileb.optirefine.library.common.utils.Checked;
 import com.llamalad7.mixinextras.expression.Definition;
 import com.llamalad7.mixinextras.expression.Expression;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
@@ -18,8 +17,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
-
-@Checked
 @Mixin(TileEntitySignRenderer.class)
 public abstract class MixinTileEntitySignRenderer {
     @SuppressWarnings("AddedMixinMembersNamePattern")

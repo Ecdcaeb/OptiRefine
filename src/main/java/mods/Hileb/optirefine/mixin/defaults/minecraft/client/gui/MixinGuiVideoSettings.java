@@ -2,7 +2,6 @@ package mods.Hileb.optirefine.mixin.defaults.minecraft.client.gui;
 
 import com.cleanroommc.common.CleanroomVersion;
 import mods.Hileb.optirefine.Reference;
-import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.ChangeSuperClass;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
@@ -24,8 +23,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.io.IOException;
-
-@Checked // TODO
 @Mixin(GuiVideoSettings.class)
 @ChangeSuperClass(GuiScreenOF.class)
 public abstract class MixinGuiVideoSettings extends GuiScreen {

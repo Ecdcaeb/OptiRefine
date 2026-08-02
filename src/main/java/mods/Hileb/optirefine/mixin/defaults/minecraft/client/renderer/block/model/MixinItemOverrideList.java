@@ -1,6 +1,5 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer.block.model;
 
-import mods.Hileb.optirefine.library.common.utils.Checked;
 
 import com.google.common.collect.Lists;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
@@ -21,8 +20,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.List;
-
-@Checked
 @Mixin(ItemOverrideList.class)
 public abstract class MixinItemOverrideList {
     @Shadow @Final

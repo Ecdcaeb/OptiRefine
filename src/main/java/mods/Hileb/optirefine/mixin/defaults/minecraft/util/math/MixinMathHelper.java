@@ -2,7 +2,6 @@ package mods.Hileb.optirefine.mixin.defaults.minecraft.util.math;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessTransformer;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import net.minecraft.util.math.MathHelper;
@@ -14,8 +13,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Random;
-
-@Checked
 @Mixin(MathHelper.class)
 public abstract class MixinMathHelper {
 

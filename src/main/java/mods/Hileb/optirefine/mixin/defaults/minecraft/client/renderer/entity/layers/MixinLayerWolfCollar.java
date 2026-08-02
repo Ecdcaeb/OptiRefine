@@ -1,6 +1,5 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer.entity.layers;
 
-import mods.Hileb.optirefine.library.common.utils.Checked;
 
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.renderer.entity.layers.LayerWolfCollar;
@@ -9,8 +8,6 @@ import net.optifine.CustomColors;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
-
-@Checked
 @Mixin(LayerWolfCollar.class)
 public abstract class MixinLayerWolfCollar {
     @Redirect(method = "doRenderLayer(Lnet/minecraft/entity/passive/EntityWolf;FFFFFFF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/EnumDyeColor;getColorComponentValues()[F"))

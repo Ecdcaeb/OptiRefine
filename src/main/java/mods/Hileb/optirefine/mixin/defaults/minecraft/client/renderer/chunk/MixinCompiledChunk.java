@@ -1,6 +1,5 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer.chunk;
 
-import mods.Hileb.optirefine.library.common.utils.Checked;
 
 import net.minecraft.client.renderer.chunk.CompiledChunk;
 import net.minecraft.util.BlockRenderLayer;
@@ -8,8 +7,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
 import java.util.BitSet;
-
-@Checked
 @Mixin(CompiledChunk.class)
 public abstract class MixinCompiledChunk {
 

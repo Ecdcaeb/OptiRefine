@@ -1,6 +1,5 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer.texture;
 
-import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessTransformer;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.renderer.texture.TextureUtil;
@@ -40,7 +39,6 @@ import java.io.InputStream;
  * {@code synchronized} block in {@code allocateTextureImpl} are already applied by the Cleanroom patches,
  * so they are intentionally not re-implemented here.</p>
  */
-@Checked
 @Mixin(TextureUtil.class)
 public abstract class MixinTextureUtil {
 

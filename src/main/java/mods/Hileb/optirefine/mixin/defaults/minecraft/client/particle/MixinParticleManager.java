@@ -5,7 +5,6 @@ import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import mods.Hileb.optirefine.library.common.utils.Caster;
-import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.particle.Barrier;
 import net.minecraft.client.particle.Particle;
@@ -17,8 +16,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import java.util.ArrayDeque;
 import java.util.Iterator;
 import java.util.Queue;
-
-@Checked
 @Mixin(ParticleManager.class)
 public abstract class MixinParticleManager {
 

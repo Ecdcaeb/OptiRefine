@@ -1,6 +1,7 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer;
 
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessTransformer;
+import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.NewConstructor;
 import net.minecraft.client.renderer.BlockModelRenderer;
 import net.minecraft.util.math.BlockPos;
 import org.objectweb.asm.Opcodes;
@@ -11,10 +12,6 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import mods.Hileb.optirefine.library.common.utils.Checked;
-
-@Checked
 @Mixin(targets = "net.minecraft.client.renderer.BlockModelRenderer$AmbientOcclusionFace")
 @SuppressWarnings("unused")
 public abstract class MixinBlockModelRender$AmbientOcclusionFace {
@@ -31,8 +28,15 @@ public abstract class MixinBlockModelRender$AmbientOcclusionFace {
     @Unique
     private final BlockPos.MutableBlockPos[] blockPosArr = new BlockPos.MutableBlockPos[5];
 
+    @NewConstructor
+    public void AmbientOcclusionFace() {
+        for (int i = 0; i < this.blockPosArr.length; i++) {
+            this.blockPosArr[i] = new BlockPos.MutableBlockPos();
+        }
+    }
+
     @Inject(method = "<init>", at = @At("RETURN"))
-    public void injectConstructor(BlockModelRenderer p_i46235_1, CallbackInfo ci){
+    public void injectConstructor(CallbackInfo ci){
         for (int i = 0; i < this.blockPosArr.length; i++) {
             this.blockPosArr[i] = new BlockPos.MutableBlockPos();
         }

@@ -1,6 +1,5 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer.chunk;
 
-import mods.Hileb.optirefine.library.common.utils.Checked;
 
 import net.minecraft.client.renderer.RegionRenderCacheBuilder;
 import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
@@ -13,8 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
-
-@Checked
 @Mixin(ChunkRenderDispatcher.class)
 public abstract class MixinChunkRenderDispatcher {
 

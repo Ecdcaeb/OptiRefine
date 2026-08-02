@@ -1,6 +1,5 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.block.state;
 
-import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.BlockStateBase;
@@ -8,8 +7,6 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.ResourceLocation;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
-
-@Checked
 @Mixin(BlockStateBase.class)
 public abstract class MixinBlockStateBase implements IBlockState {
 

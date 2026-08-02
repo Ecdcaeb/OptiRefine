@@ -1,14 +1,11 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.world.chunk.storage;
 
-import mods.Hileb.optirefine.library.common.utils.Checked;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.world.chunk.BlockStateContainer;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import org.spongepowered.asm.mixin.*;
-
-@Checked
 @SuppressWarnings("AddedMixinMembersNamePattern")
 @Mixin(ExtendedBlockStorage.class)
 public abstract class MixinExtendedBlockStorage {

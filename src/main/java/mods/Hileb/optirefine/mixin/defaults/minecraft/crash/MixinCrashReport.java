@@ -1,6 +1,5 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.crash;
 
-import mods.Hileb.optirefine.library.common.utils.Checked;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.crash.CrashReportCategory;
 import net.optifine.CrashReporter;
@@ -11,8 +10,6 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
-@Checked
 @Mixin(CrashReport.class)
 public abstract class MixinCrashReport {
     @SuppressWarnings("AddedMixinMembersNamePattern")

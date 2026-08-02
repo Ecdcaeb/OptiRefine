@@ -1,6 +1,5 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer.block.model;
 
-import mods.Hileb.optirefine.library.common.utils.Checked;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessTransformer;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
@@ -20,8 +19,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
-@Checked
 @Mixin(BakedQuad.class)
 public abstract class MixinBakedQuad {
 

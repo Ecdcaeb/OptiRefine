@@ -1,6 +1,5 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.model;
 
-import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.model.TexturedQuad;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
@@ -9,8 +8,6 @@ import net.optifine.shaders.SVertexFormat;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
-
-@Checked
 @Mixin(TexturedQuad.class)
 public abstract class MixinTexturedQuad {
 

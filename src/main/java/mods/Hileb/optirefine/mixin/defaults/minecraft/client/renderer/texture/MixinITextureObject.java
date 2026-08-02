@@ -1,13 +1,10 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer.texture;
 
-import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.library.api.DeprecatedHelper;
 import net.minecraft.client.renderer.texture.ITextureObject;
 import net.optifine.shaders.MultiTexID;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
-
-@Checked
 @Mixin(ITextureObject.class)
 public interface MixinITextureObject {
 

@@ -9,7 +9,6 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
-import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessTransformer;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Implements;
@@ -42,7 +41,6 @@ import java.util.function.Predicate;
 
 
 @SuppressWarnings("deprecation")
-@Checked // TODO
 @Implements(
         value = ISelectiveResourceReloadListener.class,
         removes = net.minecraft.client.resources.IResourceManagerReloadListener.class

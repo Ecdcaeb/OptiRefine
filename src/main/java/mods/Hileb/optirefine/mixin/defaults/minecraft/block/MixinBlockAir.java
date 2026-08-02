@@ -1,6 +1,5 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.block;
 
-import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockAir;
@@ -9,8 +8,6 @@ import org.spongepowered.asm.mixin.Unique;
 
 import java.util.IdentityHashMap;
 import java.util.Map;
-
-@Checked
 @Mixin(BlockAir.class)
 public abstract class MixinBlockAir{
 

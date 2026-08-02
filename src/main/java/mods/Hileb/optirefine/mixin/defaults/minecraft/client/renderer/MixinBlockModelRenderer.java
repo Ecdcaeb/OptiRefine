@@ -6,7 +6,6 @@ import com.llamalad7.mixinextras.sugar.Local;
 import java.util.BitSet;
 import java.util.List;
 import javax.annotation.Nullable;
-import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.optifine.Config;
@@ -51,8 +50,6 @@ import net.optifine.CustomColors;
 import net.optifine.model.ListQuadsOverlay;
 import net.minecraft.client.renderer.RegionRenderCacheBuilder;
 import net.optifine.shaders.Shaders;
-
-@Checked
 @Mixin(BlockModelRenderer.class)
 public abstract class MixinBlockModelRenderer {
     @Unique @Public 
