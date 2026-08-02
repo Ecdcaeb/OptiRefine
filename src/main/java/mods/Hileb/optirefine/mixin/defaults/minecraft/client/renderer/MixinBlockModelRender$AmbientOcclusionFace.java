@@ -22,10 +22,12 @@ public abstract class MixinBlockModelRender$AmbientOcclusionFace {
 // [AUDIT-OK] <class> access transform -> AmbientOcclusionFace public+static, matches OF (public class)
     public abstract void access();
 
+    @Mutable
     @Shadow @Final
 // [AUDIT-OK] baseline member vertexColorMultiplier (SRG field_178206_b)
     private float[] vertexColorMultiplier;
 
+    @Mutable
     @Shadow @Final
 // [AUDIT-OK] baseline member vertexBrightness (SRG field_178207_c)
     private int[] vertexBrightness;
@@ -41,6 +43,9 @@ public abstract class MixinBlockModelRender$AmbientOcclusionFace {
     public void AmbientOcclusionFace() {
 // [AUDIT-FIXED] super() + explicit allocation: cursed-generated <init>()V does not run @Inject(<init>*) handlers
         _Object();
+        // [AUDIT-FIXED] cursed-generated <init>()V lacks vanilla field initializers; replicate them
+        this.vertexBrightness = new int[4];
+        this.vertexColorMultiplier = new float[4];
         this.blockPosArr = new BlockPos.MutableBlockPos[5];
         for (int i = 0; i < this.blockPosArr.length; i++) {
             this.blockPosArr[i] = new BlockPos.MutableBlockPos();
