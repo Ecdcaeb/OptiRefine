@@ -139,6 +139,30 @@ public abstract class MixinRenderItem {
         return ibakedmodel.getOverrides().handleItemState(ibakedmodel, stack, worldIn, entitylivingbaseIn);
     }
 
+    // ===== renderItemModelIntoGUI: renderItemGui flag (OF RenderItem:359/383) =====
+
+    @Inject(method = "renderItemModelIntoGUI", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/RenderItem;renderItem(Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/renderer/block/model/IBakedModel;)V", shift = At.Shift.BEFORE))
+    private void optiRefine$setRenderItemGui(ItemStack stack, int x, int y, IBakedModel model, CallbackInfo ci) {
+        this.renderItemGui = true;
+    }
+
+    @Inject(method = "renderItemModelIntoGUI", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/RenderItem;renderItem(Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/renderer/block/model/IBakedModel;)V", shift = At.Shift.AFTER))
+    private void optiRefine$clearRenderItemGui(ItemStack stack, int x, int y, IBakedModel model, CallbackInfo ci) {
+        this.renderItemGui = false;
+    }
+
+    // ===== renderItem: custom item model re-apply + emissive reset (OF RenderItem:148-152) =====
+
+    @Redirect(method = "renderItem(Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/renderer/block/model/IBakedModel;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/RenderItem;renderModel(Lnet/minecraft/client/renderer/block/model/IBakedModel;Lnet/minecraft/item/ItemStack;)V", ordinal = 0))
+    private void optiRefine$renderModelCustomItems(RenderItem instance, IBakedModel modelIn, ItemStack stack) {
+        if (Config.isCustomItems()) {
+            modelIn = CustomItems.getCustomItemModel(stack, modelIn, this.modelLocation, false);
+            this.modelLocation = null;
+        }
+        this.renderModelHasEmissive = false;
+        this.renderModel(modelIn, stack);
+    }
+
     // ===== renderItemModel: off-hand + emissive =====
 
     @Inject(method = "renderItemModel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/RenderItem;renderItem(Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/renderer/block/model/IBakedModel;)V", shift = At.Shift.BEFORE))
@@ -225,14 +249,7 @@ public abstract class MixinRenderItem {
     }
 
     // ===== renderItemOverlayIntoGUI: custom durability color =====
-
-    @Redirect(method = "renderItemOverlayIntoGUI", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/math/MathHelper;hsvToRGB(FFF)I"))
-    private int optiRefine$durabilityColor(float h, float s, float v) {
-// [AUDIT-OK] target renderItemOverlayIntoGUI (SRG func_180453_a) MathHelper.hsvToRGB matches baseline
-        int color = net.minecraft.util.math.MathHelper.hsvToRGB(h, s, v);
-        if (Config.isCustomColors()) {
-            color = CustomColors.getDurabilityColor(h, color);
-        }
-        return color;
-    }
+    // [AUDIT-FIXED] vanilla hsvToRGB call was removed by the Cleanroom RenderItem patch (durability now uses
+    // Item.getRGBDurabilityForDisplay); the old @Redirect target no longer exists -> mixin apply crash.
+    // CustomColors.getDurabilityColor hook for the Forge path is TODO.
 }

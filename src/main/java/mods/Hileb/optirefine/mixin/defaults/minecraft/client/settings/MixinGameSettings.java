@@ -349,6 +349,7 @@ public abstract class MixinGameSettings {
 
         if (option == GameSettingsOptionOF.AO_LEVEL) {
             this.ofAoLevel = val;
+            BlockModelRenderer_updateAoLightValue();
             this.mc.renderGlobal.loadRenderers();
         }
 
@@ -444,6 +445,24 @@ public abstract class MixinGameSettings {
 
 
     @Unique
+    @WrapMethod(method = "setOptionFloatValue")
+    // [AUDIT-FIXED] dispatch OF float options first, then vanilla branches (OF GameSettings:407-408)
+    public void optiRefine$setOptionFloatValue(GameSettings.Options option, float val, Operation<Void> original) {
+        this.optiRefine$setOptionFloatValueOF(option, val);
+        original.call(option, val);
+    }
+
+    @WrapMethod(method = "getOptionFloatValue")
+    // [AUDIT-FIXED] OF value wins when != Float.MAX_VALUE (OF GameSettings:636-639)
+    public float optiRefine$getOptionFloatValue(GameSettings.Options option, Operation<Float> original) {
+        float of = this.optiRefine$getOptionFloatValueOF(option);
+        return of != Float.MAX_VALUE ? of : original.call(option);
+    }
+
+    @SuppressWarnings({"unused", "MissingUnique"})
+    @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.client.renderer.BlockModelRenderer updateAoLightValue ()V")
+    private static native void BlockModelRenderer_updateAoLightValue();
+
     // [AUDIT-OK] body mirrors OF setOptionValueOF; all GameSettingsOptionOF.* constants verified present in GameSettingsOptionOF.java (72/72, no missing/mismatched)
     private void optiRefine$setOptionValueOF(GameSettings.Options par1EnumOptions, int par2) {
         if (par1EnumOptions == GameSettingsOptionOF.FOG_FANCY) {

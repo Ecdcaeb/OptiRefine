@@ -19,10 +19,16 @@ public abstract class MixinBakedQuadRetextured {
     // [AUDIT-OK] OF-added field (OF BakedQuadRetextured:8), not in baseline
     private TextureAtlasSprite spriteOld;
 
-    @Inject(method = "<init>", at = @At("RETURN"))
-    // [AUDIT-OK] target <init>(BakedQuad,TextureAtlasSprite) baseline (deobf:14); vanilla ctor already runs remapQuad, fixVertexData call matches OF:23-24
-    public void init(BakedQuad quad, TextureAtlasSprite p_i46217_2, CallbackInfo ci){
+    @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/block/model/BakedQuadRetextured;remapQuad()V"))
+    // [AUDIT-FIXED] spriteOld must be set BEFORE remapQuad (OF ctor order); previously set at RETURN, so remapQuad
+    // fell back to getSprite() = NEW texture -> two affine maps composed to identity -> UVs in old atlas coords
+    public void initBeforeRemap(BakedQuad quad, TextureAtlasSprite p_i46217_2, CallbackInfo ci){
         this.spriteOld = quad.getSprite();
+    }
+
+    @Inject(method = "<init>", at = @At("RETURN"))
+    // [AUDIT-OK] target <init>(BakedQuad,TextureAtlasSprite) baseline (deobf:14); fixVertexData call matches OF:23-24
+    public void init(BakedQuad quad, TextureAtlasSprite p_i46217_2, CallbackInfo ci){
         // [AUDIT-OK] OF-added member BakedQuad.fixVertexData()V (provided by MixinBakedQuad @Unique); MCP name, no deobf correct
         BakedQuad_fixVertexData(this);
     }
@@ -31,10 +37,14 @@ public abstract class MixinBakedQuadRetextured {
     private static native void BakedQuad_fixVertexData(Object bakedQuad);
 
     @Redirect(method = "remapQuad", at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/block/model/BakedQuad;sprite:Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;"))
-    // [AUDIT-OK] target remapQuad exists in baseline (vanilla private, deobf:27); BakedQuad.sprite read redirected to spriteOld per OF
+    // [AUDIT-FIXED] fallback reads the REAL sprite field (old sprite from super), NOT getSprite() (= new texture)
     public TextureAtlasSprite applySpriteOld(BakedQuad instance){
-        return spriteOld == null ? instance.getSprite() : spriteOld;
+        return spriteOld != null ? spriteOld : BakedQuad_sprite_get(instance);
     }
+
+    @SuppressWarnings("MissingUnique")
+    @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.block.model.BakedQuad field_187509_d Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;", deobf = true)
+    private static native TextureAtlasSprite BakedQuad_sprite_get(BakedQuad instance);
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique

@@ -93,23 +93,18 @@ public abstract class MixinBlockFluidRenderer {
     @Expression("@(atextureatlassprite[0]).?")
     @ModifyExpressionValue(method = "renderFluid", at = @At(value = "MIXINEXTRAS:EXPRESSION", ordinal = 0))
     public TextureAtlasSprite hookAtUseZeroTextureAtlasSprite_renderFluid(TextureAtlasSprite or,
-// [AUDIT-OK] expression hook; setSprite(atextureatlassprite[0]) + fbr=0.5F matches OF
+// [AUDIT-FIXED] setSprite(bottom sprite) kept; fbr=0.5 removed (vanilla color() already carries face brightness)
                                                             @Local(argsOnly = true) BufferBuilder builder,
                                                             @Share(namespace = "optirefine", value = "fbr") LocalRef<Float> fbr) {
         BufferBuilder_setSprite(builder, or);
-        fbr.set(0.5F);
         return or;
     }
 
     @Redirect(method = "renderFluid", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/BufferBuilder;color(FFFF)Lnet/minecraft/client/renderer/BufferBuilder;"))
+    // [AUDIT-FIXED] pass-through: vanilla color() args already include per-face brightness (0.5 bottom/0.8/0.6 sides);
+    // the previous fbr=0.5 scaling double-darkened bottom+side faces (OF uses FaceBakery.getFaceBrightness per face, same values)
     public BufferBuilder remapColor_renderFluid(BufferBuilder instance, float red, float green, float blue, float alpha,  @Share(namespace = "optirefine", value = "fbr") LocalRef<Float> fbr){
-// [AUDIT-OK] target BufferBuilder.color(FFFF) in renderFluid matches baseline; alpha scale matches OF
-        if (fbr.get() == null) {
-            return instance.color(red, green, blue, alpha);
-        } else {
-            float fbrf = fbr.get();
-            return instance.color(red * fbrf, green * fbrf, blue * fbrf, alpha);
-        }
+        return instance.color(red, green, blue, alpha);
     }
 
 

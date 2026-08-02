@@ -123,7 +123,12 @@ public abstract class MixinRenderGlobal {
     @Public
 // [AUDIT-OK] OF-added method, not in baseline
     public int getCountLoadedChunks() {
-        return this.world == null ? 0 : ChunkProviderClient_loadedChunks_get(this.world.getChunkProvider()).size();
+        // [AUDIT-FIXED] null-guard provider/map like OF RenderGlobal:3018-3033
+        if (this.world == null || this.world.getChunkProvider() == null) {
+            return 0;
+        }
+        it.unimi.dsi.fastutil.longs.Long2ObjectMap loaded = ChunkProviderClient_loadedChunks_get(this.world.getChunkProvider());
+        return loaded == null ? 0 : loaded.size();
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
@@ -194,6 +199,14 @@ public abstract class MixinRenderGlobal {
     @Shadow
 // [AUDIT-OK] baseline member loadRenderers (func_72712_a)
     public abstract void loadRenderers();
+
+    @Inject(method = "loadRenderers", at = @At("TAIL"))
+    // [AUDIT-FIXED] OF RenderGlobal:539-542 sets firstWorldLoad when mc.player==null so onPlayerPositionSet re-runs loadRenderers on world join
+    private void optiRefine$markFirstWorldLoad(CallbackInfo ci) {
+        if (this.mc.player == null) {
+            this.firstWorldLoad = true;
+        }
+    }
 
     @Shadow
 // [AUDIT-OK] baseline member isRenderEntityOutlines()Z (SRG func_174985_d)

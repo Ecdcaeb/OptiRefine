@@ -25,9 +25,9 @@ public abstract class MixinChunkRenderContainer {
     @Unique
     private BitSet animatedSpritesCached;
 
-    @Inject(method = "<init>", at = @At("RETURN"))
-    public void logicOfinit(CallbackInfo ci){
-// [AUDIT-ISSUE] OF places this SmartAnimations block in initialize() (per-frame); mixin injects into <init> (once) -> per-frame spritesRendered() reporting/clear never happens; move the inject to initialize()
+    @Inject(method = "initialize", at = @At("RETURN"))
+    public void logicOfinit(double viewEntityXIn, double viewEntityYIn, double viewEntityZIn, CallbackInfo ci){
+// [AUDIT-FIXED] per-frame like OF initialize() (was <init>, ran once) -> SmartAnimations reporting/clear every frame
         if (SmartAnimations.isActive()) {
             if (this.animatedSpritesRendered != null) {
                 SmartAnimations.spritesRendered(this.animatedSpritesRendered);

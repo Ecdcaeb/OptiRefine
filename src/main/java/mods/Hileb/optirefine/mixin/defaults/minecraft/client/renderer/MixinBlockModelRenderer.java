@@ -519,4 +519,10 @@ public abstract class MixinBlockModelRenderer {
             ((BlockModelRenderer)(Object)this).renderModel(worldIn, modelSnow, stateSnow, posIn, buffer, checkSides, rand);
         }
     }
+
+    @Inject(method = "<clinit>", at = @At("TAIL"))
+    // [AUDIT-FIXED] initialize AO level values (OF calls updateAoLightValue on config changes)
+    private static void optiRefine$initAoLightValue(CallbackInfo ci) {
+        updateAoLightValue();
+    }
 }

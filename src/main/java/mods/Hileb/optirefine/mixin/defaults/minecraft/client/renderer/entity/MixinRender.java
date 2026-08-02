@@ -58,8 +58,8 @@ public abstract class MixinRender {
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.BufferBuilder setBlockLayer (Lnet.minecraft.util.BlockRenderLayer;)V")
     private static native void BufferBuilder_setBlockLayer(BufferBuilder builder, BlockRenderLayer layer);
 
-    @Inject(method = "renderEntityOnFire", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/Tessellator;draw()V"))
-    // [AUDIT-OK] setBlockLayer(null)+bindCurrentTexture after draw matches OF:163-164
+    @Inject(method = "renderEntityOnFire", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/Tessellator;draw()V", shift = At.Shift.AFTER))
+    // [AUDIT-FIXED] cleanup AFTER Tessellator.draw (INVOKE fires pre-call by default; OF:163-164 cleans up after draw)
     public void after_renderEntityOnFire(Entity entity, double x, double y, double z, float partialTicks, CallbackInfo ci, @Share(namespace = "optirefine", value = "multitexture")LocalBooleanRef multitextureRef, @Local(ordinal = 0) BufferBuilder builder){
         if (multitextureRef.get()) {
             BufferBuilder_setBlockLayer(builder, null);

@@ -340,6 +340,12 @@ public abstract class MixinBufferBuilder {
         return this.modeTriangles ? this.byteBufferTriangles : original;
     }
 
+    @WrapMethod(method = "getVertexCount")
+    // [AUDIT-FIXED] OF overrides getVertexCount for triangle mode (6 verts/quad); missing before -> glDrawArrays got quad counts
+    private int optiRefine$getVertexCount(Operation<Integer> original) {
+        return this.modeTriangles ? this.vertexCount / 4 * 6 : original.call();
+    }
+
     @ModifyReturnValue(method = "getDrawMode", at = @At("RETURN"))
     public int returnGetDrawMode(int original){
 // [AUDIT-OK] target getDrawMode()I matches baseline (OF: modeTriangles -> 4)

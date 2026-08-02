@@ -99,6 +99,14 @@ public abstract class MixinRenderLivingBase<T extends EntityLivingBase> {
         }
     }
 
+    @Inject(method = "doRender(Lnet/minecraft/entity/EntityLivingBase;DDDFF)V", at = @At("TAIL"))
+    // [AUDIT-FIXED] reset renderEntity after the render branch (OF RenderLivingBase:215-217); stale entity pointer otherwise
+    private void optiRefine$resetRenderEntity(CallbackInfo ci) {
+        if (CustomEntityModels.isActive()) {
+            this.renderEntity = null;
+        }
+    }
+
     @WrapOperation(method = "doRender(Lnet/minecraft/entity/EntityLivingBase;DDDFF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/RenderLivingBase;renderModel(Lnet/minecraft/entity/EntityLivingBase;FFFFFF)V", ordinal = 1))
     // [AUDIT-OK] renderModel ordinal 1 = else-branch call; emissive double-render matches OF:180-200
     public void customEmissiveTextures(RenderLivingBase<EntityLivingBase> instance, EntityLivingBase entitylivingbaseIn, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, float scaleFactor, Operation<Void> original){

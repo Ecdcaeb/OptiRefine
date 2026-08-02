@@ -18,9 +18,10 @@ public abstract class MixinVertexBufferUploader {
 // [AUDIT-OK] baseline member vertexBuffer (SRG field_178179_a)
     private VertexBuffer vertexBuffer;
 
-    @Inject(method = "draw", at = @At("HEAD"))
+    @Inject(method = "draw", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/vertex/VertexBuffer;bufferData(Ljava/nio/ByteBuffer;)V"))
     public void before_draw(BufferBuilder vertexBufferIn, CallbackInfo ci){
-// [AUDIT-ISSUE] target draw(Lnet/minecraft/client/renderer/BufferBuilder;)V (SRG func_181679_a) exists, but inject runs BEFORE vanilla guards (!isDrawing && vertexBuffer!=null) -> quadsToTriangles/setDrawMode may NPE on null/not-finished buffer; add the guards (OF has them)
+// [AUDIT-FIXED] inject at bufferData INVOKE (after the Forge baseline's leading reset()):
+// HEAD ran before reset(), which clears modeTriangles -> quad-layout data + triangle draw mode
         if (vertexBufferIn.getDrawMode() == 7 && Config.isQuadsToTriangles()) {
             BufferBuilder_quadsToTriangles(vertexBufferIn);
             VertexBuffer_setDrawMode(vertexBuffer, vertexBufferIn.getDrawMode());

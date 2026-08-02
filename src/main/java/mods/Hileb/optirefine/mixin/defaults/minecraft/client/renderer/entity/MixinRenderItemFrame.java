@@ -37,7 +37,8 @@ public abstract class MixinRenderItemFrame {
 
             if (!Config.zoomMode) {
                 Entity player = this.mc.player;
-                return itemFrame.getDistanceSq(player.posX, player.posY, player.posZ) > itemRenderDistanceSq;
+                // [AUDIT-FIXED] OF hardcodes 4096.0 for the player-distance cull (dynamic value was looser)
+                return itemFrame.getDistanceSq(player.posX, player.posY, player.posZ) > 4096.0;
             }
             return false;
         } else return true;
