@@ -39,6 +39,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import javax.annotation.Nullable;
 import java.awt.Dimension;
@@ -633,7 +634,7 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
     // ===== registerSprite: index + emissive =====
 
     @Inject(method = "registerSprite", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;makeAtlasSprite(Lnet/minecraft/util/ResourceLocation;)Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;", shift = At.Shift.AFTER))
-    private void optiRefine$registerSprite(ResourceLocation location, CallbackInfo ci) {
+    private void optiRefine$registerSprite(ResourceLocation location, CallbackInfoReturnable<TextureAtlasSprite> cir) {
         TextureAtlasSprite textureatlassprite = this.mapRegisteredSprites.get(location.toString());
         if (textureatlassprite != null) {
             TextureAtlasSprite_updateIndexInMap(textureatlassprite, this.counterIndexInMap);
