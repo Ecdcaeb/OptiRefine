@@ -47,38 +47,49 @@ import javax.annotation.Nullable;
  */
 @Mixin(RenderItem.class)
 public abstract class MixinRenderItem {
+// [AUDIT] 2026-08-03 — see AGENT.md; issues: 0
 
     @Shadow
+// [AUDIT-OK] baseline member itemModelMesher (SRG field_175059_m)
     private ItemModelMesher itemModelMesher;
     @Shadow
+// [AUDIT-OK] baseline member textureManager (SRG field_175057_n)
     private TextureManager textureManager;
     @Public
     @Nullable
+// [AUDIT-OK] OF-added field (OF: private ResourceLocation modelLocation), not in baseline; @Public extra visibility harmless
     private ResourceLocation modelLocation;
     @Public
+// [AUDIT-OK] OF-added field, not in baseline
     private boolean renderItemGui;
     @Public
+// [AUDIT-OK] OF-added field, not in baseline
     private boolean renderModelEmissive;
 
     @Public
+// [AUDIT-OK] OF-added field, not in baseline
     private boolean renderModelHasEmissive;
 
     @Public
+// [AUDIT-OK] OF-added field (OF: public ModelManager modelManager — AGENT.md S5 crash fix), not in baseline
     private ModelManager modelManager;
 
     @Inject(method = "<init>", at = @At("RETURN"))
     private void optiRefine$ctorModelManager(TextureManager textureManager, ModelManager modelManager, ItemColors itemColors, CallbackInfo ci) {
+// [AUDIT-OK] target <init>(LTextureManager;LModelManager;LItemColors;)V matches baseline; modelManager assignment matches OF ctor
         this.modelManager = modelManager;
     }
 
     @Shadow
 
+// [AUDIT-OK] baseline member renderModel(LIBakedModel;LItemStack;)V (SRG func_191961_a)
     protected abstract void renderModel(IBakedModel modelIn, ItemStack stack);
 
 
 
     @Shadow
 
+// [AUDIT-OK] baseline member renderModel(LIBakedModel;ILItemStack;)V (SRG func_191967_a)
     protected abstract void renderModel(IBakedModel modelIn, int color, ItemStack stack);
 
 
@@ -87,6 +98,7 @@ public abstract class MixinRenderItem {
 
     @Unique
 
+// [AUDIT-OK] OF-added private helper (OF renderEffect calls 3-arg form), not in baseline
     private void optiRefine$renderModel(IBakedModel modelIn, int color) {
 
         this.renderModel(modelIn, color, ItemStack.EMPTY);
@@ -97,6 +109,7 @@ public abstract class MixinRenderItem {
 
     @Redirect(method = "renderQuads", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/color/ItemColors;colorMultiplier(Lnet/minecraft/item/ItemStack;I)I"))
     private int optiRefine$colorMultiplier(net.minecraft.client.renderer.color.ItemColors instance, ItemStack stack, int tintIndex) {
+// [AUDIT-OK] target renderQuads (SRG func_191970_a) ItemColors.colorMultiplier matches baseline; CustomColors hook matches OF
         int color = instance.colorMultiplier(stack, tintIndex);
         if (Config.isCustomColors()) {
             color = CustomColors.getColorFromItemStack(stack, tintIndex, color);
@@ -111,6 +124,7 @@ public abstract class MixinRenderItem {
      */
     @WrapMethod(method = "getItemModelWithOverrides")
     private IBakedModel optiRefine$getItemModelWithOverrides(ItemStack stack, @Nullable World worldIn, @Nullable EntityLivingBase entitylivingbaseIn, Operation<IBakedModel> original) {
+// [AUDIT-OK] target getItemModelWithOverrides (SRG func_184393_a) matches baseline; body == OF getItemModelWithOverrides
         IBakedModel ibakedmodel = this.itemModelMesher.getItemModel(stack);
         Item item = stack.getItem();
         if (Config.isCustomItems()) {
@@ -129,17 +143,20 @@ public abstract class MixinRenderItem {
 
     @Inject(method = "renderItemModel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/RenderItem;renderItem(Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/renderer/block/model/IBakedModel;)V", shift = At.Shift.BEFORE))
     private void optiRefine$setRenderOffHand(ItemStack stack, IBakedModel bakedModel, ItemCameraTransforms.TransformType transform, boolean leftHanded, CallbackInfo ci) {
+// [AUDIT-OK] target renderItemModel (SRG func_184394_a) renderItem(LItemStack;LIBakedModel;)V INVOKE matches baseline
         CustomItems.setRenderOffHand(leftHanded);
     }
 
     @Inject(method = "renderItemModel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/RenderItem;renderItem(Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/renderer/block/model/IBakedModel;)V", shift = At.Shift.AFTER))
     private void optiRefine$clearRenderOffHand(ItemStack stack, IBakedModel bakedModel, ItemCameraTransforms.TransformType transform, boolean leftHanded, CallbackInfo ci) {
+// [AUDIT-OK] target renderItemModel matches baseline
         CustomItems.setRenderOffHand(false);
     }
 
     @Inject(method = "renderItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/RenderItem;renderModel(Lnet/minecraft/client/renderer/block/model/IBakedModel;Lnet/minecraft/item/ItemStack;)V", shift = At.Shift.AFTER))
 
     private void optiRefine$renderEmissive(ItemStack stack, IBakedModel modelIn, CallbackInfo ci) {
+// [AUDIT-OK] target renderItem(LItemStack;LIBakedModel;)V (SRG func_180454_a) renderModel INVOKE matches baseline; emissive re-render matches OF
 
         if (this.renderModelHasEmissive) {
 
@@ -168,6 +185,7 @@ public abstract class MixinRenderItem {
      */
     @WrapMethod(method = "renderEffect")
     private void optiRefine$renderEffect(IBakedModel model, Operation<Void> original) {
+// [AUDIT-OK] target renderEffect (SRG func_191966_a) matches baseline; body == OF renderEffect (glint + ShadersRender)
         if (!Config.isCustomItems() || CustomItems.isUseGlint()) {
             if (!Config.isShaders() || !Shaders.isShadowPass) {
                 GlStateManager.depthMask(false);
@@ -210,6 +228,7 @@ public abstract class MixinRenderItem {
 
     @Redirect(method = "renderItemOverlayIntoGUI", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/math/MathHelper;hsvToRGB(FFF)I"))
     private int optiRefine$durabilityColor(float h, float s, float v) {
+// [AUDIT-OK] target renderItemOverlayIntoGUI (SRG func_180453_a) MathHelper.hsvToRGB matches baseline
         int color = net.minecraft.util.math.MathHelper.hsvToRGB(h, s, v);
         if (Config.isCustomColors()) {
             color = CustomColors.getDurabilityColor(h, color);

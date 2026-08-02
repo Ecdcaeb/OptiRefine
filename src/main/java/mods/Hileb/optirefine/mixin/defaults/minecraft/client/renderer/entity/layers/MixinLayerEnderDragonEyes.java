@@ -15,7 +15,9 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 @Mixin(LayerEnderDragonEyes.class)
 public abstract class MixinLayerEnderDragonEyes {
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
     @WrapOperation(method = "doRenderLayer(Lnet/minecraft/entity/boss/EntityDragon;FFFFFFF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/ModelBase;render(Lnet/minecraft/entity/Entity;FFFFFF)V"))
+    // [AUDIT-OK] ModelBase.render INVOKE unique; begin/endSpiderEyes + renderOverlayEyes match OF LayerEnderDragonEyes:33-41 (OF reuses beginSpiderEyes for dragon)
     public void wrap_render(ModelBase instance, Entity entity, float v0, float v1, float v2, float v3, float v4, float v5, Operation<Void> original){
         if (Config.isShaders()) {
             Shaders.beginSpiderEyes();

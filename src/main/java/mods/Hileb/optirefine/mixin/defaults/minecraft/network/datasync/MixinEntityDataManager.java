@@ -9,10 +9,14 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 @Mixin(EntityDataManager.class)
 public abstract class MixinEntityDataManager {
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
+
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Public
+// [AUDIT-OK] OF-added fields spawnBiome/spawnPosition (in OF EntityDataManager, not in baseline), MCP names match (baseline has neither)
     public Biome spawnBiome = Biomes.PLAINS;
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Public
+// [AUDIT-OK] OF-added field spawnPosition (in OF, not in baseline), initializer matches OF (BlockPos.ORIGIN)
     public BlockPos spawnPosition = BlockPos.ORIGIN;
 }

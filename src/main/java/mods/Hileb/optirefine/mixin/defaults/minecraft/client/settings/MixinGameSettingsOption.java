@@ -13,13 +13,16 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 @Mixin(GameSettings.Options.class)
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
 public abstract class MixinGameSettingsOption {
     @Unique
+    // [AUDIT-NOTE] dead @Unique fields (no longer used; enum creation unified via GameSettingsOptionOF)
     private static final Class<?>[] _optirefine_args0 = new Class[]{String.class, boolean.class, boolean.class};
     @Unique
     private static final Class<?>[] _optirefine_args1 = new Class[]{String.class, boolean.class, boolean.class, float.class, float.class, float.class};
 
     @SuppressWarnings("unused")
+    // [AUDIT-OK] OF-added enum constants (72 total, FOG_FANCY..SMART_ANIMATIONS); private static final + @Public; unified via GameSettingsOptionOF - NO EnumHelper.addEnum in this file (verified)
     @Public private static final GameSettings.Options FOG_FANCY = GameSettingsOptionOF.FOG_FANCY;
     @SuppressWarnings("unused")
     @Public private static final GameSettings.Options FOG_START = GameSettingsOptionOF.FOG_START;
@@ -28,10 +31,12 @@ public abstract class MixinGameSettingsOption {
     @SuppressWarnings("unused")
     @Public private static final GameSettings.Options SMOOTH_FPS = GameSettingsOptionOF.SMOOTH_FPS;
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
+    // [AUDIT-OK] OF-added enum constant (unified via GameSettingsOptionOF)
     @Public private static final GameSettings.Options CLOUDS = GameSettingsOptionOF.CLOUDS;
     @SuppressWarnings("unused")
     @Public private static final GameSettings.Options CLOUD_HEIGHT = GameSettingsOptionOF.CLOUD_HEIGHT;
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
+    // [AUDIT-OK] OF-added enum constant (unified via GameSettingsOptionOF)
     @Public private static final GameSettings.Options TREES = GameSettingsOptionOF.TREES;
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Public private static final GameSettings.Options RAIN = GameSettingsOptionOF.RAIN;
@@ -162,25 +167,31 @@ public abstract class MixinGameSettingsOption {
     @SuppressWarnings("unused")
     @Public private static final GameSettings.Options SHOW_GL_ERRORS = GameSettingsOptionOF.SHOW_GL_ERRORS;
     @SuppressWarnings("unused")
+    // [AUDIT-OK] OF-added enum constant (unified via GameSettingsOptionOF)
     @Public private static final GameSettings.Options SMART_ANIMATIONS = GameSettingsOptionOF.SMART_ANIMATIONS;
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.PUTFIELD, desc = "net.minecraft.client.settings.GameSettings$Options field_148271_N F", deobf = true)
+    // [AUDIT-OK] vanilla SRG field_148271_N = valueMin, deobf=true (per contract)
     private static native void Options_valueMin_set(GameSettings.Options options, float value);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.PUTFIELD, desc = "net.minecraft.client.settings.GameSettings$Options field_148272_O F", deobf = true)
+    // [AUDIT-OK] vanilla SRG field_148272_O = valueMax, deobf=true (per contract)
     private static native void Options_valueMax_set(GameSettings.Options options, float value);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessTransformer(name = "field_148270_M", access = Opcodes.ACC_PUBLIC, deobf = true)
+    // [AUDIT-OK] vanilla SRG field_148270_M = valueStep; AT access=ACC_PUBLIC REPLACES flags -> drops ACC_FINAL, making <clinit> PUTFIELD legal (matches "final drop" intent)
     private float acc_valueStep;
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.PUTFIELD, desc = "net.minecraft.client.settings.GameSettings$Options field_148270_M F", deobf = true)
+    // [AUDIT-OK] vanilla SRG field_148270_M = valueStep, deobf=true (per contract)
     private static native void Options_valueStep_set(GameSettings.Options options, float value);
 
     @Inject(method = "<clinit>", at = @At("TAIL"))
+    // [AUDIT-OK] target <clinit> static -> static handler; TAIL value table matches OF Options ctor defaults exactly (FOV 30/110/1, RENDER_DISTANCE 2/16/1, FRAMERATE_LIMIT 0/260/5, MIPMAP_LEVELS 0/4/1, MIPMAP_TYPE 0/3/1, FULLSCREEN_MODE 0/displayModes/1, AA_LEVEL 0/16/1, AF_LEVEL 1/16/1, default 0/1/0). Ordering OK: static field inits (EnumHelper via GameSettingsOptionOF) applied in MAIN pass before INJECT_APPLY TAIL handler -> values() includes OF constants
     private static void optiRefine$initOptionValues(CallbackInfo ci) {
         for (GameSettings.Options opt : GameSettings.Options.values()) {
             float min = 0.0F;

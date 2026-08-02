@@ -20,24 +20,32 @@ import java.nio.IntBuffer;
 
 @Mixin(RenderList.class)
 public abstract class MixinRenderList extends ChunkRenderContainer {
+// [AUDIT] 2026-08-03 — see AGENT.md; issues: 0
     @Unique
+// [AUDIT-OK] OF field viewEntityX equivalent (prefixed @Unique private, internal only)
     private double optiRefine$viewEntityX;
     @Unique
+// [AUDIT-OK] OF field viewEntityY equivalent
     private double optiRefine$viewEntityY;
     @Unique
+// [AUDIT-OK] OF field viewEntityZ equivalent
     private double optiRefine$viewEntityZ;
 
     @Unique
+// [AUDIT-OK] OF-added field (OF: package-private IntBuffer bufferLists), not in baseline
     IntBuffer bufferLists = GLAllocation.createDirectIntBuffer(16);
 
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.chunk.RenderChunk regionX I")
+// [AUDIT-OK] OF field RenderChunk.regionX (MixinRenderChunk @Unique public), not in baseline
     private static native int RenderChunk_regionX(RenderChunk r);
 
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.chunk.RenderChunk regionZ I")
+// [AUDIT-OK] OF field RenderChunk.regionZ, not in baseline
     private static native int RenderChunk_regionZ(RenderChunk r);
 
     @WrapMethod(method = "renderChunkLayer")
     private void addElseForRender(BlockRenderLayer layer, Operation<Void> original){
+// [AUDIT-OK] target renderChunkLayer(Lnet/minecraft/util/BlockRenderLayer;)V (SRG func_178001_a) matches baseline; body == OF RenderList.renderChunkLayer (region + multiTexture bindCurrentTexture)
         if (this.initialized) {
             if (!Config.isRenderRegions()) {
                 for (RenderChunk renderChunk : this.renderChunks) {
@@ -71,6 +79,7 @@ public abstract class MixinRenderList extends ChunkRenderContainer {
                     this.optiRefine$drawRegion(var2, var3, this.bufferLists);
                 }
             } if (Config.isMultiTexture()) {
+// [AUDIT-OK] OF member GlStateManager.bindCurrentTexture (MixinGlStateManager @Public), not in baseline
                 GlStateManager_bindCurrentTexture();
             }
 
@@ -82,6 +91,7 @@ public abstract class MixinRenderList extends ChunkRenderContainer {
 
     @Override
     public void initialize(double var1, double var3, double var5) {
+// [AUDIT-OK] overrides inherited ChunkRenderContainer.initialize (SRG func_178004_a), matches OF; super call valid
         this.optiRefine$viewEntityX = var1;
         this.optiRefine$viewEntityY = var3;
         this.optiRefine$viewEntityZ = var5;
@@ -89,6 +99,7 @@ public abstract class MixinRenderList extends ChunkRenderContainer {
     }
 
     @Unique
+// [AUDIT-OK] OF-added method (OF: private drawRegion), not in baseline
     private void optiRefine$drawRegion(int var1, int var2, IntBuffer var3) {
         GlStateManager.pushMatrix();
         this.preRenderRegion(var1, 0, var2);
@@ -100,6 +111,7 @@ public abstract class MixinRenderList extends ChunkRenderContainer {
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+// [AUDIT-OK] OF-added method (OF: public preRenderRegion), not in baseline
     public void preRenderRegion(int var1, int var2, int var3) {
         GlStateManager.translate((float)(var1 - this.optiRefine$viewEntityX), (float)(var2 - this.optiRefine$viewEntityY), (float)(var3 - this.optiRefine$viewEntityZ));
     }
@@ -113,5 +125,6 @@ public abstract class MixinRenderList extends ChunkRenderContainer {
     @AccessibleOperation.Reference(GlStateManager.class)
     @AccessibleOperation.Reference(IntBuffer.class)
     @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.client.renderer.GlStateManager callLists (Ljava.nio.IntBuffer;)V")
+// [AUDIT-OK] OF member GlStateManager.callLists (MixinGlStateManager @Public), not in baseline
     private static native void GlStateManager_callLists(IntBuffer intBuffer);
 }

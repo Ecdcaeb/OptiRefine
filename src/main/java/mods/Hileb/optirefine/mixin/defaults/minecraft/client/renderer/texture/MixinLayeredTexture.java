@@ -20,13 +20,16 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.awt.image.BufferedImage;
 @SuppressWarnings("MissingUnique")
 @Mixin(LayeredTexture.class)
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
 public abstract class MixinLayeredTexture {
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+    // [AUDIT-OK] OF-added field textureLocation (@Unique), not in baseline
     private ResourceLocation textureLocation;
 
     @Inject(method = "<init>", at = @At("RETURN"))
+    // [AUDIT-OK] target <init>([Ljava/lang/String;)V matches baseline; RETURN inject replicates OF ctor textureLocation init
     public void init(String[] textureNames, CallbackInfo ci){
         if (textureNames.length > 0 && textureNames[0] != null) {
             this.textureLocation = new ResourceLocation(textureNames[0]);
@@ -34,6 +37,7 @@ public abstract class MixinLayeredTexture {
     }
 
     @WrapOperation(method = "loadTexture", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/texture/TextureUtil;uploadTextureImage(ILjava/awt/image/BufferedImage;)I"))
+    // [AUDIT-OK] target loadTexture(IResourceManager)V matches baseline; wrap of uploadTextureImage INVOKE mirrors OF shaders branch
     public int onImageLoad(int textureId, BufferedImage texture, Operation<Integer> original, @Local(argsOnly = true)IResourceManager resourceManager ){
         if (Config.isShaders()) {
             return ShadersTex.loadSimpleTexture(textureId, texture, false, false, resourceManager, this.textureLocation, this.getMultiTexID());
@@ -44,5 +48,6 @@ public abstract class MixinLayeredTexture {
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.AbstractTexture getMultiTexID ()Lnet.optifine.shaders.MultiTexID;")
+    // [AUDIT-OK] OF member AbstractTexture.getMultiTexID(), MCP name
     public native MultiTexID getMultiTexID();
 }

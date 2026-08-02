@@ -25,8 +25,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Implements(net.optifine.entity.model.IEntityRenderer.class)
 @Mixin(Render.class)
 public abstract class MixinRender {
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
+    // [AUDIT-OK] OF-added fields entityClass/locationTextureCustom (OF Render:35-36)
     private Class<? extends Entity> entityClass = null;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
@@ -34,14 +36,17 @@ public abstract class MixinRender {
 
     @SuppressWarnings("unused")
     @AccessTransformer(name = "shadowSize", access = org.objectweb.asm.Opcodes.ACC_PUBLIC)
+    // [AUDIT-OK] AT shadowSize: vanilla protected (deobf:33) -> public, matches OF:32
     public float acc_shadowSize;
 
     @WrapOperation(method = "bindEntityTexture", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/Render;getEntityTexture(Lnet/minecraft/entity/Entity;)Lnet/minecraft/util/ResourceLocation;"))
+    // [AUDIT-OK] bindEntityTexture/getEntityTexture baseline; locationTextureCustom override matches OF:91-96
     private ResourceLocation optiRefine$customTexture(Render instance, Entity entity, Operation<ResourceLocation> original) {
         return this.locationTextureCustom != null ? this.locationTextureCustom : original.call(instance, entity);
     }
 
     @Inject(method = "renderEntityOnFire", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/BufferBuilder;begin(ILnet/minecraft/client/renderer/vertex/VertexFormat;)V"))
+    // [AUDIT-OK] renderEntityOnFire baseline; setBlockLayer(SOLID) before begin matches OF:129-131
     public void before_renderEntityOnFire(Entity entity, double x, double y, double z, float partialTicks, CallbackInfo ci, @Share(namespace = "optirefine", value = "multitexture")LocalBooleanRef multitextureRef, @Local(ordinal = 0) BufferBuilder builder){
         boolean multitexture = Config.isMultiTexture();
         if (multitexture) {
@@ -55,6 +60,7 @@ public abstract class MixinRender {
     private static native void BufferBuilder_setBlockLayer(BufferBuilder builder, BlockRenderLayer layer);
 
     @Inject(method = "renderEntityOnFire", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/Tessellator;draw()V"))
+    // [AUDIT-OK] setBlockLayer(null)+bindCurrentTexture after draw matches OF:163-164
     public void after_renderEntityOnFire(Entity entity, double x, double y, double z, float partialTicks, CallbackInfo ci, @Share(namespace = "optirefine", value = "multitexture")LocalBooleanRef multitextureRef, @Local(ordinal = 0) BufferBuilder builder){
         if (multitextureRef.get()) {
             BufferBuilder_setBlockLayer(builder, null);
@@ -68,6 +74,7 @@ public abstract class MixinRender {
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+    // [AUDIT-OK] OF-added IEntityRenderer members (OF:334-346)
     public Class<? extends Entity> getEntityClass() {
         return this.entityClass;
     }
@@ -91,6 +98,7 @@ public abstract class MixinRender {
     }
 
     @WrapMethod(method = "renderShadow")
+    // [AUDIT-OK] renderShadow baseline; shouldSkipDefaultShadow guard matches OF:172
     public void is_renderShadow(Entity entityIn, double x, double y, double z, float shadowAlpha, float partialTicks, Operation<Void> original){
         if (!Config.isShaders() || !Shaders.shouldSkipDefaultShadow) {
             original.call(entityIn, x, y, z, shadowAlpha, partialTicks);

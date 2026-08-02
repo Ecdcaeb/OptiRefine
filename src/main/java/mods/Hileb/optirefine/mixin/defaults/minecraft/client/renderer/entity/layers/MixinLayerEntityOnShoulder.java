@@ -25,12 +25,16 @@ import org.spongepowered.asm.mixin.injection.At;
 import java.util.UUID;
 @Mixin(LayerEntityOnShoulder.class)
 public abstract class MixinLayerEntityOnShoulder {
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
     @Shadow
+    // [AUDIT-OK] baseline member leftUniqueId (private UUID)
     private UUID leftUniqueId;
 
     @WrapOperation(method = "renderEntityOnShoulder", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/RenderLivingBase;bindTexture(Lnet/minecraft/util/ResourceLocation;)V"))
+    // [AUDIT-OK] renderEntityOnShoulder baseline (private, 15 args); bindTexture wrap + renderedEntity/nextEntity set matches OF:124-136
     public void texture_renderEntityOnShoulder(RenderLivingBase<?> instance, ResourceLocation location, Operation<Void> original,
                                                @Share(namespace = "optirefine", value = "entity")LocalRef<Entity> entityLocalRef, @Local(argsOnly = true) EntityPlayer p_192864_1_, @Local(argsOnly = true) UUID p_192864_2_){
+        // [AUDIT-OK] renderedEntity / entityShoulderLeft / entityShoulderRight are OF-added (not in tsrg) — MCP names correct; provided by MixinRenderGlobal @Public and MixinAbstractClientPlayer
         Entity renderedEntityOld = RenderGlobal_renderedEntity_get(Config.getRenderGlobal());
         if (p_192864_1_ instanceof AbstractClientPlayer acp) {
             Entity entityShoulder = p_192864_2_ == this.leftUniqueId ? AbstractClientPlayer_entityShoulderLeft_get(acp) : AbstractClientPlayer_entityShoulderRight_get(acp);
@@ -45,6 +49,7 @@ public abstract class MixinLayerEntityOnShoulder {
     }
 
     @WrapOperation(method = "renderEntityOnShoulder", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GlStateManager;popMatrix()V"))
+    // [AUDIT-OK] popMatrix wrap restores renderedEntity + nextEntity(old) matches OF:151-153
     public void end_renderEntityOnShoulder(Operation<Void> original,
                                                @Share(namespace = "optirefine", value = "entity")LocalRef<Entity> entityLocalRef){
         original.call();

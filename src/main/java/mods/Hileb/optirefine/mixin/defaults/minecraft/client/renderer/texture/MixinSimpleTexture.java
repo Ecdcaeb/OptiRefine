@@ -20,19 +20,23 @@ import org.spongepowered.asm.mixin.injection.At;
 
 import java.awt.image.BufferedImage;
 @Mixin(SimpleTexture.class)
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
 public abstract class MixinSimpleTexture {
 
     @Shadow @Final
+    // [AUDIT-OK] baseline member textureLocation exists in SimpleTexture
     protected ResourceLocation textureLocation;
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
+    // [AUDIT-OK] OF-added fields locationEmissive/isEmissive (@Unique), not in baseline
     public ResourceLocation locationEmissive;
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     public boolean isEmissive;
 
     @WrapOperation(method = "loadTexture", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/texture/TextureUtil;uploadTextureImageAllocate(ILjava/awt/image/BufferedImage;ZZ)I"))
+    // [AUDIT-OK] target loadTexture(IResourceManager)V matches baseline; wrap of uploadTextureImageAllocate INVOKE mirrors OF shaders/emissive branch
     public int _uploadTextureImageAllocate(int textureId, BufferedImage texture, boolean blur, boolean clamp, Operation<Integer> original, @Local(argsOnly = true)IResourceManager resourceManager){
         if (Config.isShaders()) {
             ShadersTex.loadSimpleTexture(textureId, texture, blur, clamp, resourceManager, this.textureLocation, this.getMultiTexID());
@@ -48,5 +52,6 @@ public abstract class MixinSimpleTexture {
 
     @SuppressWarnings({"MissingUnique", "AddedMixinMembersNamePattern"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.AbstractTexture getMultiTexID ()Lnet.optifine.shaders.MultiTexID;")
+    // [AUDIT-OK] OF member AbstractTexture.getMultiTexID()Lnet/optifine/shaders/MultiTexID; (provided by MixinAbstractTexture + MixinITextureObject default), MCP name
     public native MultiTexID getMultiTexID();
 }

@@ -20,28 +20,38 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
 @Mixin(AbstractClientPlayer.class)
 public abstract class MixinAbstractClientPlayer {
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
 
+
+// [AUDIT-OK] OF-added member (OF private ResourceLocation locationOfCape), not in baseline
     @Unique
     private ResourceLocation locationOfCape = null;
 
+// [AUDIT-OK] OF-added member, not in baseline
     @Unique
     private long reloadCapeTimeMs = 0L;
 
+// [AUDIT-OK] OF-added member, not in baseline
     @Unique
     private boolean elytraOfCape = false;
 
+// [AUDIT-OK] OF-added member, not in baseline
     @Unique
     private String nameClear = null;
 
+// [AUDIT-OK] OF-added public field, not in baseline; @Public needed for OF-jar access
     @Public
     public EntityShoulderRiding entityShoulderLeft;
 
+// [AUDIT-OK] OF-added public field, not in baseline; @Public needed for OF-jar access
     @Public
     public EntityShoulderRiding entityShoulderRight;
 
+// [AUDIT-OK] OF-added member, not in baseline; @Public informational (OF keeps private)
     @Public
     private static final ResourceLocation TEXTURE_ELYTRA = new ResourceLocation("textures/entity/elytra.png");
 
+// [AUDIT-OK] target ctor (Lnet/minecraft/world/World;Lcom/mojang/authlib/GameProfile;)V matches baseline
     @Inject(method = "<init>", at = @At("RETURN"))
     public void injectInit(World worldIn, GameProfile playerProfile, CallbackInfo ci){
         this.nameClear = playerProfile.getName();
@@ -54,6 +64,7 @@ public abstract class MixinAbstractClientPlayer {
     }
 
 
+// [AUDIT-OK] target getLocationCape()Lnet/minecraft/util/ResourceLocation; declared in baseline; instance handler
     @WrapMethod(method = "getLocationCape")
     public ResourceLocation injectGetLocationCape(Operation<ResourceLocation> original){
         if (!Config.isShowCapes()) {
@@ -71,21 +82,25 @@ public abstract class MixinAbstractClientPlayer {
         }
     }
 
+// [AUDIT-OK] OF-added API (getNameClear..setReloadCapeTimeMs), not in baseline; @Public for OF-jar access
     @Public
     public String getNameClear() {
         return this.nameClear;
     }
 
+// [AUDIT-OK] OF-added API, not in baseline
     @Public
     public ResourceLocation getLocationOfCape() {
         return this.locationOfCape;
     }
 
+// [AUDIT-OK] OF-added API, not in baseline
     @Public
     public void setLocationOfCape(ResourceLocation locationOfCape) {
         this.locationOfCape = locationOfCape;
     }
 
+// [AUDIT-OK] OF-added API, not in baseline
     @Public
     public boolean hasElytraCape() {
         ResourceLocation loc = ((AbstractClientPlayer)(Object)this).getLocationCape();
@@ -98,21 +113,25 @@ public abstract class MixinAbstractClientPlayer {
         return true;
     }
 
+// [AUDIT-OK] OF-added API, not in baseline
     @Public
     public void setElytraOfCape(boolean elytraOfCape) {
         this.elytraOfCape = elytraOfCape;
     }
 
+// [AUDIT-OK] OF-added API, not in baseline
     @Public
     public boolean isElytraOfCape() {
         return this.elytraOfCape;
     }
 
+// [AUDIT-OK] OF-added API, not in baseline
     @Public
     public long getReloadCapeTimeMs() {
         return this.reloadCapeTimeMs;
     }
 
+// [AUDIT-OK] OF-added API, not in baseline
     @Public
     public void setReloadCapeTimeMs(long reloadCapeTimeMs) {
         this.reloadCapeTimeMs = reloadCapeTimeMs;

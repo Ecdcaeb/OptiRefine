@@ -14,7 +14,10 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(GuiCustomizeSkin.class)
 public abstract class MixinGuiCustomizeSkin extends GuiScreen {
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
 
+
+// [AUDIT-OK] target initGui() matches baseline; @Local int i captured at TAIL (single live int); adds OF cape button 210
     @Inject(method = "initGui", at = @At(value = "TAIL"))
     public void injectInitGui(CallbackInfo ci, @Local LocalIntRef lvt_1_1_){
         GuiButtonOF of = new GuiButtonOF(210, this.width / 2 - 100, this.height / 6 + 24 * (lvt_1_1_.get() >> 1), I18n.format("of.options.skinCustomisation.ofCape"));
@@ -24,6 +27,7 @@ public abstract class MixinGuiCustomizeSkin extends GuiScreen {
         done.y = this.height / 6 + 24 * (lvt_1_1_.get() >> 1);
     }
 
+// [AUDIT-OK] target actionPerformed(GuiButton) matches baseline; matches OF button 210 handling
     @Inject(method = "actionPerformed", at = @At("HEAD"))
     public void injectActionPerformed(GuiButton button, CallbackInfo ci){
         if (button.enabled) {

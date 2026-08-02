@@ -7,6 +7,9 @@ import org.spongepowered.asm.mixin.Mixin;
 @SuppressWarnings("ALL")
 @Mixin(GuiIngameForge.class)
 public abstract class MixinGuiIngameForge extends GuiIngame {
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
+// [AUDIT-OK] empty shell (registered, no members) - MixinModelRotation-like
+
 
     public MixinGuiIngameForge(Minecraft p_i46325_1_) {
         super(p_i46325_1_);

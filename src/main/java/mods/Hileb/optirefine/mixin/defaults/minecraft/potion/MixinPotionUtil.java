@@ -15,8 +15,11 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import java.util.Collection;
 @Mixin(PotionUtils.class)
 public abstract class MixinPotionUtil {
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
+
 
     @WrapOperation(method = "getPotionColorFromEffectList", at = @At(value = "INVOKE", target = "Lnet/minecraft/potion/Potion;getLiquidColor()I"))
+// [AUDIT-OK] getLiquidColor custom-color wrap matches OF PotionUtils (CustomColors.getPotionColor per effect)
     private static int injectGetPotionColorFromEffectList(Potion instance, Operation<Integer> original){
         int k = original.call(instance);
         if (Config.isCustomColors()) {
@@ -26,6 +29,7 @@ public abstract class MixinPotionUtil {
     }
 
     @WrapMethod(method = "getPotionColorFromEffectList")
+// [AUDIT-OK] empty-list branch matches OF (3694022 / CustomColors.getPotionColor(null, 3694022))
     private static int wrapGetPotionColorFromEffectList(Collection<PotionEffect> p_185181_0_, Operation<Integer> original){
         if (p_185181_0_.isEmpty()) {
             return Config.isCustomColors() ? CustomColors.getPotionColor(null, 3694022) : 3694022;

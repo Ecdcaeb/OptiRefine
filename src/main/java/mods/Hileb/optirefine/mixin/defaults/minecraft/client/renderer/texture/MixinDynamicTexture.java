@@ -17,20 +17,25 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 @SuppressWarnings("ALL")
 @Mixin(DynamicTexture.class)
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
 public abstract class MixinDynamicTexture extends AbstractTexture {
 
     @Mutable
     @Shadow @Final
+    // [AUDIT-OK] baseline member dynamicTextureData exists in DynamicTexture (@Mutable permits 3x realloc)
     private int[] dynamicTextureData;
     @Shadow @Final
+    // [AUDIT-OK] baseline members width/height exist in DynamicTexture
     private int width;
     @Shadow @Final
     private int height;
 
     @Unique
+    // [AUDIT-OK] OF-added field shadersInitialized (@Unique), not in baseline
     private boolean shadersInitialized = false;
 
     @Redirect(method = "<init>(II)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/texture/TextureUtil;allocateTexture(III)V"))
+    // [AUDIT-OK] target <init>(II)V matches baseline; redirect of allocateTexture replicates OF ctor (dynamicTextureData expanded to width*height*3 + ShadersTex.initDynamicTexture)
     public void afterConstructed(int glTextureId, int textureWidth, int textureHeight){
         if (Config.isShaders()) {
             if (this.dynamicTextureData == null || this.dynamicTextureData.length < textureWidth * textureHeight * 3) {
@@ -45,6 +50,7 @@ public abstract class MixinDynamicTexture extends AbstractTexture {
     }
 
     @Redirect(method = "updateDynamicTexture", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/texture/TextureUtil;uploadTexture(I[III)V"))
+    // [AUDIT-OK] target updateDynamicTexture()V matches baseline; redirect of uploadTexture mirrors OF (lazy shaders init + ShadersTex.updateDynamicTexture)
     public void onUpdate(int glTextureId, int[] textureData, int width, int height){
         if (Config.isShaders()) {
             if (!this.shadersInitialized) {
@@ -59,6 +65,7 @@ public abstract class MixinDynamicTexture extends AbstractTexture {
     }
 
     @AccessibleOperation(opcode = Opcodes.NOP)
+    // [AUDIT-OK] NOP cast helper: call removed, preceding aload(this) remains as arg (semantically identical)
     private native static DynamicTexture DynamicTexture_cast(MixinDynamicTexture obj);
 }
 

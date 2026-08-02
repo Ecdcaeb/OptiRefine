@@ -53,114 +53,153 @@ import java.util.Set;
  */
 @Mixin(RenderGlobal.class)
 public abstract class MixinRenderGlobal {
+// [AUDIT] 2026-08-03 — see AGENT.md; issues: 2
 
     // ===== new fields =====
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
+// [AUDIT-OK] OF-added field, not in baseline (@Public)
     public boolean renderOverlayDamaged = false;
     // ===== cross-class private access =====
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.GETSTATIC, desc = "net.minecraft.client.renderer.RenderGlobal renderEntitiesCounter I")
+// [AUDIT-OK] OF member renderEntitiesCounter (static, mixin-provided @Public below)
     private static native int RenderGlobal_renderEntitiesCounter_get();
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.PUTSTATIC, desc = "net.minecraft.client.renderer.RenderGlobal renderEntitiesCounter I")
+// [AUDIT-OK] OF member renderEntitiesCounter, not in baseline
     private static native void RenderGlobal_renderEntitiesCounter_set(int value);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.EntityRenderer fogStandard Z")
+// [AUDIT-OK] OF member fogStandard, not in baseline (MixinEntityRenderer @Unique provides)
     private static native boolean EntityRenderer_fogStandard_get(net.minecraft.client.renderer.EntityRenderer entityRenderer);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.client.renderer.entity.RenderItemFrame updateItemRenderDistance ()V")
+// [AUDIT-OK] OF member updateItemRenderDistance()V, not in baseline (MixinRenderItemFrame provides)
     private static native void RenderItemFrame_updateItemRenderDistance();
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.client.renderer.tileentity.TileEntitySignRenderer updateTextRenderDistance ()V")
+// [AUDIT-OK] OF member updateTextRenderDistance()V, not in baseline (MixinTileEntitySignRenderer provides)
     private static native void TileEntitySignRenderer_updateTextRenderDistance();
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.RenderGlobal getCountLoadedChunks ()I")
+// [AUDIT-OK] OF member getCountLoadedChunks()I, not in baseline (mixin-provided @Public)
     private static native int RenderGlobal_getCountLoadedChunks(RenderGlobal renderGlobal);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.RenderGlobal getCountChunksToUpdate ()I")
+// [AUDIT-OK] OF member getCountChunksToUpdate()I, not in baseline (mixin-provided @Public)
     private static native int RenderGlobal_getCountChunksToUpdate(RenderGlobal renderGlobal);
 
     @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.RenderGlobal func_184384_n ()Z")
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.RenderGlobal func_184384_n ()Z", deobf = true)
+// [AUDIT-ISSUE] vanilla SRG func_184384_n = hasNoChunkUpdates verified, but deobf=true missing -> devrun (MCP runtime) breaks; SRG runtime OK
     private static native boolean RenderGlobal_hasNoChunkUpdates(RenderGlobal renderGlobal);
 
     @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.multiplayer.ChunkProviderClient field_73236_b Lit/unimi/dsi/fastutil/longs/Long2ObjectMap;")
+    @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.multiplayer.ChunkProviderClient field_73236_b Lit/unimi/dsi/fastutil/longs/Long2ObjectMap;", deobf = true)
+// [AUDIT-ISSUE] vanilla SRG field_73236_b = loadedChunks verified, but deobf=true missing -> devrun breaks; SRG runtime OK
     private static native Long2ObjectMap ChunkProviderClient_loadedChunks_get(ChunkProviderClient chunkProviderClient);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.chunk.RenderChunk getChunk ()Lnet/minecraft/world/chunk/Chunk;")
+// [AUDIT-OK] OF-added RenderChunk.getChunk(), not in baseline (MixinRenderChunk provides)
     private static native net.minecraft.world.chunk.Chunk RenderChunk_getChunk(RenderChunk renderChunk);
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
+// [AUDIT-OK] OF-added field, not in baseline (@Public static)
     private static int renderEntitiesCounter = 0;
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Public
+// [AUDIT-OK] OF-added method, not in baseline
     public int getCountLoadedChunks() {
         return this.world == null ? 0 : ChunkProviderClient_loadedChunks_get(this.world.getChunkProvider()).size();
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Public
+// [AUDIT-OK] OF-added method, not in baseline
     public int getCountChunksToUpdate() {
         return this.chunksToUpdate.size();
     }
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
+// [AUDIT-OK] OF-added field, not in baseline (@Public)
     public boolean renderOverlayEyes = false;
 
     // ===== shadowed fields =====
 
     @Shadow
+// [AUDIT-OK] baseline member mc (SRG field_72777_q)
     private Minecraft mc;
     @Shadow
+// [AUDIT-OK] baseline member world (SRG field_72769_h)
     private WorldClient world;
     @Shadow
+// [AUDIT-OK] baseline member renderManager (SRG field_175010_j)
     private RenderManager renderManager;
     @Shadow
+// [AUDIT-OK] baseline member renderEntitiesStartupCounter (SRG field_72740_G)
     private int renderEntitiesStartupCounter;
     @Shadow
+// [AUDIT-OK] baseline member countEntitiesTotal (SRG field_72748_H)
     private int countEntitiesTotal;
     @Shadow
+// [AUDIT-OK] baseline member countEntitiesRendered (SRG field_72749_I)
     private int countEntitiesRendered;
     @Shadow
+// [AUDIT-OK] baseline member countEntitiesHidden (SRG field_72750_J)
     private int countEntitiesHidden;
     @Public
+// [AUDIT-OK] OF-added field, not in baseline (@Public lifts visibility)
     private int countTileEntitiesRendered;
     @Public
+// [AUDIT-OK] OF-added field, not in baseline (@Public)
     private Entity renderedEntity;
     @Shadow
+// [AUDIT-OK] baseline member entityOutlinesRendered (SRG field_184386_ad)
     private boolean entityOutlinesRendered;
     @Public
+// [AUDIT-OK] OF-added field, not in baseline (@Public; OF keeps private)
     private List<RenderGlobal.ContainerLocalRenderInformation> renderInfosEntities;
     @Public
+// [AUDIT-OK] OF-added field, not in baseline (@Public; OF keeps private)
     private List<RenderGlobal.ContainerLocalRenderInformation> renderInfosTileEntities;
     @Shadow
+// [AUDIT-OK] baseline member setTileEntities (SRG field_181024_n)
     private Set<TileEntity> setTileEntities;
     @Shadow
+// [AUDIT-OK] baseline member damagedBlocks (SRG field_72738_E)
     private java.util.Map<Integer, net.minecraft.client.renderer.DestroyBlockProgress> damagedBlocks;
 
     @Shadow
+// [AUDIT-OK] baseline member chunksToUpdate (SRG field_175009_l)
     private java.util.Set<net.minecraft.client.renderer.chunk.RenderChunk> chunksToUpdate;
 
     @Shadow
+// [AUDIT-OK] baseline member renderDispatcher (SRG field_174995_M)
     private net.minecraft.client.renderer.chunk.ChunkRenderDispatcher renderDispatcher;
 
     @Shadow
+// [AUDIT-OK] baseline member loadRenderers (func_72712_a)
+    public abstract void loadRenderers();
+
+    @Shadow
+// [AUDIT-OK] baseline member isRenderEntityOutlines()Z (SRG func_174985_d)
     protected abstract boolean isRenderEntityOutlines();
     @Shadow
+// [AUDIT-OK] baseline member preRenderDamagedBlocks()V (SRG func_180443_s)
     protected abstract void preRenderDamagedBlocks();
     @Shadow
+// [AUDIT-OK] baseline member postRenderDamagedBlocks()V (SRG func_174969_t)
     protected abstract void postRenderDamagedBlocks();
 
     /**
@@ -169,6 +208,7 @@ public abstract class MixinRenderGlobal {
      */
     @WrapMethod(method = "renderEntities")
     private void optiRefine$renderEntities(Entity entityIn, ICamera camera, float partialTicks, Operation<Void> original) {
+// [AUDIT-OK] target renderEntities(LEntity;LICamera;F)V = func_180446_a; OF body incl. Forge pass hooks (pass/shouldRenderInPass/preDrawBatch/drawBatch) preserved
         int pass = MinecraftForgeClient.getRenderPass();
         if (this.renderEntitiesStartupCounter > 0) {
             if (pass > 0) {
@@ -410,15 +450,32 @@ public abstract class MixinRenderGlobal {
     }
 
     @Shadow
+// [AUDIT-OK] baseline member isOutlineActive(LEntity;LEntity;LICamera;)Z (SRG func_184383_a)
     protected abstract boolean isOutlineActive(Entity entity, Entity viewEntity, ICamera camera);
 
     @Shadow
+// [AUDIT-OK] baseline member entityOutlineFramebuffer (SRG field_175015_z)
     private net.minecraft.client.shader.Framebuffer entityOutlineFramebuffer;
     @Shadow
+// [AUDIT-OK] baseline member entityOutlineShader (SRG field_174991_A)
     private net.minecraft.client.shader.ShaderGroup entityOutlineShader;
+
+    @Unique
+    private boolean firstWorldLoad = false;
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
+// [AUDIT-OK] OF-added method (patch/optifine RenderGlobal:3060), invoked by MixinPacketThreadUtil
+    public void onPlayerPositionSet() {
+        if (this.firstWorldLoad) {
+            this.loadRenderers();
+            this.firstWorldLoad = false;
+        }
+    }
+
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
+    @Unique
+// [AUDIT-OK] OF-added method, not in baseline
     public void pauseChunkUpdates() {
         if (this.renderDispatcher != null) {
             ChunkRenderDispatcher_pauseChunkUpdates(this.renderDispatcher);
@@ -427,6 +484,7 @@ public abstract class MixinRenderGlobal {
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
+// [AUDIT-OK] OF-added method, not in baseline
     public void resumeChunkUpdates() {
         if (this.renderDispatcher != null) {
             ChunkRenderDispatcher_resumeChunkUpdates(this.renderDispatcher);
@@ -435,10 +493,12 @@ public abstract class MixinRenderGlobal {
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher pauseChunkUpdates ()V")
+// [AUDIT-OK] OF member pauseChunkUpdates()V, not in baseline (MixinChunkRenderDispatcher provides)
     private static native void ChunkRenderDispatcher_pauseChunkUpdates(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher dispatcher);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher resumeChunkUpdates ()V")
+// [AUDIT-OK] OF member resumeChunkUpdates()V, not in baseline
     private static native void ChunkRenderDispatcher_resumeChunkUpdates(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher dispatcher);
 
 }

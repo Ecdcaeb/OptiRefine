@@ -44,9 +44,11 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 @Mixin(GameSettings.class)
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 4
 public abstract class MixinGameSettings {
 
     @Unique
+    // [AUDIT-OK] OF-added fields (ofFogType..ofAnimatedTextures; 80+), not in baseline
     public int ofFogType = 1;
     @Unique
     public float ofFogStart = 0.8F;
@@ -189,6 +191,7 @@ public abstract class MixinGameSettings {
     @Unique
     public boolean ofAnimatedTextures = true;
     @Public
+    // [AUDIT-OK] OF-added static constants DEFAULT/FAST/FANCY/OFF/SMART (private static + @Public per mixin rule)
     private static final int DEFAULT = 0;
     @Public
     private static final int FAST = 1;
@@ -199,41 +202,52 @@ public abstract class MixinGameSettings {
     @Public
     private static final int SMART = 4;
     @Public
+    // [AUDIT-OK] OF-added static constants ANIM_ON/ANIM_GENERATED/ANIM_OFF (private static + @Public)
     private static final int ANIM_ON = 0;
     @Public
     private static final int ANIM_GENERATED = 1;
     @Public
     private static final int ANIM_OFF = 2;
     @Public
+    // [AUDIT-OK] OF-added static constant DEFAULT_STR (private static + @Public)
     private static final String DEFAULT_STR = "Default";
     @Unique
+    // [AUDIT-OK] OF-added static arrays OF_TREES_VALUES/OF_DYNAMIC_LIGHTS/KEYS_DYNAMIC_LIGHTS (matches OF values)
     private static final int[] OF_TREES_VALUES = new int[]{0, 1, 4, 2};
     @Unique
     private static final int[] OF_DYNAMIC_LIGHTS = new int[]{3, 1, 2};
     @Unique
     private static final String[] KEYS_DYNAMIC_LIGHTS = new String[]{"options.off", "options.graphics.fast", "options.graphics.fancy"};
     @Unique
+    // [AUDIT-OK] OF-added fields ofKeyBindZoom/optionsFileOF (@Unique), not in baseline
     public KeyBinding ofKeyBindZoom;
     @Unique
     private File optionsFileOF;
 
     @Shadow
+    // [AUDIT-OK] baseline member limitFramerate exists in GameSettings
     public int limitFramerate;
     @Shadow
+    // [AUDIT-OK] baseline member keyBindings exists in GameSettings
     public KeyBinding[] keyBindings;
     @Shadow
+    // [AUDIT-OK] baseline member renderDistanceChunks exists in GameSettings
     public int renderDistanceChunks;
 
     @Shadow
+    // [AUDIT-OK] baseline member guiScale exists in GameSettings
     public int guiScale;
 
     @Shadow
+    // [AUDIT-OK] baseline member mc exists in GameSettings
     protected Minecraft mc;
 
     @AccessibleOperation
+    // [AUDIT-OK] NOP cast helper (call removed, arg stays)
     private static native GameSettings cast_GameSettings(Object o);
 
     @ModifyConstant(method = "<init>(Lnet/minecraft/client/Minecraft;Ljava/io/File;)V", constant = @Constant(floatValue = 32.0f))
+    // [AUDIT-OK] target <init>(Minecraft,File)V; 32.0F unique in ctor; constant->48/64 folds OF memory-based setValueMax upgrades
     public float make_RENDER_DISTANCE(float constant){
         long var3 = 1000000L;
         if (Runtime.getRuntime().maxMemory() >= 1500L * var3) {
@@ -246,6 +260,7 @@ public abstract class MixinGameSettings {
     }
 
     @Inject(method = "setOptionValue", at = @At("HEAD"))
+    // [AUDIT-OK] target setOptionValue(Options,I)V matches baseline; HEAD inject calls OF setOptionValueOF first like OF
     public void fosetOptionValue(GameSettings.Options settingsOption, int value, CallbackInfo ci) {
         this.optiRefine$setOptionValueOF(settingsOption, value);
     }
@@ -253,6 +268,7 @@ public abstract class MixinGameSettings {
     @Definition(id = "guiScale", field = "Lnet/minecraft/client/settings/GameSettings;guiScale:I")
     @Expression("this.guiScale = @(?)")
     @ModifyExpressionValue(method = "setOptionValue", at = @At("MIXINEXTRAS:EXPRESSION"))
+    // [AUDIT-OK] target setOptionValue; guiScale expression rewrite replicates OF GUI_SCALE block
     public int addGuiScaleByConfig(int original, @Local(argsOnly = true) int value) {
         this.guiScale += value;
         if (GuiScreen.isShiftKeyDown()) {
@@ -278,9 +294,11 @@ public abstract class MixinGameSettings {
     }
 
     @Shadow
+    // [AUDIT-OK] baseline member anaglyph exists in GameSettings
     public boolean anaglyph;
 
     @WrapOperation(method = "setOptionValue", at = @At(value = "INVOKE", target = "Lnet/minecraftforge/fml/client/FMLClientHandler;refreshResources([Lnet/minecraftforge/client/resource/IResourceType;)V"))
+    // [AUDIT-OK] target setOptionValue; anaglyph+shaders guard matches OF (toggle already applied by vanilla body before wrap)
     public void notReloadForShader(FMLClientHandler instance, IResourceType[] inclusion, Operation<Void> original) {
         if (this.anaglyph && Config.isShaders()) {
             Config.showGuiMessage(Lang.get("of.message.an.shaders1"), Lang.get("of.message.an.shaders2"));
@@ -290,12 +308,14 @@ public abstract class MixinGameSettings {
         }
     }
 
-    @Inject(method = "setOptionValue", at = @At(value = "FIELD", target = "Lnet/minecraft/client/settings/GameSettings;fancyGraphics:Z"))
+    @Inject(method = "setOptionValue", at = @At(value = "FIELD", target = "Lnet/minecraft/client/settings/GameSettings;fancyGraphics:Z", shift = At.Shift.AFTER))
+    // [AUDIT-FIXED] FIELD inject shift AFTER: runs after `fancyGraphics = !fancyGraphics` -> updateRenderClouds sees the toggled value (OF semantics)
     public void hookForupdateRenderClouds(GameSettings.Options settingsOption, int value, CallbackInfo ci) {
         this.optiRefine$updateRenderClouds();
     }
 
     @WrapMethod(method = "loadOptions")
+    // [AUDIT-ISSUE] OF ctor forces renderDistanceChunks=8 BEFORE loadOptions; mixin omits it -> fresh installs default 12 (64-bit) instead of 8. Also optionsFileOF = Launch.minecraftHome vs OF new File(optionsFile.parent, "optionsof.txt") (same dir normally; needs-verification)
     public void hookForoadOfOptions(Operation<Void> original) {
         boolean init = this.optionsFileOF == null;
         if (init) {
@@ -312,15 +332,18 @@ public abstract class MixinGameSettings {
     }
 
     @WrapOperation(method = "saveOptions", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/settings/GameSettings;sendSettingsToServer()V"))
+    // [AUDIT-OK] target saveOptions()V; saveOfOptions before sendSettingsToServer matches OF order
     public void hookFor_saveOfOptions(GameSettings instance, Operation<Void> original) {
         this.saveOfOptions();
         original.call(instance);
     }
 
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.RenderGlobal resetClouds ()V")
+    // [AUDIT-OK] OF member RenderGlobal.resetClouds()V (OF RenderGlobal:2998), MCP name (not in tsrg)
     private static native void RenderGlobal_resetClouds(RenderGlobal renderGlobal);
 
     @Unique
+    // [AUDIT-ISSUE] DEAD CODE: defined but never invoked - no WrapMethod/Inject on setOptionFloatValue/getOptionFloatValue -> OF float options (CLOUD_HEIGHT/AO_LEVEL/AA_LEVEL/AF_LEVEL/MIPMAP_TYPE/FULLSCREEN_MODE) not dispatched (sliders no-op, show 0.0F). Fix: WrapMethod both vanilla methods calling OF-* helper first (mirror OF setOptionFloatValue/getOptionFloatValue)
     private void optiRefine$setOptionFloatValueOF(GameSettings.Options option, float val) {
         if (option == GameSettingsOptionOF.CLOUD_HEIGHT) {
             this.ofCloudsHeight = val;
@@ -387,9 +410,11 @@ public abstract class MixinGameSettings {
     }
 
     @Shadow
+    // [AUDIT-OK] baseline member enableVsync exists in GameSettings
     public boolean enableVsync;
 
     @Unique
+    // [AUDIT-ISSUE] DEAD CODE: same as setOptionFloatValueOF - never called; getOptionFloatValue never dispatches to OF branch. Fix: WrapMethod getOptionFloatValue (return OF value if != Float.MAX_VALUE, else original)
     private float optiRefine$getOptionFloatValueOF(GameSettings.Options settingOption) {
         if (settingOption == GameSettingsOptionOF.CLOUD_HEIGHT) {
             return this.ofCloudsHeight;
@@ -418,10 +443,12 @@ public abstract class MixinGameSettings {
 
 
     @AccessibleOperation(opcode = Opcodes.PUTSTATIC, desc = "net.minecraft.util.math.MathHelper fastMath Z")
+    // [AUDIT-OK] OF field MathHelper.fastMath Z (OF MathHelper:19), MCP name (not in tsrg)
     private static native void MathHelper_fastMath_set(boolean b);
 
 
     @Unique
+    // [AUDIT-OK] body mirrors OF setOptionValueOF; all GameSettingsOptionOF.* constants verified present in GameSettingsOptionOF.java (72/72, no missing/mismatched)
     private void optiRefine$setOptionValueOF(GameSettings.Options par1EnumOptions, int par2) {
         if (par1EnumOptions == GameSettingsOptionOF.FOG_FANCY) {
             switch (this.ofFogType) {
@@ -820,6 +847,7 @@ public abstract class MixinGameSettings {
     public abstract float getOptionFloatValue(GameSettings.Options settingOption);
 
     @WrapMethod(method = "getKeyBinding")
+    // [AUDIT-OK] target getKeyBinding(Options)Ljava/lang/String; matches baseline; OF-first dispatch mirrors OF getKeyBinding
     public String getKeyBindingOFForged(GameSettings.Options settingOption, Operation<String> original){
         String str = getKeyBindingOF(settingOption);
         if (str != null) {
@@ -831,6 +859,7 @@ public abstract class MixinGameSettings {
 
     @Unique
     @SuppressWarnings("AddedMixinMembersNamePattern")
+    // [AUDIT-OK] branch chain mirrors OF getKeyBindingOF; every GameSettingsOptionOF.* constant exists in GameSettingsOptionOF.java; FRAMERATE_LIMIT branch uses Options_valueMax_get like OF
     private String getKeyBindingOF(GameSettings.Options par1EnumOptions) {
         String var2 = I18n.hasKey(par1EnumOptions.getTranslation()) ? I18n.format(par1EnumOptions.getTranslation()) + ": " : par1EnumOptions.getTranslation();
 
@@ -1103,16 +1132,20 @@ public abstract class MixinGameSettings {
 
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.settings.GameSettings$Options field_148272_O F")
+    // [AUDIT-OK] vanilla SRG field_148272_O = GameSettings$Options.valueMax; missing deobf=true (devrun only)
     private static native float Options_valueMax_get(GameSettings.Options options);
 
     @Shadow
+    // [AUDIT-OK] baseline member getTranslation (static) exists in GameSettings
     private static native String getTranslation(String[] strArray, int index) ;
 
     @Shadow
+    // [AUDIT-OK] baseline member optionsFile exists in GameSettings
     private File optionsFile;
 
     @Unique
     @SuppressWarnings("AddedMixinMembersNamePattern")
+    // [AUDIT-OK] OF-added @Unique method loadOfOptions; key bounds verified vs OF (ofRenderDistanceChunks 2..1024, ofFogStart 0.2..0.8, etc.)
     public void loadOfOptions() {
         try {
             File ofReadFile = this.optionsFileOF;
@@ -1470,6 +1503,7 @@ public abstract class MixinGameSettings {
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+    // [AUDIT-OK] OF-added @Unique method saveOfOptions; key set matches OF
     public void saveOfOptions() {
         try {
             PrintWriter printwriter = new PrintWriter(new OutputStreamWriter(new FileOutputStream(this.optionsFileOF), StandardCharsets.UTF_8));
@@ -1553,12 +1587,15 @@ public abstract class MixinGameSettings {
     }
 
     @Shadow
+    // [AUDIT-OK] baseline member clouds exists in GameSettings
     public int clouds;
 
     @Shadow
+    // [AUDIT-OK] baseline member fancyGraphics exists in GameSettings
     public boolean fancyGraphics;
 
     @Unique
+    // [AUDIT-OK] OF-added @Unique method updateRenderClouds, body matches OF
     private void optiRefine$updateRenderClouds() {
         switch (this.ofClouds) {
             case 1:
@@ -1582,6 +1619,7 @@ public abstract class MixinGameSettings {
 
 
     @Shadow
+    // [AUDIT-OK] baseline members forceUnicodeFont/useVbo/viewBobbing/mipmapLevels/ambientOcclusion/fovSetting/gammaSetting/particleSetting exist in GameSettings
     public boolean forceUnicodeFont;
 
     @Shadow
@@ -1607,6 +1645,7 @@ public abstract class MixinGameSettings {
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+    // [AUDIT-OK] OF-added @Unique method resetSettings, body matches OF (incl. Shaders.setShaderPack("OFF")/uninit/storeConfig)
     public void resetSettings() {
         this.renderDistanceChunks = 8;
         this.viewBobbing = true;
@@ -1706,15 +1745,18 @@ public abstract class MixinGameSettings {
     }
 
     @Shadow
+    // [AUDIT-OK] baseline member saveOptions exists in GameSettings
     public native void saveOptions();
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+    // [AUDIT-OK] OF-added @Unique method updateVSync, matches OF
     public void updateVSync() {
         Display.setVSyncEnabled(this.enableVsync);
     }
 
     @Unique
+    // [AUDIT-OK] OF-added @Unique method updateWaterOpacity, matches OF
     private void optiRefine$updateWaterOpacity() {
         if (Config.isIntegratedServerRunning()) {
             Config.waterOpacityChanged = true;
@@ -1725,6 +1767,7 @@ public abstract class MixinGameSettings {
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+    // [AUDIT-OK] OF-added @Unique method setAllAnimations, matches OF
     public void setAllAnimations(boolean flag) {
         int animVal = flag ? 0 : 2;
         this.ofAnimatedWater = animVal;
@@ -1748,6 +1791,7 @@ public abstract class MixinGameSettings {
     }
 
     @Unique
+    // [AUDIT-OK] OF-added @Unique static helper nextValue, matches OF
     private static int optiRefine$nextValue(int val, int[] vals) {
         int index = org.apache.commons.lang3.ArrayUtils.indexOf(vals, val);
         if (index < 0) {
@@ -1762,6 +1806,7 @@ public abstract class MixinGameSettings {
     }
 
     @Unique
+    // [AUDIT-OK] OF-added @Unique static helper limit, matches OF
     private static int optiRefine$limit(int val, int[] vals) {
         int index = org.apache.commons.lang3.ArrayUtils.indexOf(vals, val);
         return index < 0 ? vals[0] : val;

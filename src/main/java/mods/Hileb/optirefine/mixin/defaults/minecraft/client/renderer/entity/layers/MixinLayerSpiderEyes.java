@@ -15,13 +15,16 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 @Mixin(LayerSpiderEyes.class)
 public abstract class MixinLayerSpiderEyes {
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
 
     @WrapOperation(method = "doRenderLayer(Lnet/minecraft/entity/monster/EntitySpider;FFFFFFF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/ModelBase;render(Lnet/minecraft/entity/Entity;FFFFFF)V"))
+    // [AUDIT-OK] ModelBase.render INVOKE unique; begin/endSpiderEyes + renderOverlayEyes=true/false match OF:33-44
     public void wrap_render(ModelBase instance, Entity entityIn, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, float scale, Operation<Void> original){
         if (Config.isShaders()) {
             Shaders.beginSpiderEyes();
         }
 
+        // [AUDIT-OK] RenderGlobal.renderOverlayEyes is OF-added (OF RenderGlobal:207) — MCP name, no deobf correct; field provided by MixinRenderGlobal @Public
         RenderGlobal_renderOverlayEyes_set(Config.getRenderGlobal(), true);
         instance.render(entityIn, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scale);
         RenderGlobal_renderOverlayEyes_set(Config.getRenderGlobal(), false);

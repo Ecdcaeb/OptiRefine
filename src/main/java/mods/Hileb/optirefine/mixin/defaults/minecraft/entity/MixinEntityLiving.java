@@ -17,8 +17,11 @@ import org.spongepowered.asm.mixin.Unique;
 import java.util.UUID;
 @Mixin(EntityLiving.class)
 public abstract class MixinEntityLiving extends EntityLivingBase {
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 1
+
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+// [AUDIT-OK] OF-added fields teamUuid/teamUuidString (in OF EntityLiving, not in baseline), MCP names match
     private UUID teamUuid = null;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
@@ -30,6 +33,7 @@ public abstract class MixinEntityLiving extends EntityLivingBase {
     }
 
     @WrapMethod(method = "onUpdate")
+// [AUDIT-OK] onUpdate wrap matches OF (skip -> onUpdateMinimal, else full vanilla body incl. super.onUpdate())
     public void injectOnUpdate(Operation<Void> original){
         if (Config.isSmoothWorld() && this.canSkipUpdate()) {
             this.onUpdateMinimal();
@@ -40,6 +44,7 @@ public abstract class MixinEntityLiving extends EntityLivingBase {
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+// [AUDIT-ISSUE] missing OF null-world guard (OF: if (getEntityWorld() == null) return false before playerEntities.size()) - minor NPE risk, same for getFirst() vs OF get(0)
     private boolean canSkipUpdate() {
         if (this.isChild()) {
             return false;
@@ -49,6 +54,9 @@ public abstract class MixinEntityLiving extends EntityLivingBase {
             return false;
         } else {
             World world = this.getEntityWorld();
+            if (world == null) {
+                return false;
+            }
             if (world.playerEntities.size() != 1) {
                 return false;
             } else {
@@ -63,6 +71,7 @@ public abstract class MixinEntityLiving extends EntityLivingBase {
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+// [AUDIT-OK] matches OF onUpdateMinimal (idleTime++, EntityMob brightness >0.5F -> idleTime+=2, despawnEntity)
     private void onUpdateMinimal() {
         ++this.idleTime;
         if (_cast_EntityLiving() instanceof EntityMob && this.getBrightness() > 0.5f) {
@@ -72,9 +81,11 @@ public abstract class MixinEntityLiving extends EntityLivingBase {
     }
 
     @Shadow
+// [AUDIT-OK] baseline member despawnEntity exists in target class
     protected abstract void despawnEntity();
 
     @Override
+// [AUDIT-OK] OF-added override (target EntityLiving does not declare getTeam - inherited from Entity - so plain merge applies), body matches OF uuid-caching
     public Team getTeam() {
         UUID uuid = _cast_EntityLiving().getUniqueID();
         if (this.teamUuid != uuid) {
@@ -87,6 +98,7 @@ public abstract class MixinEntityLiving extends EntityLivingBase {
 
     @Unique
     @AccessibleOperation
+// [AUDIT-OK] NOP AccessibleOperation = self-cast idiom (call removed by processor, receiver "this" stays on stack); works because mixin instance IS the EntityLiving
     private EntityLiving _cast_EntityLiving() {throw new AbstractMethodError();}
 
 

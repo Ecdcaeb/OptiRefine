@@ -21,9 +21,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(BakedQuad.class)
 public abstract class MixinBakedQuad {
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
 
     @Unique
     @AccessTransformer(name = "field_178215_a", deobf = true)
+    // [AUDIT-OK] AT fields: field_178215_a vertexData / field_178213_b tintIndex / field_178214_c face / field_187509_d sprite (tsrg, SRG+deobf) and format / applyDiffuseLighting (Forge-added, tsrg-less, MCP) — all present in runtime (cleanroom BakedQuad patch)
     public int[] optirefine$acc_vertexData;
 
     @Unique
@@ -46,6 +48,7 @@ public abstract class MixinBakedQuad {
 
 
     @Shadow @Final @Mutable
+    // [AUDIT-OK] baseline members vertexData/tintIndex/face/sprite declared in BakedQuad (protected final, deobf:11-14); @Mutable for fixVertexData rewrite
     protected int[] vertexData;
     @Shadow @Final @Mutable
     protected int tintIndex;
@@ -64,11 +67,13 @@ public abstract class MixinBakedQuad {
     private BakedQuad quadEmissive;
 
     @Inject(method = "<init>([IILnet/minecraft/util/EnumFacing;Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;ZLnet/minecraft/client/renderer/vertex/VertexFormat;)V", at = @At("RETURN"))
+    // [AUDIT-OK] 6-arg ctor (int[],int,EnumFacing,TextureAtlasSprite,boolean,VertexFormat) added by cleanroom BakedQuad patch — target exists
     public void init(int[] vertexDataIn, int tintIndexIn, EnumFacing faceIn, TextureAtlasSprite spriteIn, boolean applyDiffuseLighting, VertexFormat format, CallbackInfo ci){
         this.fixVertexData();
     }
 
     @ModifyReturnValue(method = "getSprite", at = @At("RETURN"))
+    // [AUDIT-OK] target getSprite() baseline; null->getSpriteByUv matches OF:43-45
     public TextureAtlasSprite $getSprite(TextureAtlasSprite orv) {
         if (orv == null) {
             return this.sprite = optiRefine$getSpriteByUv(this.getVertexData());
@@ -77,6 +82,7 @@ public abstract class MixinBakedQuad {
     }
 
     @Inject(method = "getVertexData", at = @At("HEAD"))
+    // [AUDIT-OK] target getVertexData() baseline (deobf:29)
     public void beforeGetVertexData(CallbackInfoReturnable<int[]> cir){
         this.fixVertexData();
     }
@@ -85,6 +91,7 @@ public abstract class MixinBakedQuad {
     public abstract int[] getVertexData();
 
     @ModifyReturnValue(method = "getFace", at = @At("RETURN"))
+    // [AUDIT-OK] target getFace() baseline (deobf:44); null->getFacingFromVertexData matches OF:64-66
     public EnumFacing $getSprite(EnumFacing original) {
         if (original == null) {
             return this.face = FaceBakery.getFacingFromVertexData(this.getVertexData());
@@ -96,6 +103,7 @@ public abstract class MixinBakedQuad {
 
     @Unique
     @SuppressWarnings("AddedMixinMembersNamePattern")
+    // [AUDIT-OK] OF-added member (OF:72); toSingleU/toSingleV/getIconByUV are OF members (MCP, no deobf) provided by MixinTextureAtlasSprite/MixinTextureMap
     public int[] getVertexDataSingle() {
         if (this.vertexDataSingle == null) {
             this.vertexDataSingle = optiRefine$makeVertexDataSingle(this.getVertexData(), this.getSprite());
@@ -159,6 +167,7 @@ public abstract class MixinBakedQuad {
 
     @Unique
     @SuppressWarnings("AddedMixinMembersNamePattern")
+    // [AUDIT-OK] OF-added member (OF:131, protected); 28<->56 expand/compact matches OF shader formats
     protected void fixVertexData() {
         if (Config.isShaders()) {
             if (this.vertexData.length == 28) {
@@ -197,6 +206,7 @@ public abstract class MixinBakedQuad {
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+    // [AUDIT-OK] OF-added members getQuadBounds/getMidX/getMidY/getMidZ/isFaceQuad/isFullQuad/isFullFaceQuad (OF:165-199)
     public QuadBounds getQuadBounds() {
         if (this.quadBounds == null) {
             this.quadBounds = new QuadBounds(this.getVertexData());
@@ -248,6 +258,7 @@ public abstract class MixinBakedQuad {
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+    // [AUDIT-OK] OF-added member (OF:202); TextureAtlasSprite.spriteEmissive OF-added (provided by MixinTextureAtlasSprite)
     public BakedQuad getQuadEmissive() {
         if (this.quadEmissiveChecked) {
             return this.quadEmissive;
@@ -268,6 +279,7 @@ public abstract class MixinBakedQuad {
     private static native TextureAtlasSprite TextureAtlasSprite_spriteEmissive_get(TextureAtlasSprite textureAtlasSprite);
 
     @Override
+    // [AUDIT-OK] OF overrides toString (OF:215); nit: no @Unique — merged as added member (warns AddedMixinMembersNamePattern)
     public String toString() {
         return "vertex: " + this.vertexData.length / 7 + ", tint: " + this.tintIndex + ", facing: " + this.face + ", sprite: " + this.sprite;
     }

@@ -40,25 +40,33 @@ import javax.annotation.Nonnull;
 import java.util.Set;
 @Mixin(WorldClient.class)
 public abstract class MixinWorldClient extends World {
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
 
+
+// [AUDIT-OK] baseline member mc exists in target class
     @Shadow @Final
     private Minecraft mc;
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
+// [AUDIT-OK] OF-added member, not in baseline
     @Unique
     private int playerChunkX = Integer.MIN_VALUE;
     @SuppressWarnings("AddedMixinMembersNamePattern")
+// [AUDIT-OK] OF-added member, not in baseline
     @Unique
     private int playerChunkY = Integer.MIN_VALUE;
     @SuppressWarnings("AddedMixinMembersNamePattern")
+// [AUDIT-OK] OF-added member, not in baseline
     @Unique
     private boolean playerUpdate = false;
 
     // Ignored
+// [AUDIT-NOTE] ctor only satisfies mixin-extends-World hierarchy; not applied at runtime
     protected MixinWorldClient(ISaveHandler p_i45749_1_, WorldInfo p_i45749_2_, WorldProvider p_i45749_3_, Profiler p_i45749_4_, boolean p_i45749_5_) {
         super(p_i45749_1_, p_i45749_2_, p_i45749_3_, p_i45749_4_, p_i45749_5_);
     }
 
+// [AUDIT-OK] target ctor (Lnet/minecraft/client/network/NetHandlerPlayClient;Lnet/minecraft/world/WorldSettings;ILnet/minecraft/world/EnumDifficulty;Lnet/minecraft/profiler/Profiler;)V matches baseline
     @Inject(method = "<init>", at = @At("RETURN"))
     public void injectInit(NetHandlerPlayClient netHandler, WorldSettings settings, int dimension, EnumDifficulty difficulty, Profiler profilerIn, CallbackInfo ci){
         if (this.mc.playerController != null && this.mc.playerController.getClass() == PlayerControllerMP.class) {
@@ -67,6 +75,7 @@ public abstract class MixinWorldClient extends World {
         }
     }
 
+// [AUDIT-OK] target refreshVisibleChunks()V declared in baseline; replicates OF chunk-dirty check
     @WrapMethod(method = "refreshVisibleChunks")
     public void injectRefreshVisibleChunks(Operation<Void> original){
         int cx = MathHelper.floor(this.mc.player.posX / 16.0);
@@ -80,6 +89,7 @@ public abstract class MixinWorldClient extends World {
 
     @Definition(id = "ambienceTicks", field = "Lnet/minecraft/client/multiplayer/WorldClient;ambienceTicks:I")
     @Expression("this.ambienceTicks == 0")
+// [AUDIT-OK] target playMoodSoundAndCheckLight(IILnet/minecraft/world/chunk/Chunk;)V matches baseline; ambienceTicks==0 expression present; folds OF player-null/distance guards
     @ModifyExpressionValue(method = "playMoodSoundAndCheckLight", at = @At("MIXINEXTRAS:EXPRESSION")) // TODO
     public boolean injectPlayMoodSoundAndCheckLight(boolean ambienceTicksIs0, @Local(argsOnly = true) Chunk chunkIn){
         if (ambienceTicksIs0) {
@@ -88,6 +98,7 @@ public abstract class MixinWorldClient extends World {
         } else return false;
     }
 
+// [AUDIT-OK] OF-added override (inherited from World, not declared in baseline WorldClient), not in baseline; @Public for OF-jar access
     @Public
     @Override
     public int getCombinedLight(@Nonnull BlockPos pos, int lightValue) {
@@ -99,6 +110,7 @@ public abstract class MixinWorldClient extends World {
         return combinedLight;
     }
 
+// [AUDIT-OK] OF-added override (inherited from World), not in baseline; @Public for OF-jar access
     @Public
     @Override
     public boolean setBlockState(@Nonnull BlockPos pos, @Nonnull  IBlockState newState, int flags) {
@@ -109,6 +121,7 @@ public abstract class MixinWorldClient extends World {
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
+// [AUDIT-OK] OF-added member (OF private isPlayerActing), not in baseline; @Public informational
     @Public
     private boolean isPlayerActing() {
         if (this.mc.playerController instanceof PlayerControllerOF controlOF) {
@@ -118,6 +131,7 @@ public abstract class MixinWorldClient extends World {
         }
     }
 
+// [AUDIT-OK] OF-added API (OF public isPlayerUpdate), not in baseline; @Public for OF-jar access
     @Public
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     public boolean isPlayerUpdate() {

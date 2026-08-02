@@ -9,8 +9,10 @@ import org.spongepowered.asm.mixin.Unique;
 @Implements(IEntityRenderer.class)
 @Mixin(TileEntitySpecialRenderer.class)
 public abstract class MixinTileEntitySpecialRenderer{
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+    // [AUDIT-OK] OF-added IEntityRenderer fields/methods (OF TESR:30-31,90-103); @Implements matches OF 'implements IEntityRenderer'
     private Class<?> tileEntityClass = null;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique

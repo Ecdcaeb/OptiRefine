@@ -14,44 +14,57 @@ import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 @Mixin(ModelBox.class)
 public abstract class MixinModelBox {
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
+
+// [AUDIT-OK] baseline member vertexPositions exists in target class
     @Mutable
     @Shadow @Final
     private PositionTextureVertex[] vertexPositions;
+// [AUDIT-OK] baseline member quadList exists in target class
     @Mutable
     @Shadow @Final
     private TexturedQuad[] quadList;
+// [AUDIT-OK] baseline member posX1 exists in target class
     @Mutable
     @SuppressWarnings("unused")
     @Shadow @Final
     public float posX1;
+// [AUDIT-OK] baseline member posY1 exists in target class
     @Mutable
     @SuppressWarnings("unused")
     @Shadow @Final
     public float posY1;
+// [AUDIT-OK] baseline member posZ1 exists in target class
     @Mutable
     @SuppressWarnings("unused")
     @Shadow @Final
     public float posZ1;
+// [AUDIT-OK] baseline member posX2 exists in target class
     @Mutable
     @SuppressWarnings("unused")
     @Shadow @Final
     public float posX2;
+// [AUDIT-OK] baseline member posY2 exists in target class
     @Mutable
     @SuppressWarnings("unused")
     @Shadow @Final
     public float posY2;
+// [AUDIT-OK] baseline member posZ2 exists in target class
     @Mutable
     @SuppressWarnings("unused")
     @Shadow @Final
     public float posZ2;
     @SuppressWarnings("unused")
+// [AUDIT-OK] baseline member boxName exists in target class
     @Shadow
     public String boxName;
 
+// [AUDIT-OK] @ShadowSuper("<init>") rewrites to INVOKESPECIAL Object.<init> (cursed lib)
     @ShadowSuper("<init>")
     public void _Object(){}
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern", "MissingUnique"})
+// [AUDIT-OK] @NewConstructor adds ctor (ModelRenderer,int[][],7xF,Z) matching OF ModelBox ctor; no collision with baseline ctors
     @NewConstructor
     @Public
     public void _ModelBox(ModelRenderer renderer, int[][] faceUvs, float x, float y, float z, float dx, float dy, float dz, float delta, boolean mirror) {
@@ -121,6 +134,7 @@ public abstract class MixinModelBox {
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
+// [AUDIT-OK] OF-added helper, not in baseline
     @Unique
     private TexturedQuad makeTexturedQuad(
             PositionTextureVertex[] positionTextureVertexs, int[] faceUvs, boolean reverseUV, float textureWidth, float textureHeight
@@ -134,6 +148,7 @@ public abstract class MixinModelBox {
         }
     }
 
+// [AUDIT-OK] target render(Lnet/minecraft/client/renderer/BufferBuilder;F)V matches baseline; TexturedQuad.draw invokes present; nullable-guard replicates OF
     @WrapOperation(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/TexturedQuad;draw(Lnet/minecraft/client/renderer/BufferBuilder;F)V"))
     public void makeRenderNullable(TexturedQuad instance, BufferBuilder i, float v, Operation<Void> original){
         if (instance != null) {

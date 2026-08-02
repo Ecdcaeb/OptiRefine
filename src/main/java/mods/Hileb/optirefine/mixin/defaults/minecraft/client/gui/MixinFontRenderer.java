@@ -41,99 +41,129 @@ import java.util.function.Predicate;
 
 
 @SuppressWarnings("deprecation")
+// [AUDIT-NOTE] @Implements replaces IResourceManagerReloadListener with ISelectiveResourceReloadListener (Forge reload chain); @WrapMethod bridges vanilla method
 @Implements(
         value = ISelectiveResourceReloadListener.class,
         removes = net.minecraft.client.resources.IResourceManagerReloadListener.class
 )
 @Mixin(FontRenderer.class)
 public abstract class MixinFontRenderer implements ISelectiveResourceReloadListener {
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 1
 
 
+
+// [AUDIT-OK] baseline member locationFontTexture exists in target class
     @Shadow
     @Final
     @Mutable
     protected ResourceLocation locationFontTexture;
 
+// [AUDIT-OK] baseline member charWidth exists in target class
     @Shadow
     @Final
     protected int[] charWidth;
 
+// [AUDIT-OK] baseline member glyphWidth exists in target class
     @Shadow
     @Final
     protected byte[] glyphWidth;
 
+// [AUDIT-OK] baseline member colorCode exists in target class
     @Shadow
     @Final
     private int[] colorCode;
 
+// [AUDIT-OK] baseline member posX exists in target class
     @Shadow
     protected float posX;
 
+// [AUDIT-OK] baseline member posY exists in target class
     @Shadow
     protected float posY;
 
+// [AUDIT-OK] baseline member unicodeFlag exists in target class
     @Shadow
     private boolean unicodeFlag;
 
+// [AUDIT-OK] baseline member randomStyle exists in target class
     @Shadow
     private boolean randomStyle;
 
+// [AUDIT-OK] baseline member boldStyle exists in target class
     @Shadow
     private boolean boldStyle;
 
+// [AUDIT-OK] baseline member italicStyle exists in target class
     @Shadow
     private boolean italicStyle;
 
+// [AUDIT-OK] baseline member underlineStyle exists in target class
     @Shadow
     private boolean underlineStyle;
 
+// [AUDIT-OK] baseline member strikethroughStyle exists in target class
     @Shadow
     private boolean strikethroughStyle;
 
+// [AUDIT-OK] baseline member textColor exists in target class
     @Shadow
     private int textColor;
 
+// [AUDIT-OK] baseline member red exists in target class
     @Shadow
     private float red;
 
+// [AUDIT-OK] baseline member blue exists in target class
     @Shadow
     private float blue;
 
+// [AUDIT-OK] baseline member green exists in target class
     @Shadow
     private float green;
 
+// [AUDIT-OK] baseline member alpha exists in target class
     @Shadow
     private float alpha;
 
+// [AUDIT-OK] baseline member renderEngine exists in target class
     @Shadow
     @Final
     private TextureManager renderEngine;
 
+// [AUDIT-OK] baseline member UNICODE_PAGE_LOCATIONS exists in target class
     @Shadow
     @Final
     private static ResourceLocation[] UNICODE_PAGE_LOCATIONS;
 
+// [AUDIT-OK] baseline method resetStyles()V declared in FontRenderer
     @Shadow
     protected abstract void resetStyles();
 
+// [AUDIT-OK] baseline method renderUnicodeChar(CI)F declared in FontRenderer
     @Shadow
     protected abstract float renderUnicodeChar(char ch, boolean italic);
 
+// [AUDIT-OK] OF-added member (OF FontRenderer public GameSettings gameSettings), not in baseline; @Public for OF-jar access
     @Public
     public GameSettings gameSettings;
 
+// [AUDIT-OK] OF-added member, not in baseline
     @Unique
     public ResourceLocation locationFontTextureBase;
 
+// [AUDIT-OK] OF-added member, not in baseline
     @Unique
     public float offsetBold = 1.0F;
 
+// [AUDIT-OK] OF-added member, not in baseline
     @Unique
     private final float[] charWidthFloat = new float[256];
 
+// [AUDIT-OK] OF-added member, not in baseline
     @Unique
     private boolean blend = false;
 
+// [AUDIT-OK] OF-added member, not in baseline
     @Unique
     private final GlBlendState oldBlendState = new GlBlendState();
 
@@ -144,13 +174,18 @@ public abstract class MixinFontRenderer implements ISelectiveResourceReloadListe
                     "ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜø£Ø×ƒáíóúñÑªº¿®¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αβΓπΣσμτΦΘΩδ∞∅∈∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■\u0000";
 
 
+// [AUDIT-FIXED] CTOR_HEAD(unsafe) runs before mixin-added field initializers: charWidthFloat null-guarded now; fill redundant with readFontTextureHead
     @Inject(method = "<init>", at = @At(value = "CTOR_HEAD", unsafe = true))
     private void optiRefine$ctorHead(GameSettings gs, ResourceLocation base, TextureManager tm, boolean unicode, CallbackInfo ci) {
         this.gameSettings = gs;
         this.locationFontTextureBase = base;
-        Arrays.fill(this.charWidthFloat, -1.0F);
+        // CTOR_HEAD runs before mixin-added field initializers; charWidthFloat may still be null
+        if (this.charWidthFloat != null) {
+            Arrays.fill(this.charWidthFloat, -1.0F);
+        }
     }
 
+// [AUDIT-OK] target ctor (GameSettings,ResourceLocation,TextureManager,Z) matches baseline; bindTexture invoke present
     @WrapOperation(
             method = "<init>",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/texture/TextureManager;bindTexture(Lnet/minecraft/util/ResourceLocation;)V")
@@ -161,19 +196,23 @@ public abstract class MixinFontRenderer implements ISelectiveResourceReloadListe
     }
 
 
+// [AUDIT-OK] target onResourceManagerReload(IResourceManager)V declared in baseline FontRenderer
     @WrapMethod(method = "onResourceManagerReload(Lnet/minecraft/client/resources/IResourceManager;)V")
     private void optiRefine$onReloadBridge(IResourceManager rm, Operation<Void> original) {
         this.onResourceManagerReload(rm, SelectiveReloadStateHandler.INSTANCE.get());
     }
 
+// [AUDIT-OK] baseline method readGlyphSizes()V declared in FontRenderer
     @Shadow
     private void readGlyphSizes() {
     }
 
+// [AUDIT-OK] baseline method readFontTexture()V declared in FontRenderer
     @Shadow
     private void readFontTexture() {
     }
 
+// [AUDIT-OK] new ISelectiveResourceReloadListener method (OF semantics: HD font + glyph reload)
     @Override
     public void onResourceManagerReload(IResourceManager rm, Predicate<IResourceType> predicate) {
         this.readGlyphSizes();
@@ -184,6 +223,7 @@ public abstract class MixinFontRenderer implements ISelectiveResourceReloadListe
         }
     }
 
+// [AUDIT-OK] target readFontTexture()V matches baseline
     @Inject(method = "readFontTexture", at = @At("HEAD"))
     private void optiRefine$readFontTextureHead(
             CallbackInfo ci,
@@ -197,6 +237,7 @@ public abstract class MixinFontRenderer implements ISelectiveResourceReloadListe
         Arrays.fill(this.charWidthFloat, -1.0F);
     }
 
+// [AUDIT-OK] target readFontTexture()V matches baseline
     @Inject(method = "readFontTexture", at = @At("TAIL"))
     private void optiRefine$readFontTextureTail(
             CallbackInfo ci,
@@ -209,6 +250,7 @@ public abstract class MixinFontRenderer implements ISelectiveResourceReloadListe
         }
     }
 
+// [AUDIT-OK] getRGB(IIII[III)[I invoke present in baseline readFontTexture; handler params match
     @WrapOperation(
             method = "readFontTexture",
             at = @At(value = "INVOKE", target = "Ljava/awt/image/BufferedImage;getRGB(IIII[III)[I")
@@ -274,6 +316,7 @@ public abstract class MixinFontRenderer implements ISelectiveResourceReloadListe
     }
 
     @Definition(id = "charWidth", field = "Lnet/minecraft/client/gui/FontRenderer;charWidth:[I")
+// [AUDIT-OK] expression matches baseline readFontTexture charWidth writes
     @Expression("this.charWidth[?] = ?")
     @WrapOperation(method = "readFontTexture", at = @At("MIXINEXTRAS:EXPRESSION"))
     private void optiRefine$guardCharWidthWrite(int[] array, int index, int value, Operation<Void> original) {
@@ -284,6 +327,7 @@ public abstract class MixinFontRenderer implements ISelectiveResourceReloadListe
 
 
 
+// [AUDIT-OK] target getUnicodePageLocation(I) matches baseline; NEW ResourceLocation(String) invoke present
     @WrapOperation(
             method = "getUnicodePageLocation",
             at = @At(value = "NEW", target = "(Ljava/lang/String;)Lnet/minecraft/util/ResourceLocation;")
@@ -295,6 +339,7 @@ public abstract class MixinFontRenderer implements ISelectiveResourceReloadListe
 
 
     @Definition(id = "colorCode", field = "Lnet/minecraft/client/gui/FontRenderer;colorCode:[I")
+// [AUDIT-OK] expression matches baseline renderStringAtPos colorCode read
     @Expression("this.colorCode[?]")
     @WrapOperation(method = "renderStringAtPos", at = @At("MIXINEXTRAS:EXPRESSION"))
     private int optiRefine$colorCodeHook(int[] array, int idx, Operation<Integer> original) {
@@ -305,23 +350,28 @@ public abstract class MixinFontRenderer implements ISelectiveResourceReloadListe
         return v;
     }
 
+// [AUDIT-OK] target renderChar(CI)F matches baseline; single float-4.0F constant (space branch)
     @ModifyConstant(method = "renderChar", constant = @Constant(floatValue = 4.0F))
     private float optiRefine$renderCharSpaceWidth(float constant, char ch) {
         return (!this.unicodeFlag) ? this.charWidthFloat[ch] : 4.0F;
     }
 
+// [AUDIT-OK] expression matches baseline renderDefaultChar "(float)l - 0.01F"
     @Expression("? = @((float)? - 0.01)")
     @ModifyExpressionValue(method = "renderDefaultChar", at = @At("MIXINEXTRAS:EXPRESSION"))
     private float optiRefine$renderDefaultCharUseFloat(float original, @Local(argsOnly = true) int ch) {
         return this.charWidthFloat[ch] - 0.01F;
     }
 
+// [AUDIT-OK] OF-added member (not in tsrg): MCP name setBlendState correct
     @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.client.renderer.GlStateManager setBlendState (Lnet.optifine.render.GlBlendState;)V")
     private static native void optiRefine$setBlendState(GlBlendState glBlendState);
 
+// [AUDIT-OK] OF-added member (not in tsrg): MCP name getBlendState correct
     @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.client.renderer.GlStateManager getBlendState (Lnet.optifine.render.GlBlendState;)V")
     private static native void optiRefine$getBlendState(GlBlendState glBlendState);
 
+// [AUDIT-OK] target drawString(Ljava/lang/String;FFIZ)I declared in baseline
     @WrapMethod(method = "drawString(Ljava/lang/String;FFIZ)I")
     private int optiRefine$drawStringBlend(String text, float x, float y, int color, boolean dropShadow, Operation<Integer> original) {
         if (!this.blend) return original.call(text, x, y, color, dropShadow);
@@ -336,6 +386,7 @@ public abstract class MixinFontRenderer implements ISelectiveResourceReloadListe
         return ret;
     }
 
+// [AUDIT-OK] target drawSplitString(Ljava/lang/String;IIII)V declared in baseline
     @WrapMethod(method = "drawSplitString")
     private void optiRefine$drawSplitStringBlend(String str, int x, int y, int wrapWidth, int textColor, Operation<Void> original) {
         if (this.blend) {
@@ -351,6 +402,7 @@ public abstract class MixinFontRenderer implements ISelectiveResourceReloadListe
         }
     }
 
+// [AUDIT-OK] target wrapFormattedStringToWidth(Ljava/lang/String;I) matches baseline; sizeStringToWidth invoke present
     @WrapOperation(
             method = "wrapFormattedStringToWidth",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/FontRenderer;sizeStringToWidth(Ljava/lang/String;I)I")
@@ -360,6 +412,7 @@ public abstract class MixinFontRenderer implements ISelectiveResourceReloadListe
         return original.call(self, s, width);
     }
 
+// [AUDIT-OK] OF-added helper, not in baseline
     @Unique
     private float optiRefine$getCharWidthFloat(char ch) {
         if (ch == 167) return -1.0F; // '§'
@@ -381,11 +434,13 @@ public abstract class MixinFontRenderer implements ISelectiveResourceReloadListe
         return 0.0F;
     }
 
+// [AUDIT-OK] target getCharWidth(C)I declared in baseline
     @WrapMethod(method = "getCharWidth")
     private int optiRefine$getCharWidth(char ch, Operation<Integer> original) {
         return Math.round(this.optiRefine$getCharWidthFloat(ch));
     }
 
+// [AUDIT-OK] target getStringWidth(Ljava/lang/String;)I declared in baseline
     @WrapMethod(method = "getStringWidth")
     private int optiRefine$getStringWidth(String text, Operation<Integer> original) {
         if (text == null) return 0;
@@ -414,6 +469,7 @@ public abstract class MixinFontRenderer implements ISelectiveResourceReloadListe
         return Math.round(w);
     }
 
+// [AUDIT-OK] target trimStringToWidth(Ljava/lang/String;IZ)Ljava/lang/String; declared in baseline
     @WrapMethod(method = "trimStringToWidth(Ljava/lang/String;IZ)Ljava/lang/String;")
     private String optiRefine$trimStringToWidth(String text, int width, boolean reverse, Operation<String> original) {
         if (text == null) return "";
@@ -453,6 +509,7 @@ public abstract class MixinFontRenderer implements ISelectiveResourceReloadListe
         return out.toString();
     }
 
+// [AUDIT-OK] target sizeStringToWidth(Ljava/lang/String;I)I declared in baseline
     @WrapMethod(method = "sizeStringToWidth")
     private int optiRefine$sizeStringToWidth(String str, int wrapWidth, Operation<Integer> original) {
         int len = str.length();
@@ -505,6 +562,7 @@ public abstract class MixinFontRenderer implements ISelectiveResourceReloadListe
         return i != len && lastSpace != -1 && lastSpace < i ? lastSpace : i;
     }
 
+// [AUDIT-OK] target renderChar(CI)F declared in baseline
     @WrapMethod(method = "renderChar")
     private float optiRefine$renderChar(char ch, boolean italic, Operation<Float> original) {
         if (ch == ' ' || ch == 160) {
@@ -513,12 +571,14 @@ public abstract class MixinFontRenderer implements ISelectiveResourceReloadListe
         return original.call(ch, italic);
     }
 
+// [AUDIT-OK] expression matches baseline renderStringAtPos "(float)((int)f)"
     @Expression("(float)((int)?)")
     @ModifyExpressionValue(method = "renderStringAtPos", at = @At("MIXINEXTRAS:EXPRESSION"))
     private float optiRefine$renderStringAtPosFloatStep(float truncated, @Local(ordinal = 1) float f) {
         return f;
     }
 
+// [AUDIT-OK] target getColorCode(C)I declared in baseline
     @WrapMethod(method = "getColorCode")
     private int optiRefine$getColorCode(char character, Operation<Integer> original) {
         int idx = "0123456789abcdef".indexOf(character);

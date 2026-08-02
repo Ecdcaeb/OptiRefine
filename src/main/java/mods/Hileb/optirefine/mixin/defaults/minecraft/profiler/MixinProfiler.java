@@ -19,14 +19,19 @@ import java.util.List;
 import java.util.function.Supplier;
 @Mixin(Profiler.class)
 public abstract class MixinProfiler {
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 2
+
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
+// [AUDIT-OK] OF-added field profilerGlobalEnabled (in OF Profiler, not in baseline), MCP name matches
     public boolean profilerGlobalEnabled = true;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+// [AUDIT-OK] OF-added field profilerLocalEnabled, matches OF init (snapshot of global)
     private boolean profilerLocalEnabled = this.profilerGlobalEnabled;
     @SuppressWarnings("unused")
     @Unique
+// [AUDIT-OK] OF-added constants SCHEDULED_EXECUTABLES/TICK/PRE_RENDER_ERRORS/RENDER/DISPLAY, match OF
     private static final String SCHEDULED_EXECUTABLES = "scheduledExecutables";
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
@@ -41,6 +46,7 @@ public abstract class MixinProfiler {
     @Unique
     private static final String DISPLAY = "display";
     @Unique
+// [AUDIT-OK] OF-added hash constants, match OF
     private static final int HASH_SCHEDULED_EXECUTABLES = "scheduledExecutables".hashCode();
     @Unique
     private static final int HASH_TICK = "tick".hashCode();
@@ -52,11 +58,13 @@ public abstract class MixinProfiler {
     private static final int HASH_DISPLAY = "display".hashCode();
 
     @Inject(method = "clearProfiling", at = @At("RETURN"))
+// [AUDIT-OK] clearProfiling RETURN refresh (localEnabled = globalEnabled) matches OF clearProfiling tail
     public void injectClearProfiling(CallbackInfo ci){
         this.profilerLocalEnabled = this.profilerGlobalEnabled;
     }
 
     @Inject(method = "startSection(Ljava/lang/String;)V", at = @At("HEAD"))
+// [AUDIT-OK] Lagometer timing + fastRender clearEnabled logic matches OF startSection; note: OF also gates the vanilla body on profilerLocalEnabled (dormant divergence, see endSection issue)
     public void injectStartSection(String name, CallbackInfo ci){
         if (Lagometer.isActive()) {
             int hashName = name.hashCode();
@@ -82,6 +90,7 @@ public abstract class MixinProfiler {
 
 
     @WrapMethod(method = "func_194340_a")
+// [AUDIT-OK] startSection(Supplier) wrap matches OF (func_194340_a not in tsrg - same name both runtimes); localEnabled gate matches OF
     public void inject_func_194340_a(Supplier<String> p_194340_1_, Operation<Void> original){
         if (this.profilerLocalEnabled) {
             original.call(p_194340_1_);
@@ -89,17 +98,20 @@ public abstract class MixinProfiler {
     }
 
     @WrapMethod(method = "endSection")
+// [AUDIT-FIXED] gate on profilerLocalEnabled like startSection/func_194340_a (OF semantics)
     public void injectEndSection(Operation<Void> original){
-        if (profilerGlobalEnabled) original.call();
+        if (this.profilerLocalEnabled) original.call();
     }
 
     @WrapMethod(method = "getProfilingData")
+// [AUDIT-ISSUE] (see endSection issue) extra profilerGlobalEnabled gate not present in OF getProfilingData (OF only checks profilingEnabled)
     public List<Profiler.Result> injectGetProfilingData(String p_76321_1_, Operation<List<Profiler.Result>> original){
-        if (profilerGlobalEnabled) return original.call(p_76321_1_);
-        else return Collections.emptyList();
+// [AUDIT-FIXED] no extra gate (OF getProfilingData checks profilingEnabled only)
+        return original.call(p_76321_1_);
     }
 
     @WrapMethod(method = "endStartSection")
+// [AUDIT-OK] endStartSection wrap matches OF (localEnabled gate)
     public void injectEndStartSection(String p_76318_1_, Operation<Void> original){
         if (this.profilerLocalEnabled) {
             original.call(p_76318_1_);
@@ -107,6 +119,7 @@ public abstract class MixinProfiler {
     }
 
     @WrapMethod(method = "func_194339_b")
+// [AUDIT-OK] endStartSection(Supplier) wrap matches OF (localEnabled gate)
     public void inject_func_194339_b(Supplier<String> p_194339_1_, Operation<Void> original) {
         if (this.profilerLocalEnabled) {
             original.call(p_194339_1_);
@@ -116,6 +129,7 @@ public abstract class MixinProfiler {
     @SuppressWarnings("unused")
     @Unique
     @AccessibleOperation(opcode = Opcodes.PUTSTATIC, desc = "net/minecraft/client/renderer/GlStateManager clearEnabled Z")
+// [AUDIT-OK] OF member GlStateManager.clearEnabled (in OF, not in baseline; provided by MixinGlStateManager), MCP name OK
     private static void _set_GlStateManager_clearEnabled(boolean val){
         throw new AbstractMethodError();
     }

@@ -5,5 +5,6 @@ import net.minecraft.client.renderer.block.model.ModelRotation;
 import org.spongepowered.asm.mixin.Mixin;
 @Mixin(ModelRotation.class)
 public abstract class MixinModelRotation {
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
 
 }

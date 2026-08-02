@@ -17,37 +17,47 @@ import org.spongepowered.asm.mixin.Unique;
 import java.util.List;
 @Mixin(GuiOverlayDebug.class)
 public abstract class MixinGuiOverlayDebug extends Gui {
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
+
     @SuppressWarnings("AddedMixinMembersNamePattern")
+// [AUDIT-OK] OF-added member (OF GuiOverlayDebug private field), not in baseline
     @Unique
     private String debugOF = null;
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
+// [AUDIT-OK] OF-added member, not in baseline
     @Unique
     private List<String> debugInfoLeft = null;
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
+// [AUDIT-OK] OF-added member, not in baseline
     @Unique
     private List<String> debugInfoRight = null;
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
+// [AUDIT-OK] OF-added member, not in baseline
     @Unique
     private long updateInfoLeftTimeMs = 0L;
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
+// [AUDIT-OK] OF-added member, not in baseline
     @Unique
     private long updateInfoRightTimeMs = 0L;
 
     @SuppressWarnings("unused")
     @Unique
     @AccessibleOperation.Reference(TextureMap.class)
+// [AUDIT-OK] OF-added member (not in tsrg): MCP name getCountAnimationsActive correct
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureMap getCountAnimationsActive ()I")
     private native static int _acc_TextureMap_getCountAnimationsActive_(TextureMap instance);
 
     @SuppressWarnings("unused")
     @Unique
+// [AUDIT-OK] OF-added member (not in tsrg): MCP name getCountAnimations correct
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureMap getCountAnimations ()I")
     private native static int _acc_TextureMap_getCountAnimations_(TextureMap instance);
 
+// [AUDIT-OK] target call() (List<String>) matches baseline; instance handler, List return type matches
     @WrapMethod(method = "call")
     public List<String> injectCall(Operation<List<String>> original){
         //noinspection StringEquality

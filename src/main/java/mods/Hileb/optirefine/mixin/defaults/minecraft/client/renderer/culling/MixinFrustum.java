@@ -10,7 +10,9 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 @Mixin(Frustum.class)
 public abstract class MixinFrustum {
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
     @Shadow @Final
+    // [AUDIT-OK] baseline members clippingHelper (private final) / x / y / z (deobf:10-13)
     private ClippingHelper clippingHelper;
     @Shadow
     private double x;
@@ -21,7 +23,9 @@ public abstract class MixinFrustum {
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
+    // [AUDIT-OK] OF-added member (OF Frustum:33); delegate with x/y/z offset matches OF:34
     public boolean isBoxInFrustumFully(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
+        // [AUDIT-OK] ClippingHelper.isBoxInFrustumFully is OF-added (not in tsrg) — MCP name, no deobf correct; provided by MixinClippingHelper
         return ClippingHelper_isBoxInFrustumFully(clippingHelper, minX - this.x, minY - this.y, minZ - this.z, maxX - this.x, maxY - this.y, maxZ - this.z);
     }
 

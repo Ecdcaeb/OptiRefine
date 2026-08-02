@@ -22,12 +22,16 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.List;
 @Mixin(ItemOverrideList.class)
 public abstract class MixinItemOverrideList {
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
     @Shadow @Final
+    // [AUDIT-OK] baseline member overrides declared in ItemOverrideList (deobf:17); shadow initializer is ignored by mixin (nit)
     private List<ItemOverride> overrides = Lists.newArrayList();
     @Unique
+    // [AUDIT-OK] OF-added field (OF ItemOverrideList:18), not in baseline
     private ItemOverrideCache itemOverrideCache;
 
     @Inject(method = "<init>(Ljava/util/List;)V", at = @At("RETURN"))
+    // [AUDIT-OK] target <init>(Ljava/util/List;)V baseline; cache creation matches OF:28-29
     public void init(List<ItemOverride> overrides, CallbackInfo ci){
         if (this.overrides.size() > 65) {
             this.itemOverrideCache = ItemOverrideCache.make(this.overrides);
@@ -35,6 +39,7 @@ public abstract class MixinItemOverrideList {
     }
 
     @WrapMethod(method = "applyOverride")
+    // [AUDIT-OK] target applyOverride(ItemStack,World,EntityLivingBase) baseline (deobf:32); cache logic mirrors OF:34-55
     public ResourceLocation applyCache(ItemStack stack, World worldIn, EntityLivingBase entityIn, Operation<ResourceLocation> original){
         if (!this.overrides.isEmpty()) {
             if (this.itemOverrideCache != null) {

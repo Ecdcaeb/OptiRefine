@@ -16,15 +16,19 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.BitSet;
 @Mixin(ChunkRenderContainer.class)
 public abstract class MixinChunkRenderContainer {
+// [AUDIT] 2026-08-03 — see AGENT.md; issues: 1
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+// [AUDIT-OK] OF-added field, not in baseline
     private BitSet animatedSpritesRendered;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+// [AUDIT-OK] OF-added field, not in baseline
     private final BitSet animatedSpritesCached = new BitSet();
 
     @Inject(method = "<init>", at = @At("RETURN"))
     public void logicOfinit(CallbackInfo ci){
+// [AUDIT-ISSUE] OF places this SmartAnimations block in initialize() (per-frame); mixin injects into <init> (once) -> per-frame spritesRendered() reporting/clear never happens; move the inject to initialize()
         if (SmartAnimations.isActive()) {
             if (this.animatedSpritesRendered != null) {
                 SmartAnimations.spritesRendered(this.animatedSpritesRendered);
@@ -41,6 +45,7 @@ public abstract class MixinChunkRenderContainer {
 
     @Inject(method = "addRenderChunk", at = @At("RETURN"))
     public void afterAddRenderChunk(RenderChunk renderChunkIn, BlockRenderLayer layer, CallbackInfo ci){
+// [AUDIT-OK] target addRenderChunk(Lnet/minecraft/client/renderer/chunk/RenderChunk;Lnet/minecraft/util/BlockRenderLayer;)V (SRG func_178002_a) matches baseline; OR logic matches OF
         if (this.animatedSpritesRendered != null) {
             BitSet animatedSprites = CompiledChunk_getAnimatedSprites(renderChunkIn.compiledChunk, layer);
             if (animatedSprites != null) {
@@ -51,5 +56,6 @@ public abstract class MixinChunkRenderContainer {
 
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.chunk.CompiledChunk getAnimatedSprites (Lnet.minecraft.util.BlockRenderLayer;)Ljava.util.BitSet;")
+// [AUDIT-OK] OF member CompiledChunk.getAnimatedSprites, not in baseline (MixinCompiledChunk @Unique provides); dot-desc converted by processor
     private native static BitSet CompiledChunk_getAnimatedSprites(CompiledChunk instance, BlockRenderLayer arg0) ;
 }

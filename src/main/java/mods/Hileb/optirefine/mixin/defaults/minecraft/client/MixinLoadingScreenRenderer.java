@@ -8,5 +8,8 @@ import org.spongepowered.asm.mixin.Mixin;
  */
 @Mixin(LoadingScreenRenderer.class)
 public abstract class MixinLoadingScreenRenderer {
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
+// [AUDIT-NOTE] NO-OP mixin: no shadows/injections; target LoadingScreenRenderer exists in baseline; see MixinFMLClientHandler
+
     //NO-OPS
 }

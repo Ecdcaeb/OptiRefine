@@ -15,7 +15,10 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.*;
 @Mixin(GuiMainMenu.class)
 public abstract class MixinGuiMainMenu extends GuiScreen {
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
 
+
+// [AUDIT-OK] target drawPanorama(IIF)V matches baseline; single int-64 constant (loop bound)
     @ModifyConstant(method = "drawPanorama", constant = @Constant(intValue = 64))
     public int injectDrawPanorama(int value) {
         CustomPanoramaProperties cpp = CustomPanorama.getCustomPanoramaProperties();
@@ -24,6 +27,8 @@ public abstract class MixinGuiMainMenu extends GuiScreen {
         } else return value;
     }
 
+// [AUDIT-OK] target rotateAndBlurSkybox()V matches baseline
+// [AUDIT-NOTE] two int-3 constants (int i=3; and j<3;) both replaced with blur2; i unused so result == OF blur2 loop count
     @ModifyConstant(method = "rotateAndBlurSkybox", constant = @Constant(intValue = 3))
     public int injectRotateAndBlurSkybox(int value){
         CustomPanoramaProperties cpp = CustomPanorama.getCustomPanoramaProperties();
@@ -32,14 +37,18 @@ public abstract class MixinGuiMainMenu extends GuiScreen {
         } else return value;
     }
 
+// [AUDIT-OK] baseline member rotateAndBlurSkybox exists in target class
     @Shadow
     protected abstract void rotateAndBlurSkybox();
 
+// [AUDIT-OK] baseline member drawPanorama exists in target class
     @Shadow
     protected abstract void drawPanorama(int p, int p1, float p2);
 
+// [AUDIT-OK] baseline member drawScreen exists in target class
     @Shadow public abstract void drawScreen(int p_73863_1_, int p_73863_2_, float p_73863_3_);
 
+// [AUDIT-OK] target renderSkybox(IIF)V matches baseline; handler params match; replicates OF renderSkybox
     @WrapMethod(method = "renderSkybox")
     public void injectRenderSkybox(int mouseX, int mouseY, float partialTicks, Operation<Void> original){
         CustomPanoramaProperties cpp = CustomPanorama.getCustomPanoramaProperties();
@@ -69,6 +78,7 @@ public abstract class MixinGuiMainMenu extends GuiScreen {
         } else original.call(mouseX, mouseY, partialTicks);
     }
 
+// [AUDIT-OK] target drawScreen matches baseline; two drawGradientRect invokes present; handler distinguishes by start color
     @Redirect(method = "drawScreen", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiMainMenu;drawGradientRect(IIIIII)V"))
     public void redirectDrawGradientRect1(GuiMainMenu instance, int i1, int i2, int i3, int i4, int i5, int i6){
         CustomPanoramaProperties cpp = CustomPanorama.getCustomPanoramaProperties();

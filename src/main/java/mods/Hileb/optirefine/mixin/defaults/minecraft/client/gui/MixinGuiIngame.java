@@ -13,6 +13,9 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 @Mixin(GuiIngame.class)
 public abstract class MixinGuiIngame {
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
+
+// [AUDIT-OK] target renderExpBar(Lnet/minecraft/client/gui/ScaledResolution;I)V matches baseline; drawString(String,III)I invokes present; handler params match
     @WrapOperation(method = "renderExpBar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/FontRenderer;drawString(Ljava/lang/String;III)I"))
     public int redirectDrawString(FontRenderer instance, String text, int x, int y, int color, Operation<Integer> original){
         if (color == 0) {
@@ -26,6 +29,7 @@ public abstract class MixinGuiIngame {
         }
     }
 
+// [AUDIT-OK] target renderVignette(F,Lnet/minecraft/client/gui/ScaledResolution;)V matches baseline; replicates OF call-site guard
     @WrapMethod(method = "renderVignette")
     public void injectRenderVignette(float p_180480_1_, ScaledResolution p_180480_2_, Operation<Void> original){
         if (!Config.isVignetteEnabled()) {

@@ -31,11 +31,14 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 @Mixin(LayerArmorBase.class)
 public abstract class MixinLayerArmorBase {
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 1
 
     @Shadow
+    // [AUDIT-OK] baseline member skipRenderGlint (deobf:28)
     private boolean skipRenderGlint;
 
     @WrapOperation(method = "renderArmorLayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/layers/LayerArmorBase;getArmorResource(Lnet/minecraft/entity/Entity;Lnet/minecraft/item/ItemStack;Lnet/minecraft/inventory/EntityEquipmentSlot;Ljava/lang/String;)Lnet/minecraft/util/ResourceLocation;"))
+    // [AUDIT-OK] 4-arg getArmorResource(Entity,ItemStack,EntityEquipmentSlot,String) added by cleanroom patch (LayerArmorBase.java.patch); bindCustomArmorTexture->null->skip-bind matches OF:65-67/81-82
     public ResourceLocation getResources(LayerArmorBase instance, Entity entity, ItemStack stack, EntityEquipmentSlot slot, String type, Operation<ResourceLocation> original){
         if (!Config.isCustomItems() || !CustomItems.bindCustomArmorTexture(stack, slot, type)) {
             return original.call(instance, entity, stack, slot, type);
@@ -44,6 +47,7 @@ public abstract class MixinLayerArmorBase {
     }
 
     @WrapWithCondition(method = "renderArmorLayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/RenderLivingBase;bindTexture(Lnet/minecraft/util/ResourceLocation;)V"))
+    // [AUDIT-OK] bindTexture skip-when-null complements the null-returning getArmorResource wrap (OF pattern)
     public boolean replace_renderer_bindTexture_this_getArmorResource(RenderLivingBase instance, ResourceLocation location) {
         return location != null;
     }
@@ -53,7 +57,8 @@ public abstract class MixinLayerArmorBase {
      * @reason OptiFine: shaders glint (isShadowPass skip + renderEnchantedGlintBegin/End)
      */
     @WrapMethod(method = "renderEnchantedGlint")
-    private static void optiRefine$renderEnchantedGlint(RenderLivingBase<?> renderer, EntityLivingBase entityLivingBaseIn, ModelBase modelBaseIn, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, float scaleFactor, float partialTicks, Operation<Void> original) {
+    // [AUDIT-ISSUE] handler float order is (limbSwing,limbSwingAmount,ageInTicks,netHeadYaw,headPitch,scaleFactor,partialTicks) but runtime (Forge/OF) order is (limbSwing,limbSwingAmount,partialTicks,ageInTicks,netHeadYaw,headPitch,scale) — WrapMethod binds positionally so every value after limbSwingAmount is shifted: f=ticksExisted+partialTicks (OF uses ageInTicks) and model.render gets shifted pose args; reorder handler params to (…,partialTicks,ageInTicks,netHeadYaw,headPitch,scale)
+    private static void optiRefine$renderEnchantedGlint(RenderLivingBase<?> renderer, EntityLivingBase entityLivingBaseIn, ModelBase modelBaseIn, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch, float scale, Operation<Void> original) {
         if (!Config.isShaders() || !Shaders.isShadowPass) {
             float f = entityLivingBaseIn.ticksExisted + ageInTicks;
             renderer.bindTexture(LayerArmorBase.ENCHANTED_ITEM_GLINT_RES);
@@ -79,7 +84,7 @@ public abstract class MixinLayerArmorBase {
                 GlStateManager.rotate(30.0F - i * 60.0F, 0.0F, 0.0F, 1.0F);
                 GlStateManager.translate(0.0F, f * (0.001F + i * 0.003F) * 20.0F, 0.0F);
                 GlStateManager.matrixMode(5888);
-                modelBaseIn.render(entityLivingBaseIn, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scaleFactor);
+                modelBaseIn.render(entityLivingBaseIn, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scale);
                 GlStateManager.blendFunc(GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
             }
 

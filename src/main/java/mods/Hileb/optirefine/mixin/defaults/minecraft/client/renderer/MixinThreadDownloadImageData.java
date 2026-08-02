@@ -36,14 +36,18 @@ import java.io.File;
 import java.net.Proxy;
 @Mixin(ThreadDownloadImageData.class)
 public abstract class MixinThreadDownloadImageData extends SimpleTexture{
+// [AUDIT] 2026-08-03 — see AGENT.md; issues: 0
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+// [AUDIT-OK] OF-added field (OF: public Boolean imageFound = null), not in baseline
     public Boolean imageFound = null;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+// [AUDIT-OK] OF-added field (OF: public boolean pipeline = false), not in baseline
     public boolean pipeline = false;
 
     @Shadow
+// [AUDIT-OK] baseline member bufferedImage (SRG field_110560_d)
     private BufferedImage bufferedImage;
 
     public MixinThreadDownloadImageData(ResourceLocation p_i1275_1) {
@@ -52,10 +56,12 @@ public abstract class MixinThreadDownloadImageData extends SimpleTexture{
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @AccessibleOperation(opcode = Opcodes.INVOKEINTERFACE, desc = "net.minecraft.client.renderer.texture.ITextureObject getMultiTexID ()Lnet.optifine.shaders.MultiTexID;")
+// [AUDIT-OK] OF member ITextureObject.getMultiTexID (MixinITextureObject/MixinAbstractTexture provide), not in baseline
     private native static MultiTexID getMultiTexID(ITextureObject iTextureObject);
 
     @WrapOperation(method = "checkTextureUploaded", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/texture/TextureUtil;uploadTextureImage(ILjava/awt/image/BufferedImage;)I"))
     public int blockTextureUploadForConfig(int textureId, BufferedImage texture, Operation<Integer> original){
+// [AUDIT-OK] target checkTextureUploaded()V (SRG func_147640_e) TextureUtil.uploadTextureImage matches baseline; shaders branch matches OF
         if (Config.isShaders()) {
             return ShadersTex.loadSimpleTexture(textureId, texture, false, false, Config.getResourceManager(), this.textureLocation, getMultiTexID((ThreadDownloadImageData)(Object)this));
         } else {
@@ -65,11 +71,13 @@ public abstract class MixinThreadDownloadImageData extends SimpleTexture{
 
     @Inject(method = "setBufferedImage", at = @At("TAIL"))
     public void afterImageSetted(BufferedImage bufferedImageIn, CallbackInfo ci){
+// [AUDIT-OK] target setBufferedImage(Ljava/awt/image/BufferedImage;)V (SRG func_147641_a) matches baseline
         this.imageFound = this.bufferedImage != null;
     }
 
     @WrapOperation(method = "loadTextureFromServer", at = @At(value = "INVOKE", target = "Ljava/lang/Thread;setDaemon(Z)V"))
     public void setPipelineForLoadTextureFromServer(Thread value, boolean on, Operation<Void> original){
+// [AUDIT-OK] target loadTextureFromServer()V (SRG func_152433_a) Thread.setDaemon matches baseline; reassigning this.imageThread lets vanilla start() launch the pipeline thread (matches OF shouldPipeline/loadPipelined)
         if (this.optiRefine$shouldPipeline()) {
             original.call(this.imageThread = new Thread(this::optiRefine$loadPipelined, value.getName()), on);
         } else {
@@ -88,9 +96,11 @@ public abstract class MixinThreadDownloadImageData extends SimpleTexture{
         }
     }
     @Shadow @Final
+// [AUDIT-OK] baseline member imageUrl (SRG field_110562_b)
     private String imageUrl;
 
     @Unique
+// [AUDIT-OK] OF-added method (OF: loadPipelined private), not in baseline
     private void optiRefine$loadPipelined() {
         try {
             HttpRequest req = HttpPipeline.makeRequest(this.imageUrl, Minecraft.getMinecraft().getProxy());
@@ -120,20 +130,26 @@ public abstract class MixinThreadDownloadImageData extends SimpleTexture{
     }
 
     @Shadow @Final
+// [AUDIT-OK] baseline member cacheFile (SRG field_152434_e)
     private File cacheFile;
 
     @Shadow @Final
+// [AUDIT-OK] baseline member LOGGER (SRG field_147644_c)
     private static Logger LOGGER;
 
     @Shadow @Final
+// [AUDIT-OK] baseline member imageBuffer (SRG field_110563_c)
     private IImageBuffer imageBuffer;
 
     @Shadow
+// [AUDIT-OK] baseline member setBufferedImage (SRG func_147641_a)
     public abstract void setBufferedImage(BufferedImage bufferedImageIn);
 
+// [AUDIT-OK] baseline member imageThread (SRG field_110561_e)
     @Shadow @Nullable private Thread imageThread;
 
     @Unique
+// [AUDIT-OK] OF-added method (OF: private loadingFinished), not in baseline
     private void optiRefine$loadingFinished() {
         this.imageFound = this.bufferedImage != null;
         if (this.imageBuffer instanceof CapeImageBuffer) {
@@ -143,6 +159,7 @@ public abstract class MixinThreadDownloadImageData extends SimpleTexture{
     }
 
     @Unique
+// [AUDIT-OK] OF-added method (OF: public getImageBuffer), not in baseline
     public IImageBuffer getImageBuffer() {
         return this.imageBuffer;
     }

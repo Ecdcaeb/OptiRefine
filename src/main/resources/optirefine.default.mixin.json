@@ -134,6 +134,7 @@
     "minecraft.client.renderer.MixinRenderItem",
     "minecraft.client.renderer.MixinRenderGlobal",
     "minecraft.client.renderer.MixinBlockModelRender$AmbientOcclusionFace",
+    "minecraft.client.renderer.MixinContainerLocalRenderInformation",
     "minecraft.client.renderer.texture.MixinStitcher"
   ]
 }

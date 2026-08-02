@@ -26,13 +26,16 @@ import java.util.Map;
 import java.util.Objects;
 @Mixin(ModelBakery.class)
 public abstract class MixinModelBakery {
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
     @Inject(method = "loadVariantItemModels", at = @At("TAIL"))
+    // [AUDIT-OK] target loadVariantItemModels() exists in baseline (deobf:158); TAIL CustomItems.update/loadModels matches OF:202-203
     public void $loadVariantItemModels(CallbackInfo ci) {
         CustomItems.update();
         CustomItems.loadModels((ModelBakery)(Object) this);
     }
 
     @ModifyReturnValue(method = "getModelLocation", at = @At("RETURN"))
+    // [AUDIT-OK] target getModelLocation(ResourceLocation) baseline; mcpatcher/optifine .json handling equivalent to OF:355-365
     public ResourceLocation modifyMcPatcherLocation(ResourceLocation original, @Local(argsOnly = true) ResourceLocation arg){
         String path = arg.getPath();
         String name = arg.getNamespace();
@@ -47,6 +50,7 @@ public abstract class MixinModelBakery {
     }
 
 
+    // [AUDIT-OK] OF-added private static helper (OF ModelBakery:1088), not in baseline
     private static String fixResourcePath(String path, String basePath) {
         path = TextureUtils.fixResourcePath(path, basePath);
         path = StrUtils.removeSuffix(path, ".json");
@@ -55,6 +59,7 @@ public abstract class MixinModelBakery {
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
+    // [AUDIT-OK] OF-added member (public static in OF:1070); @Public private static correct
     private static ResourceLocation fixModelLocation(ResourceLocation loc, String basePath) {
         if (loc != null && basePath != null) {
             if (!loc.getNamespace().equals("minecraft")) {
@@ -74,8 +79,10 @@ public abstract class MixinModelBakery {
     }
 
     @AccessibleOperation(opcode = Opcodes.PUTFIELD, desc = "net.minecraft.client.renderer.block.model.ModelBlock field_178316_e Lnet.minecraft.util.ResourceLocation;", deobf = true)
+    // [AUDIT-OK] vanilla SRG field_178316_e (parentLocation, tsrg) + deobf=true
     private static native void ModelBlock_parentLocation_set(ModelBlock modelBlock, ResourceLocation resourceLocation);
 
+    // [AUDIT-OK] OF-added member (public static in OF:1053); @Public @Unique correct
     @Public @Unique
     private static void fixModelLocations(ModelBlock modelBlock, String basePath) {
         ResourceLocation parentLocFixed = fixModelLocation(modelBlock.getParentLocation(), basePath);
@@ -95,14 +102,17 @@ public abstract class MixinModelBakery {
     }
 
     @Shadow @Final
+    // [AUDIT-OK] baseline member models exists in ModelBakery (deobf:62)
     private Map<ResourceLocation, ModelBlock> models;
 
     @Unique
+    // [AUDIT-OK] OF-added member (OF ModelBakery:1049)
     public ModelBlock getModelBlock(ResourceLocation resourceLocation) {
         return this.models.get(resourceLocation);
     }
 
     @WrapOperation(method = "loadModel", at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/block/model/ModelBlock;name:Ljava/lang/String;"))
+    // [AUDIT-OK] target loadModel baseline; ModelBlock.name field (SRG field_178317_b, build-remapped); fixModelLocations call matches OF:341
     public void fixLocation(ModelBlock instance, String value, Operation<Void> original, @Local(argsOnly = true) ResourceLocation resourceLocation){
         original.call(instance, value);
         String basePath = TextureUtils.getBasePath(resourceLocation.getPath());

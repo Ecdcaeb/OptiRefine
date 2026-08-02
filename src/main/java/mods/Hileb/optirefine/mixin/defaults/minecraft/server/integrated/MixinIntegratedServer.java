@@ -35,11 +35,15 @@ import java.io.File;
 import java.net.Proxy;
 @Mixin(IntegratedServer.class)
 public abstract class MixinIntegratedServer extends MinecraftServer {
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
+
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+// [AUDIT-OK] OF-added field ticksSaveLast (in OF IntegratedServer, not in baseline), MCP name matches
     private long ticksSaveLast = 0L;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+// [AUDIT-OK] OF-added fields difficultyUpdateWorld/difficultyUpdatePos/difficultyLast (in OF, not in baseline; public in OF)
     public World difficultyUpdateWorld = null;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
@@ -49,8 +53,10 @@ public abstract class MixinIntegratedServer extends MinecraftServer {
     public DifficultyInstance difficultyLast = null;
 
     @Shadow @Final
+// [AUDIT-OK] baseline member mc exists in target class
     private Minecraft mc;
 
+// [AUDIT-OK] baseline member tick() exists in target class (overrides MinecraftServer)
     @Shadow public abstract void tick();
 
     @SuppressWarnings("unused")
@@ -60,9 +66,11 @@ public abstract class MixinIntegratedServer extends MinecraftServer {
 
     @SuppressWarnings("unused")
     @AccessibleOperation(opcode = Opcodes.PUTSTATIC, desc = "net.minecraft.network.PacketThreadUtil lastDimensionId I")
+// [AUDIT-OK] OF member PacketThreadUtil.lastDimensionId (in OF PacketThreadUtil, not in baseline; provided by MixinPacketThreadUtil), MCP name OK
     private static native void _set_PacketThreadUtil_lastDimensionId_(int dim);
 
     @Inject(method = "<init>", at = @At("RETURN"))
+// [AUDIT-OK] <init> RETURN matches OF ctor (Dimension NBT -> lastDimensionId + loadingScreen progress -1)
     public void injectInit(Minecraft clientIn, String folderNameIn, String worldNameIn, WorldSettings worldSettingsIn, YggdrasilAuthenticationService authServiceIn, MinecraftSessionService sessionServiceIn, GameProfileRepository profileRepoIn, PlayerProfileCache profileCacheIn, CallbackInfo ci){
         NBTTagCompound nbt;
         ISaveHandler isavehandler = this.getActiveAnvilConverter().getSaveLoader(folderNameIn, false);
@@ -74,6 +82,7 @@ public abstract class MixinIntegratedServer extends MinecraftServer {
     }
 
     @Inject(method = "tick", at = @At("HEAD"))
+// [AUDIT-OK] tick HEAD onTick() matches OF tick start
     public void injectTick(CallbackInfo ci) {
         this.onTick();
     }
@@ -81,11 +90,13 @@ public abstract class MixinIntegratedServer extends MinecraftServer {
     @SuppressWarnings("unused")
     @Unique
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.settings.GameSettings ofAutoSaveTicks I")
+// [AUDIT-OK] OF member GameSettings.ofAutoSaveTicks (in OF GameSettings, not in baseline; provided by MixinGameSettings), MCP name OK
     private static int _acc_GameSettings_ofAutoSaveTicks_(GameSettings settings) {
         throw new AbstractMethodError();
     }
 
     @Inject(method = "saveAllWorlds", at = @At("HEAD"), cancellable = true)
+// [AUDIT-OK] cancellable HEAD matches OF saveAllWorlds (silent autosave throttled by ticksSaveLast + ofAutoSaveTicks, else super)
     public void injectSaveAllWorlds(boolean isSilent, CallbackInfo ci) {
         if (isSilent) {
             int ticks = this.getTickCounter();
@@ -99,6 +110,7 @@ public abstract class MixinIntegratedServer extends MinecraftServer {
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
+// [AUDIT-OK] OF-added member onTick() loop, matches OF
     private void onTick() {
         for (WorldServer ws : this.worlds) {
             this.onTick(ws);
@@ -107,6 +119,7 @@ public abstract class MixinIntegratedServer extends MinecraftServer {
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Public
+// [AUDIT-OK] OF-added member getDifficultyAsync, matches OF
     public DifficultyInstance getDifficultyAsync(World world, BlockPos blockPos) {
         this.difficultyUpdateWorld = world;
         this.difficultyUpdatePos = blockPos;
@@ -115,6 +128,7 @@ public abstract class MixinIntegratedServer extends MinecraftServer {
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+// [AUDIT-OK] OF-added member onTick(WorldServer), matches OF (time/weather/waterOpacity/difficulty)
     private void onTick(WorldServer ws) {
         if (!Config.isTimeDefault()) {
             this.fixWorldTime(ws);
@@ -135,6 +149,7 @@ public abstract class MixinIntegratedServer extends MinecraftServer {
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+// [AUDIT-OK] OF-added member fixWorldWeather, matches OF
     private void fixWorldWeather(WorldServer ws) {
         WorldInfo worldInfo = ws.getWorldInfo();
         if (worldInfo.isRaining() || worldInfo.isThundering()) {
@@ -152,6 +167,7 @@ public abstract class MixinIntegratedServer extends MinecraftServer {
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+// [AUDIT-OK] OF-added member fixWorldTime, matches OF
     private void fixWorldTime(WorldServer ws) {
         WorldInfo worldInfo = ws.getWorldInfo();
         if (worldInfo.getGameType().getID() != 1) {

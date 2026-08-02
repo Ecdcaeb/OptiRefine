@@ -17,15 +17,19 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 @Mixin(RenderItemFrame.class)
 public abstract class MixinRenderItemFrame {
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 1
 
     @Shadow @Final
+    // [AUDIT-OK] baseline member mc (private final Minecraft)
     private Minecraft mc;
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+    // [AUDIT-OK] OF-added static (OF:33)
     private static double itemRenderDistanceSq = 4096.0;
 
     @ModifyExpressionValue(method = "renderItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;isEmpty()Z"))
+    // [AUDIT-OK] isEmpty() INVOKE unique in renderItem; isRenderItem pre-check + zoomMode match OF:85-93; [AUDIT-ISSUE] player-distance check uses itemRenderDistanceSq but OF hardcodes 4096.0 there (OF:90-92) — slightly looser culling
     public boolean extraRenderCondition(boolean original, @Local(argsOnly = true) EntityItemFrame itemFrame){
         if (!original) {
             if (!this.isRenderItem(itemFrame)) {
@@ -42,6 +46,7 @@ public abstract class MixinRenderItemFrame {
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+    // [AUDIT-OK] matches OF isRenderItem:144-158
     private boolean isRenderItem(EntityItemFrame itemFrame) {
         if (Shaders.isShadowPass) {
             return false;
@@ -58,6 +63,7 @@ public abstract class MixinRenderItemFrame {
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Public
+    // [AUDIT-OK] OF-added static (OF:160); @Public private static correct (called from OF RenderGlobal:623)
     private static void updateItemRenderDistance() {
         Minecraft mc = Config.getMinecraft();
         double fov = Config.limit(mc.gameSettings.fovSetting, 1.0F, 120.0F);

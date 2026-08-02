@@ -9,8 +9,10 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 @Mixin(TileEntityRendererDispatcher.class)
 public abstract class MixinTileEntityRendererDispatcher {
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
 
     @WrapOperation(method = "render(Lnet/minecraft/tileentity/TileEntity;FI)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/tileentity/TileEntityRendererDispatcher;render(Lnet/minecraft/tileentity/TileEntity;DDDFIF)V"))
+    // [AUDIT-OK] 3-arg render -> 7-arg render INVOKE unique (deobf:116-129); emissive begin/end wrap matches OF:136-148
     public void render$(TileEntityRendererDispatcher instance, TileEntity v0, double v1, double v2, double v3, float v4, int v5, float v6, Operation<Void> original){
         if (EmissiveTextures.isActive()) {
             EmissiveTextures.beginRender();

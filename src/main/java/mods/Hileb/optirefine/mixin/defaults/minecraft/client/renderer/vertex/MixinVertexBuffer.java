@@ -12,8 +12,10 @@ import org.spongepowered.asm.mixin.Unique;
 import java.nio.ByteBuffer;
 @Mixin(VertexBuffer.class)
 public abstract class MixinVertexBuffer {
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+    // [AUDIT-OK] OF-added fields vboRegion/vboRange/drawMode (OF VertexBuffer:13-15)
     private VboRegion vboRegion;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
@@ -23,6 +25,7 @@ public abstract class MixinVertexBuffer {
     private int drawMode;
 
     @WrapMethod(method = "bufferData")
+    // [AUDIT-OK] bufferData baseline; vboRegion branch matches OF:26-29
     public void wrapbufferData(ByteBuffer p_181722_1_, Operation<Void> original){
         if (this.vboRegion != null) {
             this.vboRegion.bufferData(p_181722_1_, this.vboRange);
@@ -32,6 +35,7 @@ public abstract class MixinVertexBuffer {
     }
 
     @WrapMethod(method = "drawArrays")
+    // [AUDIT-OK] drawArrays baseline; drawMode override + region branch match OF:37-44
     public void wrapdrawArrays(int mode, Operation<Void> original){
         if (this.drawMode > 0) {
             mode = this.drawMode;
@@ -45,10 +49,12 @@ public abstract class MixinVertexBuffer {
     }
 
     @Shadow
+    // [AUDIT-OK] baseline member deleteGlBuffers
     public abstract void deleteGlBuffers();
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
+    // [AUDIT-OK] OF-added members setVboRegion/getVboRegion/getVboRange/getDrawMode/setDrawMode (OF:60+)
     public void setVboRegion(VboRegion vboRegion) {
         if (vboRegion != null) {
             this.deleteGlBuffers();

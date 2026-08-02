@@ -34,50 +34,65 @@ import java.util.ArrayList;
  */
 @Mixin(OpenGlHelper.class)
 public abstract class MixinOpenGlHelper {
+// [AUDIT] 2026-08-03 — see AGENT.md; issues: 1
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Public
+// [AUDIT-OK] OF-added static member (OF: public static float lastBrightnessX), not in baseline
     private static float lastBrightnessX = 0.0F;
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Public
+// [AUDIT-OK] OF-added static member, not in baseline
     private static float lastBrightnessY = 0.0F;
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Public
+// [AUDIT-OK] OF-added static member, not in baseline
     private static boolean openGL31;
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Public
+// [AUDIT-OK] OF-added static member, not in baseline
     private static boolean vboRegions;
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Public
+// [AUDIT-OK] OF-added static member, not in baseline
     private static int GL_COPY_READ_BUFFER;
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Public
+// [AUDIT-OK] OF-added static member, not in baseline
     private static int GL_COPY_WRITE_BUFFER;
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     @Public
+// [AUDIT-OK] OF-added static member (AGENT.md S5 crash fix: private static final + @Public)
     private static final int GL_QUADS = 7;
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     @Public
+// [AUDIT-OK] OF-added static member
     private static final int GL_TRIANGLES = 4;
 
     @Shadow
+// [AUDIT-OK] baseline member logText (SRG field_153196_B)
     private static String logText;
     @Shadow
     @Public
+// [AUDIT-OK] baseline member vboSupported (SRG field_176083_O); @Public for OF jar
     private static boolean vboSupported;
     @Shadow
+// [AUDIT-OK] baseline member arbVbo (SRG field_176090_Y)
     private static boolean arbVbo;
     @Shadow
     @Public
+// [AUDIT-OK] baseline member lightmapTexUnit (SRG field_77476_b); @Public for OF jar
     private static int lightmapTexUnit;
     @Shadow
     @Public
+// [AUDIT-OK] baseline member framebufferSupported (SRG field_148823_f); @Public for OF jar
     private static boolean framebufferSupported;
 
     @Inject(method = "initializeTextures", at = @At("HEAD"))
     private static void optiRefine$initializeTextures(CallbackInfo ci) {
+// [AUDIT-OK] target initializeTextures()V (SRG func_77474_a) matches baseline; adds Config.initDisplay + GL1.3/ARB_copy_buffer detection per OF
         Config.initDisplay();
         ContextCapabilities capabilities = GLContext.getCapabilities();
         openGL31 = capabilities.OpenGL31;
@@ -103,6 +118,7 @@ public abstract class MixinOpenGlHelper {
 
     @ModifyReturnValue(method = "useVbo", at = @At("RETURN"))
     private static boolean optiRefine$useVbo(boolean original) {
+// [AUDIT-OK] target useVbo()Z (SRG func_176075_f) matches baseline; NOTE: keeps vanilla framebufferSupported gate that OF drops — minor divergence
         if (Config.isMultiTexture()) {
             return false;
         }
@@ -111,6 +127,7 @@ public abstract class MixinOpenGlHelper {
 
     @Inject(method = "setLightmapTextureCoords", at = @At("TAIL"))
     private static void optiRefine$setLightmapTextureCoords(int texUnit, float brightnessX, float brightnessY, CallbackInfo ci) {
+// [AUDIT-OK] target setLightmapTextureCoords(IFF)V (SRG func_77475_a) matches baseline; lastBrightness recording matches OF
         if (texUnit == lightmapTexUnit) {
             lastBrightnessX = brightnessX;
             lastBrightnessY = brightnessY;
@@ -119,6 +136,7 @@ public abstract class MixinOpenGlHelper {
 
     @ModifyReturnValue(method = "isFramebufferEnabled", at = @At("RETURN"))
     private static boolean optiRefine$isFramebufferEnabled(boolean original) {
+// [AUDIT-OK] target isFramebufferEnabled()Z (SRG func_148822_b) matches baseline
         if (Config.isFastRender()) {
             return false;
         }
@@ -126,6 +144,7 @@ public abstract class MixinOpenGlHelper {
     }
 
     @Public
+// [AUDIT-ISSUE] name collides with vanilla glBufferData(I Ljava/nio/ByteBuffer; I)V (SRG func_176071_a) — different signature, but per AGENT.md S4 @Unique-public same-name members may be silently discarded -> needs-verification at runtime; OF jar calls (I J I)V form
     private static void glBufferData(int target, long size, int usage) {
         if (arbVbo) {
             ARBVertexBufferObject.glBufferDataARB(target, size, usage);
@@ -135,6 +154,7 @@ public abstract class MixinOpenGlHelper {
     }
 
     @Public
+// [AUDIT-OK] OF-added static method, not in baseline
     private static void glBufferSubData(int target, long offset, ByteBuffer data) {
         if (arbVbo) {
             ARBVertexBufferObject.glBufferSubDataARB(target, offset, data);
@@ -145,6 +165,7 @@ public abstract class MixinOpenGlHelper {
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
+// [AUDIT-OK] OF-added static method, not in baseline
     private static void glCopyBufferSubData(int readTarget, int writeTarget, long readOffset, long writeOffset, long size) {
         if (openGL31) {
             GL31.glCopyBufferSubData(readTarget, writeTarget, readOffset, writeOffset, size);

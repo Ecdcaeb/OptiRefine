@@ -11,8 +11,10 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 @Mixin(LayerSheepWool.class)
 public abstract class MixinLayerSheepWool {
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
 
     @WrapOperation(method = "doRenderLayer(Lnet/minecraft/entity/passive/EntitySheep;FFFFFFF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/passive/EntitySheep;getDyeRgb(Lnet/minecraft/item/EnumDyeColor;)[F"))
+    // [AUDIT-OK] all 3 getDyeRgb INVOKEs wrapped with getSheepColors — matches OF:30-43
     public float[] custom_color(EnumDyeColor dyeColor, Operation<float[]> original) {
         float[] floats = original.call(dyeColor);
         if (Config.isCustomColors()) {

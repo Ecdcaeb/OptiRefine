@@ -10,8 +10,10 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 @Mixin(TileEntityEndPortalRenderer.class)
 public abstract class MixinTileEntityEndPortalRenderer {
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
 
     @WrapMethod(method = "render(Lnet/minecraft/tileentity/TileEntityEndPortal;DDDFIF)V")
+    // [AUDIT-OK] render(TileEntityEndPortal;DDDFIF) baseline; ShadersRender.renderEndPortal guard matches OF:25-26
     public void renderShader(TileEntityEndPortal te, double x, double y, double z, float partialTicks, int destroyStage, float alpha, Operation<Void> original){
         if (!Config.isShaders() || !ShadersRender.renderEndPortal(te, x, y, z, partialTicks, destroyStage, this.getOffset())) {
             original.call(te, x, y, z, partialTicks, destroyStage, alpha);
@@ -19,5 +21,6 @@ public abstract class MixinTileEntityEndPortalRenderer {
     }
 
     @Shadow
+    // [AUDIT-OK] baseline member getOffset (protected, deobf:202); nit: 'native' on @Shadow — 'abstract' is conventional
     protected native float getOffset();
 }

@@ -31,20 +31,25 @@ import java.nio.FloatBuffer;
 import java.util.List;
 @Mixin(RenderLivingBase.class)
 public abstract class MixinRenderLivingBase<T extends EntityLivingBase> {
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 1
 
     @SuppressWarnings("unused")
     @AccessTransformer(name = "mainModel", access = org.objectweb.asm.Opcodes.ACC_PUBLIC)
+    // [AUDIT-OK] AT mainModel: vanilla protected (deobf:30) -> public, matches OF:33
     public ModelBase acc_mainModel;
 
     @SuppressWarnings("unused")
     @AccessTransformer(name = "addLayer", access = org.objectweb.asm.Opcodes.ACC_PUBLIC)
+    // [AUDIT-OK] addLayer is already public in baseline (deobf:42) — AT no-op (field-based processor only widens fields); harmless
     public boolean acc_addLayer;
 
     @Shadow
+    // [AUDIT-OK] baseline member mainModel (protected)
     protected ModelBase mainModel;
 
 
     @Unique
+    // [AUDIT-OK] OF-added fields renderEntity/renderLimbSwing/renderLimbSwingAmount/renderAgeInTicks/renderHeadYaw/renderHeadPitch/renderScaleFactor/renderPartialTicks/renderModelPushMatrix/renderLayersPushMatrix (OF:39-48)
     public EntityLivingBase renderEntity;
     @Unique
     public float renderLimbSwing;
@@ -65,14 +70,17 @@ public abstract class MixinRenderLivingBase<T extends EntityLivingBase> {
     @Unique
     private boolean renderLayersPushMatrix;
     @Public
+    // [AUDIT-OK] OF-added static final (OF:49 public); @Public private static correct
     private static final boolean animateModelLiving = Boolean.getBoolean("animate.model.living");
 
     @Inject(method = "<init>", at = @At("RETURN"))
+    // [AUDIT-OK] ctor init renderModelPushMatrix = mainModel instanceof ModelSpider matches OF:55
     private void optiRefine$initPushMatrix(CallbackInfo ci) {
         this.renderModelPushMatrix = this.mainModel instanceof ModelSpider;
     }
 
     @WrapOperation(method = "doRender(Lnet/minecraft/entity/EntityLivingBase;DDDFF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GlStateManager;pushMatrix()V", ordinal = 0))
+    // [AUDIT-OK] doRender pushMatrix ordinal 0 matches OF:90; animateModelLiving limbSwingAmount=1 matches OF:86
     public void beforeLivingRendered(Operation<Void> original, @Local(argsOnly = true) EntityLivingBase entity){
         if (animateModelLiving) {
             entity.limbSwingAmount = 1.0F;
@@ -81,7 +89,8 @@ public abstract class MixinRenderLivingBase<T extends EntityLivingBase> {
     }
 
     @WrapOperation(method = "doRender(Lnet/minecraft/entity/EntityLivingBase;DDDFF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/ModelBase;setRotationAngles(FFFFFFLnet/minecraft/entity/Entity;)V", ordinal = 0))
-    public void customEntityModelsAction(ModelBase instance, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, float scaleFactor, Entity entityIn, Operation<Void> original, @Local(argsOnly = true, ordinal = 1) float partialTicks){
+    // [AUDIT-ISSUE] @Local(argsOnly=true, ordinal=1) resolves to doRender arg1 (double x), NOT partialTicks (arg5) — float local binding fails/wrong value at apply; change ordinal to 5
+    public void customEntityModelsAction(ModelBase instance, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, float scaleFactor, Entity entityIn, Operation<Void> original, @Local(argsOnly = true, ordinal = 5) float partialTicks){
         original.call(instance, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scaleFactor, entityIn);
         if (CustomEntityModels.isActive()) {
             this.renderEntity = (EntityLivingBase) entityIn;
@@ -96,6 +105,7 @@ public abstract class MixinRenderLivingBase<T extends EntityLivingBase> {
     }
 
     @WrapOperation(method = "doRender(Lnet/minecraft/entity/EntityLivingBase;DDDFF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/RenderLivingBase;renderModel(Lnet/minecraft/entity/EntityLivingBase;FFFFFF)V", ordinal = 1))
+    // [AUDIT-OK] renderModel ordinal 1 = else-branch call; emissive double-render matches OF:180-200
     public void customEmissiveTextures(RenderLivingBase<EntityLivingBase> instance, EntityLivingBase entitylivingbaseIn, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, float scaleFactor, Operation<Void> original){
         if (EmissiveTextures.isActive()) {
             EmissiveTextures.beginRender();
@@ -125,6 +135,7 @@ public abstract class MixinRenderLivingBase<T extends EntityLivingBase> {
     }
 
     @Inject(method = "unsetBrightness", at = @At("TAIL"))
+    // [AUDIT-OK] unsetBrightness baseline; Shaders.setEntityColor(0,0,0,0) matches OF
     public void onunsetBrightness(CallbackInfo ci){
         if (Config.isShaders()) {
             Shaders.setEntityColor(0.0F, 0.0F, 0.0F, 0.0F);
@@ -132,6 +143,7 @@ public abstract class MixinRenderLivingBase<T extends EntityLivingBase> {
     }
 
     @WrapOperation(method = "renderLayers", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/layers/LayerRenderer;doRenderLayer(Lnet/minecraft/entity/EntityLivingBase;FFFFFFF)V"))
+    // [AUDIT-OK] renderLayers LayerRenderer.doRenderLayer wrap matches OF renderLayers emissive structure
     public void onRenderLayers(LayerRenderer<EntityLivingBase> instance, EntityLivingBase e, float v1, float v2, float v3, float v4, float v5, float v6, float v7, Operation<Void> original){
         if (EmissiveTextures.isActive()) {
             EmissiveTextures.beginRender();
@@ -161,6 +173,7 @@ public abstract class MixinRenderLivingBase<T extends EntityLivingBase> {
     }
 
     @Inject(method = "setBrightness", at = @At("HEAD"))
+    // [AUDIT-OK] setBrightness baseline; 4x FloatBuffer.put(F) wrap, 4th put -> setEntityColor matches OF:328/340 (incl. hurt-time branch)
     public void initBrightnessSetting(EntityLivingBase entitylivingbaseIn, float partialTicks, boolean combineTextures, CallbackInfoReturnable<Boolean> cir,
                                       @Share(namespace = "optirefine", value = "bufferCounter")LocalRef<Counter> bufferCounter,
                                       @Share(namespace = "optirefine", value = "colorVec3f") LocalRef<float[]> vec3fColor){
@@ -203,9 +216,11 @@ public abstract class MixinRenderLivingBase<T extends EntityLivingBase> {
      * */
 
     @Shadow
+    // [AUDIT-OK] baseline member layerRenderers (protected, deobf:32)
     protected List<LayerRenderer<T>> layerRenderers;
 
     @Unique
+    // [AUDIT-OK] OF-added member (OF:530)
     public List<LayerRenderer<T>> getLayerRenderers() {
         return this.layerRenderers;
     }

@@ -9,25 +9,32 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 @Mixin(BlockStateBase.class)
 public abstract class MixinBlockStateBase implements IBlockState {
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
+
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+// [AUDIT-OK] OF-added field blockId (in OF BlockStateBase, not in baseline), MCP name matches
     private int blockId = -1;
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+// [AUDIT-OK] OF-added field blockStateId (in OF, not in baseline)
     private int blockStateId = -1;
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+// [AUDIT-OK] OF-added field metadata (in OF, not in baseline; BlockStateBase itself does not implement IBlockState.getMetadata)
     private int metadata = -1;
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+// [AUDIT-OK] OF-added field blockLocation (in OF, not in baseline)
     private ResourceLocation blockLocation = null;
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Public
+// [AUDIT-OK] OF-added method getBlockId, body matches OF
     public int getBlockId() {
         if (this.blockId < 0) {
              this.blockId = Block.getIdFromBlock(this.getBlock());
@@ -37,6 +44,7 @@ public abstract class MixinBlockStateBase implements IBlockState {
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Public
+// [AUDIT-OK] OF-added method getBlockStateId, body matches OF
     public int getBlockStateId() {
          if (this.blockStateId < 0) {
              this.blockStateId = Block.getStateId(this);
@@ -46,6 +54,7 @@ public abstract class MixinBlockStateBase implements IBlockState {
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Public
+// [AUDIT-OK] OF-added method getMetadata, body matches OF
     public int getMetadata() {
          if (this.metadata < 0) {
              this.metadata = this.getBlock().getMetaFromState(this);
@@ -55,6 +64,7 @@ public abstract class MixinBlockStateBase implements IBlockState {
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Public
+// [AUDIT-OK] OF-added method getBlockLocation, body matches OF
     public ResourceLocation getBlockLocation() {
         if (this.blockLocation == null) {
             this.blockLocation = Block.REGISTRY.getNameForObject(this.getBlock());

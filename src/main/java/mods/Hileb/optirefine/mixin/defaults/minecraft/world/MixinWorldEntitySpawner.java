@@ -14,6 +14,8 @@ import java.util.HashMap;
 import java.util.Map;
 @Mixin(WorldEntitySpawner.class)
 public abstract class MixinWorldEntitySpawner {
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 1
+
 //    @Unique
 //    private final Map<Class<?>, EntityLiving> mapSampleEntitiesByClass = new HashMap<>();
 //    @Unique
@@ -153,6 +155,8 @@ public abstract class MixinWorldEntitySpawner {
 //        return blockPosM;
 //    }
     @Unique
+// [AUDIT-ISSUE] findChunksForSpawning OF override is commented out - OF chunk-spawn cache/eligible-chunks logic is NOT implemented (behavioral gap vs OF, perf only)
+// [AUDIT-OK] OF-added fields mapSampleEntitiesByClass/lastPlayerChunkX/lastPlayerChunkZ/countChunkPos (in OF WorldEntitySpawner, not in baseline), MCP names - currently dead code
     private Map<Class<?>, EntityLiving> mapSampleEntitiesByClass = new HashMap<>();
     @Unique
     private int lastPlayerChunkX = Integer.MAX_VALUE;
@@ -162,6 +166,7 @@ public abstract class MixinWorldEntitySpawner {
     private int countChunkPos;
 
     @Unique
+// [AUDIT-OK] OF-added static helper getRandomChunkPosition(World,II,BlockPosM) (in OF, not in baseline), body matches OF (MathHelper.roundUp)
     private static BlockPosM getRandomChunkPosition(World var0, int var1, int var2, BlockPosM var3) {
         Chunk var4 = var0.getChunk(var1, var2);
         int var5 = var1 * 16 + var0.rand.nextInt(16);

@@ -48,28 +48,39 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  */
 @Mixin(ItemRenderer.class)
 public abstract class MixinItemRenderer {
+// [AUDIT] 2026-08-03 — see AGENT.md; issues: 2
 
     @Shadow
+// [AUDIT-OK] baseline member mc (SRG field_78455_a)
     private net.minecraft.client.Minecraft mc;
     @Shadow
+// [AUDIT-OK] baseline member renderManager (SRG field_178111_g)
     private net.minecraft.client.renderer.entity.RenderManager renderManager;
     @Shadow
+// [AUDIT-OK] baseline member itemRenderer (SRG field_178112_h)
     private net.minecraft.client.renderer.RenderItem itemRenderer;
     @Shadow
+// [AUDIT-OK] baseline member itemStackMainHand (SRG field_187467_d)
     private ItemStack itemStackMainHand;
     @Shadow
+// [AUDIT-OK] baseline member itemStackOffHand (SRG field_187468_e)
     private ItemStack itemStackOffHand;
     @Shadow
+// [AUDIT-OK] baseline member equippedProgressMainHand (SRG field_187469_f)
     private float equippedProgressMainHand;
     @Shadow
+// [AUDIT-OK] baseline member prevEquippedProgressMainHand (SRG field_187470_g)
     private float prevEquippedProgressMainHand;
     @Shadow
+// [AUDIT-OK] baseline member equippedProgressOffHand (SRG field_187471_h)
     private float equippedProgressOffHand;
     @Shadow
+// [AUDIT-OK] baseline member prevEquippedProgressOffHand (SRG field_187472_i)
     private float prevEquippedProgressOffHand;
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.BufferBuilder setSprite (Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;)V")
+// [AUDIT-OK] OF member BufferBuilder.setSprite
     private static native void BufferBuilder_setSprite(BufferBuilder bufferBuilder, TextureAtlasSprite sprite);
 
     /**
@@ -77,6 +88,7 @@ public abstract class MixinItemRenderer {
      */
     @Redirect(method = "renderItemSide", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GlStateManager;depthMask(Z)V", ordinal = 0))
     private void optiRefine$renderItemSideDepthMask(boolean flag) {
+// [AUDIT-OK] target renderItemSide (SRG func_187462_a) GlStateManager.depthMask(false) ordinal 0 matches baseline (line 72); guard matches OF renderItemKeepDepthMask
         if (!Config.isShaders() || !Shaders.renderItemKeepDepthMask) {
             GlStateManager.depthMask(flag);
         }
@@ -87,6 +99,7 @@ public abstract class MixinItemRenderer {
      */
     @Redirect(method = "setLightmap", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;getCombinedLight(Lnet/minecraft/util/math/BlockPos;I)I"))
     private int optiRefine$setLightmapDynamicLights(World world, BlockPos pos, int light) {
+// [AUDIT-OK] target setLightmap()V (SRG func_187464_b) World.getCombinedLight matches baseline (line 98)
         int combined = world.getCombinedLight(pos, light);
         if (Config.isDynamicLights()) {
             combined = DynamicLights.getCombinedLight(this.mc.getRenderViewEntity(), combined);
@@ -99,6 +112,7 @@ public abstract class MixinItemRenderer {
      */
     @Redirect(method = "renderItemInFirstPerson(F)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;getItem()Lnet/minecraft/item/Item;"))
     private Item optiRefine$itemBow(ItemStack stack) {
+// [AUDIT-OK] target renderItemInFirstPerson(F)V (SRG func_78440_a) ItemStack.getItem matches baseline (line 315, single occurrence); instanceof ItemBow matches OF
         Item item = stack.getItem();
         return item instanceof ItemBow ? Items.BOW : item;
     }
@@ -108,6 +122,7 @@ public abstract class MixinItemRenderer {
      */
     @WrapMethod(method = "renderItemInFirstPerson(Lnet/minecraft/client/entity/AbstractClientPlayer;FFLnet/minecraft/util/EnumHand;FLnet/minecraft/item/ItemStack;F)V")
     private void optiRefine$renderItemInFirstPerson(AbstractClientPlayer player, float p2, float p3, EnumHand hand, float p5, ItemStack stack, float p7, Operation<Void> original) {
+// [AUDIT-OK] target renderItemInFirstPerson(LAbstractClientPlayer;FFLEnumHand;FLItemStack;F)V (SRG func_187457_a) matches baseline
         if (!Config.isShaders() || !Shaders.isSkipRenderHand(hand)) {
             original.call(player, p2, p3, hand, p5, stack, p7);
         }
@@ -118,6 +133,7 @@ public abstract class MixinItemRenderer {
      */
     @WrapMethod(method = "renderWaterOverlayTexture")
     private void optiRefine$renderWaterOverlayTexture(float partialTicks, Operation<Void> original) {
+// [AUDIT-OK] target renderWaterOverlayTexture(F)V (SRG func_78448_c) matches baseline
         if (!Config.isShaders() || Shaders.isUnderwaterOverlay()) {
             original.call(partialTicks);
         }
@@ -128,6 +144,7 @@ public abstract class MixinItemRenderer {
      */
     @Inject(method = "renderFireInFirstPerson", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/BufferBuilder;begin(ILnet/minecraft/client/renderer/vertex/VertexFormat;)V", ordinal = 0, shift = At.Shift.AFTER))
     private void optiRefine$setFireSprite(CallbackInfo ci, @Local(ordinal = 0) BufferBuilder bufferBuilder, @Local(ordinal = 0) TextureAtlasSprite sprite) {
+// [AUDIT-OK] target renderFireInFirstPerson()V (SRG func_78442_d) begin() ordinal 0 matches baseline (line 564); sprite local assigned before begin (line 551) so @Local valid
         BufferBuilder_setSprite(bufferBuilder, sprite);
     }
 
@@ -136,6 +153,7 @@ public abstract class MixinItemRenderer {
      */
     @Inject(method = "updateEquippedItem", at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/ItemRenderer;itemStackMainHand:Lnet/minecraft/item/ItemStack;", opcode = Opcodes.PUTFIELD, ordinal = 1, shift = At.Shift.AFTER))
     private void optiRefine$setItemToRenderMain(CallbackInfo ci) {
+// [AUDIT-ISSUE] target updateEquippedItem()V (SRG func_78441_a) has exactly ONE PUTFIELD itemStackMainHand (line 601); ordinal=1 injection point cannot be found -> mixin apply failure risk; use ordinal=0
         if (Config.isShaders()) {
             Shaders.setItemToRenderMain(this.itemStackMainHand);
         }
@@ -146,6 +164,7 @@ public abstract class MixinItemRenderer {
      */
     @Inject(method = "updateEquippedItem", at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/ItemRenderer;itemStackOffHand:Lnet/minecraft/item/ItemStack;", opcode = Opcodes.PUTFIELD, ordinal = 1, shift = At.Shift.AFTER))
     private void optiRefine$setItemToRenderOff(CallbackInfo ci) {
+// [AUDIT-ISSUE] same as above: single PUTFIELD itemStackOffHand (line 606); ordinal=1 not found -> use ordinal=0
         if (Config.isShaders()) {
             Shaders.setItemToRenderOff(this.itemStackOffHand);
         }

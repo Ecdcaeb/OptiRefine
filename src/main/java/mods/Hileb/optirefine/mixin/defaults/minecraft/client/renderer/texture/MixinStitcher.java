@@ -25,17 +25,23 @@ import java.util.List;
  * not re-implemented here.</p>
  */
 @Mixin(Stitcher.class)
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
 public abstract class MixinStitcher {
 
     @Shadow
+    // [AUDIT-OK] baseline member currentWidth (field_94318_c) exists in Stitcher
     private int currentWidth;
     @Shadow
+    // [AUDIT-OK] baseline member currentHeight (field_94315_d) exists in Stitcher
     private int currentHeight;
     @Shadow
+    // [AUDIT-OK] baseline member maxWidth (field_94316_e) exists in Stitcher
     private int maxWidth;
     @Shadow
+    // [AUDIT-OK] baseline member maxHeight (field_94313_f) exists in Stitcher
     private int maxHeight;
     @Shadow
+    // [AUDIT-OK] baseline member stitchSlots (field_94317_b) exists in Stitcher
     private List<Stitcher.Slot> stitchSlots;
 
     /**
@@ -43,6 +49,7 @@ public abstract class MixinStitcher {
      * @reason OptiFine: rounded-down power-of-two expansion decision + unconditional growth
      */
     @Inject(method = "expandAndAllocateSlot", at = @At("HEAD"), cancellable = true)
+    // [AUDIT-OK] target expandAndAllocateSlot (func_94311_c)Z non-void -> CIR; body mirrors OF (roundDownToPowerOfTwo + unconditional growth)
     private void optiRefine$expandAndAllocateSlot(Stitcher.Holder holder, CallbackInfoReturnable<Boolean> cir) {
         int i = Math.min(holder.getWidth(), holder.getHeight());
         int i1 = MathHelper.smallestEncompassingPowerOfTwo(this.currentWidth + i);

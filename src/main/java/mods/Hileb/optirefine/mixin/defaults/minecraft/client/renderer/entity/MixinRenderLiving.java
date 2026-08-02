@@ -13,7 +13,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(RenderLiving.class)
 public abstract class MixinRenderLiving {
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
     @WrapMethod(method = "renderLeash")
+    // [AUDIT-OK] target renderLeash baseline; shader/shadow-pass guard matches OF renderLeash
     public void blockRenderLeashForConfig(EntityLiving entityLivingIn, double x, double y, double z, float entityYaw, float partialTicks, Operation<Void> original){
         if (!Config.isShaders() || !Shaders.isShadowPass) {
             original.call(entityLivingIn, x, y, z, entityYaw, partialTicks);
@@ -21,6 +23,7 @@ public abstract class MixinRenderLiving {
     }
 
     @Inject(method = "renderLeash", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GlStateManager;disableCull()V"))
+    // [AUDIT-OK] GlStateManager.disableCull INVOKE unique; beginLeash placement matches OF
     public void beforeRenderLeashForConfig(EntityLiving entityLivingIn, double x, double y, double z, float entityYaw, float partialTicks, CallbackInfo ci){
         if (Config.isShaders()) {
             Shaders.beginLeash();
@@ -29,6 +32,7 @@ public abstract class MixinRenderLiving {
 
 
     @WrapOperation(method = "renderLeash", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GlStateManager;enableLighting()V"))
+    // [AUDIT-OK] enableLighting INVOKE unique; endLeash before enableLighting matches OF tail
     public void afterRenderLeashForConfig(Operation<Void> original){
         if (Config.isShaders()) {
             Shaders.endLeash();

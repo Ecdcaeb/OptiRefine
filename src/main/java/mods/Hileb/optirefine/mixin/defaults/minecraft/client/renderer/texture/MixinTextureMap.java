@@ -67,41 +67,53 @@ import java.util.TreeSet;
  * thus skipped here.</p>
  */
 @Mixin(TextureMap.class)
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 3
 public abstract class MixinTextureMap implements ITickableTextureObject {
 
     // ===== new fields =====
 
     @Shadow
+    // [AUDIT-OK] baseline member listAnimatedSprites (field_94258_i) exists in TextureMap
     private List<TextureAtlasSprite> listAnimatedSprites;
 
     @Shadow
+    // [AUDIT-OK] baseline member registerSprite (func_174942_a) exists in TextureMap
     public TextureAtlasSprite registerSprite(ResourceLocation location) {
         throw new AbstractMethodError();
     }
 
     @Shadow
+    // [AUDIT-OK] baseline member getResourceLocation (func_184396_a) exists in TextureMap
     private ResourceLocation getResourceLocation(TextureAtlasSprite sprite) {
         throw new AbstractMethodError();
     }
 
     @Shadow
+    // [AUDIT-OK] baseline member generateMipmaps (func_184397_a, returns Z) exists in TextureMap
     private boolean generateMipmaps(IResourceManager resourceManager, TextureAtlasSprite sprite) {
         throw new AbstractMethodError();
     }
     @Shadow
+    // [AUDIT-OK] baseline member mapRegisteredSprites (field_110574_e) exists in TextureMap
     private Map<String, TextureAtlasSprite> mapRegisteredSprites;
     @Shadow
+    // [AUDIT-OK] baseline member mapUploadedSprites (field_94252_e) exists in TextureMap
     private Map<String, TextureAtlasSprite> mapUploadedSprites;
     @Shadow
+    // [AUDIT-OK] baseline member basePath (field_94254_c) exists in TextureMap
     private String basePath;
     @Shadow
+    // [AUDIT-OK] baseline member iconCreator (field_174946_m) exists in TextureMap
     private ITextureMapPopulator iconCreator;
     @Shadow
+    // [AUDIT-OK] baseline member mipmapLevels (field_147636_j) exists in TextureMap
     private int mipmapLevels;
     @Shadow
+    // [AUDIT-OK] baseline member missingImage (field_94249_f) exists in TextureMap
     private TextureAtlasSprite missingImage;
 
     @Unique
+    // [AUDIT-OK] OF-added fields (iconGrid/iconGridSize/iconGridCountX/Y/iconGridSizeU/V/counterIndexInMap/countAnimationsActive/frameCountAnimations), not in baseline
     private TextureAtlasSprite[] iconGrid = null;
     @Unique
     private int iconGridSize = -1;
@@ -117,6 +129,7 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
     private CounterInt counterIndexInMap = new CounterInt(0);
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
+    // [AUDIT-OK] OF-added fields atlasWidth/atlasHeight (@Public), not in baseline
     public int atlasWidth = 0;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
@@ -125,94 +138,117 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite setIndexInMap (I)V")
+    // [AUDIT-OK] OF member setIndexInMap(I)V, MCP name (not in tsrg)
     private static native void TextureAtlasSprite_setIndexInMap(TextureAtlasSprite sprite, int indexInMap);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite deleteSpriteTexture ()V")
+    // [AUDIT-OK] OF member deleteSpriteTexture()V, MCP name (not in tsrg)
     private static native void TextureAtlasSprite_deleteSpriteTexture(TextureAtlasSprite sprite);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite updateIndexInMap (Lnet/optifine/util/CounterInt;)V")
+    // [AUDIT-OK] OF member updateIndexInMap(CounterInt)V, MCP name (not in tsrg)
     private static native void TextureAtlasSprite_updateIndexInMap(TextureAtlasSprite sprite, net.optifine.util.CounterInt counterInt);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite setAnimationIndex (I)V")
+    // [AUDIT-OK] OF member setAnimationIndex(I)V, MCP name (not in tsrg)
     private static native void TextureAtlasSprite_setAnimationIndex(TextureAtlasSprite sprite, int animationIndex);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite getAnimationIndex ()I")
+    // [AUDIT-OK] OF member getAnimationIndex()I, MCP name (not in tsrg)
     private static native int TextureAtlasSprite_getAnimationIndex(TextureAtlasSprite sprite);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite bindSpriteTexture ()V")
+    // [AUDIT-OK] OF member bindSpriteTexture()V, MCP name (not in tsrg)
     private static native void TextureAtlasSprite_bindSpriteTexture(TextureAtlasSprite sprite);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite isAnimationActive ()Z")
+    // [AUDIT-OK] OF member isAnimationActive()Z, MCP name (not in tsrg)
     private static native boolean TextureAtlasSprite_isAnimationActive(TextureAtlasSprite sprite);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite getFramesTextureData ()Ljava/util/List;")
+    // [AUDIT-OK] OF member getFramesTextureData()Ljava/util/List; (vanilla only has getFrameTextureData(int)+static 4-arg), MCP name
     private static native java.util.List<int[][]> TextureAtlasSprite_getFramesTextureData(TextureAtlasSprite sprite);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite getAnimationMetadata ()Lnet/minecraft/client/resources/data/AnimationMetadataSection;")
+    // [AUDIT-OK] OF member getAnimationMetadata(), MCP name (not in tsrg)
     private static native net.minecraft.client.resources.data.AnimationMetadataSection TextureAtlasSprite_getAnimationMetadata(TextureAtlasSprite sprite);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite setAnimationMetadata (Lnet/minecraft/client/resources/data/AnimationMetadataSection;)V")
+    // [AUDIT-OK] OF member setAnimationMetadata(AnimationMetadataSection)V, MCP name (not in tsrg)
     private static native void TextureAtlasSprite_setAnimationMetadata(TextureAtlasSprite sprite, net.minecraft.client.resources.data.AnimationMetadataSection animationMetadata);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite spriteSingle Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;")
+    // [AUDIT-OK] OF field spriteSingle, MCP name (not in tsrg)
     private static native TextureAtlasSprite TextureAtlasSprite_spriteSingle_get(TextureAtlasSprite sprite);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite spriteNormal Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;")
+    // [AUDIT-OK] OF field spriteNormal, MCP name (not in tsrg)
     private static native TextureAtlasSprite TextureAtlasSprite_spriteNormal_get(TextureAtlasSprite sprite);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite spriteSpecular Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;")
+    // [AUDIT-OK] OF field spriteSpecular, MCP name (not in tsrg)
     private static native TextureAtlasSprite TextureAtlasSprite_spriteSpecular_get(TextureAtlasSprite sprite);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.PUTFIELD, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite sheetWidth I")
+    // [AUDIT-OK] OF field sheetWidth, MCP name (not in tsrg)
     private static native void TextureAtlasSprite_sheetWidth_set(TextureAtlasSprite sprite, int value);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.PUTFIELD, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite sheetHeight I")
+    // [AUDIT-OK] OF field sheetHeight, MCP name (not in tsrg)
     private static native void TextureAtlasSprite_sheetHeight_set(TextureAtlasSprite sprite, int value);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.PUTFIELD, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite mipmapLevels I")
+    // [AUDIT-OK] OF field mipmapLevels, MCP name (not in tsrg)
     private static native void TextureAtlasSprite_mipmapLevels_set(TextureAtlasSprite sprite, int value);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.PUTFIELD, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite isEmissive Z")
+    // [AUDIT-OK] OF field isEmissive, MCP name (not in tsrg)
     private static native void TextureAtlasSprite_isEmissive_set(TextureAtlasSprite sprite, boolean value);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.PUTFIELD, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite spriteEmissive Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;")
+    // [AUDIT-OK] OF field spriteEmissive, MCP name (not in tsrg)
     private static native void TextureAtlasSprite_spriteEmissive_set(TextureAtlasSprite sprite, TextureAtlasSprite value);
 
     @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureMap func_184397_a (Lnet/minecraft/client/resources/IResourceManager;Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;)V")
-    private static native void TextureMap_generateMipmaps(net.minecraft.client.renderer.texture.TextureMap textureMap, IResourceManager resourceManager, TextureAtlasSprite sprite);
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureMap func_184397_a (Lnet/minecraft/client/resources/IResourceManager;Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;)Z", deobf = true)
+    // [AUDIT-ISSUE] desc ends )V but func_184397_a returns Z (boolean); helper never called here (dead decl). Fix: )Z + deobf=true
+    private static native boolean TextureMap_generateMipmaps(net.minecraft.client.renderer.texture.TextureMap textureMap, IResourceManager resourceManager, TextureAtlasSprite sprite);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureMap isAbsoluteLocation (Lnet/minecraft/util/ResourceLocation;)Z")
+    // [AUDIT-OK] OF member isAbsoluteLocation(ResourceLocation)Z, MCP name (not in tsrg)
     private static native boolean TextureMap_isAbsoluteLocation(net.minecraft.client.renderer.texture.TextureMap textureMap, ResourceLocation location);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureMap getMultiTexID ()Lnet/optifine/shaders/MultiTexID;")
+    // [AUDIT-OK] OF member getMultiTexID()Lnet/optifine/shaders/MultiTexID; (inherited from AbstractTexture), MCP name
     private static native net.optifine.shaders.MultiTexID TextureMap_getMultiTexID(net.minecraft.client.renderer.texture.TextureMap textureMap);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.client.renderer.GlStateManager getBoundTexture ()I")
+    // [AUDIT-OK] OF member GlStateManager.getBoundTexture()I (OF GlStateManager:797), MCP name (not in tsrg)
     private static native int GlStateManager_getBoundTexture();
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.client.renderer.texture.TextureUtil func_94277_a (I)V")
+    // [AUDIT-OK] vanilla SRG func_94277_a = TextureUtil.bindTexture(I)V
     private static native void TextureUtil_bindTexture(int texture);
 
     @Unique
@@ -223,6 +259,7 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
     // ===== initMissingImage: dynamic size + index =====
 
     @Inject(method = "initMissingImage", at = @At("HEAD"), cancellable = true)
+    // [AUDIT-OK] target initMissingImage()V (func_110569_e) matches baseline; HEAD-cancel replicates OF dynamic-size init
     private void optiRefine$initMissingImage(CallbackInfo ci) {
         int i = this.getMinSpriteSize();
         int[] aint = this.getMissingImageData(i);
@@ -239,6 +276,7 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
 
     @Inject(method = "loadSprites", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/texture/ITextureMapPopulator;registerSprites(Lnet/minecraft/client/renderer/texture/TextureMap;)V", shift = At.Shift.BEFORE))
 
+    // [AUDIT-OK] target loadSprites(IResourceManager,ITextureMapPopulator)V (func_174943_a) matches baseline; reset before registerSprites like OF
     private void optiRefine$loadSpritesReset(IResourceManager resourceManager, ITextureMapPopulator iconCreatorIn, CallbackInfo ci) {
 
         this.counterIndexInMap.reset();
@@ -249,6 +287,7 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
 
     @Inject(method = "loadSprites", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/texture/ITextureMapPopulator;registerSprites(Lnet/minecraft/client/renderer/texture/TextureMap;)V", shift = At.Shift.AFTER))
 
+    // [AUDIT-OK] target loadSprites (func_174943_a) matches baseline; mipmap detection after registerSprites like OF
     private void optiRefine$loadSprites(IResourceManager resourceManager, ITextureMapPopulator iconCreatorIn, CallbackInfo ci) {
 
         if (this.mipmapLevels >= 4) {
@@ -268,6 +307,7 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
      * @reason OptiFine: connected textures, custom items, sprite dependencies, scaling, shaders, multi-texture
      */
     @WrapMethod(method = "loadTextureAtlas")
+    // [AUDIT-OK] target loadTextureAtlas(IResourceManager)V (func_110571_b) matches baseline; body mirrors OF rewrite
     private void optiRefine$loadTextureAtlas(IResourceManager resourceManager, Operation<Void> original) {
         Config.dbg("Multitexture: " + Config.isMultiTexture());
         if (Config.isMultiTexture()) {
@@ -473,6 +513,7 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
      * @reason OptiFine: custom loader mipmap support
      */
     @WrapMethod(method = "generateMipmaps")
+    // [AUDIT-OK] target generateMipmaps (func_184397_a)Z matches baseline; body mirrors OF (custom-loader + crash report)
     private boolean optiRefine$generateMipmaps(IResourceManager resourceManager, TextureAtlasSprite sprite, Operation<Boolean> original) {
         ResourceLocation resourcelocation = this.getResourceLocation(sprite);
         IResource iresource = null;
@@ -518,7 +559,8 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
     // ===== resource location helpers =====
 
     @SuppressWarnings("unused")
-    @mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessTransformer(name = "getResourceLocation", access = org.objectweb.asm.Opcodes.ACC_PUBLIC)
+    @mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessTransformer(name = "func_184396_a", access = org.objectweb.asm.Opcodes.ACC_PUBLIC, deobf = true)
+    // [AUDIT-ISSUE] vanilla member getResourceLocation = func_184396_a; AT uses MCP name w/o deobf=true -> silent no-op at SRG runtime (stays private); impact needs-verification
     private ResourceLocation acc_getResourceLocation(TextureAtlasSprite sprite) {
         return null;
     }
@@ -528,12 +570,14 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
      * @reason OptiFine: complete resource location with base path
      */
     @WrapMethod(method = "getResourceLocation")
+    // [AUDIT-OK] target getResourceLocation(TextureAtlasSprite)LResourceLocation matches baseline; mirrors OF
     private ResourceLocation optiRefine$getResourceLocation(TextureAtlasSprite sprite, Operation<ResourceLocation> original) {
         ResourceLocation resourcelocation = new ResourceLocation(sprite.getIconName());
         return this.completeResourceLocation(resourcelocation);
     }
 
     @Public
+    // [AUDIT-OK] OF-added @Public method completeResourceLocation, not in baseline
     public ResourceLocation completeResourceLocation(ResourceLocation location) {
         return TextureMap_isAbsoluteLocation((net.minecraft.client.renderer.texture.TextureMap)(Object) this, location)
                 ? new ResourceLocation(location.getNamespace(), location.getPath() + ".png")
@@ -547,6 +591,7 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
      * @reason OptiFine: terrain animation toggles, normal/specular/single sprites, SmartAnimations
      */
     @WrapMethod(method = "updateAnimations")
+    // [AUDIT-OK] target updateAnimations()V (func_94248_c) matches baseline; body mirrors OF
     private void optiRefine$updateAnimations(Operation<Void> original) {
         boolean flag = false;
         boolean flag1 = false;
@@ -632,11 +677,13 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
+    // [AUDIT-OK] OF-added private method isAbsoluteLocation (MCP name), merged to satisfy OF jar (AGENT.md crash record); note: no @Unique
     private boolean isAbsoluteLocation(ResourceLocation location) {
         return this.isAbsoluteLocationPath(location.getPath());
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
+    // [AUDIT-OK] OF-added private method isAbsoluteLocationPath (MCP name); note: no @Unique
     private boolean isAbsoluteLocationPath(String path) {
         String s = path.toLowerCase();
         return s.startsWith("mcpatcher/") || s.startsWith("optifine/");
@@ -644,9 +691,10 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
 
     // ===== registerSprite: index + emissive =====
 
-    @Inject(method = "registerSprite", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;makeAtlasSprite(Lnet/minecraft/util/ResourceLocation;)Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;", shift = At.Shift.AFTER))
+    @Inject(method = "registerSprite", at = @At("RETURN"))
+    // [AUDIT-FIXED] inject at RETURN: mapRegisteredSprites already populated; use cir.getReturnValue()
     private void optiRefine$registerSprite(ResourceLocation location, CallbackInfoReturnable<TextureAtlasSprite> cir) {
-        TextureAtlasSprite textureatlassprite = this.mapRegisteredSprites.get(location.toString());
+        TextureAtlasSprite textureatlassprite = cir.getReturnValue();
         if (textureatlassprite != null) {
             TextureAtlasSprite_updateIndexInMap(textureatlassprite, this.counterIndexInMap);
             if (Config.isEmissiveTextures()) {
@@ -658,17 +706,20 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
     // ===== new methods =====
 
     @Public
+    // [AUDIT-OK] OF-added @Public method getSpriteSafe(String), not in baseline
     public TextureAtlasSprite getSpriteSafe(String name) {
         ResourceLocation resourcelocation = new ResourceLocation(name);
         return this.mapRegisteredSprites.get(resourcelocation.toString());
     }
 
     @Public
+    // [AUDIT-OK] OF-added @Public method getRegisteredSprite(ResourceLocation), not in baseline
     public TextureAtlasSprite getRegisteredSprite(ResourceLocation location) {
         return this.mapRegisteredSprites.get(location.toString());
     }
 
     @Unique
+    // [AUDIT-OK] OF-added @Unique method isTerrainAnimationActive, not in baseline
     private boolean isTerrainAnimationActive(TextureAtlasSprite sprite) {
         if (sprite == TextureUtils.iconWaterStill || sprite == TextureUtils.iconWaterFlow) {
             return Config.isAnimatedWater();
@@ -684,11 +735,13 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
     }
 
     @Public
+    // [AUDIT-OK] OF-added @Public method getCountRegisteredSprites, not in baseline
     public int getCountRegisteredSprites() {
         return this.counterIndexInMap.getValue();
     }
 
     @Unique
+    // [AUDIT-OK] OF-added @Unique method detectMaxMipmapLevel, not in baseline
     private int detectMaxMipmapLevel(Map<String, TextureAtlasSprite> map, IResourceManager resourceManager) {
         int i = this.detectMinimumSpriteSize(map, resourceManager, 20);
         if (i < 16) {
@@ -706,6 +759,7 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
     }
 
     @Unique
+    // [AUDIT-OK] OF-added @Unique method detectMinimumSpriteSize, not in baseline
     private int detectMinimumSpriteSize(Map<String, TextureAtlasSprite> map, IResourceManager resourceManager, int maxCount) {
         HashMap<Integer, Integer> hashmap = new HashMap<>();
 
@@ -757,6 +811,7 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
     }
 
     @Unique
+    // [AUDIT-OK] OF-added @Unique method getMinSpriteSize, not in baseline
     private int getMinSpriteSize() {
         int i = 1 << this.mipmapLevels;
         if (i < 8) {
@@ -766,6 +821,7 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
     }
 
     @Unique
+    // [AUDIT-OK] OF-added @Unique method getMissingImageData, not in baseline
     private int[] getMissingImageData(int size) {
         BufferedImage bufferedimage = new BufferedImage(16, 16, 2);
         bufferedimage.setRGB(0, 0, 16, 16, TextureUtil.MISSING_TEXTURE_DATA, 0, 16);
@@ -776,6 +832,7 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
     }
 
     @Public
+    // [AUDIT-OK] OF-added @Public method isTextureBound, not in baseline
     public boolean isTextureBound() {
         int i = GlStateManager_getBoundTexture();
         int j = this.getGlTextureId();
@@ -783,6 +840,7 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
     }
 
     @Unique
+    // [AUDIT-OK] OF-added @Unique method updateIconGrid, not in baseline
     private void updateIconGrid(int width, int height) {
         this.iconGridCountX = -1;
         this.iconGridCountY = -1;
@@ -825,6 +883,7 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
     }
 
     @Public
+    // [AUDIT-OK] OF-added @Public method getIconByUV, not in baseline
     public TextureAtlasSprite getIconByUV(double u, double v) {
         if (this.iconGrid == null) {
             return null;
@@ -837,6 +896,7 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
     }
 
     @Unique
+    // [AUDIT-OK] OF-added @Unique method checkEmissive, not in baseline
     private void checkEmissive(ResourceLocation location, TextureAtlasSprite sprite) {
         String s = EmissiveTextures.getSuffixEmissive();
         if (s != null) {
@@ -853,11 +913,13 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
     }
 
     @Public
+    // [AUDIT-OK] OF-added @Public method getCountAnimations, not in baseline
     public int getCountAnimations() {
         return this.listAnimatedSprites.size();
     }
 
     @Public
+    // [AUDIT-OK] OF-added @Public method getCountAnimationsActive, not in baseline
     public int getCountAnimationsActive() {
         return this.countAnimationsActive;
     }

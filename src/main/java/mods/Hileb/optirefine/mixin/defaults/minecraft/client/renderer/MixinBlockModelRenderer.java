@@ -52,26 +52,34 @@ import net.minecraft.client.renderer.RegionRenderCacheBuilder;
 import net.optifine.shaders.Shaders;
 @Mixin(BlockModelRenderer.class)
 public abstract class MixinBlockModelRenderer {
+// [AUDIT] 2026-08-03 — see AGENT.md; issues: 0
     @Public 
+// [AUDIT-OK] OF-added static member (OF: private static; @Public extra visibility harmless)
     private static float aoLightValueOpaque = 0.2F;
     @Public 
+// [AUDIT-OK] OF-added static member, not in baseline
     private static boolean separateAoLightValue = false;
     @Public 
+// [AUDIT-OK] OF-added static member, not in baseline
     private static final BlockRenderLayer[] OVERLAY_LAYERS = new BlockRenderLayer[]{
             BlockRenderLayer.CUTOUT, BlockRenderLayer.CUTOUT_MIPPED, BlockRenderLayer.TRANSLUCENT
     };
 
     @Inject(method = "<init>", at = @At("RETURN"))
     public void closeForgeLightPipelineAtConstructor(BlockColors p_i46575_1, CallbackInfo ci) {
+// [AUDIT-OK] target <init>(Lnet/minecraft/client/renderer/color/BlockColors;)V; disables Forge light pipeline per OF
         ForgeModContainer.forgeLightPipelineEnabled = false;
     }
 
+// [AUDIT-OK] baseline member renderModelFlat (SRG func_187497_c)
     @Shadow public abstract boolean renderModelFlat(IBlockAccess worldIn, IBakedModel modelIn, IBlockState stateIn, BlockPos posIn, BufferBuilder buffer, boolean checkSides, long rand);
 
+// [AUDIT-OK] baseline member renderModelSmooth (SRG func_187498_b)
     @Shadow public abstract boolean renderModelSmooth(IBlockAccess worldIn, IBakedModel modelIn, IBlockState stateIn, BlockPos posIn, BufferBuilder buffer, boolean checkSides, long rand);
 
     @WrapMethod(method = "renderModel(Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/client/renderer/block/model/IBakedModel;Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/client/renderer/BufferBuilder;ZJ)Z")
     public boolean renderModel(IBlockAccess worldIn, IBakedModel modelIn, IBlockState stateIn, BlockPos posIn, BufferBuilder buffer, boolean checkSides, long rand, Operation<Boolean> original) {
+// [AUDIT-OK] target renderModel(LIBlockAccess;LIBakedModel;LIBlockState;LBlockPos;LBufferBuilder;ZJ)Z (SRG func_187493_a) matches baseline
         boolean flag = Minecraft.isAmbientOcclusionEnabled() && stateIn.getLightValue(worldIn, posIn) == 0 && modelIn.isAmbientOcclusion(stateIn);
 
         try {
@@ -104,45 +112,55 @@ public abstract class MixinBlockModelRenderer {
     }
 
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/BufferBuilder getRenderEnv (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/math/BlockPos;)Lnet/optifine/render/RenderEnv;", deobf = true)
+// [AUDIT-OK] OF member BufferBuilder.getRenderEnv (MixinBufferBuilder @Unique provides); deobf=true no-op for OF names
     private static RenderEnv BufferBuilder_getRenderEnv(BufferBuilder builder, IBlockState blockStateIn, BlockPos blockPosIn) {
         throw new AbstractMethodError();
     }
 
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/BufferBuilder getBlockLayer ()Lnet.minecraft.util.BlockRenderLayer;", deobf = true)
+// [AUDIT-OK] OF member BufferBuilder.getBlockLayer; deobf=true no-op
     private static BlockRenderLayer BufferBuilder_getBlockLayer(BufferBuilder builder) {
         throw new AbstractMethodError();
     }
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite isEmissive Z", deobf = true)
+// [AUDIT-OK] OF field TextureAtlasSprite.isEmissive, not in baseline (MixinTextureAtlasSprite @Public)
     private static native boolean TextureAtlasSprite_isEmissive_get(TextureAtlasSprite sprite);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/block/model/BakedQuad getVertexDataSingle ()[I", deobf = true)
+// [AUDIT-OK] OF member BakedQuad.getVertexDataSingle, not in baseline (MixinBakedQuad provides)
     private static native int[] BakedQuad_getVertexDataSingle(BakedQuad quad);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/block/model/BakedQuad getQuadEmissive ()Lnet/minecraft/client/renderer/block/model/BakedQuad;", deobf = true)
+// [AUDIT-OK] OF member BakedQuad.getQuadEmissive, not in baseline
     private static native BakedQuad BakedQuad_getQuadEmissive(BakedQuad quad);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/BufferBuilder getXOffset ()D", deobf = true)
+// [AUDIT-OK] OF member BufferBuilder.getXOffset (MixinBufferBuilder @Unique)
     private static native double BufferBuilder_getXOffset(BufferBuilder buffer);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/BufferBuilder isDrawing ()Z", deobf = true)
+// [AUDIT-OK] OF member BufferBuilder.isDrawing
     private static native boolean BufferBuilder_isDrawing(BufferBuilder buffer);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/BufferBuilder getYOffset ()D", deobf = true)
+// [AUDIT-OK] OF member BufferBuilder.getYOffset
     private static native double BufferBuilder_getYOffset(BufferBuilder buffer);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/BufferBuilder getZOffset ()D", deobf = true)
+// [AUDIT-OK] OF member BufferBuilder.getZOffset
     private static native double BufferBuilder_getZOffset(BufferBuilder buffer);
 
     @Inject(method = "renderModelSmooth", at = @At("HEAD"))
     public void initRenderModelSmooth(IBlockAccess worldIn, IBakedModel modelIn, IBlockState stateIn, BlockPos posIn, BufferBuilder buffer, boolean checkSides, long rand, CallbackInfoReturnable<Boolean> cir,
+// [AUDIT-OK] target renderModelSmooth matches baseline (non-void -> CallbackInfoReturnable)
                                       @Share(namespace = "optirefine", value = "renderEnv") LocalRef<RenderEnv> envLocalRef,
                                       @Share(namespace = "optirefine", value = "layer") LocalRef<BlockRenderLayer> layerLocalRef
     ) {
@@ -153,6 +171,7 @@ public abstract class MixinBlockModelRenderer {
 
     @Redirect(method = "renderModelSmooth", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/BlockModelRenderer;renderQuadsSmooth(Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/client/renderer/BufferBuilder;Ljava/util/List;[FLjava/util/BitSet;Lnet/minecraft/client/renderer/BlockModelRenderer$AmbientOcclusionFace;)V"))
     public void makeCustomQuadsRenderModelSmooth(BlockModelRenderer instance, IBlockAccess k, IBlockState f, BlockPos f1, BufferBuilder f2, List<BakedQuad> bakedquad, float[] j, BitSet bitSet, BlockModelRenderer.AmbientOcclusionFace blockAccessIn,
+// [AUDIT-OK] target renderQuadsSmooth (SRG func_187492_a) matches baseline
                                                  @Share(namespace = "optirefine", value = "renderEnv") LocalRef<RenderEnv> envLocalRef,
                                                  @Share(namespace = "optirefine", value = "layer") LocalRef<BlockRenderLayer> layerLocalRef, @Local(argsOnly = true) long rand) {
         bakedquad = BlockModelCustomizer.getRenderQuads(bakedquad, k, f, f1, null, layerLocalRef.get(), rand, envLocalRef.get());
@@ -162,6 +181,7 @@ public abstract class MixinBlockModelRenderer {
 
     @Inject(method = "renderModelFlat", at = @At("HEAD"))
     public void initRenderModelFlat(IBlockAccess worldIn, IBakedModel modelIn, IBlockState stateIn, BlockPos posIn, BufferBuilder buffer, boolean checkSides, long rand, CallbackInfoReturnable<Boolean> cir,
+// [AUDIT-OK] target renderModelFlat matches baseline
                                     @Share(namespace = "optirefine", value = "renderEnv") LocalRef<RenderEnv> envLocalRef,
                                     @Share(namespace = "optirefine", value = "layer") LocalRef<BlockRenderLayer> layerLocalRef
     ) {
@@ -172,6 +192,7 @@ public abstract class MixinBlockModelRenderer {
 
     @Redirect(method = "renderModelFlat", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/BlockModelRenderer;renderQuadsFlat(Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/math/BlockPos;IZLnet/minecraft/client/renderer/BufferBuilder;Ljava/util/List;Ljava/util/BitSet;)V"))
     public void makeCustomQuadsRenderModelFlat(BlockModelRenderer instance, IBlockAccess diffuse, IBlockState k, BlockPos f, int f1, boolean f2, BufferBuilder
+// [AUDIT-OK] target renderQuadsFlat (SRG func_187496_a) matches baseline
             builder, List<BakedQuad> bakedquad, BitSet j, @Share(namespace = "optirefine", value = "renderEnv") LocalRef<RenderEnv> envLocalRef, @Share(namespace = "optirefine", value = "layer") LocalRef<BlockRenderLayer> layerLocalRef, @Local(argsOnly = true) long rand) {
         bakedquad = BlockModelCustomizer.getRenderQuads(bakedquad, diffuse, k, f, null, layerLocalRef.get(), rand, envLocalRef.get());
         this.renderQuadsFlat(diffuse, k, f, f1, f2, builder, bakedquad, envLocalRef.get());
@@ -179,37 +200,46 @@ public abstract class MixinBlockModelRenderer {
 
     
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/BufferBuilder isMultiTexture ()Z")
+// [AUDIT-OK] OF member BufferBuilder.isMultiTexture
     private static native boolean BufferBuilder_isMultiTexture(BufferBuilder builder);
 
     
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, deobf = true, desc = "net/minecraft/client/renderer/BufferBuilder putColorMultiplierRgba (FFFFI)V")
+// [AUDIT-OK] OF member BufferBuilder.putColorMultiplierRgba(5-arg)
     private static native void BufferBuilder_putColorMultiplierRgba(BufferBuilder builder, float red, float green, float blue, float alpha, int vertexIndex);
 
     
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, deobf = true, desc = "net/minecraft/client/renderer/BufferBuilder putSprite (Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;)V")
+// [AUDIT-OK] OF member BufferBuilder.putSprite
     private static native void BufferBuilder_putSprite(BufferBuilder builder, TextureAtlasSprite sprite);
 
     
     @AccessibleOperation(opcode = Opcodes.GETFIELD, deobf = true, desc = "net.minecraft.client.renderer.BlockModelRenderer$AmbientOcclusionFace field_178206_b [F")
+// [AUDIT-OK] vanilla SRG field_178206_b = vertexColorMultiplier, deobf=true
     private static native float[] AmbientOcclusionFace_vertexColorMultiplier(Object instance);
 
     
     @AccessibleOperation(opcode = Opcodes.GETFIELD, deobf = true, desc = "net.minecraft.client.renderer.BlockModelRenderer$AmbientOcclusionFace field_178207_c [I")
+// [AUDIT-OK] vanilla SRG field_178207_c = vertexBrightness, deobf=true
     private static native int[] AmbientOcclusionFace_vertexBrightness(Object instance);
 
     
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, deobf = true, desc = "net.minecraft.client.renderer.BlockModelRenderer$AmbientOcclusionFace setMaxBlockLight ()V")
+// [AUDIT-OK] OF member AmbientOcclusionFace.setMaxBlockLight (MixinBlockModelRender$AmbientOcclusionFace @Unique)
     private static native void AmbientOcclusionFace_setMaxBlockLight(Object instance);
 
     
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, deobf = true, desc = "net.minecraft.client.renderer.BlockModelRenderer$AmbientOcclusionFace func_187491_a (Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;[FLjava/util/BitSet;)V")
+// [AUDIT-OK] vanilla SRG func_187491_a = updateVertexBrightness, deobf=true
     private static native void AmbientOcclusionFace_updateVertexBrightness(Object instance, IBlockAccess worldIn, IBlockState state, BlockPos centerPos, EnumFacing direction, float[] faceShape, BitSet shapeState);
 
 
     @Shadow @Final
+// [AUDIT-OK] baseline member blockColors (SRG field_187499_a)
     private BlockColors blockColors;
 
     @Unique
+// [AUDIT-OK] OF-added private helper (name matches vanilla renderQuadsSmooth but different signature; private @Unique avoids the public-collision discard)
     private void renderQuadsSmooth(IBlockAccess blockAccessIn, IBlockState stateIn, BlockPos posIn, BufferBuilder buffer, List<BakedQuad> list, RenderEnv renderEnv) {
         float[] quadBounds = renderEnv.getQuadBounds();
         BitSet bitSet = renderEnv.getBoundsFlags();
@@ -280,6 +310,7 @@ public abstract class MixinBlockModelRenderer {
     }
 
     @Unique
+// [AUDIT-OK] OF-added private helper (vanilla has func_187494_a fillQuadBounds same name — private @Unique, different sig)
     private void fillQuadBounds(IBlockState stateIn, int[] vertexData, EnumFacing face, @Nullable float[] quadBounds, BitSet boundsFlags) {
         float f = 32.0F;
         float f1 = 32.0F;
@@ -347,6 +378,7 @@ public abstract class MixinBlockModelRenderer {
     }
 
     @Unique
+// [AUDIT-OK] OF-added private helper (name matches vanilla renderQuadsFlat; private @Unique, different sig)
     private void renderQuadsFlat(
             IBlockAccess blockAccessIn,
             IBlockState stateIn,
@@ -422,17 +454,20 @@ public abstract class MixinBlockModelRenderer {
     }
 
     @Public
+// [AUDIT-OK] OF-added static method (OF: public static), not in baseline
     private static float fixAoLightValue(float val) {
         return val == 0.2F ? aoLightValueOpaque : val;
     }
 
     @Public
+// [AUDIT-OK] OF-added static method (OF: public static), not in baseline
     private static void updateAoLightValue() {
         aoLightValueOpaque = 1.0F - Config.getAmbientOcclusionLevel() * 0.8F;
         separateAoLightValue = Config.isShaders() && Shaders.isSeparateAo();
     }
 
     @Unique
+// [AUDIT-OK] OF-added method, not in baseline
     private void renderOverlayModels(
             IBlockAccess worldIn,
             IBakedModel modelIn,

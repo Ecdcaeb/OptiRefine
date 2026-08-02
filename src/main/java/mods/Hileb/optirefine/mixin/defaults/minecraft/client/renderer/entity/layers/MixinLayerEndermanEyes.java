@@ -15,8 +15,10 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 @Mixin(LayerEndermanEyes.class)
 public abstract class MixinLayerEndermanEyes {
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
 
     @WrapOperation(method = "doRenderLayer(Lnet/minecraft/entity/monster/EntityEnderman;FFFFFFF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/ModelEnderman;render(Lnet/minecraft/entity/Entity;FFFFFF)V"))
+    // [AUDIT-OK] ModelEnderman.render INVOKE unique; begin/endSpiderEyes + renderOverlayEyes match OF LayerEndermanEyes:33-41 (OF reuses beginSpiderEyes for enderman)
     public void wrap_render(ModelEnderman instance, Entity entity, float v0, float v1, float v2, float v3, float v4, float v5, Operation<Void> original){
         if (Config.isShaders()) {
             Shaders.beginSpiderEyes();

@@ -45,58 +45,76 @@ import java.nio.IntBuffer;
  */
 @Mixin(GlStateManager.class)
 public abstract class MixinGlStateManager {
+// [AUDIT] 2026-08-03 — see AGENT.md; issues: 1
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
+// [AUDIT-OK] OF-added static member (OF: public static boolean clearEnabled = true), not in baseline
     private static boolean clearEnabled = true;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+// [AUDIT-OK] OF-added static member, not in baseline
     private static LockCounter alphaLock = new LockCounter();
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+// [AUDIT-OK] OF-added static member, not in baseline
     private static GlAlphaState alphaLockState = new GlAlphaState();
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+// [AUDIT-OK] OF-added static member, not in baseline
     private static LockCounter blendLock = new LockCounter();
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+// [AUDIT-OK] OF-added static member, not in baseline
     private static GlBlendState blendLockState = new GlBlendState();
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+// [AUDIT-OK] OF-added static member, not in baseline
     private static boolean creatingDisplayList = false;
 
     @Shadow
+// [AUDIT-OK] baseline member alphaState (SRG field_179160_a)
     private static GlStateManager.AlphaState alphaState;
     @Shadow
+// [AUDIT-OK] baseline member blendState (SRG field_179157_e)
     private static GlStateManager.BlendState blendState;
     @Shadow
+// [AUDIT-OK] baseline member fogState (SRG field_179155_g)
     private static GlStateManager.FogState fogState;
     @Shadow
+// [AUDIT-OK] baseline member activeTextureUnit (SRG field_179162_o)
     private static int activeTextureUnit;
     @Shadow
+// [AUDIT-OK] baseline member textureState (SRG field_179174_p)
     private static GlStateManager.TextureState[] textureState;
     @Shadow
     @Public
+// [AUDIT-OK] baseline member alphaFunc(IF)V (SRG func_179092_a); @Public for OF jar cross-class access
     private static native void alphaFunc(int func, float ref);
 
     @Shadow
     @Public
+// [AUDIT-OK] baseline member deleteTexture(I)V (SRG func_179150_h); @Public for OF jar
     private static native void deleteTexture(int texture);
 
     @Shadow
     @Public
+// [AUDIT-OK] baseline member blendFunc(II)V (SRG func_179112_b); @Public for OF jar
     private static native void blendFunc(int srcFactor, int dstFactor);
 
     @Shadow
     @Public
+// [AUDIT-OK] baseline member tryBlendFuncSeparate(IIII)V (SRG func_179120_a); @Public for OF jar
     private static native void tryBlendFuncSeparate(int srcFactor, int dstFactor, int srcFactorAlpha, int dstFactorAlpha);    @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.GlStateManager$BooleanState field_179201_b Z")
+// [AUDIT-OK] vanilla SRG field_179201_b = currentState (GlStateManager$BooleanState), deobf=true
     private static native boolean BooleanState_currentState_get(GlStateManager.BooleanState instance);
 
     // ===== alpha lock =====
 
     @WrapMethod(method = "disableAlpha")
     private static void optiRefine$disableAlpha(Operation<Void> original) {
+// [AUDIT-OK] target disableAlpha()V (SRG func_179118_c) matches baseline; OF lock body
         if (alphaLock.isLocked()) {
             alphaLockState.setDisabled();
         } else {
@@ -106,6 +124,7 @@ public abstract class MixinGlStateManager {
 
     @WrapMethod(method = "enableAlpha")
     private static void optiRefine$enableAlpha(Operation<Void> original) {
+// [AUDIT-OK] target enableAlpha()V (SRG func_179141_d) matches baseline
         if (alphaLock.isLocked()) {
             alphaLockState.setEnabled();
         } else {
@@ -115,6 +134,7 @@ public abstract class MixinGlStateManager {
 
     @WrapMethod(method = "alphaFunc")
     private static void optiRefine$alphaFunc(int func, float ref, Operation<Void> original) {
+// [AUDIT-OK] target alphaFunc(IF)V matches baseline
         if (alphaLock.isLocked()) {
             alphaLockState.setFuncRef(func, ref);
         } else {
@@ -126,6 +146,7 @@ public abstract class MixinGlStateManager {
 
     @WrapMethod(method = "disableBlend")
     private static void optiRefine$disableBlend(Operation<Void> original) {
+// [AUDIT-OK] target disableBlend()V (SRG func_179084_k) matches baseline
         if (blendLock.isLocked()) {
             blendLockState.setDisabled();
         } else {
@@ -135,6 +156,7 @@ public abstract class MixinGlStateManager {
 
     @WrapMethod(method = "enableBlend")
     private static void optiRefine$enableBlend(Operation<Void> original) {
+// [AUDIT-OK] target enableBlend()V (SRG func_179147_l) matches baseline
         if (blendLock.isLocked()) {
             blendLockState.setEnabled();
         } else {
@@ -144,6 +166,7 @@ public abstract class MixinGlStateManager {
 
     @WrapMethod(method = "blendFunc(II)V")
     private static void optiRefine$blendFunc(int src, int dst, Operation<Void> original) {
+// [AUDIT-OK] target blendFunc(II)V (SRG func_179112_b) matches baseline
         if (blendLock.isLocked()) {
             blendLockState.setFactors(src, dst);
         } else {
@@ -162,6 +185,7 @@ public abstract class MixinGlStateManager {
 
     @WrapMethod(method = "tryBlendFuncSeparate(IIII)V")
     private static void optiRefine$tryBlendFuncSeparate(int src, int dst, int srcAlpha, int dstAlpha, Operation<Void> original) {
+// [AUDIT-OK] target tryBlendFuncSeparate(IIII)V (SRG func_179120_a) matches baseline
         if (blendLock.isLocked()) {
             blendLockState.setFactors(src, dst, srcAlpha, dstAlpha);
         } else {
@@ -182,6 +206,7 @@ public abstract class MixinGlStateManager {
 
     @WrapMethod(method = "setFog(I)V")
     private static void optiRefine$setFog(int mode, Operation<Void> original) {
+// [AUDIT-OK] target setFog(I)V (SRG func_179093_d) matches baseline; OF keeps it private
         if (mode != fogState.mode) {
             fogState.mode = mode;
             org.lwjgl.opengl.GL11.glFogi(2917, mode);
@@ -193,6 +218,7 @@ public abstract class MixinGlStateManager {
 
     @WrapMethod(method = "setFogDensity")
     private static void optiRefine$setFogDensity(float density, Operation<Void> original) {
+// [AUDIT-OK] target setFogDensity(F)V (SRG func_179095_a) matches baseline
         if (density < 0.0F) {
             density = 0.0F;
         }
@@ -209,6 +235,7 @@ public abstract class MixinGlStateManager {
 
     @WrapMethod(method = "deleteTexture")
     private static void optiRefine$deleteTexture(int texture, Operation<Void> original) {
+// [AUDIT-OK] target deleteTexture(I)V matches baseline; OF resets all TextureState entries
         if (texture != 0) {
             org.lwjgl.opengl.GL11.glDeleteTextures(texture);
             for (GlStateManager.TextureState state : textureState) {
@@ -221,6 +248,7 @@ public abstract class MixinGlStateManager {
 
     @WrapMethod(method = "bindTexture")
     private static void optiRefine$bindTexture(int texture, Operation<Void> original) {
+// [AUDIT-OK] target bindTexture(I)V (SRG func_179144_i) matches baseline
         if (texture != textureState[activeTextureUnit].textureName) {
             textureState[activeTextureUnit].textureName = texture;
             org.lwjgl.opengl.GL11.glBindTexture(3553, texture);
@@ -234,6 +262,7 @@ public abstract class MixinGlStateManager {
 
     @WrapMethod(method = "clear")
     private static void optiRefine$clear(int mask, Operation<Void> original) {
+// [AUDIT-OK] target clear(I)V (SRG func_179086_m) matches baseline
         if (clearEnabled) {
             original.call(mask);
         }
@@ -243,6 +272,7 @@ public abstract class MixinGlStateManager {
 
     @Inject(method = "glDrawArrays", at = @At("TAIL"))
     private static void optiRefine$glDrawArrays(int mode, int first, int count, CallbackInfo ci) {
+// [AUDIT-OK] target glDrawArrays(III)V (SRG func_187439_f) matches baseline
         if (Config.isShaders() && !creatingDisplayList) {
             int instances = Shaders.activeProgram.getCountInstances();
             if (instances > 1) {
@@ -257,6 +287,7 @@ public abstract class MixinGlStateManager {
 
     @Inject(method = "callList", at = @At("TAIL"))
     private static void optiRefine$callList(int list, CallbackInfo ci) {
+// [AUDIT-OK] target callList(I)V (SRG func_179148_o) matches baseline
         if (Config.isShaders() && !creatingDisplayList) {
             int instances = Shaders.activeProgram.getCountInstances();
             if (instances > 1) {
@@ -271,11 +302,13 @@ public abstract class MixinGlStateManager {
 
     @Inject(method = "glNewList", at = @At("TAIL"))
     private static void optiRefine$glNewList(int list, int mode, CallbackInfo ci) {
+// [AUDIT-OK] target glNewList(II)V (SRG func_187423_f) matches baseline
         creatingDisplayList = true;
     }
 
     @Inject(method = "glEndList", at = @At("TAIL"))
     private static void optiRefine$glEndList(CallbackInfo ci) {
+// [AUDIT-OK] target glEndList()V (SRG func_187415_K) matches baseline
         creatingDisplayList = false;
     }
 
@@ -283,6 +316,7 @@ public abstract class MixinGlStateManager {
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
+// [AUDIT-OK] OF-added static method, not in baseline (vanilla has only callList)
     private static void callLists(IntBuffer lists) {
         org.lwjgl.opengl.GL11.glCallLists(lists);
         if (Config.isShaders() && !creatingDisplayList) {
@@ -299,6 +333,7 @@ public abstract class MixinGlStateManager {
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
+// [AUDIT-OK] OF-added static method, not in baseline
     private static void glMultiDrawArrays(int mode, IntBuffer firsts, IntBuffer counts) {
         org.lwjgl.opengl.GL14.glMultiDrawArrays(mode, firsts, counts);
         if (Config.isShaders() && !creatingDisplayList) {
@@ -315,24 +350,28 @@ public abstract class MixinGlStateManager {
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
+// [AUDIT-OK] OF-added static method, not in baseline
     private static int getActiveTextureUnit() {
         return OpenGlHelper.defaultTexUnit + activeTextureUnit;
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
+// [AUDIT-OK] OF-added static method, not in baseline
     private static void bindCurrentTexture() {
         org.lwjgl.opengl.GL11.glBindTexture(3553, textureState[activeTextureUnit].textureName);
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
+// [AUDIT-OK] OF-added static method, not in baseline
     private static int getBoundTexture() {
         return textureState[activeTextureUnit].textureName;
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
+// [AUDIT-OK] OF-added static method, not in baseline
     private static void checkBoundTexture() {
         if (Config.isMinecraftThread()) {
             int glActive = org.lwjgl.opengl.GL11.glGetInteger(34016);
@@ -349,6 +388,7 @@ public abstract class MixinGlStateManager {
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
+// [AUDIT-OK] OF-added static method, not in baseline
     private static void deleteTextures(IntBuffer textures) {
         textures.rewind();
         while (textures.position() < textures.limit()) {
@@ -360,18 +400,21 @@ public abstract class MixinGlStateManager {
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
+// [AUDIT-OK] OF-added static method, not in baseline
     private static boolean isFogEnabled() {
         return BooleanState_currentState_get(fogState.fog);
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
+// [AUDIT-OK] OF-added static method, not in baseline
     private static void setFogEnabled(boolean enabled) {
         fogState.fog.setState(enabled);
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
+// [AUDIT-OK] OF-added static method, not in baseline
     private static void lockAlpha(GlAlphaState state) {
         if (!alphaLock.isLocked()) {
             getAlphaState(alphaLockState);
@@ -382,6 +425,7 @@ public abstract class MixinGlStateManager {
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
+// [AUDIT-OK] OF-added static method, not in baseline
     private static void unlockAlpha() {
         if (alphaLock.unlock()) {
             setAlphaState(alphaLockState);
@@ -390,6 +434,7 @@ public abstract class MixinGlStateManager {
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
+// [AUDIT-OK] OF-added static method, not in baseline
     private static void getAlphaState(GlAlphaState state) {
         if (alphaLock.isLocked()) {
             state.setState(alphaLockState);
@@ -400,6 +445,7 @@ public abstract class MixinGlStateManager {
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
+// [AUDIT-OK] OF-added static method, not in baseline
     private static void setAlphaState(GlAlphaState state) {
         if (alphaLock.isLocked()) {
             alphaLockState.setState(state);
@@ -411,6 +457,7 @@ public abstract class MixinGlStateManager {
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
+// [AUDIT-OK] OF-added static method, not in baseline
     private static void lockBlend(GlBlendState state) {
         if (!blendLock.isLocked()) {
             getBlendState(blendLockState);
@@ -421,6 +468,7 @@ public abstract class MixinGlStateManager {
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
+// [AUDIT-OK] OF-added static method, not in baseline
     private static void unlockBlend() {
         if (blendLock.unlock()) {
             setBlendState(blendLockState);
@@ -429,6 +477,7 @@ public abstract class MixinGlStateManager {
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
+// [AUDIT-OK] OF-added static method, not in baseline
     private static void getBlendState(GlBlendState state) {
         if (blendLock.isLocked()) {
             state.setState(blendLockState);
@@ -439,6 +488,7 @@ public abstract class MixinGlStateManager {
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
+// [AUDIT-OK] OF-added static method, not in baseline
     private static void setBlendState(GlBlendState state) {
         if (blendLock.isLocked()) {
             blendLockState.setState(state);
@@ -454,13 +504,15 @@ public abstract class MixinGlStateManager {
 
     // ===== texture unit array 8 -> 32 =====
 
-    @ModifyConstant(method = "<clinit>", constant = @Constant(intValue = 8, ordinal = 0))
+    @ModifyConstant(method = "<clinit>", constant = @Constant(intValue = 8, ordinal = 2))
     private static int optiRefine$largerTextureState(int constant) {
+// [AUDIT-ISSUE] <clinit> intValue=8 ordinal=0 hits lightState = new BooleanState[8] (FIRST 8 in <clinit>) not textureState = new TextureState[8] (third 8) -> OF 32-texture-unit feature inert; use ordinal=2 (or match via the TAIL init only)
         return 32;
     }
 
     @Inject(method = "<clinit>", at = @At("TAIL"))
     private static void optiRefine$initExtraTextureStates(CallbackInfo ci) {
+// [AUDIT-OK] target <clinit>; fills textureState entries (needed if array enlarged)
         for (int i = 0; i < textureState.length; i++) {
             if (textureState[i] == null) {
                 textureState[i] = new GlStateManager.TextureState();

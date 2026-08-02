@@ -9,14 +9,18 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 @Mixin(ClippingHelper.class)
 public abstract class MixinClippingHelper {
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
+    // [AUDIT-OK] OF-added field (OF:8 public); nit: '= false' initializer on @Public instance field (AGENT.md §4 convention)
     public boolean disabled = false;
 
     @Shadow
+    // [AUDIT-OK] baseline member frustum (public float[][], deobf:9)
     public float[][] frustum;
 
     @WrapMethod(method = "isBoxInFrustum")
+    // [AUDIT-OK] isBoxInFrustum baseline; disabled guard matches OF:14-15
     public boolean optional_isBoxInFrustum(double d, double e, double f, double g, double h, double i, Operation<Boolean> original){
         if (disabled) {
             return true;
@@ -26,6 +30,7 @@ public abstract class MixinClippingHelper {
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
+    // [AUDIT-OK] OF-added member — body identical to OF:47-91
     public boolean isBoxInFrustumFully(double var1, double var3, double var5, double var7, double var9, double var11) {
         if (this.disabled) {
             return true;

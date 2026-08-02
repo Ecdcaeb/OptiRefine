@@ -9,18 +9,24 @@ import org.spongepowered.asm.mixin.*;
 @SuppressWarnings("AddedMixinMembersNamePattern")
 @Mixin(ExtendedBlockStorage.class)
 public abstract class MixinExtendedBlockStorage {
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
+
 
     @Shadow
+// [AUDIT-OK] baseline member blockRefCount exists in target class
     private int blockRefCount;
 
     @SuppressWarnings("unused")
     @Shadow
+// [AUDIT-OK] baseline member tickRefCount exists in target class
     private int tickRefCount;
 
     @Shadow @Final
+// [AUDIT-OK] baseline member data exists in target class
     private BlockStateContainer data;
 
     @Unique
+// [AUDIT-OK] mixin-private static constant (private static per rules), replicates OF "Blocks.AIR.getDefaultState()" compare value
     private static final IBlockState OPTIREFINE_STATE_AIR = Blocks.AIR.getDefaultState();
 
 
@@ -29,6 +35,7 @@ public abstract class MixinExtendedBlockStorage {
      * @reason makeLocals
      */
     @Overwrite
+// [AUDIT-OK] @Overwrite matches OF recalculateRefCounts (data.get loop, AIR compare, local counters)
     public void recalculateRefCounts() {
         int localBlockRefCount = 0;
         int localTickRefCount = 0;
@@ -50,6 +57,7 @@ public abstract class MixinExtendedBlockStorage {
 
     @SuppressWarnings("unused")
     @Unique
+// [AUDIT-OK] OF-added member getBlockRefCount()I (in OF, not in baseline), MCP name matches
     public int getBlockRefCount() {
         return this.blockRefCount;
     }

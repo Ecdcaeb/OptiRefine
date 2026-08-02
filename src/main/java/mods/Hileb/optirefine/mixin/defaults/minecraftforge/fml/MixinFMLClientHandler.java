@@ -15,7 +15,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.List;
 @Mixin(FMLClientHandler.class)
 public abstract class MixinFMLClientHandler {
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 1
+
     @Inject(method = "handleLoadingScreen", at = @At("RETURN"), remap = false, cancellable = true)
+// [AUDIT-OK] custom loading screen when vanilla returns false; remap=false correct (Forge classes not in tsrg); CIR correct for non-void target; net.optifine.CustomLoadingScreens API not verifiable from patch trees (OF jar class)
     public void inject$handleLoadingScreen(ScaledResolution scaledResolution, CallbackInfoReturnable<Boolean> returnable){
         if (!returnable.getReturnValueZ()) {
             CustomLoadingScreen scr = CustomLoadingScreens.getCustomLoadingScreen();
@@ -27,6 +30,7 @@ public abstract class MixinFMLClientHandler {
     }
 
     @ModifyReturnValue(method = "getAdditionalBrandingInformation", at = @At("RETURN"))
+// [AUDIT-ISSUE] branding append depends on an "Optifine..." entry already present in the list (added by OF’s own FMLClientHandler patch, which is inert at runtime - OF transformer disabled) - so the OptiRefine brand is likely never appended. needs-verification at runtime
     public List<String> modifyOptifineBrand(List<String> original){
         original.replaceAll(s -> {
             if (s.startsWith("Optifine")) {

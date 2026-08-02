@@ -115,233 +115,300 @@ import java.nio.FloatBuffer;
  */
 @Mixin(EntityRenderer.class)
 public abstract class MixinEntityRenderer {
+// [AUDIT] 2026-08-03 — see AGENT.md; issues: 4
 
     // ===== access-transformed fields (publicized by OptiFine) =====
 
     @AccessTransformer(deobf = true, name = "field_78516_c")
+// [AUDIT-OK] vanilla SRG field_78516_c = itemRenderer, deobf=true
     public ItemRenderer acc_itemRenderer;
 
     // Note: field_78527_v = mouseFilterXAxis, field_78526_w = mouseFilterYAxis (srg_to_stable_39-1.12.tsrg)
     @AccessTransformer(name = "field_78527_v", deobf = true)
+// [AUDIT-OK] vanilla SRG field_78527_v = mouseFilterXAxis, deobf=true
     public MouseFilter acc$mouseFilterXAxis;
 
     @AccessTransformer(name = "field_78526_w", deobf = true)
+// [AUDIT-OK] vanilla SRG field_78526_w = mouseFilterYAxis, deobf=true
     public MouseFilter acc$mouseFilterYAxis;
 
     @AccessTransformer(name = "field_175080_Q", deobf = true)
+// [AUDIT-OK] vanilla SRG field_175080_Q = fogColorRed, deobf=true
     public float acc$fogColorRed;
 
     @AccessTransformer(name = "field_175082_R", deobf = true)
+// [AUDIT-OK] vanilla SRG field_175082_R = fogColorGreen, deobf=true
     public float acc$fogColorGreen;
 
     @AccessTransformer(name = "field_175081_S", deobf = true)
+// [AUDIT-OK] vanilla SRG field_175081_S = fogColorBlue, deobf=true
     public float acc$fogColorBlue;
 
     @AccessTransformer(name = "field_175084_ae", deobf = true)
+// [AUDIT-OK] vanilla SRG field_175084_ae = frameCount, deobf=true
     public int frameCount;
 
     // ===== shadowed vanilla fields =====
 
     @Shadow
+// [AUDIT-OK] baseline member mc (SRG field_78531_r)
     private Minecraft mc;
 
     @Shadow
+// [AUDIT-OK] baseline member shaderGroup (SRG field_147707_d)
     private net.minecraft.client.shader.ShaderGroup shaderGroup;
 
     @Shadow
+// [AUDIT-OK] baseline member useShader (SRG field_175083_ad)
     private boolean useShader;
 
     @Shadow
+// [AUDIT-OK] baseline member farPlaneDistance (SRG field_78530_s)
     private float farPlaneDistance;
 
     @Shadow
+// [AUDIT-OK] baseline member lightmapColors (SRG field_78504_Q)
     private int[] lightmapColors;
 
     @Shadow
+// [AUDIT-OK] baseline member lightmapTexture (SRG field_78513_d)
     private DynamicTexture lightmapTexture;
 
     @Shadow
+// [AUDIT-OK] baseline member lightmapUpdateNeeded (SRG field_78536_aa)
     private boolean lightmapUpdateNeeded;
 
     @Shadow
+// [AUDIT-OK] baseline member torchFlickerX (SRG field_78514_e)
     private float torchFlickerX;
 
     @Shadow
+// [AUDIT-OK] baseline member fovModifierHand (SRG field_78507_R)
     private float fovModifierHand;
 
     @Shadow
+// [AUDIT-OK] baseline member fovModifierHandPrev (SRG field_78506_S)
     private float fovModifierHandPrev;
 
     @Shadow
+// [AUDIT-OK] baseline member cloudFog (SRG field_78500_U)
     private boolean cloudFog;
 
     @Shadow
+// [AUDIT-OK] baseline member renderHand (SRG field_175074_C)
     private boolean renderHand;
 
     @Shadow
+// [AUDIT-OK] baseline member debugView (SRG field_175078_W)
     private boolean debugView;
 
     // ===== shadowed vanilla methods =====
 
     @Shadow
+// [AUDIT-OK] baseline member loadShader(Lnet/minecraft/util/ResourceLocation;)V (SRG func_175069_a)
     protected abstract void loadShader(ResourceLocation resourceLocationIn);
 
     @Shadow
+// [AUDIT-OK] baseline member updateFogColor(F)V (SRG func_78466_h)
     protected abstract void updateFogColor(float partialTicks);
 
     @Shadow
+// [AUDIT-OK] baseline member setupFog(IF)V (SRG func_78468_a)
     protected abstract void setupFog(int fogMode, float partialTicks);
 
     @Shadow
+// [AUDIT-OK] baseline member setupFogColor(Z)V (SRG func_191514_d)
     protected abstract void setupFogColor(boolean black);
 
     @Shadow
+// [AUDIT-OK] baseline member isDrawBlockOutline()Z (SRG func_175070_n)
     protected abstract boolean isDrawBlockOutline();
 
     @Shadow
+// [AUDIT-OK] baseline member setupCameraTransform(FI)V (SRG func_78479_a)
     protected abstract void setupCameraTransform(float partialTicks, int pass);
 
     @Shadow
+// [AUDIT-OK] baseline member renderCloudsCheck(LRenderGlobal;FIDDD)V (SRG func_180437_a)
     protected abstract void renderCloudsCheck(RenderGlobal renderGlobalIn, float partialTicks, int pass, double x, double y, double z);
 
     @Shadow
+// [AUDIT-OK] baseline member renderRainSnow(F)V (SRG func_78474_d)
     protected abstract void renderRainSnow(float partialTicks);
 
     @Shadow
+// [AUDIT-OK] baseline member renderHand(FI)V (SRG func_78476_b)
     protected abstract void renderHand(float partialTicks, int pass);
 
     @Shadow
+// [AUDIT-OK] baseline member getFOVModifier(FZ)F (SRG func_78481_a)
     protected abstract float getFOVModifier(float partialTicks, boolean useFOVSetting);
 
     @Shadow
+// [AUDIT-OK] baseline member updateLightmap(F)V (SRG func_78472_g)
     protected abstract void updateLightmap(float partialTicks);
 
     @Shadow
+// [AUDIT-OK] baseline member enableLightmap()V (SRG func_180436_i)
     protected abstract void enableLightmap();
 
     @Shadow
+// [AUDIT-OK] baseline member disableLightmap()V (SRG func_175072_h)
     protected abstract void disableLightmap();
 
     @Shadow
+// [AUDIT-OK] baseline member hurtCameraEffect(F)V (SRG func_78482_e)
     protected abstract void hurtCameraEffect(float partialTicks);
 
     @Shadow
+// [AUDIT-OK] baseline member applyBobbing(F)V (SRG func_78475_f)
     protected abstract void applyBobbing(float partialTicks);
 
     // ===== cross-class private access =====
 
     @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessibleOperation(opcode = Opcodes.PUTFIELD, desc = "net.minecraft.client.renderer.RenderGlobal field_147595_R Z")
+    @AccessibleOperation(opcode = Opcodes.PUTFIELD, desc = "net.minecraft.client.renderer.RenderGlobal field_147595_R Z", deobf = true)
+// [AUDIT-ISSUE] vanilla SRG field_147595_R = displayListEntitiesDirty verified, but deobf=true missing -> devrun breaks; SRG runtime OK
     private static native void RenderGlobal_displayListEntitiesDirty_set(RenderGlobal renderGlobal, boolean value);
 
     @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.RenderGlobal field_72738_E Ljava/util/Map;")
+    @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.RenderGlobal field_72738_E Ljava/util/Map;", deobf = true)
+// [AUDIT-ISSUE] vanilla SRG field_72738_E = damagedBlocks verified, but deobf=true missing -> devrun breaks; SRG runtime OK
     private static native java.util.Map RenderGlobal_damagedBlocks_get(RenderGlobal renderGlobal);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.settings.GameSettings ofKeyBindZoom Lnet/minecraft/client/settings/KeyBinding;")
+// [AUDIT-OK] OF member ofKeyBindZoom, not in baseline (MixinGameSettings provides)
     private static native net.minecraft.client.settings.KeyBinding GameSettings_ofKeyBindZoom_get(GameSettings gameSettings);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.settings.GameSettings ofShowFps Z")
+// [AUDIT-OK] OF member ofShowFps, not in baseline
     private static native boolean GameSettings_ofShowFps_get(GameSettings gameSettings);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.settings.GameSettings ofProfiler Z")
+// [AUDIT-OK] OF member ofProfiler, not in baseline
     private static native boolean GameSettings_ofProfiler_get(GameSettings gameSettings);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.settings.GameSettings ofCloudsHeight F")
+// [AUDIT-OK] OF member ofCloudsHeight, not in baseline
     private static native float GameSettings_ofCloudsHeight_get(GameSettings gameSettings);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.settings.GameSettings ofSmoothFps Z")
+// [AUDIT-OK] OF member ofSmoothFps, not in baseline
     private static native boolean GameSettings_ofSmoothFps_get(GameSettings gameSettings);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.culling.ClippingHelper disabled Z")
+// [AUDIT-OK] OF member ClippingHelper.disabled, not in baseline (MixinClippingHelper @Public provides)
     private static native boolean ClippingHelper_disabled_get(ClippingHelper clippingHelper);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.PUTFIELD, desc = "net.minecraft.client.renderer.culling.ClippingHelper disabled Z")
+// [AUDIT-OK] OF member ClippingHelper.disabled, not in baseline
     private static native void ClippingHelper_disabled_set(ClippingHelper clippingHelper, boolean value);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.client.renderer.GlStateManager isFogEnabled ()Z")
+// [AUDIT-OK] OF member isFogEnabled()Z (MixinGlStateManager provides @Public)
     private static native boolean GlStateManager_isFogEnabled();
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.client.renderer.GlStateManager setFogEnabled (Z)V")
+// [AUDIT-OK] OF member setFogEnabled(Z)V (MixinGlStateManager provides @Public)
     private static native void GlStateManager_setFogEnabled(boolean enabled);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.settings.GameSettings ofChunkUpdates I")
+// [AUDIT-OK] OF member ofChunkUpdates, not in baseline
     private static native int GameSettings_ofChunkUpdates_get(GameSettings gameSettings);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.PUTFIELD, desc = "net.minecraft.client.settings.GameSettings ofChunkUpdates I")
+// [AUDIT-OK] OF member ofChunkUpdates, not in baseline
     private static native void GameSettings_ofChunkUpdates_set(GameSettings gameSettings, int value);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.settings.GameSettings ofLazyChunkLoading Z")
+// [AUDIT-OK] OF member ofLazyChunkLoading, not in baseline
     private static native boolean GameSettings_ofLazyChunkLoading_get(GameSettings gameSettings);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.PUTFIELD, desc = "net.minecraft.client.settings.GameSettings ofLazyChunkLoading Z")
+// [AUDIT-OK] OF member ofLazyChunkLoading, not in baseline
     private static native void GameSettings_ofLazyChunkLoading_set(GameSettings gameSettings, boolean value);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.RenderGlobal getCountLoadedChunks ()I")
+// [AUDIT-OK] OF member getCountLoadedChunks()I (MixinRenderGlobal provides @Public)
     private static native int RenderGlobal_getCountLoadedChunks(RenderGlobal renderGlobal);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.RenderGlobal getCountChunksToUpdate ()I")
+// [AUDIT-OK] OF member getCountChunksToUpdate()I (MixinRenderGlobal provides @Public)
     private static native int RenderGlobal_getCountChunksToUpdate(RenderGlobal renderGlobal);
 
     @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.RenderGlobal func_184384_n ()Z")
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.RenderGlobal func_184384_n ()Z", deobf = true)
+// [AUDIT-ISSUE] vanilla SRG func_184384_n = hasNoChunkUpdates verified, but deobf=true missing -> devrun breaks; SRG runtime OK
     private static native boolean RenderGlobal_hasNoChunkUpdates(RenderGlobal renderGlobal);    // ===== new fields (OptiFine) =====
 
     @Unique
+// [AUDIT-OK] OF-added field, not in baseline
     private boolean initialized = false;
 
     @Unique
+// [AUDIT-OK] OF-added field, not in baseline
     private World updatedWorld = null;
 
     @Unique
+// [AUDIT-OK] OF-added field, not in baseline (@Unique public; OF: public boolean fogStandard)
     public boolean fogStandard = false;
 
     @Unique
+// [AUDIT-OK] OF-added field, not in baseline
     private float clipDistance = 128.0F;
 
     @Unique
+// [AUDIT-OK] OF-added field, not in baseline
     private long lastServerTime = 0L;
 
     @Unique
+// [AUDIT-OK] OF-added field, not in baseline
     private int lastServerTicks = 0;
 
     @Unique
+// [AUDIT-OK] OF-added field, not in baseline
     private int serverWaitTime = 0;
 
     @Unique
+// [AUDIT-OK] OF-added field, not in baseline
     private int serverWaitTimeCurrent = 0;
 
     @Unique
+// [AUDIT-OK] OF-added field, not in baseline
     private float avgServerTimeDiff = 0.0F;
 
     @Unique
+// [AUDIT-OK] OF-added field, not in baseline
     private float avgServerTickDiff = 0.0F;
 
     @Unique
+// [AUDIT-OK] OF-added field, not in baseline
     private ShaderGroup[] fxaaShaders = new ShaderGroup[10];
 
     @Unique
+// [AUDIT-OK] OF-added field, not in baseline
     private boolean loadVisibleChunks = false;
 
     // ===== loadShader =====
 
     @WrapMethod(method = "loadShader")
     private void ifloadShader(ResourceLocation resourceLocationIn, Operation<Void> original) {
+// [AUDIT-OK] target loadShader(Lnet/minecraft/util/ResourceLocation;)V matches baseline
         if (OpenGlHelper.isFramebufferEnabled()) {
             original.call(resourceLocationIn);
         }
@@ -361,6 +428,7 @@ public abstract class MixinEntityRenderer {
      */
     @WrapMethod(method = "getFOVModifier")
     private float optiRefine$getFOVModifier(float partialTicks, boolean useFOVSetting, Operation<Float> original) {
+// [AUDIT-OK] target getFOVModifier(FZ)F matches baseline; Forge getFOVModifier hook kept
         if (this.debugView) {
             return 90.0F;
         }
@@ -405,7 +473,8 @@ public abstract class MixinEntityRenderer {
     }
 
     @SuppressWarnings("unused")
-    @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.client.settings.GameSettings func_100015_a (Lnet/minecraft/client/settings/KeyBinding;)Z")
+    @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.client.settings.GameSettings func_100015_a (Lnet/minecraft/client/settings/KeyBinding;)Z", deobf = true)
+// [AUDIT-ISSUE] vanilla SRG func_100015_a = GameSettings.isKeyDown verified, but deobf=true missing -> devrun breaks; SRG runtime OK
     private static native boolean GameSettingsIsKeyDown(net.minecraft.client.settings.KeyBinding key);
 
     // ===== setupCameraTransform =====
@@ -417,6 +486,7 @@ public abstract class MixinEntityRenderer {
      */
     @Inject(method = "setupCameraTransform", at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/EntityRenderer;farPlaneDistance:F", opcode = Opcodes.PUTFIELD))
     private void optiRefine$farPlaneDistance(CallbackInfo ci) {
+// [AUDIT-OK] target setupCameraTransform(FI)V PUTFIELD farPlaneDistance matches baseline (line 668)
         if (Config.isFogFancy()) {
             this.farPlaneDistance *= 0.95F;
         }
@@ -434,6 +504,7 @@ public abstract class MixinEntityRenderer {
      */
     @Redirect(method = "setupCameraTransform", at = @At(value = "INVOKE", target = "Lorg/lwjgl/util/glu/Project;gluPerspective(FFFF)V"))
     private void optiRefine$setupCameraPerspective(float fovY, float aspect, float zNear, float zFar) {
+// [AUDIT-OK] target setupCameraTransform(FI)V gluPerspective matches baseline
         Project.gluPerspective(fovY, aspect, zNear, this.clipDistance);
     }
 
@@ -444,6 +515,7 @@ public abstract class MixinEntityRenderer {
      */
     @WrapMethod(method = "renderHand(FI)V")
     private void optiRefine$renderHand(float partialTicks, int pass, Operation<Void> original) {
+// [AUDIT-OK] target renderHand(FI)V (SRG func_78476_b) matches baseline
         this.renderHand(partialTicks, pass, true, true, false);
     }
 
@@ -453,6 +525,7 @@ public abstract class MixinEntityRenderer {
      */
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+// [AUDIT-OK] OF-added overload renderHand(FI...ZZZ)V, not in baseline (OF: public; called by ShadersRender)
     public void renderHand(float partialTicks, int pass, boolean renderItem, boolean renderOverlays, boolean isMainHand) {
         if (!this.debugView) {
             GlStateManager.matrixMode(5889);
@@ -510,6 +583,7 @@ public abstract class MixinEntityRenderer {
 
     @WrapMethod(method = "enableLightmap")
     private void optiRefine$enableLightmap(Operation<Void> original) {
+// [AUDIT-OK] target enableLightmap()V matches baseline
         original.call();
         if (Config.isShaders()) {
             Shaders.enableLightmap();
@@ -518,6 +592,7 @@ public abstract class MixinEntityRenderer {
 
     @WrapMethod(method = "disableLightmap")
     private void optiRefine$disableLightmap(Operation<Void> original) {
+// [AUDIT-OK] target disableLightmap()V matches baseline
         original.call();
         if (Config.isShaders()) {
             Shaders.disableLightmap();
@@ -530,6 +605,7 @@ public abstract class MixinEntityRenderer {
      */
     @WrapMethod(method = "updateLightmap")
     private void optiRefine$updateLightmap(float partialTicks, Operation<Void> original) {
+// [AUDIT-OK] target updateLightmap(F)V matches baseline
         if (this.lightmapUpdateNeeded) {
             this.mc.profiler.startSection("lightTex");
             WorldClient world = this.mc.world;
@@ -553,6 +629,7 @@ public abstract class MixinEntityRenderer {
      */
     @Inject(method = "updateCameraAndRender", at = @At("HEAD"))
     private void optiRefine$frameInit(CallbackInfo ci) {
+// [AUDIT-OK] target updateCameraAndRender(FJ)V (SRG func_181560_a) matches baseline
         this.frameInit();
     }
 
@@ -561,6 +638,7 @@ public abstract class MixinEntityRenderer {
      */
     @Inject(method = "updateCameraAndRender", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiIngame;renderGameOverlay(F)V", shift = At.Shift.AFTER))
     private void optiRefine$fpsOverlay(CallbackInfo ci) {
+// [AUDIT-OK] target updateCameraAndRender(FJ)V renderGameOverlay(F)V inject point matches baseline (line 1090)
         if (GameSettings_ofShowFps_get(this.mc.gameSettings) && !this.mc.gameSettings.showDebugInfo) {
             Config.drawFps();
         }
@@ -575,6 +653,7 @@ public abstract class MixinEntityRenderer {
      */
     @Inject(method = "updateCameraAndRender", at = @At("TAIL"))
     private void optiRefine$frameEnd(CallbackInfo ci) {
+// [AUDIT-OK] target updateCameraAndRender(FJ)V matches baseline
         this.frameFinish();
         this.waitForServerThread();
         MemoryMonitor.update();
@@ -591,6 +670,7 @@ public abstract class MixinEntityRenderer {
      */
     @Inject(method = "renderWorld", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GlStateManager;enableDepth()V"))
     private void optiRefine$beginRender(float partialTicks, long finishTimeNano, CallbackInfo ci) {
+// [AUDIT-OK] target renderWorld(FJ)V (SRG func_78471_a) enableDepth()V inject point matches baseline (line 1230)
         if (Config.isShaders()) {
             Shaders.beginRender(this.mc, partialTicks, finishTimeNano);
         }
@@ -605,6 +685,7 @@ public abstract class MixinEntityRenderer {
      */
     @WrapMethod(method = "renderWorldPass")
     private void optiRefine$renderWorldPass(int pass, float partialTicks, long finishTimeNano, Operation<Void> original) {
+// [AUDIT-OK] target renderWorldPass(IFJ)V (SRG func_175068_a) matches baseline
         boolean shaders = Config.isShaders();
         if (shaders) {
             Shaders.beginRenderPass(pass, partialTicks, finishTimeNano);
@@ -860,6 +941,7 @@ public abstract class MixinEntityRenderer {
      */
     @Redirect(method = "renderCloudsCheck", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/settings/GameSettings;shouldRenderClouds()I"))
     private int optiRefine$shouldRenderClouds(net.minecraft.client.settings.GameSettings settings) {
+// [AUDIT-OK] target renderCloudsCheck(LRenderGlobal;FIDDD)V shouldRenderClouds()I matches baseline
         if (Config.isCloudsOff()) {
             return 0;
         }
@@ -868,11 +950,13 @@ public abstract class MixinEntityRenderer {
 
     @Redirect(method = "renderCloudsCheck", at = @At(value = "INVOKE", target = "Lorg/lwjgl/util/glu/Project;gluPerspective(FFFF)V", ordinal = 0))
     private void optiRefine$cloudsPerspective0(float fovY, float aspect, float zNear, float zFar) {
+// [AUDIT-OK] target renderCloudsCheck gluPerspective ordinal 0 matches baseline
         Project.gluPerspective(fovY, aspect, zNear, this.clipDistance * 4.0F);
     }
 
     @Redirect(method = "renderCloudsCheck", at = @At(value = "INVOKE", target = "Lorg/lwjgl/util/glu/Project;gluPerspective(FFFF)V", ordinal = 1))
     private void optiRefine$cloudsPerspective1(float fovY, float aspect, float zNear, float zFar) {
+// [AUDIT-OK] target renderCloudsCheck gluPerspective ordinal 1 matches baseline
         Project.gluPerspective(fovY, aspect, zNear, this.clipDistance);
     }
 
@@ -883,6 +967,7 @@ public abstract class MixinEntityRenderer {
      */
     @Redirect(method = "updateFogColor", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;getSkyColor(Lnet/minecraft/entity/Entity;F)Lnet/minecraft/util/math/Vec3d;"))
     private Vec3d optiRefine$getWorldSkyColor(World world, Entity entity, float partialTicks) {
+// [AUDIT-OK] target updateFogColor(F)V World.getSkyColor matches baseline
         Vec3d sky = world.getSkyColor(entity, partialTicks);
         return CustomColors.getWorldSkyColor(sky, world, entity, partialTicks);
     }
@@ -892,6 +977,7 @@ public abstract class MixinEntityRenderer {
      */
     @Redirect(method = "updateFogColor", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;getFogColor(F)Lnet/minecraft/util/math/Vec3d;"))
     private Vec3d optiRefine$getWorldFogColor(World world, float partialTicks) {
+// [AUDIT-OK] target updateFogColor(F)V World.getFogColor matches baseline
         Vec3d fog = world.getFogColor(partialTicks);
         return CustomColors.getWorldFogColor(fog, world, this.mc.getRenderViewEntity(), partialTicks);
     }
@@ -902,6 +988,7 @@ public abstract class MixinEntityRenderer {
      */
     @Inject(method = "updateFogColor", at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/EntityRenderer;fogColor2:F", opcode = Opcodes.GETFIELD, ordinal = 0))
     private void optiRefine$customFogColors(float partialTicks, CallbackInfo ci) {
+// [AUDIT-OK] target updateFogColor(F)V GETFIELD fogColor2 (SRG field_78535_ad) matches baseline (line 1777)
         Entity entity = this.mc.getRenderViewEntity();
         IBlockState iblockstate = ActiveRenderInfo.getBlockStateAtEntityViewpoint(this.mc.world, entity, partialTicks);
         if (iblockstate.getMaterial() == net.minecraft.block.material.Material.WATER) {
@@ -926,6 +1013,7 @@ public abstract class MixinEntityRenderer {
      */
     @Redirect(method = "updateFogColor", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GlStateManager;clearColor(FFFF)V"))
     private void optiRefine$setClearColor(float red, float green, float blue, float alpha) {
+// [AUDIT-OK] target updateFogColor(F)V GlStateManager.clearColor matches baseline
         Shaders.setClearColor(red, green, blue, alpha);
     }
 
@@ -938,6 +1026,7 @@ public abstract class MixinEntityRenderer {
      */
     @WrapMethod(method = "setupFog")
     private void optiRefine$setupFog(int fogMode, float partialTicks, Operation<Void> original) {
+// [AUDIT-OK] target setupFog(IF)V matches baseline; Forge getFogDensity/onFogRender hooks kept
         this.fogStandard = false;
         Entity entity = this.mc.getRenderViewEntity();
         this.setupFogColor(false);
@@ -1020,6 +1109,7 @@ public abstract class MixinEntityRenderer {
      */
     @WrapMethod(method = "setFogColorBuffer")
     private FloatBuffer optiRefine$setFogColorBuffer(float red, float green, float blue, float alpha, Operation<FloatBuffer> original) {
+// [AUDIT-OK] target setFogColorBuffer(FFFF)Ljava/nio/FloatBuffer; (SRG func_78469_a) matches baseline
         if (Config.isShaders()) {
             Shaders.setFogColor(red, green, blue);
         }
@@ -1030,6 +1120,7 @@ public abstract class MixinEntityRenderer {
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+// [AUDIT-OK] OF-added method, not in baseline
     public boolean setFxaaShader(int level) {
         if (!OpenGlHelper.isFramebufferEnabled()) {
             return false;
@@ -1059,6 +1150,7 @@ public abstract class MixinEntityRenderer {
      * are cosmetic and left as TODO.
      */
     @Unique
+// [AUDIT-OK] OF-added method, not in baseline
     private void frameInit() {
         GlErrors.frameStart();
         if (!this.initialized) {
@@ -1092,6 +1184,7 @@ public abstract class MixinEntityRenderer {
      * OptiFine end-of-frame GL error report.
      */
     @Unique
+// [AUDIT-OK] OF-added method, not in baseline
     private void frameFinish() {
         if (this.mc.world != null && Config.isShowGlErrors() && TimedEvent.isActive("CheckGlErrorFrameFinish", 10000L)) {
             int error = GlStateManager.glGetError();
@@ -1107,6 +1200,7 @@ public abstract class MixinEntityRenderer {
      * OptiFine smooth-world server thread synchronization.
      */
     @Unique
+// [AUDIT-OK] OF-added method, not in baseline
     private void waitForServerThread() {
         this.serverWaitTimeCurrent = 0;
         if (!Config.isSmoothWorld() || !Config.isSingleProcessor()) {
@@ -1168,6 +1262,7 @@ public abstract class MixinEntityRenderer {
      * TODO (private field access).
      */
     @Unique
+// [AUDIT-OK] OF-added method, not in baseline
     private void checkLoadVisibleChunks(Entity entity, float partialTicks, ICamera camera, boolean spectator) {
         int messageId = 201435902;
         if (this.loadVisibleChunks) {
@@ -1197,6 +1292,7 @@ public abstract class MixinEntityRenderer {
      * left as TODO (not provided by any OptiRefine mixin).
      */
     @Unique
+// [AUDIT-OK] OF-added method, not in baseline
     private void loadAllVisibleChunks(Entity entity, double partialTicks, ICamera camera, boolean spectator) {
         int chunkUpdates = GameSettings_ofChunkUpdates_get(this.mc.gameSettings);
         boolean lazyChunkLoading = GameSettings_ofLazyChunkLoading_get(this.mc.gameSettings);

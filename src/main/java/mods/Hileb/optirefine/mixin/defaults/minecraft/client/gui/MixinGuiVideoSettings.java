@@ -24,14 +24,22 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.io.IOException;
 @Mixin(GuiVideoSettings.class)
+// [AUDIT-NOTE] @ChangeSuperClass(GuiScreenOF) mirrors OF hierarchy (OF GuiVideoSettings extends GuiScreenOF); requires GuiScreenOF no-arg ctor for target implicit super() (needs-verification)
 @ChangeSuperClass(GuiScreenOF.class)
 public abstract class MixinGuiVideoSettings extends GuiScreen {
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
 
+
+// [AUDIT-OK] baseline member parentGuiScreen exists in target class
     @Shadow @Final private GuiScreen parentGuiScreen;
+// [AUDIT-OK] baseline member screenTitle exists in target class
     @Shadow protected String screenTitle;
+// [AUDIT-OK] baseline member guiGameSettings exists in target class
     @Shadow @Final private GameSettings guiGameSettings;
+// [AUDIT-OK] baseline member optionsRowList exists in target class
     @Shadow private GuiListExtended optionsRowList;
 
+// [AUDIT-OK] OF-added static field, not in baseline
     @Unique
     private static final GameSettings.Options[] optiRefine$videoOptions = new GameSettings.Options[]{
             GameSettings.Options.GRAPHICS,
@@ -48,10 +56,12 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
             GameSettingsOptionOF.DYNAMIC_FOV            // OF
     };
 
+// [AUDIT-OK] OF-added member, not in baseline
     @Unique
     private final TooltipManager optiRefine$tooltipManager =
             new TooltipManager(this, new TooltipProviderOptions());
 
+// [AUDIT-OK] target initGui() matches baseline; HEAD cancel replicates OF buildVideoSettingsButtons
     @Inject(method = "initGui", at = @At("HEAD"), cancellable = true)
     private void optiRefine$initGui(CallbackInfo ci) {
         this.screenTitle = I18n.format("options.videoTitle");
@@ -98,6 +108,7 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
         ci.cancel(); // stop vanilla initGui
     }
 
+// [AUDIT-OK] target actionPerformed(GuiButton) matches baseline; HEAD cancel replicates OF actionPerformed(button,1) dispatch
     @Inject(method = "actionPerformed", at = @At("HEAD"), cancellable = true)
     private void optiRefine$actionPerformed(GuiButton button, CallbackInfo ci) {
         if (button == null || !button.enabled) {
@@ -109,6 +120,7 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
         ci.cancel();
     }
 
+// [AUDIT-OK] OF-added helper, not in baseline
     @Unique
     private void optiRefine$actionPerformedImpl(GuiButton button, int val) {
         int guiScaleBefore = this.guiGameSettings.guiScale;
@@ -183,6 +195,7 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
         }
     }
 
+// [AUDIT-NOTE] OF-added; protected @Unique is non-private (Mixin warns); may need @Public if OF GuiScreenOF invokes it cross-package (needs-verification)
     @Unique
     protected void optiRefine$actionPerformedRightClick(GuiButton button) {
         if (button != null && button.id == GameSettings.Options.GUI_SCALE.ordinal()) {
@@ -190,6 +203,8 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
         }
     }
 
+// [AUDIT-OK] target drawScreen(int,int,float) matches baseline
+// [AUDIT-NOTE] HEAD strings drawn before vanilla drawDefaultBackground (dimmed); vanilla body re-draws title at y=5 -> double title vs OF (needs-verification)
     @Inject(method = "drawScreen", at = @At("HEAD"))
     private void optiRefine$drawScreenHead(int mouseX, int mouseY, float partialTicks, CallbackInfo ci) {
         this.drawCenteredString(this.fontRenderer, this.screenTitle, this.width / 2, 15, 0xFFFFFF);
@@ -202,19 +217,23 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
         this.drawString(this.fontRenderer, verMc, this.width - len - 2, this.height - 10, 8421504);
     }
 
+// [AUDIT-OK] target drawScreen(int,int,float) matches baseline
     @Inject(method = "drawScreen", at = @At("TAIL"))
     private void optiRefine$drawScreenTail(int mouseX, int mouseY, float partialTicks, CallbackInfo ci) {
         this.optiRefine$tooltipManager.drawTooltips(mouseX, mouseY, this.buttonList);
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
+// [AUDIT-OK] OF-added API; private static + @Public matches OF getButtonWidth
     @Public
     private static int getButtonWidth(GuiButton btn) { return btn.width; }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
+// [AUDIT-OK] OF-added API; private static + @Public matches OF getButtonHeight
     @Public
     private static int getButtonHeight(GuiButton btn) { return btn.height; }
 
+// [AUDIT-OK] vanilla SRG name func_73733_a = GuiScreen.drawGradientRect, deobf=true
     @Unique
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL,
             desc = "net.minecraft.client.gui.GuiScreen func_73733_a (IIIIII)V", deobf = true)
@@ -225,6 +244,7 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
+// [AUDIT-OK] OF-added API; private static + @Public matches OF drawGradientRect(GuiScreen,...)
     @Public
     private static void drawGradientRect(GuiScreen guiScreen,
                                          int left, int top, int right, int bottom,
@@ -233,12 +253,14 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
+// [AUDIT-OK] OF-added API; private static + @Public matches OF getGuiChatText
     @Public
     private static String getGuiChatText(GuiChat guiChat) {
         return _acc_GuiChatAccessor_getInputField(guiChat).getText();
     }
 
     @SuppressWarnings({"unused", "MissingUnique"})
+// [AUDIT-OK] vanilla SRG name field_146415_a = GuiChat.inputField (protected; same-package access OK), deobf=true
     @AccessibleOperation(opcode = Opcodes.GETFIELD,
             desc = "net.minecraft.client.gui.GuiChat field_146415_a Lnet.minecraft.client.gui.GuiTextField;", deobf = true)
     private static native GuiTextField _acc_GuiChatAccessor_getInputField(GuiChat guiChat);

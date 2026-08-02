@@ -26,15 +26,19 @@ import java.util.Map;
 @SuppressWarnings("SpellCheckingInspection")
 @Mixin(ViewFrustum.class)
 public abstract class MixinViewFrustum {
+// [AUDIT] 2026-08-03 — see AGENT.md; issues: 0
 
     @Shadow
+// [AUDIT-OK] baseline member renderChunks (SRG field_178164_f)
     public RenderChunk[] renderChunks;
 
     @Unique
+// [AUDIT-OK] OF-added field (OF: mapVboRegions), not in baseline
     private Map<ChunkPos, VboRegion[]> optiRefine$mapVboRegions = new HashMap<>();
 
     @WrapOperation(method = "createRenderChunks", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/chunk/RenderChunk;setPosition(III)V"))
     public void updateMapVboRegions(RenderChunk instance, int i, int x, int y, Operation<Void> original){
+// [AUDIT-OK] target createRenderChunks (SRG func_178158_a) RenderChunk.setPosition matches baseline; updateVboRegion gate matches OF
         original.call(instance, i, x, y);
         if (Config.isVbo() && Config.isRenderRegions()) {
             this.optiRefine$updateVboRegion(instance);
@@ -43,6 +47,7 @@ public abstract class MixinViewFrustum {
 
     @Inject(method = "createRenderChunks", at = @At("TAIL"))
     public void postUpdateVboRegion(IRenderChunkFactory renderChunkFactory, CallbackInfo ci){
+// [AUDIT-OK] target createRenderChunks matches baseline; neighbour loop == OF tail (vanilla has none -> no duplication)
         for (RenderChunk renderChunk : this.renderChunks) {
             for (int l = 0; l < EnumFacing.VALUES.length; l++) {
                 EnumFacing facing = EnumFacing.VALUES[l];
@@ -55,17 +60,21 @@ public abstract class MixinViewFrustum {
 
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.chunk.RenderChunk setRenderChunkNeighbour (Lnet.minecraft.util.EnumFacing;Lnet.minecraft.client.renderer.chunk.RenderChunk;)V")
+// [AUDIT-OK] OF-added member setRenderChunkNeighbour (MixinRenderChunk @Unique public provides), not in baseline
     private static native void RenderChunk_setRenderChunkNeighbour(RenderChunk renderChunk, EnumFacing enumFacing, RenderChunk neighbour);
 
     @Shadow
+// [AUDIT-OK] baseline member getRenderChunk(Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/client/renderer/chunk/RenderChunk; (SRG func_178161_a)
     protected abstract RenderChunk getRenderChunk(BlockPos pos);
 
     @Inject(method = "deleteGlResources", at = @At("TAIL"))
     public void extraDeleteVboRegions(CallbackInfo ci){
+// [AUDIT-OK] target deleteGlResources()V (SRG func_178160_a) matches baseline; deleteVboRegions tail == OF
         this.deleteVboRegions();
     }
 
     @Unique
+// [AUDIT-OK] OF-added method (OF: private updateVboRegion), not in baseline
     private void optiRefine$updateVboRegion(RenderChunk renderChunk) {
         BlockPos pos = renderChunk.getPosition();
         int rx = pos.getX() >> 8 << 8;
@@ -93,10 +102,12 @@ public abstract class MixinViewFrustum {
 
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.vertex.VertexBuffer setVboRegion (Lnet.optifine.render.VboRegion;)V")
+// [AUDIT-OK] OF member VertexBuffer.setVboRegion (MixinVertexBuffer @Unique public), not in baseline
     private static native void VertexBuffer_setVboRegion(VertexBuffer vertexBuffer, VboRegion vboRegion);
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+// [AUDIT-OK] OF-added method (OF: public deleteVboRegions), not in baseline
     public void deleteVboRegions() {
         for (ChunkPos cp : this.optiRefine$mapVboRegions.keySet()) {
             VboRegion[] vboRegions = this.optiRefine$mapVboRegions.get(cp);

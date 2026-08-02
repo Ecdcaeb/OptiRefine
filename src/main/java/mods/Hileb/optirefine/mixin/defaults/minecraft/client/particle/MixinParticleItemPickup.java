@@ -16,10 +16,14 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(ParticleItemPickup.class)
 public abstract class MixinParticleItemPickup {
+// [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
+
+// [AUDIT-OK] baseline member item exists in target class
     @Shadow
     @Final
     private Entity item;
 
+// [AUDIT-OK] target renderParticle(Lnet/minecraft/client/renderer/BufferBuilder;Lnet/minecraft/entity/Entity;FFFFFFF)V matches baseline; handler params match
     @Inject(method = "renderParticle", at = @At("HEAD"))
     public void preInjectRenderParticle(BufferBuilder buffer,
                                         Entity entityIn,
@@ -35,6 +39,7 @@ public abstract class MixinParticleItemPickup {
 
     }
 
+// [AUDIT-OK] target renderParticle matches baseline; RETURN restores shader program
     @Inject(method = "renderParticle", at = @At("RETURN"))
     public void postInjectRenderParticle(BufferBuilder buffer,
                                         Entity entityIn,

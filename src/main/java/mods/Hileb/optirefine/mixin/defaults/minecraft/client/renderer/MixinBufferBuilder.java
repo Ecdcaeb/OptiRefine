@@ -37,65 +37,82 @@ import java.util.Arrays;
 import java.util.BitSet;
 @Mixin(BufferBuilder.class)
 public abstract class MixinBufferBuilder {
+// [AUDIT] 2026-08-03 — see AGENT.md; issues: 3
 
     
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessTransformer(name = "field_178999_b", deobf = true)
+// [AUDIT-OK] vanilla SRG field_178999_b = rawIntBuffer, deobf=true
     public IntBuffer acc_rawIntBuffer;
 
     
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessTransformer(name = "field_179000_c", deobf = true)
+// [AUDIT-OK] vanilla SRG field_179000_c = rawFloatBuffer, deobf=true
     public FloatBuffer acc_rawFloatBuffer;
 
     
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessTransformer(name = "field_178997_d", deobf = true)
+// [AUDIT-OK] vanilla SRG field_178997_d = vertexCount, deobf=true
     public int acc_vertexCount;
 
     
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessTransformer(name = "field_179006_k", deobf = true)
+// [AUDIT-OK] vanilla SRG field_179006_k = drawMode, deobf=true
     public int acc_drawMode;
 
 
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+// [AUDIT-OK] OF-added field, not in baseline
     private BlockRenderLayer blockLayer = null;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+// [AUDIT-OK] OF-added field, not in baseline
     private boolean[] drawnIcons = new boolean[256];
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+// [AUDIT-OK] OF-added field, not in baseline
     private TextureAtlasSprite[] quadSprites = null;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+// [AUDIT-OK] OF-added field, not in baseline
     private TextureAtlasSprite[] quadSpritesPrev = null;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+// [AUDIT-OK] OF-added field, not in baseline
     private TextureAtlasSprite quadSprite = null;
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Public
+// [AUDIT-OK] OF-added field, not in baseline (@Public)
     private SVertexBuilder sVertexBuilder;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
+// [AUDIT-OK] OF-added field, not in baseline (@Public)
     private RenderEnv renderEnv = null;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
+// [AUDIT-OK] OF-added field, not in baseline (@Public)
     private BitSet animatedSprites = null;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
+// [AUDIT-OK] OF-added field, not in baseline (@Public)
     private final BitSet animatedSpritesCached = new BitSet();
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+// [AUDIT-OK] OF-added field, not in baseline
     private boolean modeTriangles = false;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+// [AUDIT-OK] OF-added field, not in baseline
     private ByteBuffer byteBufferTriangles;
 
     @Inject(method = "<init>", at = @At("RETURN"))
     public void injectConstructor(int p_i46275_1_, CallbackInfo ci){
+// [AUDIT-OK] target BufferBuilder.<init>(I)V matches baseline; SVertexBuilder.initVertexBuilder matches OF ctor
         SVertexBuilder.initVertexBuilder((BufferBuilder)(Object)this);
     }
     /*
@@ -110,6 +127,7 @@ public abstract class MixinBufferBuilder {
     * */
     @Redirect(method = "growBuffer", at = @At(value = "INVOKE", target = "Ljava/nio/ShortBuffer;position(I)Ljava/nio/ShortBuffer;"))
     public ShortBuffer savequadSprites(ShortBuffer instance, int newPosition){
+// [AUDIT-OK] target growBuffer(I)V matches baseline; quadSprites realloc mirrors OF growBuffer
         ShortBuffer buffer = instance.position(newPosition);
         if (this.quadSprites != null) {
             TextureAtlasSprite[] sprites = this.quadSprites;
@@ -122,13 +140,16 @@ public abstract class MixinBufferBuilder {
     }
 
     @Shadow
+// [AUDIT-OK] baseline member vertexCount (SRG field_178997_d)
     private int vertexCount;
     @Shadow
+// [AUDIT-OK] baseline member vertexFormat (SRG field_179011_q)
     private VertexFormat vertexFormat;
 
     @SuppressWarnings("unused")
     @Inject(method = "sortVertexData", at = @At("TAIL"))
     public void afterSortVertexData(float p_181674_1_, float p_181674_2_, float p_181674_3_, CallbackInfo ci, @Local Integer[] ainteger){
+// [AUDIT-OK] target sortVertexData(FFF)V matches baseline
         if (this.quadSprites != null) {
             TextureAtlasSprite[] quadSpritesSorted = new TextureAtlasSprite[this.vertexCount / 4];
             int quadStep = this.vertexFormat.getSize() / 4 * 4;
@@ -143,30 +164,36 @@ public abstract class MixinBufferBuilder {
 
     @Redirect(method = "getVertexState", at = @At(value = "NEW", target = "(Lnet/minecraft/client/renderer/BufferBuilder;[ILnet/minecraft/client/renderer/vertex/VertexFormat;)Lnet/minecraft/client/renderer/BufferBuilder$State;"))
     public BufferBuilder.State getVertexStateReturn(BufferBuilder p_i46453_1_, int[] p_i46453_2_, VertexFormat p_i46453_3_){
-        return newBufferBuilder$State(AccessibleOperation.Construction.construction(), p_i46453_2_, p_i46453_3_, this.quadSprites == null ? null : this.quadSprites.clone());
+// [AUDIT-ISSUE] NEW redirect desc omits inner-class outer param: real/NewConstructor State.<init> is (LBufferBuilder;[ILVertexFormat;[LTextureAtlasSprite;)V, emitted ([I,VertexFormat,TextureAtlasSprite)V cannot resolve -> NoSuchMethodError when getVertexState runs (called by RenderChunk compile)
+        return newBufferBuilder$State(AccessibleOperation.Construction.construction(), p_i46453_1_, p_i46453_2_, p_i46453_3_, this.quadSprites == null ? null : this.quadSprites.clone());
     }
 
     
     @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessibleOperation(opcode = Opcodes.NEW, desc = "net.minecraft.client.renderer.BufferBuilder$State ([ILnet.minecraft.client.renderer.vertex.VertexFormat;[Lnet.minecraft.client.renderer.texture.TextureAtlasSprite;)V")
-    private static native BufferBuilder.State newBufferBuilder$State(AccessibleOperation.Construction construction, int[] p_i46453_2_, VertexFormat p_i46453_3_, TextureAtlasSprite[] textureAtlasSprites);
+    @AccessibleOperation(opcode = Opcodes.NEW, desc = "net.minecraft.client.renderer.BufferBuilder$State (Lnet/minecraft/client/renderer/BufferBuilder;[ILnet/minecraft/client/renderer/vertex/VertexFormat;[Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;)V")
+// [AUDIT-ISSUE] ctor desc arity mismatch (see getVertexStateReturn) — pass outer BufferBuilder instance + add LBufferBuilder; param
+    private static native BufferBuilder.State newBufferBuilder$State(AccessibleOperation.Construction construction, BufferBuilder bufferBuilder, int[] p_i46453_2_, VertexFormat p_i46453_3_, TextureAtlasSprite[] textureAtlasSprites);
 
     
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessTransformer(name = "func_181664_j", deobf = true, access = Opcodes.ACC_PUBLIC)
+// [AUDIT-OK] vanilla SRG func_181664_j = getBufferSize, deobf=true (OF: public)
     private static native int acc_getBufferSize();
 
     
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessTransformer(name = "func_181665_a", deobf = true, access = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC)
+// [AUDIT-OK] vanilla SRG func_181665_a = getDistanceSq, deobf=true (OF keeps private; ACC_PUBLIC extra visibility harmless)
     private static native float acc_getDistanceSq(FloatBuffer p_181665_0_, float p_181665_1_, float p_181665_2_, float p_181665_3_, int p_181665_4_, int p_181665_5_);
 
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.BufferBuilder$State stateQuadSprites [Lnet.minecraft.client.renderer.texture.TextureAtlasSprite;")
+// [AUDIT-ISSUE] reads MixinBufferBuilderState.stateQuadSprites which is @Unique private -> cross-class GETFIELD = IllegalAccessError risk; make that field @Public
     private native static TextureAtlasSprite[] BufferBuilder$State_stateQuadSprites_get(BufferBuilder.State ins) ;
 
     @Inject(method = "setVertexState", at = @At("TAIL"))
     public void cacheVertexState(BufferBuilder.State state, CallbackInfo ci){
+// [AUDIT-OK] target setVertexState(Lnet/minecraft/client/renderer/BufferBuilder$State;)V matches baseline
         if (BufferBuilder$State_stateQuadSprites_get(state) != null) {
             if (this.quadSprites == null) {
                 this.quadSprites = this.quadSpritesPrev;
@@ -189,6 +216,7 @@ public abstract class MixinBufferBuilder {
 
     @Inject(method = "reset", at = @At("TAIL"))
     public void afterRest(CallbackInfo ci){
+// [AUDIT-OK] target reset()V matches baseline
         this.quadSprite = null;
         if (SmartAnimations.isActive()) {
             if (this.animatedSprites == null) {
@@ -205,6 +233,7 @@ public abstract class MixinBufferBuilder {
 
     @Inject(method = "begin", at = @At(value = "INVOKE", target = "Ljava/nio/ByteBuffer;limit(I)Ljava/nio/ByteBuffer;", shift = At.Shift.AFTER))
     public void afterBegin(int p_181668_1_, VertexFormat p_181668_2_, CallbackInfo ci){
+// [AUDIT-OK] target begin(ILnet/minecraft/client/renderer/vertex/VertexFormat;)V matches baseline
         if (Config.isShaders()) {
             SVertexBuilder.endSetVertexFormat((BufferBuilder) (Object)this);
         }
@@ -230,15 +259,18 @@ public abstract class MixinBufferBuilder {
 
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite toSingleU (F)F")
+// [AUDIT-OK] OF member toSingleU(F)F, not in baseline (MixinTextureAtlasSprite provides)
     private static native float TextureAtlasSprite_toSingleU(TextureAtlasSprite textureAtlasSprite, float arg1);
 
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite toSingleV (F)F")
+// [AUDIT-OK] OF member toSingleV(F)F, not in baseline
     private static native float TextureAtlasSprite_toSingleV(TextureAtlasSprite textureAtlasSprite, float arg1);
 
 
     @WrapMethod(method = "tex")
     public BufferBuilder beforeTex(double u, double v, Operation<BufferBuilder> original){
+// [AUDIT-OK] target tex(DD)Lnet/minecraft/client/renderer/BufferBuilder; matches baseline (OF tex body)
         if (this.quadSprite != null && this.quadSprites != null) {
             u = TextureAtlasSprite_toSingleU(this.quadSprite, (float) u);
             v = TextureAtlasSprite_toSingleV(this.quadSprite, (float) v);
@@ -249,6 +281,7 @@ public abstract class MixinBufferBuilder {
 
     @Inject(method = "addVertexData", at = @At("HEAD"))
     public void beforeAddVertexData(int[] vertexData, CallbackInfo ci){
+// [AUDIT-OK] target addVertexData([I)V matches baseline
         if (Config.isShaders()) {
             SVertexBuilder.beginAddVertexData((BufferBuilder)(Object) this, vertexData);
         }
@@ -256,6 +289,7 @@ public abstract class MixinBufferBuilder {
 
     @Inject(method = "addVertexData", at = @At("RETURN"))
     public void afterAddVertexData(int[] vertexData, CallbackInfo ci){
+// [AUDIT-OK] target addVertexData([I)V matches baseline
         if (Config.isShaders()) {
             SVertexBuilder.endAddVertexData((BufferBuilder)(Object)this);
         }
@@ -263,12 +297,15 @@ public abstract class MixinBufferBuilder {
 
     @SuppressWarnings("unused")
     @Shadow
+// [AUDIT-OK] baseline member vertexFormatElement (SRG field_178998_a)
     private VertexFormatElement vertexFormatElement;
     @Shadow
+// [AUDIT-OK] baseline member vertexFormatIndex (SRG field_178999_c)
     private int vertexFormatIndex;
 
     @Inject(method = "endVertex", at = @At("RETURN"))
     public void inject_endVertex(CallbackInfo ci) {
+// [AUDIT-OK] target endVertex()V matches baseline (OF resets format index)
         this.vertexFormatIndex = 0;
         this.vertexFormatElement = this.vertexFormat.getElement(this.vertexFormatIndex);
         if (Config.isShaders()) {
@@ -278,6 +315,7 @@ public abstract class MixinBufferBuilder {
 
     @Inject(method = "pos", at = @At("HEAD"))
     public void beforePos(double p_181662_1_, double p_181662_3_, double p_181662_5_, CallbackInfoReturnable<BufferBuilder> cir){
+// [AUDIT-OK] target pos(DDD)Lnet/minecraft/client/renderer/BufferBuilder; matches baseline
         if (Config.isShaders()) {
             SVertexBuilder.beginAddVertex((BufferBuilder)(Object)this);
         }
@@ -285,28 +323,34 @@ public abstract class MixinBufferBuilder {
 
     @ModifyReturnValue(method = "getByteBuffer", at = @At("RETURN"))
     public ByteBuffer returnGetByteBuffer(ByteBuffer original){
+// [AUDIT-OK] target getByteBuffer()Ljava/nio/ByteBuffer; matches baseline
         return this.modeTriangles ? this.byteBufferTriangles : original;
     }
 
     @ModifyReturnValue(method = "getDrawMode", at = @At("RETURN"))
     public int returnGetDrawMode(int original){
+// [AUDIT-OK] target getDrawMode()I matches baseline (OF: modeTriangles -> 4)
         return this.modeTriangles ? 4 : original;
     }
 
     @SuppressWarnings("unused")
     @Shadow
+// [AUDIT-OK] baseline member putColor(II)V (SRG func_192836_a)
     private void putColor(int p_192836_1_, int p_192836_2_) {}
 
     @Shadow
+// [AUDIT-OK] baseline member putColorRGB_F(FFFFI)V (SRG func_178994_a)
     public void putColorRGB_F(float p_178994_1_, float p_178994_2_, float p_178994_3_, int p_178994_4_) {}
 
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite getAnimationIndex ()I")
+// [AUDIT-OK] OF member getAnimationIndex()I, not in baseline
     private static native int TextureAtlasSprite_getAnimationIndex(TextureAtlasSprite textureAtlasSprite);
 
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
+// [AUDIT-OK] OF-added method, not in baseline
     public void putSprite(TextureAtlasSprite sprite) {
         if (this.animatedSprites != null && sprite != null && TextureAtlasSprite_getAnimationIndex(sprite) >= 0) {
             this.animatedSprites.set(TextureAtlasSprite_getAnimationIndex(sprite));
@@ -320,6 +364,7 @@ public abstract class MixinBufferBuilder {
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
+// [AUDIT-OK] OF-added method, not in baseline
     public void setSprite(TextureAtlasSprite sprite) {
         if (this.animatedSprites != null && sprite != null && TextureAtlasSprite_getAnimationIndex(sprite) >= 0) {
             this.animatedSprites.set(TextureAtlasSprite_getAnimationIndex(sprite));
@@ -332,21 +377,25 @@ public abstract class MixinBufferBuilder {
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
+// [AUDIT-OK] OF-added method, not in baseline
     public boolean isMultiTexture() {
         return this.quadSprites != null;
     }
 
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureMap getCountRegisteredSprites ()I")
+// [AUDIT-OK] OF member getCountRegisteredSprites()I, not in baseline (MixinTextureMap provides)
     private static native int TextureMap_getCountRegisteredSprites(TextureMap textureMap) ;
 
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite getIndexInMap ()I")
+// [AUDIT-OK] OF member getIndexInMap()I, not in baseline
     private static native int TextureAtlasSprite_getIndexInMap(TextureAtlasSprite textureAtlasSprite);
 
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
+// [AUDIT-OK] OF-added method, not in baseline
     public void drawMultiTexture() {
         if (this.quadSprites != null) {
             int maxTextureIndex = TextureMap_getCountRegisteredSprites(Config.getMinecraft().getTextureMapBlocks());
@@ -391,10 +440,12 @@ public abstract class MixinBufferBuilder {
 
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite glSpriteTextureId I")
+// [AUDIT-OK] OF field glSpriteTextureId, not in baseline (MixinTextureAtlasSprite @Public)
     private static native int TextureAtlasSprite_glSpriteTextureId_get(TextureAtlasSprite textureAtlasSprite);
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+// [AUDIT-OK] OF-added method, not in baseline
     private int drawForIcon(TextureAtlasSprite sprite, int startQuadPos) {
         GL11.glBindTexture(3553, TextureAtlasSprite_glSpriteTextureId_get(sprite));
         int firstRegionEnd = -1;
@@ -432,10 +483,12 @@ public abstract class MixinBufferBuilder {
     }
 
     @Shadow
+// [AUDIT-OK] baseline member drawMode (SRG field_179006_k)
     private int drawMode;
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+// [AUDIT-OK] OF-added method, not in baseline
     private void draw(int startQuadVertex, int endQuadVertex) {
         int vxQuadCount = endQuadVertex - startQuadVertex;
         if (vxQuadCount > 0) {
@@ -447,6 +500,7 @@ public abstract class MixinBufferBuilder {
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
+// [AUDIT-OK] OF-added method, not in baseline
     public void setBlockLayer(BlockRenderLayer blockLayer) {
         this.blockLayer = blockLayer;
         if (blockLayer == null) {
@@ -460,16 +514,19 @@ public abstract class MixinBufferBuilder {
     }
 
     @Shadow
+// [AUDIT-OK] baseline member rawIntBuffer (SRG field_178999_b)
     private IntBuffer rawIntBuffer;
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
+// [AUDIT-OK] OF-added method, not in baseline
     private int getBufferQuadSize() {
         return this.rawIntBuffer.capacity() * 4 / (this.vertexFormat.getIntegerSize() * 4);
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
+// [AUDIT-OK] OF-added method, not in baseline
     public RenderEnv getRenderEnv(IBlockState blockStateIn, BlockPos blockPosIn) {
         if (this.renderEnv == null) {
             this.renderEnv = new RenderEnv(blockStateIn, blockPosIn);
@@ -481,52 +538,64 @@ public abstract class MixinBufferBuilder {
     }
 
     @Shadow
+// [AUDIT-OK] baseline member xOffset (SRG field_179004_l)
     private double xOffset;
     @Shadow
+// [AUDIT-OK] baseline member yOffset (SRG field_179005_m)
     private double yOffset;
     @Shadow
+// [AUDIT-OK] baseline member zOffset (SRG field_179002_n)
     private double zOffset;
     @Shadow
+// [AUDIT-OK] baseline member isDrawing (SRG field_179010_r)
     private boolean isDrawing;
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
+// [AUDIT-OK] OF-added method, not in baseline
     public boolean isDrawing() {
         return this.isDrawing;
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
+// [AUDIT-OK] OF-added method, not in baseline
     public double getXOffset() {
         return this.xOffset;
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
+// [AUDIT-OK] OF-added method, not in baseline
     public double getYOffset() {
         return this.yOffset;
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
+// [AUDIT-OK] OF-added method, not in baseline
     public double getZOffset() {
         return this.zOffset;
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
+// [AUDIT-OK] OF-added method, not in baseline
     public BlockRenderLayer getBlockLayer() {
         return this.blockLayer;
     }
 
     @Shadow
+// [AUDIT-OK] baseline member noColor (SRG field_178995_e)
     private boolean noColor;
 
     @Shadow
+// [AUDIT-OK] baseline member getColorIndex(I)I (SRG func_78909_a)
     public int getColorIndex(int p_78909_1_) {return 0;}
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
+// [AUDIT-OK] OF-added method, not in baseline
     public void putColorMultiplierRgba(float red, float green, float blue, float alpha, int vertexIndex) {
         int index = this.getColorIndex(vertexIndex);
         int col = -1;
@@ -551,10 +620,12 @@ public abstract class MixinBufferBuilder {
     }
 
     @Shadow
+// [AUDIT-OK] baseline member byteBuffer (SRG field_179001_a)
     private ByteBuffer byteBuffer;
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
+// [AUDIT-OK] OF-added method, not in baseline
     public void quadsToTriangles() {
         if (this.drawMode == 7) {
             if (this.byteBufferTriangles == null) {
@@ -591,6 +662,7 @@ public abstract class MixinBufferBuilder {
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
+// [AUDIT-OK] member provided by Cleanroom patch (patch/patches adds 5-arg putColorRGBA/isColorDisabled/putBulkData); mixin @Unique copy is discarded at apply (AGENT.md S5) — harmless, but mixin putBulkData SVertexBuilder shaders hooks are lost to the runtime version
     public void putColorRGBA(int index, int red, int green, int blue, int alpha) {
         if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN) {
             this.rawIntBuffer.put(index, alpha << 24 | blue << 16 | green << 8 | red);
@@ -601,15 +673,18 @@ public abstract class MixinBufferBuilder {
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
+// [AUDIT-OK] runtime-provided by Cleanroom patch; mixin @Unique copy discarded (AGENT.md S5)
     public boolean isColorDisabled() {
         return this.noColor;
     }
 
     @Shadow
+// [AUDIT-OK] baseline member growBuffer(I)V (SRG func_181670_b)
     private void growBuffer(int p_181670_1_) {}
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
+// [AUDIT-OK] runtime-provided by Cleanroom patch (no SVertexBuilder hooks); mixin @Unique copy discarded (AGENT.md S5)
     public void putBulkData(ByteBuffer buffer) {
         if (Config.isShaders()) {
             SVertexBuilder.beginAddVertexData((BufferBuilder) (Object)this, buffer);
