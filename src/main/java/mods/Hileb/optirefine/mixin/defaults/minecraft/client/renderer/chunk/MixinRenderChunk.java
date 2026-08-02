@@ -88,12 +88,12 @@ public abstract class MixinRenderChunk {
     @Unique
     // [AUDIT-OK] OF-added field (OF:83, named renderInfo); init via NEW helper matches OF's field initializer
     // [AUDIT-OK] NEW AccessibleOperation + Construction sentinel pairing correct; 3-arg ctor (RenderChunk,EnumFacing,I) verified in deobf RenderGlobal:2533-2540, OF RenderGlobal:3086+, and cleanroom RenderGlobal.java.patch — private ctor/class widened by optirefine_at.cfg
-    private Object renderInfo_RenderGlobal_ContainerLocalRenderInformation = new_RenderGlobal_ContainerLocalRenderInformation(AccessibleOperation.Construction.construction(),(RenderChunk)(Object)this, null, 0);
+    private Object renderInfo_RenderGlobal_ContainerLocalRenderInformation = new_RenderGlobal_ContainerLocalRenderInformation(AccessibleOperation.Construction.construction(), this.renderGlobal, (RenderChunk)(Object)this, null, 0);
     @Unique
     public AabbFrame boundingBoxParent;
 
-    @AccessibleOperation(opcode = Opcodes.NEW, desc = "net.minecraft.client.renderer.RenderGlobal$ContainerLocalRenderInformation (Lnet/minecraft/client/renderer/chunk/RenderChunk;Lnet/minecraft/util/EnumFacing;I)V")
-    private static native Object new_RenderGlobal_ContainerLocalRenderInformation(AccessibleOperation.Construction construction, RenderChunk p_i46248_2, @Nullable EnumFacing p_i46248_3, int p_i46248_4);
+    @AccessibleOperation(opcode = Opcodes.NEW, desc = "net.minecraft.client.renderer.RenderGlobal$ContainerLocalRenderInformation (Lnet/minecraft/client/renderer/RenderGlobal;Lnet/minecraft/client/renderer/chunk/RenderChunk;Lnet/minecraft/util/EnumFacing;I)V")
+    private static native Object new_RenderGlobal_ContainerLocalRenderInformation(AccessibleOperation.Construction construction, RenderGlobal renderGlobal, RenderChunk p_i46248_2, @Nullable EnumFacing p_i46248_3, int p_i46248_4);
 
 
     @Redirect(method = "setPosition", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/EnumFacing;values()[Lnet/minecraft/util/EnumFacing;"))
