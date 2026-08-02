@@ -1,6 +1,5 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.model;
 
-import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -223,9 +222,9 @@ public abstract class MixinModelRenderer {
         }
     }
 
-    @WrapWithCondition(method = "compileDisplayList", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GLAllocation;generateDisplayLists(I)I"))
-    private boolean makeDisplayListGenerationLazy(int range){
-        return this.displayList == 0;
+    @WrapOperation(method = "compileDisplayList", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GLAllocation;generateDisplayLists(I)I"))
+    private int makeDisplayListGenerationLazy(int range, Operation<Integer> original){
+        return this.displayList == 0 ? original.call(range) : this.displayList;
     }
 
     @WrapOperation(method = "compileDisplayList", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GlStateManager;glEndList()V"))
