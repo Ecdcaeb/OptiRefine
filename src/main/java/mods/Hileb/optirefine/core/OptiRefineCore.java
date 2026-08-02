@@ -93,6 +93,7 @@ public class OptiRefineCore implements IFMLLoadingPlugin {
 
         public Container(){
             super(DATA = decodeData());
+            meta.modProperties.put("iconItem", "minecraft:ender_eye");
         }
 
         private static ModMetadata decodeData() {
