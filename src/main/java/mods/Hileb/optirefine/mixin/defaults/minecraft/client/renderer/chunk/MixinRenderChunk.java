@@ -341,10 +341,14 @@ public abstract class MixinRenderChunk {
         return new ChunkCacheOF(chunkCache, posFrom, posTo, 1);
     }
 
-    @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
-    protected ChunkCache createRegionRenderCache(World world, BlockPos from, BlockPos to, int subtract) {
-        return new ChunkCache(world, from, to, subtract);
+    @SuppressWarnings("AddedMixinMembersNamePattern")
+
+    @Unique
+
+    protected ChunkCache createRegionRenderCache(World world, BlockPos from, BlockPos to, int subtract) {
+
+        return new ChunkCache(world, from, to, subtract);
+
     }
 
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.ViewFrustum getRenderChunk (Lnet.minecraft.util.math.BlockPos;)Lnet.minecraft.client.renderer.chunk.RenderChunk;")

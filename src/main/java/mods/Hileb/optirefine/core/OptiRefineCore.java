@@ -117,23 +117,40 @@ public class OptiRefineCore implements IFMLLoadingPlugin {
                 } catch (IOException e) {
                     LOGGER.error("Error loading FileSystem from jar: ", e);
                 }
-            } else if (source.isDirectory()) {
-                try (InputStream inputStream = Files.newInputStream(Objects.requireNonNull(source.toPath().resolve("mcmod.info")))) {
-                    return MetaDataDecoder.decodeMcModInfo(inputStream).get("optirefine");
-                } catch (Throwable t) {
-                    LOGGER.error("Error loading metadata from jar: ", t);
-                }
-            }
-            return fallbackMetadata();
-        }
-
-        private static ModMetadata fallbackMetadata() {
-            ModMetadata modMetadata = new ModMetadata();
-            modMetadata.name = "OptiRefine";
-            modMetadata.modId = "optirefine";
-            modMetadata.authorList.add("Hileb");
-            modMetadata.version = "Unknown";
-            return modMetadata;
+            } else if (source.isDirectory()) {
+
+                try (InputStream inputStream = Files.newInputStream(Objects.requireNonNull(source.toPath().resolve("mcmod.info")))) {
+
+                    return MetaDataDecoder.decodeMcModInfo(inputStream).get("optirefine");
+
+                } catch (Throwable t) {
+
+                    LOGGER.error("Error loading metadata from jar: ", t);
+
+                }
+
+            }
+
+            return fallbackMetadata();
+
+        }
+
+
+
+        private static ModMetadata fallbackMetadata() {
+
+            ModMetadata modMetadata = new ModMetadata();
+
+            modMetadata.name = "OptiRefine";
+
+            modMetadata.modId = "optirefine";
+
+            modMetadata.authorList.add("Hileb");
+
+            modMetadata.version = "Unknown";
+
+            return modMetadata;
+
         }
 
         @Override

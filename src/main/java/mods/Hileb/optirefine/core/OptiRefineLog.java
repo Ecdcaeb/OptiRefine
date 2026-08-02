@@ -18,9 +18,12 @@ public class OptiRefineLog {
 
     public static final PrintStream logOut = new PrintStream(new WriterOutputStream(
             new Writer() {
-                @Override
-                public void write(char[] cbuf, int off, int len) {
-                    log.info(new String(cbuf, off, len));
+                @Override
+
+                public void write(char[] cbuf, int off, int len) {
+
+                    log.info(new String(cbuf, off, len));
+
                 }
 
                 @Override
