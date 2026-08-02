@@ -1102,7 +1102,7 @@ public abstract class MixinGameSettings {
     }
 
     @SuppressWarnings("MissingUnique")
-    @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.settings.GameSettings$Options valueMax F")
+    @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.settings.GameSettings$Options field_148272_O F")
     private static native float Options_valueMax_get(GameSettings.Options options);
 
     @Shadow

@@ -90,7 +90,7 @@ public abstract class MixinGlStateManager {
     @Shadow
     @Public
     private static native void tryBlendFuncSeparate(int srcFactor, int dstFactor, int srcFactorAlpha, int dstFactorAlpha);    @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.GlStateManager$BooleanState currentState Z")
+    @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.GlStateManager$BooleanState field_179201_b Z")
     private static native boolean BooleanState_currentState_get(GlStateManager.BooleanState instance);
 
     // ===== alpha lock =====
