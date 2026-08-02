@@ -5,12 +5,16 @@ import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
+import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Implements;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.renderer.texture.*;
 import net.minecraft.client.resources.IResourceManager;
+import net.minecraft.client.resources.IResourceManagerReloadListener;
 import net.minecraft.util.ResourceLocation;
-// [AUDIT-ISSUE] unused import ProgressManager left over (OF onResourceManagerReload has no ProgressManager - verified); remove
-import net.minecraftforge.fml.common.ProgressManager;
+import net.minecraftforge.client.resource.ISelectiveResourceReloadListener;
+import net.minecraftforge.client.resource.IResourceType;
+import net.minecraftforge.client.resource.SelectiveReloadStateHandler;
+import net.minecraftforge.client.resource.VanillaResourceType;
 import net.optifine.CustomGuis;
 import net.optifine.EmissiveTextures;
 import net.optifine.RandomEntities;
@@ -20,9 +24,15 @@ import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 
 import java.util.Map;
+import java.util.function.Predicate;
+@SuppressWarnings("deprecation")
+@Implements(
+        value = ISelectiveResourceReloadListener.class,
+        removes = IResourceManagerReloadListener.class
+)
 @Mixin(TextureManager.class)
-// [AUDIT] 2026-08-03 - see AGENT.md; issues: 1
-public abstract class MixinTextureManager {
+// [AUDIT] 2026-08-03 - selective reload listener; issues: 0
+public abstract class MixinTextureManager implements ISelectiveResourceReloadListener {
     @Unique
     // [AUDIT-OK] OF-added fields boundTexture/boundTextureLocation (@Unique), not in baseline
     private ITextureObject boundTexture;
@@ -106,13 +116,18 @@ public abstract class MixinTextureManager {
         return this.boundTextureLocation;
     }
 
-    /**
-     * @author
-     * @reason
-     */
-    @WrapMethod(method = "onResourceManagerReload")
-    // [AUDIT-OK] target onResourceManagerReload(IResourceManager)V matches baseline; body mirrors OF (no ProgressManager in OF - verified); [AUDIT-NOTE] empty @author/@reason javadoc
-    public void removeOptifineDynamicTexture(IResourceManager resourceManager, Operation<Void> original) {
+    @WrapMethod(method = "onResourceManagerReload(Lnet/minecraft/client/resources/IResourceManager;)V")
+    // [AUDIT-FIXED] single-param reload bridges to the selective listener (Forge chain); OF cleanup runs only on TEXTURES reloads
+    private void optiRefine$onReloadBridge(IResourceManager rm, Operation<Void> original) {
+        this.onResourceManagerReload(rm, SelectiveReloadStateHandler.INSTANCE.get());
+    }
+
+    @Override
+    public void onResourceManagerReload(IResourceManager resourceManager, Predicate<IResourceType> predicate) {
+        if (!predicate.test(VanillaResourceType.TEXTURES)) {
+            return;
+        }
+
         Config.dbg("*** Reloading textures ***");
         Config.log("Resource packs: " + Config.getResourcePackNames());
 
@@ -133,6 +148,12 @@ public abstract class MixinTextureManager {
 
         EmissiveTextures.update();
 
-        original.call(resourceManager);
+        // reload remaining textures (OF onResourceManagerReload tail)
+        for (Map.Entry<ResourceLocation, ITextureObject> entry : ImmutableSet.copyOf(this.mapTextureObjects.entrySet())) {
+            ITextureObject tex = entry.getValue();
+            if (tex != TextureUtil.MISSING_TEXTURE) {
+                this.loadTexture(entry.getKey(), tex);
+            }
+        }
     }
 }
