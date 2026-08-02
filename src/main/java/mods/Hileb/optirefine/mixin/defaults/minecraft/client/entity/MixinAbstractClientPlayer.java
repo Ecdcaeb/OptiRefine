@@ -25,19 +25,19 @@ public abstract class MixinAbstractClientPlayer {
 
 // [AUDIT-OK] OF-added member (OF private ResourceLocation locationOfCape), not in baseline
     @Unique
-    private ResourceLocation locationOfCape = null;
+    private ResourceLocation locationOfCape;
 
 // [AUDIT-OK] OF-added member, not in baseline
     @Unique
-    private long reloadCapeTimeMs = 0L;
+    private long reloadCapeTimeMs;
 
 // [AUDIT-OK] OF-added member, not in baseline
     @Unique
-    private boolean elytraOfCape = false;
+    private boolean elytraOfCape;
 
 // [AUDIT-OK] OF-added member, not in baseline
     @Unique
-    private String nameClear = null;
+    private String nameClear;
 
 // [AUDIT-OK] OF-added public field, not in baseline; @Public needed for OF-jar access
     @Public
@@ -137,4 +137,13 @@ public abstract class MixinAbstractClientPlayer {
         this.reloadCapeTimeMs = reloadCapeTimeMs;
     }
 
+
+    @Inject(method = "<init>*", at = @At("RETURN"))
+    // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
+    private void optiRefine$initFields(CallbackInfo ci) {
+        this.locationOfCape = null;
+        this.reloadCapeTimeMs = 0L;
+        this.elytraOfCape = false;
+        this.nameClear = null;
+    }
 }

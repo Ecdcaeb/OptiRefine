@@ -115,28 +115,28 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
 
     // [AUDIT-OK] OF-added fields (iconGrid/iconGridSize/iconGridCountX/Y/iconGridSizeU/V/counterIndexInMap/countAnimationsActive/frameCountAnimations), not in baseline
     @Unique
-    private TextureAtlasSprite[] iconGrid = null;
+    private TextureAtlasSprite[] iconGrid;
     @Unique
-    private int iconGridSize = -1;
+    private int iconGridSize;
     @Unique
-    private int iconGridCountX = -1;
+    private int iconGridCountX;
     @Unique
-    private int iconGridCountY = -1;
+    private int iconGridCountY;
     @Unique
-    private double iconGridSizeU = -1.0;
+    private double iconGridSizeU;
     @Unique
-    private double iconGridSizeV = -1.0;
+    private double iconGridSizeV;
     @Unique
-    private CounterInt counterIndexInMap = new CounterInt(0);
+    private CounterInt counterIndexInMap;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
     // [AUDIT-OK] OF-added fields atlasWidth/atlasHeight (@Public), not in baseline
     @Unique
-    private int atlasWidth = 0;
+    private int atlasWidth;
     @Unique
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
-    private int atlasHeight = 0;
+    private int atlasHeight;
     // ===== cross-class private access =====
 
     @SuppressWarnings({"unused", "MissingUnique"})
@@ -927,4 +927,18 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
         return this.countAnimationsActive;
     }
 
+
+    @Inject(method = "<init>*", at = @At("RETURN"))
+    // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
+    private void optiRefine$initFields(CallbackInfo ci) {
+        this.iconGrid = null;
+        this.iconGridSize = -1;
+        this.iconGridCountX = -1;
+        this.iconGridCountY = -1;
+        this.iconGridSizeU = -1.0;
+        this.iconGridSizeV = -1.0;
+        this.counterIndexInMap = new CounterInt(0);
+        this.atlasWidth = 0;
+        this.atlasHeight = 0;
+    }
 }

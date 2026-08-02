@@ -59,31 +59,31 @@ public abstract class MixinRenderChunk {
     private static final BlockRenderLayer[] ENUM_WORLD_BLOCK_LAYERS = BlockRenderLayer.values();
     // [AUDIT-OK] OF-added fields blockLayersSingle/isMipmaps/fixBlockLayer (OF:71-73)
     @Unique
-    private final BlockRenderLayer[] blockLayersSingle = new BlockRenderLayer[1];
+    private BlockRenderLayer[] blockLayersSingle;
     @Unique
-    private final boolean isMipmaps = Config.isMipmaps();
+    private boolean isMipmaps;
     @Unique
-    private final boolean fixBlockLayer = !Reflector.BetterFoliageClient.exists();
+    private boolean fixBlockLayer;
     // [AUDIT-OK] OF-added field (OF:74)
     @Unique
-    private boolean playerUpdate = false;
+    private boolean playerUpdate;
     // [AUDIT-OK] OF-added public fields regionX/regionZ (OF:75-76)
     public int regionX;
     @Unique
     public int regionZ;
     // [AUDIT-OK] OF-added fields renderChunksOfset16/renderChunksOffset16Updated/chunk/renderChunkNeighbours/renderChunkNeighboursValid/renderChunkNeighboursUpated (OF:77-82)
     @Unique
-    private final RenderChunk[] renderChunksOfset16 = new RenderChunk[6];
+    private RenderChunk[] renderChunksOfset16;
     @Unique
-    private boolean renderChunksOffset16Updated = false;
+    private boolean renderChunksOffset16Updated;
     @Unique
     private Chunk chunk;
     @Unique
-    private RenderChunk[] renderChunkNeighbours = new RenderChunk[EnumFacing.VALUES.length];
+    private RenderChunk[] renderChunkNeighbours;
     @Unique
-    private RenderChunk[] renderChunkNeighboursValid = new RenderChunk[EnumFacing.VALUES.length];
+    private RenderChunk[] renderChunkNeighboursValid;
     @Unique
-    private boolean renderChunkNeighboursUpated = false;
+    private boolean renderChunkNeighboursUpated;
     @Unique
     // [AUDIT-FIXED] field init moved to <init> RETURN: field initializer runs before javac assigns ctor params, so this.renderGlobal was null -> 4-arg vanilla ctor requireNonNull NPE
     private Object renderInfo_RenderGlobal_ContainerLocalRenderInformation;
@@ -527,4 +527,18 @@ public abstract class MixinRenderChunk {
         return this.boundingBoxParent;
     }
 
+
+    @Inject(method = "<init>*", at = @At("RETURN"))
+    // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
+    private void optiRefine$initFields(CallbackInfo ci) {
+        this.blockLayersSingle = new BlockRenderLayer[1];
+        this.isMipmaps = Config.isMipmaps();
+        this.fixBlockLayer = !Reflector.BetterFoliageClient.exists();
+        this.playerUpdate = false;
+        this.renderChunksOfset16 = new RenderChunk[6];
+        this.renderChunksOffset16Updated = false;
+        this.renderChunkNeighbours = new RenderChunk[EnumFacing.VALUES.length];
+        this.renderChunkNeighboursValid = new RenderChunk[EnumFacing.VALUES.length];
+        this.renderChunkNeighboursUpated = false;
+    }
 }

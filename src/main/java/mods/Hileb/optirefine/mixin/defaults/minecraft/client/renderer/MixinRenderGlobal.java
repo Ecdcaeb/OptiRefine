@@ -62,7 +62,7 @@ public abstract class MixinRenderGlobal {
     @Public
 // [AUDIT-OK] OF-added field, not in baseline (@Public)
     @Unique
-    private boolean renderOverlayDamaged = false;
+    private boolean renderOverlayDamaged;
     // ===== cross-class private access =====
 
     @SuppressWarnings({"unused", "MissingUnique"})
@@ -136,7 +136,7 @@ public abstract class MixinRenderGlobal {
     @Public
 // [AUDIT-OK] OF-added field, not in baseline (@Public)
     @Unique
-    private boolean renderOverlayEyes = false;
+    private boolean renderOverlayEyes;
 
     // ===== shadowed fields =====
 
@@ -471,7 +471,7 @@ public abstract class MixinRenderGlobal {
     private boolean acc_displayListEntitiesDirty;
 
     @Unique
-    private boolean firstWorldLoad = false;
+    private boolean firstWorldLoad;
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
@@ -510,4 +510,12 @@ public abstract class MixinRenderGlobal {
 // [AUDIT-OK] OF member resumeChunkUpdates()V, not in baseline
     private static native void ChunkRenderDispatcher_resumeChunkUpdates(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher dispatcher);
 
+
+    @Inject(method = "<init>*", at = @At("RETURN"))
+    // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
+    private void optiRefine$initFields(CallbackInfo ci) {
+        this.renderOverlayDamaged = false;
+        this.renderOverlayEyes = false;
+        this.firstWorldLoad = false;
+    }
 }

@@ -7,6 +7,9 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.At;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +21,7 @@ public abstract class MixinChunkRenderDispatcher {
 
     // [AUDIT-OK] OF-added field (OF ChunkRenderDispatcher:42)
     @Unique
-    private List<RegionRenderCacheBuilder> listPausedBuilders = new ArrayList<>();
+    private List<RegionRenderCacheBuilder> listPausedBuilders;
 
     @Shadow @Final
     // [AUDIT-OK] baseline members countRenderBuilders/queueFreeRenderBuilders/runChunkUploads (OF:33/37/82)
@@ -53,4 +56,10 @@ public abstract class MixinChunkRenderDispatcher {
         this.listPausedBuilders.clear();
     }
 
+
+    @Inject(method = "<init>*", at = @At("RETURN"))
+    // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
+    private void optiRefine$initFields(CallbackInfo ci) {
+        this.listPausedBuilders = new ArrayList<>();
+    }
 }

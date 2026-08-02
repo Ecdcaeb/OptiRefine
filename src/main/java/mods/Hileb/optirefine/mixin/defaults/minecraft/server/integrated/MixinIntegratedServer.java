@@ -40,17 +40,17 @@ public abstract class MixinIntegratedServer extends MinecraftServer {
     @SuppressWarnings("AddedMixinMembersNamePattern")
 // [AUDIT-OK] OF-added field ticksSaveLast (in OF IntegratedServer, not in baseline), MCP name matches
     @Unique
-    private long ticksSaveLast = 0L;
+    private long ticksSaveLast;
     @SuppressWarnings("AddedMixinMembersNamePattern")
 // [AUDIT-OK] OF-added fields difficultyUpdateWorld/difficultyUpdatePos/difficultyLast (in OF, not in baseline; public in OF)
     @Unique
-    public World difficultyUpdateWorld = null;
+    public World difficultyUpdateWorld;
     @Unique
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    public BlockPos difficultyUpdatePos = null;
+    public BlockPos difficultyUpdatePos;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
-    public DifficultyInstance difficultyLast = null;
+    public DifficultyInstance difficultyLast;
 
     @Shadow @Final
 // [AUDIT-OK] baseline member mc exists in target class
@@ -191,4 +191,13 @@ public abstract class MixinIntegratedServer extends MinecraftServer {
         }
     }
 
+
+    @Inject(method = "<init>*", at = @At("RETURN"))
+    // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
+    private void optiRefine$initFields(CallbackInfo ci) {
+        this.ticksSaveLast = 0L;
+        this.difficultyUpdateWorld = null;
+        this.difficultyUpdatePos = null;
+        this.difficultyLast = null;
+    }
 }

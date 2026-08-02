@@ -14,6 +14,9 @@ import net.minecraft.util.BlockRenderLayer;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.At;
 
 import java.nio.Buffer;
 import java.nio.IntBuffer;
@@ -31,7 +34,7 @@ public abstract class MixinRenderList extends ChunkRenderContainer {
 
 // [AUDIT-OK] OF-added field (OF: package-private IntBuffer bufferLists), not in baseline
     @Unique
-    IntBuffer bufferLists = GLAllocation.createDirectIntBuffer(16);
+    IntBuffer bufferLists;
 
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.chunk.RenderChunk regionX I")
 // [AUDIT-OK] OF field RenderChunk.regionX (MixinRenderChunk @Unique public), not in baseline
@@ -125,4 +128,10 @@ public abstract class MixinRenderList extends ChunkRenderContainer {
     @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.client.renderer.GlStateManager callLists (Ljava.nio.IntBuffer;)V")
 // [AUDIT-OK] OF member GlStateManager.callLists (MixinGlStateManager @Public), not in baseline
     private static native void GlStateManager_callLists(IntBuffer intBuffer);
+
+    @Inject(method = "<init>*", at = @At("RETURN"))
+    // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
+    private void optiRefine$initFields(CallbackInfo ci) {
+        this.bufferLists = GLAllocation.createDirectIntBuffer(16);
+    }
 }

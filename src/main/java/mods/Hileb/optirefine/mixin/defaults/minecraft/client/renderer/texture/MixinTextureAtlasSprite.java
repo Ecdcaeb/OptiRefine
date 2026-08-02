@@ -50,7 +50,7 @@ public abstract class MixinTextureAtlasSprite {
 
     // [AUDIT-OK] OF-added fields (indexInMap/animationIndex/animationActive), not in baseline
     @Unique
-    private int indexInMap = -1;
+    private int indexInMap;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
     // [AUDIT-OK] OF-added fields baseU/baseV (@Public), not in baseline
@@ -69,52 +69,52 @@ public abstract class MixinTextureAtlasSprite {
     @Public
     // [AUDIT-OK] OF-added field glSpriteTextureId (@Public), not in baseline
     @Unique
-    private int glSpriteTextureId = -1;
+    private int glSpriteTextureId;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
     // [AUDIT-OK] OF-added fields spriteSingle/isSpriteSingle (@Public), not in baseline
     @Unique
-    private TextureAtlasSprite spriteSingle = null;
+    private TextureAtlasSprite spriteSingle;
     @Unique
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
-    private boolean isSpriteSingle = false;
+    private boolean isSpriteSingle;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
     // [AUDIT-OK] OF-added field mipmapLevels (@Public), not in baseline
     @Unique
-    private int mipmapLevels = 0;
+    private int mipmapLevels;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
     // [AUDIT-OK] OF-added fields spriteNormal/spriteSpecular (@Public), not in baseline
     @Unique
-    private TextureAtlasSprite spriteNormal = null;
+    private TextureAtlasSprite spriteNormal;
     @Unique
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
-    private TextureAtlasSprite spriteSpecular = null;
+    private TextureAtlasSprite spriteSpecular;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
     // [AUDIT-OK] OF-added fields isShadersSprite/isDependencyParent/isEmissive (@Public), not in baseline
     @Unique
-    private boolean isShadersSprite = false;
+    private boolean isShadersSprite;
     @Unique
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
-    private boolean isDependencyParent = false;
+    private boolean isDependencyParent;
     @Unique
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
-    private boolean isEmissive = false;
+    private boolean isEmissive;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
     // [AUDIT-OK] OF-added field spriteEmissive (@Public), not in baseline
     @Unique
-    private TextureAtlasSprite spriteEmissive = null;
+    private TextureAtlasSprite spriteEmissive;
     @Unique
-    private int animationIndex = -1;
+    private int animationIndex;
     @Unique
-    private boolean animationActive = false;
+    private boolean animationActive;
 
     // ===== shadowed existing fields =====
 
@@ -668,5 +668,23 @@ public abstract class MixinTextureAtlasSprite {
     // [AUDIT-OK] OF-added @Public method setAnimationMetadata, not in baseline
     public void setAnimationMetadata(AnimationMetadataSection animationMetadata) {
         this.animationMetadata = animationMetadata;
+    }
+
+    @Inject(method = "<init>*", at = @At("RETURN"))
+    // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
+    private void optiRefine$initFields(CallbackInfo ci) {
+        this.indexInMap = -1;
+        this.glSpriteTextureId = -1;
+        this.spriteSingle = null;
+        this.isSpriteSingle = false;
+        this.mipmapLevels = 0;
+        this.spriteNormal = null;
+        this.spriteSpecular = null;
+        this.isShadersSprite = false;
+        this.isDependencyParent = false;
+        this.isEmissive = false;
+        this.spriteEmissive = null;
+        this.animationIndex = -1;
+        this.animationActive = false;
     }
 }

@@ -50,15 +50,15 @@ public abstract class MixinWorldClient extends World {
     @SuppressWarnings("AddedMixinMembersNamePattern")
 // [AUDIT-OK] OF-added member, not in baseline
     @Unique
-    private int playerChunkX = Integer.MIN_VALUE;
+    private int playerChunkX;
     @SuppressWarnings("AddedMixinMembersNamePattern")
 // [AUDIT-OK] OF-added member, not in baseline
     @Unique
-    private int playerChunkY = Integer.MIN_VALUE;
+    private int playerChunkY;
     @SuppressWarnings("AddedMixinMembersNamePattern")
 // [AUDIT-OK] OF-added member, not in baseline
     @Unique
-    private boolean playerUpdate = false;
+    private boolean playerUpdate;
 
     // Ignored
 // [AUDIT-NOTE] ctor only satisfies mixin-extends-World hierarchy; not applied at runtime
@@ -138,4 +138,12 @@ public abstract class MixinWorldClient extends World {
         return this.playerUpdate;
     }
 
+
+    @Inject(method = "<init>*", at = @At("RETURN"))
+    // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
+    private void optiRefine$initFields(CallbackInfo ci) {
+        this.playerChunkX = Integer.MIN_VALUE;
+        this.playerChunkY = Integer.MIN_VALUE;
+        this.playerUpdate = false;
+    }
 }

@@ -23,7 +23,7 @@ public abstract class MixinChunkRenderContainer {
     @SuppressWarnings("AddedMixinMembersNamePattern")
 // [AUDIT-OK] OF-added field, not in baseline
     @Unique
-    private final BitSet animatedSpritesCached = new BitSet();
+    private BitSet animatedSpritesCached;
 
     @Inject(method = "<init>", at = @At("RETURN"))
     public void logicOfinit(CallbackInfo ci){
@@ -57,4 +57,10 @@ public abstract class MixinChunkRenderContainer {
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.chunk.CompiledChunk getAnimatedSprites (Lnet.minecraft.util.BlockRenderLayer;)Ljava.util.BitSet;")
 // [AUDIT-OK] OF member CompiledChunk.getAnimatedSprites, not in baseline (MixinCompiledChunk @Unique provides); dot-desc converted by processor
     private native static BitSet CompiledChunk_getAnimatedSprites(CompiledChunk instance, BlockRenderLayer arg0) ;
+
+    @Inject(method = "<init>*", at = @At("RETURN"))
+    // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
+    private void optiRefine$initFields(CallbackInfo ci) {
+        this.animatedSpritesCached = new BitSet();
+    }
 }

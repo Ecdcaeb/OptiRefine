@@ -13,6 +13,9 @@ import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.At;
 
 import java.util.UUID;
 @Mixin(EntityLiving.class)
@@ -22,10 +25,10 @@ public abstract class MixinEntityLiving extends EntityLivingBase {
     @SuppressWarnings("AddedMixinMembersNamePattern")
 // [AUDIT-OK] OF-added fields teamUuid/teamUuidString (in OF EntityLiving, not in baseline), MCP names match
     @Unique
-    private UUID teamUuid = null;
+    private UUID teamUuid;
     @Unique
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    private String teamUuidString = null;
+    private String teamUuidString;
 
     @SuppressWarnings("unused")
     public MixinEntityLiving(World p_i1594_1_) {
@@ -101,4 +104,11 @@ public abstract class MixinEntityLiving extends EntityLivingBase {
     private EntityLiving _cast_EntityLiving() {throw new AbstractMethodError();}
 
 
+
+    @Inject(method = "<init>*", at = @At("RETURN"))
+    // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
+    private void optiRefine$initFields(CallbackInfo ci) {
+        this.teamUuid = null;
+        this.teamUuidString = null;
+    }
 }

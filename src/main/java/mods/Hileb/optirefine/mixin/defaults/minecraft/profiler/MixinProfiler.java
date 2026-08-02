@@ -25,11 +25,11 @@ public abstract class MixinProfiler {
     @Public
 // [AUDIT-OK] OF-added field profilerGlobalEnabled (in OF Profiler, not in baseline), MCP name matches
     @Unique
-    private boolean profilerGlobalEnabled = true;
+    private boolean profilerGlobalEnabled;
     @SuppressWarnings("AddedMixinMembersNamePattern")
 // [AUDIT-OK] OF-added field profilerLocalEnabled, matches OF init (snapshot of global)
     @Unique
-    private boolean profilerLocalEnabled = this.profilerGlobalEnabled;
+    private boolean profilerLocalEnabled;
     @SuppressWarnings("unused")
     @Unique
 // [AUDIT-OK] OF-added constants SCHEDULED_EXECUTABLES/TICK/PRE_RENDER_ERRORS/RENDER/DISPLAY, match OF
@@ -128,5 +128,12 @@ public abstract class MixinProfiler {
 // [AUDIT-OK] OF member GlStateManager.clearEnabled (in OF, not in baseline; provided by MixinGlStateManager), MCP name OK
     private static void _set_GlStateManager_clearEnabled(boolean val){
         throw new AbstractMethodError();
+    }
+
+    @Inject(method = "<init>*", at = @At("RETURN"))
+    // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
+    private void optiRefine$initFields(CallbackInfo ci) {
+        this.profilerGlobalEnabled = true;
+        this.profilerLocalEnabled = this.profilerGlobalEnabled;
     }
 }

@@ -152,19 +152,19 @@ public abstract class MixinFontRenderer implements ISelectiveResourceReloadListe
 
 // [AUDIT-OK] OF-added member, not in baseline
     @Unique
-    public float offsetBold = 1.0F;
+    public float offsetBold;
 
 // [AUDIT-OK] OF-added member, not in baseline
     @Unique
-    private final float[] charWidthFloat = new float[256];
+    private float[] charWidthFloat;
 
 // [AUDIT-OK] OF-added member, not in baseline
     @Unique
-    private boolean blend = false;
+    private boolean blend;
 
 // [AUDIT-OK] OF-added member, not in baseline
     @Unique
-    private final GlBlendState oldBlendState = new GlBlendState();
+    private GlBlendState oldBlendState;
 
     // ====== Charset mapping used by vanilla FontRenderer ======
     @Unique
@@ -589,5 +589,14 @@ public abstract class MixinFontRenderer implements ISelectiveResourceReloadListe
             return v;
         }
         return 16777215;
+    }
+
+    @Inject(method = "<init>*", at = @At("RETURN"))
+    // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
+    private void optiRefine$initFields(CallbackInfo ci) {
+        this.offsetBold = 1.0F;
+        this.charWidthFloat = new float[256];
+        this.blend = false;
+        this.oldBlendState = new GlBlendState();
     }
 }

@@ -7,6 +7,9 @@ import net.minecraft.client.renderer.culling.ClippingHelper;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.At;
 @Mixin(ClippingHelper.class)
 public abstract class MixinClippingHelper {
 // [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
@@ -14,7 +17,7 @@ public abstract class MixinClippingHelper {
     @Public
     // [AUDIT-OK] OF-added field (OF:8 public); nit: '= false' initializer on @Public instance field (AGENT.md §4 convention)
     @Unique
-    private boolean disabled = false;
+    private boolean disabled;
 
     @Shadow
     // [AUDIT-OK] baseline member frustum (public float[][], deobf:9)
@@ -75,4 +78,10 @@ public abstract class MixinClippingHelper {
         }
     }
 
+
+    @Inject(method = "<init>*", at = @At("RETURN"))
+    // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
+    private void optiRefine$initFields(CallbackInfo ci) {
+        this.disabled = false;
+    }
 }

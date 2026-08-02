@@ -7,6 +7,9 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.ResourceLocation;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.At;
 @Mixin(BlockStateBase.class)
 public abstract class MixinBlockStateBase implements IBlockState {
 // [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
@@ -15,22 +18,22 @@ public abstract class MixinBlockStateBase implements IBlockState {
     @SuppressWarnings("AddedMixinMembersNamePattern")
 // [AUDIT-OK] OF-added field blockId (in OF BlockStateBase, not in baseline), MCP name matches
     @Unique
-    private int blockId = -1;
+    private int blockId;
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
 // [AUDIT-OK] OF-added field blockStateId (in OF, not in baseline)
     @Unique
-    private int blockStateId = -1;
+    private int blockStateId;
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
 // [AUDIT-OK] OF-added field metadata (in OF, not in baseline; BlockStateBase itself does not implement IBlockState.getMetadata)
     @Unique
-    private int metadata = -1;
+    private int metadata;
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
 // [AUDIT-OK] OF-added field blockLocation (in OF, not in baseline)
     @Unique
-    private ResourceLocation blockLocation = null;
+    private ResourceLocation blockLocation;
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Public
@@ -70,5 +73,14 @@ public abstract class MixinBlockStateBase implements IBlockState {
             this.blockLocation = Block.REGISTRY.getNameForObject(this.getBlock());
         }
         return this.blockLocation;
+    }
+
+    @Inject(method = "<init>*", at = @At("RETURN"))
+    // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
+    private void optiRefine$initFields(CallbackInfo ci) {
+        this.blockId = -1;
+        this.blockStateId = -1;
+        this.metadata = -1;
+        this.blockLocation = null;
     }
 }

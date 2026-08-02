@@ -55,7 +55,7 @@ public abstract class MixinBakedQuad {
     protected TextureAtlasSprite sprite;
 
     @Unique
-    private int[] vertexDataSingle = null;
+    private int[] vertexDataSingle;
     @Unique
     private QuadBounds quadBounds;
     private boolean quadEmissiveChecked;
@@ -271,5 +271,11 @@ public abstract class MixinBakedQuad {
     // [AUDIT-OK] OF overrides toString (OF:215); nit: no @Unique — merged as added member (warns AddedMixinMembersNamePattern)
     public String toString() {
         return "vertex: " + this.vertexData.length / 7 + ", tint: " + this.tintIndex + ", facing: " + this.face + ", sprite: " + this.sprite;
+    }
+
+    @Inject(method = "<init>*", at = @At("RETURN"))
+    // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
+    private void optiRefine$initFields(CallbackInfo ci) {
+        this.vertexDataSingle = null;
     }
 }

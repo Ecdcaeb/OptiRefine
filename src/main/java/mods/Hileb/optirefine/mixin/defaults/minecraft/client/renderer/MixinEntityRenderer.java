@@ -368,51 +368,51 @@ public abstract class MixinEntityRenderer {
 
 // [AUDIT-OK] OF-added field, not in baseline
     @Unique
-    private boolean initialized = false;
+    private boolean initialized;
 
 // [AUDIT-OK] OF-added field, not in baseline
     @Unique
-    private World updatedWorld = null;
+    private World updatedWorld;
 
 // [AUDIT-OK] OF-added field, not in baseline (@Unique public; OF: public boolean fogStandard)
     @Unique
-    public boolean fogStandard = false;
+    public boolean fogStandard;
 
 // [AUDIT-OK] OF-added field, not in baseline
     @Unique
-    private float clipDistance = 128.0F;
+    private float clipDistance;
 
 // [AUDIT-OK] OF-added field, not in baseline
     @Unique
-    private long lastServerTime = 0L;
+    private long lastServerTime;
 
 // [AUDIT-OK] OF-added field, not in baseline
     @Unique
-    private int lastServerTicks = 0;
+    private int lastServerTicks;
 
 // [AUDIT-OK] OF-added field, not in baseline
     @Unique
-    private int serverWaitTime = 0;
+    private int serverWaitTime;
 
 // [AUDIT-OK] OF-added field, not in baseline
     @Unique
-    private int serverWaitTimeCurrent = 0;
+    private int serverWaitTimeCurrent;
 
 // [AUDIT-OK] OF-added field, not in baseline
     @Unique
-    private float avgServerTimeDiff = 0.0F;
+    private float avgServerTimeDiff;
 
 // [AUDIT-OK] OF-added field, not in baseline
     @Unique
-    private float avgServerTickDiff = 0.0F;
+    private float avgServerTickDiff;
 
 // [AUDIT-OK] OF-added field, not in baseline
     @Unique
-    private ShaderGroup[] fxaaShaders = new ShaderGroup[10];
+    private ShaderGroup[] fxaaShaders;
 
 // [AUDIT-OK] OF-added field, not in baseline
     @Unique
-    private boolean loadVisibleChunks = false;
+    private boolean loadVisibleChunks;
 
     // ===== loadShader =====
 
@@ -1345,5 +1345,22 @@ public abstract class MixinEntityRenderer {
             GameSettings_ofChunkUpdates_set(this.mc.gameSettings, chunkUpdates);
             GameSettings_ofLazyChunkLoading_set(this.mc.gameSettings, lazyChunkLoading);
         }
+    }
+
+    @Inject(method = "<init>*", at = @At("RETURN"))
+    // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
+    private void optiRefine$initFields(CallbackInfo ci) {
+        this.initialized = false;
+        this.updatedWorld = null;
+        this.fogStandard = false;
+        this.clipDistance = 128.0F;
+        this.lastServerTime = 0L;
+        this.lastServerTicks = 0;
+        this.serverWaitTime = 0;
+        this.serverWaitTimeCurrent = 0;
+        this.avgServerTimeDiff = 0.0F;
+        this.avgServerTickDiff = 0.0F;
+        this.fxaaShaders = new ShaderGroup[10];
+        this.loadVisibleChunks = false;
     }
 }

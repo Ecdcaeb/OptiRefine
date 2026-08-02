@@ -32,7 +32,7 @@ public abstract class MixinBlockModelRender$AmbientOcclusionFace {
 
 // [AUDIT-OK] OF-added field, not in baseline
     @Unique
-    private final BlockPos.MutableBlockPos[] blockPosArr = new BlockPos.MutableBlockPos[5];
+    private BlockPos.MutableBlockPos[] blockPosArr;
 
     @ShadowSuper("<init>")
     public void _Object() {}
@@ -74,4 +74,10 @@ public abstract class MixinBlockModelRender$AmbientOcclusionFace {
     //BlockPos.PooledMutableBlockPos blockpos$pooledmutableblockpos1 = PooledMutableBlockPos.retain(blockpos).move(blockmodelrenderer$enumneighborinfo.corners[0]);
 
 
+
+    @Inject(method = "<init>*", at = @At("RETURN"))
+    // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
+    private void optiRefine$initFields(CallbackInfo ci) {
+        this.blockPosArr = new BlockPos.MutableBlockPos[5];
+    }
 }

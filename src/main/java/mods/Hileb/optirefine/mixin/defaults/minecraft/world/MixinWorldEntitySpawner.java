@@ -9,6 +9,9 @@ import net.minecraft.world.chunk.Chunk;
 import net.optifine.BlockPosM;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.At;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -158,9 +161,9 @@ public abstract class MixinWorldEntitySpawner {
 // [AUDIT-OK] OF-added fields mapSampleEntitiesByClass/lastPlayerChunkX/lastPlayerChunkZ/countChunkPos (in OF WorldEntitySpawner, not in baseline), MCP names - currently dead code
     private Map<Class<?>, EntityLiving> mapSampleEntitiesByClass = new HashMap<>();
     @Unique
-    private int lastPlayerChunkX = Integer.MAX_VALUE;
+    private int lastPlayerChunkX;
     @Unique
-    private int lastPlayerChunkZ = Integer.MAX_VALUE;
+    private int lastPlayerChunkZ;
     private int countChunkPos;
 
     @Unique
@@ -176,4 +179,11 @@ public abstract class MixinWorldEntitySpawner {
     }
 
 
+
+    @Inject(method = "<init>*", at = @At("RETURN"))
+    // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
+    private void optiRefine$initFields(CallbackInfo ci) {
+        this.lastPlayerChunkX = Integer.MAX_VALUE;
+        this.lastPlayerChunkZ = Integer.MAX_VALUE;
+    }
 }

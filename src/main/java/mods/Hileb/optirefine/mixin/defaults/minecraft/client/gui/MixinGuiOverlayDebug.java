@@ -13,6 +13,9 @@ import net.optifine.TextureAnimations;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.At;
 
 import java.util.List;
 @Mixin(GuiOverlayDebug.class)
@@ -22,27 +25,27 @@ public abstract class MixinGuiOverlayDebug extends Gui {
     @SuppressWarnings("AddedMixinMembersNamePattern")
 // [AUDIT-OK] OF-added member (OF GuiOverlayDebug private field), not in baseline
     @Unique
-    private String debugOF = null;
+    private String debugOF;
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
 // [AUDIT-OK] OF-added member, not in baseline
     @Unique
-    private List<String> debugInfoLeft = null;
+    private List<String> debugInfoLeft;
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
 // [AUDIT-OK] OF-added member, not in baseline
     @Unique
-    private List<String> debugInfoRight = null;
+    private List<String> debugInfoRight;
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
 // [AUDIT-OK] OF-added member, not in baseline
     @Unique
-    private long updateInfoLeftTimeMs = 0L;
+    private long updateInfoLeftTimeMs;
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
 // [AUDIT-OK] OF-added member, not in baseline
     @Unique
-    private long updateInfoRightTimeMs = 0L;
+    private long updateInfoRightTimeMs;
 
     @SuppressWarnings("unused")
     @Unique
@@ -109,5 +112,15 @@ public abstract class MixinGuiOverlayDebug extends Gui {
         String ofInfo = sbx.toString();
 
         return original.call().stream().map((s) -> s.startsWith("P: ") ? s + ofInfo : s).toList();
+    }
+
+    @Inject(method = "<init>*", at = @At("RETURN"))
+    // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
+    private void optiRefine$initFields(CallbackInfo ci) {
+        this.debugOF = null;
+        this.debugInfoLeft = null;
+        this.debugInfoRight = null;
+        this.updateInfoLeftTimeMs = 0L;
+        this.updateInfoRightTimeMs = 0L;
     }
 }

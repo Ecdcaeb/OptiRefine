@@ -122,31 +122,31 @@ public abstract class MixinModelRenderer {
 // [AUDIT-OK] OF-added member (public in OF), not in baseline; @Public for OF-jar access
     @Unique
     @Public
-    private List<ModelSprite> spriteList = new ArrayList<>();
+    private List<ModelSprite> spriteList;
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
 // [AUDIT-OK] OF-added member (public in OF), not in baseline; @Public for OF-jar access
     @Unique
     @Public
-    private boolean mirrorV = false;
+    private boolean mirrorV;
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
 // [AUDIT-OK] OF-added member (public in OF), not in baseline; @Public for OF-jar access
     @Unique
     @Public
-    private float scaleX = 1.0F;
+    private float scaleX;
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
 // [AUDIT-OK] OF-added member (public in OF), not in baseline; @Public for OF-jar access
     @Unique
     @Public
-    private float scaleY = 1.0F;
+    private float scaleY;
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
 // [AUDIT-OK] OF-added member (public in OF), not in baseline; @Public for OF-jar access
     @Unique
     @Public
-    private float scaleZ = 1.0F;
+    private float scaleZ;
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
 // [AUDIT-OK] OF-added member, not in baseline; @Public informational (OF keeps private)
@@ -157,13 +157,13 @@ public abstract class MixinModelRenderer {
 // [AUDIT-OK] OF-added member, not in baseline; @Public informational (OF keeps private)
     @Unique
     @Public
-    private ResourceLocation textureLocation = null;
+    private ResourceLocation textureLocation;
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
 // [AUDIT-OK] OF-added member, not in baseline; @Public informational (OF keeps private)
     @Unique
     @Public
-    private String id = null;
+    private String id;
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
 // [AUDIT-OK] OF-added member, not in baseline; @Public informational (OF keeps private)
@@ -174,7 +174,7 @@ public abstract class MixinModelRenderer {
 // [AUDIT-OK] OF-added member, not in baseline; @Public informational (OF keeps private)
     @Unique
     @Public
-    private RenderGlobal renderGlobal = Config.getRenderGlobal();
+    private RenderGlobal renderGlobal;
 
     @SuppressWarnings({"unused", "BooleanMethodIsAlwaysInverted"})
 // [AUDIT-OK] OF-added member (not in tsrg): MCP name renderOverlayDamaged correct
@@ -416,4 +416,17 @@ public abstract class MixinModelRenderer {
         return "id: " + this.id + ", boxes: " + (this.cubeList != null ? this.cubeList.size() : null) + ", submodels: " + (this.childModels != null ? this.childModels.size() : null);
     }
 
+
+    @Inject(method = "<init>*", at = @At("RETURN"))
+    // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
+    private void optiRefine$initFields(CallbackInfo ci) {
+        this.spriteList = new ArrayList<>();
+        this.mirrorV = false;
+        this.scaleX = 1.0F;
+        this.scaleY = 1.0F;
+        this.scaleZ = 1.0F;
+        this.textureLocation = null;
+        this.id = null;
+        this.renderGlobal = Config.getRenderGlobal();
+    }
 }

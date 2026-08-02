@@ -68,23 +68,23 @@ public abstract class MixinBufferBuilder {
     @SuppressWarnings("AddedMixinMembersNamePattern")
 // [AUDIT-OK] OF-added field, not in baseline
     @Unique
-    private BlockRenderLayer blockLayer = null;
+    private BlockRenderLayer blockLayer;
     @SuppressWarnings("AddedMixinMembersNamePattern")
 // [AUDIT-OK] OF-added field, not in baseline
     @Unique
-    private boolean[] drawnIcons = new boolean[256];
+    private boolean[] drawnIcons;
     @SuppressWarnings("AddedMixinMembersNamePattern")
 // [AUDIT-OK] OF-added field, not in baseline
     @Unique
-    private TextureAtlasSprite[] quadSprites = null;
+    private TextureAtlasSprite[] quadSprites;
     @SuppressWarnings("AddedMixinMembersNamePattern")
 // [AUDIT-OK] OF-added field, not in baseline
     @Unique
-    private TextureAtlasSprite[] quadSpritesPrev = null;
+    private TextureAtlasSprite[] quadSpritesPrev;
     @SuppressWarnings("AddedMixinMembersNamePattern")
 // [AUDIT-OK] OF-added field, not in baseline
     @Unique
-    private TextureAtlasSprite quadSprite = null;
+    private TextureAtlasSprite quadSprite;
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Public
 // [AUDIT-OK] OF-added field, not in baseline (@Public)
@@ -93,21 +93,21 @@ public abstract class MixinBufferBuilder {
     @Public
 // [AUDIT-OK] OF-added field, not in baseline (@Public)
     @Unique
-    private RenderEnv renderEnv = null;
+    private RenderEnv renderEnv;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
 // [AUDIT-OK] OF-added field, not in baseline (@Public)
     @Unique
-    private BitSet animatedSprites = null;
+    private BitSet animatedSprites;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
 // [AUDIT-OK] OF-added field, not in baseline (@Public)
     @Unique
-    private final BitSet animatedSpritesCached = new BitSet();
+    private BitSet animatedSpritesCached;
     @SuppressWarnings("AddedMixinMembersNamePattern")
 // [AUDIT-OK] OF-added field, not in baseline
     @Unique
-    private boolean modeTriangles = false;
+    private boolean modeTriangles;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
 // [AUDIT-OK] OF-added field, not in baseline
@@ -695,4 +695,18 @@ public abstract class MixinBufferBuilder {
 
 
 
+
+    @Inject(method = "<init>*", at = @At("RETURN"))
+    // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
+    private void optiRefine$initFields(CallbackInfo ci) {
+        this.blockLayer = null;
+        this.drawnIcons = new boolean[256];
+        this.quadSprites = null;
+        this.quadSpritesPrev = null;
+        this.quadSprite = null;
+        this.renderEnv = null;
+        this.animatedSprites = null;
+        this.animatedSpritesCached = new BitSet();
+        this.modeTriangles = false;
+    }
 }

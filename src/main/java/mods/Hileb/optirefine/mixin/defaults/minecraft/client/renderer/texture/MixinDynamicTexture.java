@@ -13,6 +13,8 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Mutable;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 @SuppressWarnings("ALL")
@@ -32,7 +34,7 @@ public abstract class MixinDynamicTexture extends AbstractTexture {
 
     // [AUDIT-OK] OF-added field shadersInitialized (@Unique), not in baseline
     @Unique
-    private boolean shadersInitialized = false;
+    private boolean shadersInitialized;
 
     @Redirect(method = "<init>(II)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/texture/TextureUtil;allocateTexture(III)V"))
     // [AUDIT-OK] target <init>(II)V matches baseline; redirect of allocateTexture replicates OF ctor (dynamicTextureData expanded to width*height*3 + ShadersTex.initDynamicTexture)
@@ -67,5 +69,11 @@ public abstract class MixinDynamicTexture extends AbstractTexture {
     @AccessibleOperation(opcode = Opcodes.NOP)
     // [AUDIT-OK] NOP cast helper: call removed, preceding aload(this) remains as arg (semantically identical)
     private native static DynamicTexture DynamicTexture_cast(MixinDynamicTexture obj);
+
+    @Inject(method = "<init>*", at = @At("RETURN"))
+    // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
+    private void optiRefine$initFields(CallbackInfo ci) {
+        this.shadersInitialized = false;
+    }
 }
 

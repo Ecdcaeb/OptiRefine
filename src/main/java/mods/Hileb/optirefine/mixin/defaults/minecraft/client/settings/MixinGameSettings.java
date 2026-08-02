@@ -49,147 +49,147 @@ public abstract class MixinGameSettings {
 
     // [AUDIT-OK] OF-added fields (ofFogType..ofAnimatedTextures; 80+), not in baseline
     @Unique
-    public int ofFogType = 1;
+    public int ofFogType;
     @Unique
-    public float ofFogStart = 0.8F;
+    public float ofFogStart;
     @Unique
-    public int ofMipmapType = 0;
+    public int ofMipmapType;
     @Unique
-    public boolean ofOcclusionFancy = false;
+    public boolean ofOcclusionFancy;
     @Unique
-    public boolean ofSmoothFps = false;
+    public boolean ofSmoothFps;
     @Unique
-    public boolean ofSmoothWorld = Config.isSingleProcessor();
+    public boolean ofSmoothWorld;
     @Unique
-    public boolean ofLazyChunkLoading = Config.isSingleProcessor();
+    public boolean ofLazyChunkLoading;
     @Unique
-    public boolean ofRenderRegions = false;
+    public boolean ofRenderRegions;
     @Unique
-    public boolean ofSmartAnimations = false;
+    public boolean ofSmartAnimations;
     @Unique
-    public float ofAoLevel = 1.0F;
+    public float ofAoLevel;
     @Unique
-    public int ofAaLevel = 0;
+    public int ofAaLevel;
     @Unique
-    public int ofAfLevel = 1;
+    public int ofAfLevel;
     @Unique
-    public int ofClouds = 0;
+    public int ofClouds;
     @Unique
-    public float ofCloudsHeight = 0.0F;
+    public float ofCloudsHeight;
     @Unique
-    public int ofTrees = 0;
+    public int ofTrees;
     @Unique
-    public int ofRain = 0;
+    public int ofRain;
     @Unique
-    public int ofDroppedItems = 0;
+    public int ofDroppedItems;
     @Unique
-    public int ofBetterGrass = 3;
+    public int ofBetterGrass;
     @Unique
-    public int ofAutoSaveTicks = 4000;
+    public int ofAutoSaveTicks;
     @Unique
-    public boolean ofLagometer = false;
+    public boolean ofLagometer;
     @Unique
-    public boolean ofProfiler = false;
+    public boolean ofProfiler;
     @Unique
-    public boolean ofShowFps = false;
+    public boolean ofShowFps;
     @Unique
-    public boolean ofWeather = true;
+    public boolean ofWeather;
     @Unique
-    public boolean ofSky = true;
+    public boolean ofSky;
     @Unique
-    public boolean ofStars = true;
+    public boolean ofStars;
     @Unique
-    public boolean ofSunMoon = true;
+    public boolean ofSunMoon;
     @Unique
-    public int ofVignette = 0;
+    public int ofVignette;
     @Unique
-    public int ofChunkUpdates = 1;
+    public int ofChunkUpdates;
     @Unique
-    public boolean ofChunkUpdatesDynamic = false;
+    public boolean ofChunkUpdatesDynamic;
     @Unique
-    public int ofTime = 0;
+    public int ofTime;
     @Unique
-    public boolean ofClearWater = false;
+    public boolean ofClearWater;
     @Unique
-    public boolean ofBetterSnow = false;
+    public boolean ofBetterSnow;
     @Unique
-    public String ofFullscreenMode = "Default";
+    public String ofFullscreenMode;
     @Unique
-    public boolean ofSwampColors = true;
+    public boolean ofSwampColors;
     @Unique
-    public boolean ofRandomEntities = true;
+    public boolean ofRandomEntities;
     @Unique
-    public boolean ofSmoothBiomes = true;
+    public boolean ofSmoothBiomes;
     @Unique
-    public boolean ofCustomFonts = true;
+    public boolean ofCustomFonts;
     @Unique
-    public boolean ofCustomColors = true;
+    public boolean ofCustomColors;
     @Unique
-    public boolean ofCustomSky = true;
+    public boolean ofCustomSky;
     @Unique
-    public boolean ofShowCapes = true;
+    public boolean ofShowCapes;
     @Unique
-    public int ofConnectedTextures = 2;
+    public int ofConnectedTextures;
     @Unique
-    public boolean ofCustomItems = true;
+    public boolean ofCustomItems;
     @Unique
-    public boolean ofNaturalTextures = false;
+    public boolean ofNaturalTextures;
     @Unique
-    public boolean ofEmissiveTextures = true;
+    public boolean ofEmissiveTextures;
     @Unique
-    public boolean ofFastMath = false;
+    public boolean ofFastMath;
     @Unique
-    public boolean ofFastRender = false;
+    public boolean ofFastRender;
     @Unique
-    public int ofTranslucentBlocks = 0;
+    public int ofTranslucentBlocks;
     @Unique
-    public boolean ofDynamicFov = true;
+    public boolean ofDynamicFov;
     @Unique
-    public boolean ofAlternateBlocks = true;
+    public boolean ofAlternateBlocks;
     @Unique
-    public int ofDynamicLights = 3;
+    public int ofDynamicLights;
     @Unique
-    public boolean ofCustomEntityModels = true;
+    public boolean ofCustomEntityModels;
     @Unique
-    public boolean ofCustomGuis = true;
+    public boolean ofCustomGuis;
     @Unique
-    public boolean ofShowGlErrors = true;
+    public boolean ofShowGlErrors;
     @Unique
-    public int ofScreenshotSize = 1;
+    public int ofScreenshotSize;
     @Unique
-    public int ofAnimatedWater = 0;
+    public int ofAnimatedWater;
     @Unique
-    public int ofAnimatedLava = 0;
+    public int ofAnimatedLava;
     @Unique
-    public boolean ofAnimatedFire = true;
+    public boolean ofAnimatedFire;
     @Unique
-    public boolean ofAnimatedPortal = true;
+    public boolean ofAnimatedPortal;
     @Unique
-    public boolean ofAnimatedRedstone = true;
+    public boolean ofAnimatedRedstone;
     @Unique
-    public boolean ofAnimatedExplosion = true;
+    public boolean ofAnimatedExplosion;
     @Unique
-    public boolean ofAnimatedFlame = true;
+    public boolean ofAnimatedFlame;
     @Unique
-    public boolean ofAnimatedSmoke = true;
+    public boolean ofAnimatedSmoke;
     @Unique
-    public boolean ofVoidParticles = true;
+    public boolean ofVoidParticles;
     @Unique
-    public boolean ofWaterParticles = true;
+    public boolean ofWaterParticles;
     @Unique
-    public boolean ofRainSplash = true;
+    public boolean ofRainSplash;
     @Unique
-    public boolean ofPortalParticles = true;
+    public boolean ofPortalParticles;
     @Unique
-    public boolean ofPotionParticles = true;
+    public boolean ofPotionParticles;
     @Unique
-    public boolean ofFireworkParticles = true;
+    public boolean ofFireworkParticles;
     @Unique
-    public boolean ofDrippingWaterLava = true;
+    public boolean ofDrippingWaterLava;
     @Unique
-    public boolean ofAnimatedTerrain = true;
+    public boolean ofAnimatedTerrain;
     @Unique
-    public boolean ofAnimatedTextures = true;
+    public boolean ofAnimatedTextures;
     @Public
     // [AUDIT-OK] OF-added static constants DEFAULT/FAST/FANCY/OFF/SMART (private static + @Public per mixin rule)
     private static final int DEFAULT = 0;
@@ -1801,5 +1801,81 @@ public abstract class MixinGameSettings {
     private static int optiRefine$limit(int val, int[] vals) {
         int index = org.apache.commons.lang3.ArrayUtils.indexOf(vals, val);
         return index < 0 ? vals[0] : val;
+    }
+
+    @Inject(method = "<init>*", at = @At("RETURN"))
+    // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
+    private void optiRefine$initFields(CallbackInfo ci) {
+        this.ofFogType = 1;
+        this.ofFogStart = 0.8F;
+        this.ofMipmapType = 0;
+        this.ofOcclusionFancy = false;
+        this.ofSmoothFps = false;
+        this.ofSmoothWorld = Config.isSingleProcessor();
+        this.ofLazyChunkLoading = Config.isSingleProcessor();
+        this.ofRenderRegions = false;
+        this.ofSmartAnimations = false;
+        this.ofAoLevel = 1.0F;
+        this.ofAaLevel = 0;
+        this.ofAfLevel = 1;
+        this.ofClouds = 0;
+        this.ofCloudsHeight = 0.0F;
+        this.ofTrees = 0;
+        this.ofRain = 0;
+        this.ofDroppedItems = 0;
+        this.ofBetterGrass = 3;
+        this.ofAutoSaveTicks = 4000;
+        this.ofLagometer = false;
+        this.ofProfiler = false;
+        this.ofShowFps = false;
+        this.ofWeather = true;
+        this.ofSky = true;
+        this.ofStars = true;
+        this.ofSunMoon = true;
+        this.ofVignette = 0;
+        this.ofChunkUpdates = 1;
+        this.ofChunkUpdatesDynamic = false;
+        this.ofTime = 0;
+        this.ofClearWater = false;
+        this.ofBetterSnow = false;
+        this.ofFullscreenMode = "Default";
+        this.ofSwampColors = true;
+        this.ofRandomEntities = true;
+        this.ofSmoothBiomes = true;
+        this.ofCustomFonts = true;
+        this.ofCustomColors = true;
+        this.ofCustomSky = true;
+        this.ofShowCapes = true;
+        this.ofConnectedTextures = 2;
+        this.ofCustomItems = true;
+        this.ofNaturalTextures = false;
+        this.ofEmissiveTextures = true;
+        this.ofFastMath = false;
+        this.ofFastRender = false;
+        this.ofTranslucentBlocks = 0;
+        this.ofDynamicFov = true;
+        this.ofAlternateBlocks = true;
+        this.ofDynamicLights = 3;
+        this.ofCustomEntityModels = true;
+        this.ofCustomGuis = true;
+        this.ofShowGlErrors = true;
+        this.ofScreenshotSize = 1;
+        this.ofAnimatedWater = 0;
+        this.ofAnimatedLava = 0;
+        this.ofAnimatedFire = true;
+        this.ofAnimatedPortal = true;
+        this.ofAnimatedRedstone = true;
+        this.ofAnimatedExplosion = true;
+        this.ofAnimatedFlame = true;
+        this.ofAnimatedSmoke = true;
+        this.ofVoidParticles = true;
+        this.ofWaterParticles = true;
+        this.ofRainSplash = true;
+        this.ofPortalParticles = true;
+        this.ofPotionParticles = true;
+        this.ofFireworkParticles = true;
+        this.ofDrippingWaterLava = true;
+        this.ofAnimatedTerrain = true;
+        this.ofAnimatedTextures = true;
     }
 }

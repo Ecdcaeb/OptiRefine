@@ -6,6 +6,9 @@ import net.minecraft.util.ResourceLocation;
 import net.optifine.entity.model.IEntityRenderer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.At;
 @Implements(IEntityRenderer.class)
 @Mixin(TileEntitySpecialRenderer.class)
 public abstract class MixinTileEntitySpecialRenderer{
@@ -15,7 +18,7 @@ public abstract class MixinTileEntitySpecialRenderer{
     private Class<?> tileEntityClass = null;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
-    private ResourceLocation locationTextureCustom = null;
+    private ResourceLocation locationTextureCustom;
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     public Class<?> getEntityClass() {
@@ -39,4 +42,10 @@ public abstract class MixinTileEntitySpecialRenderer{
         this.locationTextureCustom = locationTextureCustom;
     }
 
+
+    @Inject(method = "<init>*", at = @At("RETURN"))
+    // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
+    private void optiRefine$initFields(CallbackInfo ci) {
+        this.locationTextureCustom = null;
+    }
 }

@@ -40,11 +40,11 @@ public abstract class MixinThreadDownloadImageData extends SimpleTexture{
     @SuppressWarnings("AddedMixinMembersNamePattern")
 // [AUDIT-OK] OF-added field (OF: public Boolean imageFound = null), not in baseline
     @Unique
-    public Boolean imageFound = null;
+    public Boolean imageFound;
     @SuppressWarnings("AddedMixinMembersNamePattern")
 // [AUDIT-OK] OF-added field (OF: public boolean pipeline = false), not in baseline
     @Unique
-    public boolean pipeline = false;
+    public boolean pipeline;
 
     @Shadow
 // [AUDIT-OK] baseline member bufferedImage (SRG field_110560_d)
@@ -160,5 +160,12 @@ public abstract class MixinThreadDownloadImageData extends SimpleTexture{
 // [AUDIT-OK] OF-added method (OF: public getImageBuffer), not in baseline
     public IImageBuffer getImageBuffer() {
         return this.imageBuffer;
+    }
+
+    @Inject(method = "<init>*", at = @At("RETURN"))
+    // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
+    private void optiRefine$initFields(CallbackInfo ci) {
+        this.imageFound = null;
+        this.pipeline = false;
     }
 }

@@ -31,7 +31,7 @@ public abstract class MixinRender {
     private Class<? extends Entity> entityClass = null;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
-    private ResourceLocation locationTextureCustom = null;
+    private ResourceLocation locationTextureCustom;
 
     @SuppressWarnings("unused")
     @AccessTransformer(name = "shadowSize", access = org.objectweb.asm.Opcodes.ACC_PUBLIC)
@@ -102,4 +102,10 @@ public abstract class MixinRender {
         }
     }
 
+
+    @Inject(method = "<init>*", at = @At("RETURN"))
+    // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
+    private void optiRefine$initFields(CallbackInfo ci) {
+        this.locationTextureCustom = null;
+    }
 }
