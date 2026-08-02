@@ -2,6 +2,7 @@ package mods.Hileb.optirefine.mixin.defaults.minecraft.client.settings;
 
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
+import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessTransformer;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.settings.GameSettings;
 import org.objectweb.asm.Opcodes;
@@ -170,6 +171,10 @@ public abstract class MixinGameSettingsOption {
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.PUTFIELD, desc = "net.minecraft.client.settings.GameSettings$Options field_148272_O F", deobf = true)
     private static native void Options_valueMax_set(GameSettings.Options options, float value);
+
+    @SuppressWarnings({"unused", "MissingUnique"})
+    @AccessTransformer(name = "field_148270_M", access = Opcodes.ACC_PUBLIC, deobf = true)
+    private float acc_valueStep;
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.PUTFIELD, desc = "net.minecraft.client.settings.GameSettings$Options field_148270_M F", deobf = true)
