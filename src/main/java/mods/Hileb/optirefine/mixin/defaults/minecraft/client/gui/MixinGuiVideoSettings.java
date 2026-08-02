@@ -30,6 +30,7 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
     @Shadow @Final private GuiScreen parentGuiScreen;
     @Shadow protected String screenTitle;
     @Shadow @Final private GameSettings guiGameSettings;
+    @Shadow @Final private GuiListExtended optionsRowList;
 
     @Unique
     private static final GameSettings.Options[] optiRefine$videoOptions = new GameSettings.Options[]{
@@ -90,6 +91,9 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
 
         y += 21;
         this.buttonList.add(new GuiButton(200, this.width / 2 - 100, this.height / 6 + 168 + 11, I18n.format("gui.done")));
+
+        // vanilla drawScreen/mouse handlers still touch optionsRowList; keep an empty list
+        this.optionsRowList = new GuiOptionsRowList(this.mc, this.width, this.height, 32, this.height - 32, 25, new GameSettings.Options[0]);
 
         ci.cancel(); // stop vanilla initGui
     }
