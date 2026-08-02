@@ -98,6 +98,18 @@ public abstract class MixinThreadDownloadImageData extends SimpleTexture{
 // [AUDIT-OK] baseline member imageUrl (SRG field_110562_b)
     private String imageUrl;
 
+    @Shadow
+// [AUDIT-OK] baseline member textureUploaded (SRG field_110559_g)
+    private boolean textureUploaded;
+
+    @Inject(method = "checkTextureUploaded", at = @At("HEAD"))
+    // [AUDIT-FIXED] set textureUploaded=true at HEAD like OF: the vanilla order (after upload) let
+    // ShadersTex.getMultiTexID -> loadTexture -> checkTextureUploaded re-enter while still false ->
+    // unbounded recursion (StackOverflowError)
+    private void optiRefine$markUploaded(CallbackInfo ci) {
+        this.textureUploaded = true;
+    }
+
     @Unique
 // [AUDIT-OK] OF-added method (OF: loadPipelined private), not in baseline
     private void optiRefine$loadPipelined() {
