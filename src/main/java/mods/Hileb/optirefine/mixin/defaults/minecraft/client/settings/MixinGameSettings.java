@@ -309,7 +309,7 @@ public abstract class MixinGameSettings {
 
     @WrapMethod(method = "loadOptions")
     public void hookForoadOfOptions(Operation<Void> original) {
-        boolean init = this.optionsFile == null;
+        boolean init = this.optionsFileOF == null;
         if (init) {
             this.optionsFileOF = new File(Launch.minecraftHome, "optionsof.txt");
             this.limitFramerate = (int) GameSettings.Options.FRAMERATE_LIMIT.getValueMax();

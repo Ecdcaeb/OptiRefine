@@ -2,6 +2,7 @@ package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer.entity;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalBooleanRef;
@@ -21,7 +22,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Checked
@@ -39,9 +39,9 @@ public abstract class MixinRender {
     @AccessTransformer(name = "shadowSize", access = org.objectweb.asm.Opcodes.ACC_PUBLIC)
     protected float acc_shadowSize;
 
-    @ModifyVariable(method = "bindEntityTexture", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/Render;getEntityTexture(Lnet/minecraft/entity/Entity;)Lnet/minecraft/util/ResourceLocation;", shift = At.Shift.AFTER), argsOnly = false)
-    private ResourceLocation optiRefine$customTexture(ResourceLocation location) {
-        return this.locationTextureCustom != null ? this.locationTextureCustom : location;
+    @WrapOperation(method = "bindEntityTexture", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/Render;getEntityTexture(Lnet/minecraft/entity/Entity;)Lnet/minecraft/util/ResourceLocation;"))
+    private ResourceLocation optiRefine$customTexture(Render instance, Entity entity, Operation<ResourceLocation> original) {
+        return this.locationTextureCustom != null ? this.locationTextureCustom : original.call(instance, entity);
     }
 
     @Inject(method = "renderEntityOnFire", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/BufferBuilder;begin(ILnet/minecraft/client/renderer/vertex/VertexFormat;)V"))

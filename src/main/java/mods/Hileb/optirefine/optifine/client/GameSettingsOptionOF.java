@@ -56,7 +56,7 @@ public class GameSettingsOptionOF {
     public static final GameSettings.Options SMOOTH_BIOMES = EnumHelper.addEnum(GameSettings.Options.class, "SMOOTH_BIOMES", args0, "of.options.SMOOTH_BIOMES", false, false);
     public static final GameSettings.Options CUSTOM_FONTS = EnumHelper.addEnum(GameSettings.Options.class, "CUSTOM_FONTS", args0, "of.options.CUSTOM_FONTS", false, false);
     public static final GameSettings.Options CUSTOM_COLORS = EnumHelper.addEnum(GameSettings.Options.class, "CUSTOM_COLORS", args0, "of.options.CUSTOM_COLORS", false, false);
-    public static final GameSettings.Options SHOW_CAPES = EnumHelper.addEnum(GameSettings.Options.class, "", args0, "of.options.SHOW_CAPES", false, false);
+    public static final GameSettings.Options SHOW_CAPES = EnumHelper.addEnum(GameSettings.Options.class, "SHOW_CAPES", args0, "of.options.SHOW_CAPES", false, false);
     public static final GameSettings.Options CONNECTED_TEXTURES = EnumHelper.addEnum(GameSettings.Options.class, "CONNECTED_TEXTURES", args0, "of.options.CONNECTED_TEXTURES", false, false);
     public static final GameSettings.Options CUSTOM_ITEMS = EnumHelper.addEnum(GameSettings.Options.class, "CUSTOM_ITEMS", args0, "of.options.CUSTOM_ITEMS", false, false);
     public static final GameSettings.Options AA_LEVEL = EnumHelper.addEnum(GameSettings.Options.class, "AA_LEVEL", args1, "of.options.AA_LEVEL", true, false, 0.0F, 16.0F, 1.0F);
