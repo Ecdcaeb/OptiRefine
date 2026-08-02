@@ -1,8 +1,13 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.settings;
 
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
+import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.settings.GameSettings;
+import org.objectweb.asm.Opcodes;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraftforge.common.util.EnumHelper;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -18,7 +23,7 @@ public abstract class MixinGameSettingsOption {
     @SuppressWarnings("unused")
     @Public private static final GameSettings.Options FOG_START = EnumHelper.addEnum(GameSettings.Options.class, "FOG_START", _optirefine_args0, "of.options.FOG_START", false, false);
     @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options MIPMAP_TYPE = EnumHelper.addEnum(GameSettings.Options.class, "MIPMAP_TYPE", _optirefine_args1, "of.options.MIPMAP_TYPE", true, false, 0.0F, 3.0F, 1.0F);
+    @Public private static final GameSettings.Options MIPMAP_TYPE = EnumHelper.addEnum(GameSettings.Options.class, "MIPMAP_TYPE", _optirefine_args0, "of.options.MIPMAP_TYPE", false, false);
     @SuppressWarnings("unused")
     @Public private static final GameSettings.Options SMOOTH_FPS = EnumHelper.addEnum(GameSettings.Options.class, "SMOOTH_FPS", _optirefine_args0, "of.options.SMOOTH_FPS", false, false);
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
@@ -94,7 +99,7 @@ public abstract class MixinGameSettingsOption {
     @SuppressWarnings("unused")
     @Public private static final GameSettings.Options BETTER_SNOW = EnumHelper.addEnum(GameSettings.Options.class, "BETTER_SNOW", _optirefine_args0, "of.options.BETTER_SNOW", false, false);
     @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options FULLSCREEN_MODE = EnumHelper.addEnum(GameSettings.Options.class, "FULLSCREEN_MODE", _optirefine_args1, "of.options.FULLSCREEN_MODE", true, false, 0.0F, (float) Config.getDisplayModes().length, 1.0F);
+    @Public private static final GameSettings.Options FULLSCREEN_MODE = EnumHelper.addEnum(GameSettings.Options.class, "FULLSCREEN_MODE", _optirefine_args0, "of.options.FULLSCREEN_MODE", false, false);
     @SuppressWarnings("unused")
     @Public private static final GameSettings.Options ANIMATED_TERRAIN = EnumHelper.addEnum(GameSettings.Options.class, "ANIMATED_TERRAIN", _optirefine_args0, "of.options.ANIMATED_TERRAIN", false, false);
     @SuppressWarnings("unused")
@@ -114,9 +119,9 @@ public abstract class MixinGameSettingsOption {
     @SuppressWarnings("unused")
     @Public private static final GameSettings.Options CUSTOM_ITEMS = EnumHelper.addEnum(GameSettings.Options.class, "CUSTOM_ITEMS", _optirefine_args0, "of.options.CUSTOM_ITEMS", false, false);
     @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options AA_LEVEL = EnumHelper.addEnum(GameSettings.Options.class, "AA_LEVEL", _optirefine_args1, "of.options.AA_LEVEL", true, false, 0.0F, 16.0F, 1.0F);
+    @Public private static final GameSettings.Options AA_LEVEL = EnumHelper.addEnum(GameSettings.Options.class, "AA_LEVEL", _optirefine_args0, "of.options.AA_LEVEL", false, false);
     @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options AF_LEVEL = EnumHelper.addEnum(GameSettings.Options.class, "AF_LEVEL", _optirefine_args1, "of.options.AF_LEVEL", true, false, 1.0F, 16.0F, 1.0F);
+    @Public private static final GameSettings.Options AF_LEVEL = EnumHelper.addEnum(GameSettings.Options.class, "AF_LEVEL", _optirefine_args0, "of.options.AF_LEVEL", false, false);
     @SuppressWarnings("unused")
     @Public private static final GameSettings.Options ANIMATED_TEXTURES = EnumHelper.addEnum(GameSettings.Options.class, "ANIMATED_TEXTURES", _optirefine_args0, "of.options.ANIMATED_TEXTURES", false, false);
     @SuppressWarnings("unused")
@@ -157,4 +162,39 @@ public abstract class MixinGameSettingsOption {
     @Public private static final GameSettings.Options SHOW_GL_ERRORS = EnumHelper.addEnum(GameSettings.Options.class, "SHOW_GL_ERRORS", _optirefine_args0, "of.options.SHOW_GL_ERRORS", false, false);
     @SuppressWarnings("unused")
     @Public private static final GameSettings.Options SMART_ANIMATIONS = EnumHelper.addEnum(GameSettings.Options.class, "SMART_ANIMATIONS", _optirefine_args0,"of.options.SMART_ANIMATIONS", false, false);
+
+    @SuppressWarnings({"unused", "MissingUnique"})
+    @AccessibleOperation(opcode = Opcodes.PUTFIELD, desc = "net.minecraft.client.settings.GameSettings$Options field_148271_N F", deobf = true)
+    private static native void Options_valueMin_set(GameSettings.Options options, float value);
+
+    @SuppressWarnings({"unused", "MissingUnique"})
+    @AccessibleOperation(opcode = Opcodes.PUTFIELD, desc = "net.minecraft.client.settings.GameSettings$Options field_148272_O F", deobf = true)
+    private static native void Options_valueMax_set(GameSettings.Options options, float value);
+
+    @SuppressWarnings({"unused", "MissingUnique"})
+    @AccessibleOperation(opcode = Opcodes.PUTFIELD, desc = "net.minecraft.client.settings.GameSettings$Options field_148270_M F", deobf = true)
+    private static native void Options_valueStep_set(GameSettings.Options options, float value);
+
+    @Inject(method = "<clinit>", at = @At("TAIL"))
+    private static void optiRefine$initOptionValues(CallbackInfo ci) {
+        for (GameSettings.Options opt : GameSettings.Options.values()) {
+            float min = 0.0F;
+            float max = 1.0F;
+            float step = 0.0F;
+            switch (opt.name()) {
+                case "FOV": min = 30.0F; max = 110.0F; step = 1.0F; break;
+                case "RENDER_DISTANCE": min = 2.0F; max = 16.0F; step = 1.0F; break;
+                case "FRAMERATE_LIMIT": min = 0.0F; max = 260.0F; step = 5.0F; break;
+                case "MIPMAP_LEVELS": min = 0.0F; max = 4.0F; step = 1.0F; break;
+                case "MIPMAP_TYPE": min = 0.0F; max = 3.0F; step = 1.0F; break;
+                case "FULLSCREEN_MODE": min = 0.0F; max = (float) Config.getDisplayModes().length; step = 1.0F; break;
+                case "AA_LEVEL": min = 0.0F; max = 16.0F; step = 1.0F; break;
+                case "AF_LEVEL": min = 1.0F; max = 16.0F; step = 1.0F; break;
+                default: break;
+            }
+            Options_valueMin_set(opt, min);
+            Options_valueMax_set(opt, max);
+            Options_valueStep_set(opt, step);
+        }
+    }
 }
