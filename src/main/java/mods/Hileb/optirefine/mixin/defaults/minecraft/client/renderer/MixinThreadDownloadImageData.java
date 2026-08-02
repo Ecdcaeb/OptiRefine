@@ -55,7 +55,7 @@ public abstract class MixinThreadDownloadImageData extends SimpleTexture{
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @AccessibleOperation(opcode = Opcodes.INVOKEINTERFACE, desc = "net.minecraft.client.renderer.texture.ITextureObject getMultiTexID ()Lnet.optifine.shaders.MultiTexID;")
+    @AccessibleOperation(opcode = Opcodes.INVOKEINTERFACE, desc = "net.minecraft.client.renderer.texture.ITextureObject getMultiTexID ()Lnet.optifine.shaders.MultiTexID;", itf = true)
 // [AUDIT-OK] OF member ITextureObject.getMultiTexID (MixinITextureObject/MixinAbstractTexture provide), not in baseline
     private native static MultiTexID getMultiTexID(ITextureObject iTextureObject);
 
