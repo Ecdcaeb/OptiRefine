@@ -12,12 +12,10 @@ import java.util.Map;
 public abstract class MixinBlockAir{
 
     @SuppressWarnings({"unchecked", "AddedMixinMembersNamePattern"})
-    @Unique
     @Public
     private static Map<Block, Integer> mapOriginalOpacity = new IdentityHashMap();
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
     @Public
     private static void setLightOpacity(Block block, int opacity) {
          if (!mapOriginalOpacity.containsKey(block)) {
@@ -27,7 +25,6 @@ public abstract class MixinBlockAir{
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
     @Public
     private static void restoreLightOpacity(Block block) {
          if (!mapOriginalOpacity.containsKey(block)) {

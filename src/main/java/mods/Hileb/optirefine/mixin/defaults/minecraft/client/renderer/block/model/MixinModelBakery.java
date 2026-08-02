@@ -54,7 +54,7 @@ public abstract class MixinModelBakery {
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique @Public
+    @Public
     private static ResourceLocation fixModelLocation(ResourceLocation loc, String basePath) {
         if (loc != null && basePath != null) {
             if (!loc.getNamespace().equals("minecraft")) {

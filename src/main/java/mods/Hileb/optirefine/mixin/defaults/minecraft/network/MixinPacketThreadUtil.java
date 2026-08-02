@@ -43,7 +43,7 @@ public abstract class MixinPacketThreadUtil {
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique @Public
+    @Public
     private static void clientPreProcessPacket(Packet<?> packetIn) {
         if (packetIn instanceof SPacketPlayerPosLook) {
             _acc_RenderGlobal_onPlayerPositionSet(Config.getRenderGlobal());

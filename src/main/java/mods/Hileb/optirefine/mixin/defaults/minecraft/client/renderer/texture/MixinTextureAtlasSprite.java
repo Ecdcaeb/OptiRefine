@@ -50,46 +50,46 @@ public abstract class MixinTextureAtlasSprite {
     @Unique
     private int indexInMap = -1;
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique @Public
+    @Public
     public float baseU;
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique @Public
+    @Public
     public float baseV;
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique @Public
+    @Public
     public int sheetWidth;
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique @Public
+    @Public
     public int sheetHeight;
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique @Public
+    @Public
     public int glSpriteTextureId = -1;
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique @Public
+    @Public
     public TextureAtlasSprite spriteSingle = null;
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique @Public
+    @Public
     public boolean isSpriteSingle = false;
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique @Public
+    @Public
     public int mipmapLevels = 0;
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique @Public
+    @Public
     public TextureAtlasSprite spriteNormal = null;
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique @Public
+    @Public
     public TextureAtlasSprite spriteSpecular = null;
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique @Public
+    @Public
     public boolean isShadersSprite = false;
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique @Public
+    @Public
     public boolean isDependencyParent = false;
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique @Public
+    @Public
     public boolean isEmissive = false;
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique @Public
+    @Public
     public TextureAtlasSprite spriteEmissive = null;
     @Unique
     private int animationIndex = -1;
@@ -491,29 +491,29 @@ public abstract class MixinTextureAtlasSprite {
 
     // ===== new public methods =====
 
-    @Unique @Public
+    @Public
     public int getIndexInMap() {
         return this.indexInMap;
     }
 
-    @Unique @Public
+    @Public
     public void setIndexInMap(int indexInMap) {
         this.indexInMap = indexInMap;
     }
 
-    @Unique @Public
+    @Public
     public void updateIndexInMap(CounterInt counterInt) {
         if (this.indexInMap < 0) {
             this.indexInMap = counterInt.nextValue();
         }
     }
 
-    @Unique @Public
+    @Public
     public int getAnimationIndex() {
         return this.animationIndex;
     }
 
-    @Unique @Public
+    @Public
     public void setAnimationIndex(int animationIndex) {
         this.animationIndex = animationIndex;
         if (this.spriteNormal != null) {
@@ -524,24 +524,24 @@ public abstract class MixinTextureAtlasSprite {
         }
     }
 
-    @Unique @Public
+    @Public
     public boolean isAnimationActive() {
         return this.animationActive;
     }
 
-    @Unique @Public
+    @Public
     public double getSpriteU16(float u) {
         float f = this.maxU - this.minU;
         return (double) ((u - this.minU) / f * 16.0F);
     }
 
-    @Unique @Public
+    @Public
     public double getSpriteV16(float v) {
         float f = this.maxV - this.minV;
         return (double) ((v - this.minV) / f * 16.0F);
     }
 
-    @Unique @Public
+    @Public
     public void bindSpriteTexture() {
         if (this.glSpriteTextureId < 0) {
             this.glSpriteTextureId = TextureUtil.glGenTextures();
@@ -551,7 +551,7 @@ public abstract class MixinTextureAtlasSprite {
         TextureUtils.bindTexture(this.glSpriteTextureId);
     }
 
-    @Unique @Public
+    @Public
     public void deleteSpriteTexture() {
         if (this.glSpriteTextureId >= 0) {
             TextureUtil.deleteTexture(this.glSpriteTextureId);
@@ -559,33 +559,33 @@ public abstract class MixinTextureAtlasSprite {
         }
     }
 
-    @Unique @Public
+    @Public
     public float toSingleU(float u) {
         u -= this.baseU;
         float f = (float) this.sheetWidth / this.width;
         return u * f;
     }
 
-    @Unique @Public
+    @Public
     public float toSingleV(float v) {
         v -= this.baseV;
         float f = (float) this.sheetHeight / this.height;
         return v * f;
     }
 
-    @Unique @Public
+    @Public
     public List<int[][]> getFramesTextureData() {
         ArrayList<int[][]> arraylist = new ArrayList<>();
         arraylist.addAll(this.framesTextureData);
         return arraylist;
     }
 
-    @Unique @Public
+    @Public
     public AnimationMetadataSection getAnimationMetadata() {
         return this.animationMetadata;
     }
 
-    @Unique @Public
+    @Public
     public void setAnimationMetadata(AnimationMetadataSection animationMetadata) {
         this.animationMetadata = animationMetadata;
     }

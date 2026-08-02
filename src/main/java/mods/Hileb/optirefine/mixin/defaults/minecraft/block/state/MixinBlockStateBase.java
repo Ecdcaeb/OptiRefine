@@ -27,7 +27,6 @@ public abstract class MixinBlockStateBase implements IBlockState {
     private ResourceLocation blockLocation = null;
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
     @Public
     public int getBlockId() {
         if (this.blockId < 0) {
@@ -37,7 +36,6 @@ public abstract class MixinBlockStateBase implements IBlockState {
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
     @Public
     public int getBlockStateId() {
          if (this.blockStateId < 0) {
@@ -47,7 +45,6 @@ public abstract class MixinBlockStateBase implements IBlockState {
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
     @Public
     public int getMetadata() {
          if (this.metadata < 0) {
@@ -57,7 +54,6 @@ public abstract class MixinBlockStateBase implements IBlockState {
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
     @Public
     public ResourceLocation getBlockLocation() {
         if (this.blockLocation == null) {

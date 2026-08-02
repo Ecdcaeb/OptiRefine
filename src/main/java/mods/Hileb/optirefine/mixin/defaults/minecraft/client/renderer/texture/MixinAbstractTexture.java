@@ -21,7 +21,7 @@ public abstract class MixinAbstractTexture {
     protected int glTextureId;
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique @Public
+    @Public
     public MultiTexID multiTex;
 
     @Inject(method = "deleteGlTexture", at = @At("HEAD"))

@@ -20,7 +20,7 @@ import java.util.function.Supplier;
 @Mixin(Profiler.class)
 public abstract class MixinProfiler {
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique @Public
+    @Public
     public boolean profilerGlobalEnabled = true;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique

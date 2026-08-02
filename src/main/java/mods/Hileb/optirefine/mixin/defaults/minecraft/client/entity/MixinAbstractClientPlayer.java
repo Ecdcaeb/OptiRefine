@@ -33,15 +33,12 @@ public abstract class MixinAbstractClientPlayer {
     @Unique
     private String nameClear = null;
 
-    @Unique
     @Public
     public EntityShoulderRiding entityShoulderLeft;
 
-    @Unique
     @Public
     public EntityShoulderRiding entityShoulderRight;
 
-    @Unique
     @Public
     private static final ResourceLocation TEXTURE_ELYTRA = new ResourceLocation("textures/entity/elytra.png");
 
@@ -74,25 +71,21 @@ public abstract class MixinAbstractClientPlayer {
         }
     }
 
-    @Unique
     @Public
     public String getNameClear() {
         return this.nameClear;
     }
 
-    @Unique
     @Public
     public ResourceLocation getLocationOfCape() {
         return this.locationOfCape;
     }
 
-    @Unique
     @Public
     public void setLocationOfCape(ResourceLocation locationOfCape) {
         this.locationOfCape = locationOfCape;
     }
 
-    @Unique
     @Public
     public boolean hasElytraCape() {
         ResourceLocation loc = ((AbstractClientPlayer)(Object)this).getLocationCape();
@@ -105,25 +98,21 @@ public abstract class MixinAbstractClientPlayer {
         return true;
     }
 
-    @Unique
     @Public
     public void setElytraOfCape(boolean elytraOfCape) {
         this.elytraOfCape = elytraOfCape;
     }
 
-    @Unique
     @Public
     public boolean isElytraOfCape() {
         return this.elytraOfCape;
     }
 
-    @Unique
     @Public
     public long getReloadCapeTimeMs() {
         return this.reloadCapeTimeMs;
     }
 
-    @Unique
     @Public
     public void setReloadCapeTimeMs(long reloadCapeTimeMs) {
         this.reloadCapeTimeMs = reloadCapeTimeMs;

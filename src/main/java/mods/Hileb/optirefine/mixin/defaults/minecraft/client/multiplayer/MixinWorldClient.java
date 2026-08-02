@@ -88,7 +88,6 @@ public abstract class MixinWorldClient extends World {
         } else return false;
     }
 
-    @Unique
     @Public
     @Override
     public int getCombinedLight(@Nonnull BlockPos pos, int lightValue) {
@@ -100,7 +99,6 @@ public abstract class MixinWorldClient extends World {
         return combinedLight;
     }
 
-    @Unique
     @Public
     @Override
     public boolean setBlockState(@Nonnull BlockPos pos, @Nonnull  IBlockState newState, int flags) {
@@ -111,7 +109,6 @@ public abstract class MixinWorldClient extends World {
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
     @Public
     private boolean isPlayerActing() {
         if (this.mc.playerController instanceof PlayerControllerOF controlOF) {
@@ -121,7 +118,6 @@ public abstract class MixinWorldClient extends World {
         }
     }
 
-    @Unique
     @Public
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     public boolean isPlayerUpdate() {

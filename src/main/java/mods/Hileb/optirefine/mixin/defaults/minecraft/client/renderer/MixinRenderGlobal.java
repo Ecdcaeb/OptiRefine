@@ -57,7 +57,7 @@ public abstract class MixinRenderGlobal {
     // ===== new fields =====
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique @Public
+    @Public
     public boolean renderOverlayDamaged = false;
     // ===== cross-class private access =====
 
@@ -101,22 +101,22 @@ public abstract class MixinRenderGlobal {
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.chunk.RenderChunk getChunk ()Lnet/minecraft/world/chunk/Chunk;")
     private static native net.minecraft.world.chunk.Chunk RenderChunk_getChunk(RenderChunk renderChunk);
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique @Public
-    public static int renderEntitiesCounter = 0;
+    @Public
+    private static int renderEntitiesCounter = 0;
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique @Public
+    @Public
     public int getCountLoadedChunks() {
         return this.world == null ? 0 : ChunkProviderClient_loadedChunks_get(this.world.getChunkProvider()).size();
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique @Public
+    @Public
     public int getCountChunksToUpdate() {
         return this.chunksToUpdate.size();
     }
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique @Public
+    @Public
     public boolean renderOverlayEyes = false;
 
     // ===== shadowed fields =====
@@ -135,15 +135,15 @@ public abstract class MixinRenderGlobal {
     private int countEntitiesRendered;
     @Shadow
     private int countEntitiesHidden;
-    @Unique @Public
+    @Public
     private int countTileEntitiesRendered;
-    @Unique @Public
+    @Public
     private Entity renderedEntity;
     @Shadow
     private boolean entityOutlinesRendered;
-    @Unique @Public
+    @Public
     private List<RenderGlobal.ContainerLocalRenderInformation> renderInfosEntities;
-    @Unique @Public
+    @Public
     private List<RenderGlobal.ContainerLocalRenderInformation> renderInfosTileEntities;
     @Shadow
     private Set<TileEntity> setTileEntities;

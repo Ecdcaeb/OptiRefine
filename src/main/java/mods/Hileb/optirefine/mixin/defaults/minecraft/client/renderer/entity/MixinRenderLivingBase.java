@@ -64,7 +64,7 @@ public abstract class MixinRenderLivingBase<T extends EntityLivingBase> {
     private boolean renderModelPushMatrix;
     @Unique
     private boolean renderLayersPushMatrix;
-    @Unique @Public
+    @Public
     private static final boolean animateModelLiving = Boolean.getBoolean("animate.model.living");
 
     @Inject(method = "<init>", at = @At("RETURN"))

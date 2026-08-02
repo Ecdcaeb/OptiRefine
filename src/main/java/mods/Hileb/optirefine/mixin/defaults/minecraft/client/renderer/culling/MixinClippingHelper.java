@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.Unique;
 @Mixin(ClippingHelper.class)
 public abstract class MixinClippingHelper {
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique @Public
+    @Public
     public boolean disabled = false;
 
     @Shadow

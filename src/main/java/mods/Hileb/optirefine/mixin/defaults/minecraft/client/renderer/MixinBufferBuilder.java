@@ -74,16 +74,16 @@ public abstract class MixinBufferBuilder {
     @Unique
     private TextureAtlasSprite quadSprite = null;
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique @Public
+    @Public
     private SVertexBuilder sVertexBuilder;
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique @Public
+    @Public
     private RenderEnv renderEnv = null;
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique @Public
+    @Public
     private BitSet animatedSprites = null;
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique @Public
+    @Public
     private final BitSet animatedSpritesCached = new BitSet();
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique

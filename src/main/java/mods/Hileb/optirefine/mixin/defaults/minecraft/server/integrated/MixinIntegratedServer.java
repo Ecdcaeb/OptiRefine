@@ -98,7 +98,7 @@ public abstract class MixinIntegratedServer extends MinecraftServer {
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique @Public
+    @Public
     private void onTick() {
         for (WorldServer ws : this.worlds) {
             this.onTick(ws);
@@ -106,7 +106,7 @@ public abstract class MixinIntegratedServer extends MinecraftServer {
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique @Public
+    @Public
     public DifficultyInstance getDifficultyAsync(World world, BlockPos blockPos) {
         this.difficultyUpdateWorld = world;
         this.difficultyUpdatePos = blockPos;

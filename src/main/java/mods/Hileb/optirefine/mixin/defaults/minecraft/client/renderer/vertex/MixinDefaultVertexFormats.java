@@ -14,12 +14,14 @@ public abstract class MixinDefaultVertexFormats {
     @Mutable
     @SuppressWarnings("unused")
     @Shadow @Final
-    public static VertexFormat BLOCK;
+    @Public
+    private static VertexFormat BLOCK;
 
     @Mutable
     @SuppressWarnings("unused")
     @Shadow @Final
-    public static VertexFormat ITEM;
+    @Public
+    private static VertexFormat ITEM;
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessTransformer(name = "field_176600_a", deobf = true, access = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC)
@@ -37,7 +39,7 @@ public abstract class MixinDefaultVertexFormats {
     private static final VertexFormat FORGE_BAKED = Attributes.DEFAULT_BAKED_FORMAT;
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique @Public
+    @Public
     private static void updateVertexFormats() {
         if (Config.isShaders()) {
             BLOCK = SVertexFormat.makeDefVertexFormatBlock();

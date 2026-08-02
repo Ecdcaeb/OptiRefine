@@ -53,7 +53,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.BitSet;
 @Mixin(RenderChunk.class)
 public abstract class MixinRenderChunk {
-    @Unique @Public
+    @Public
     private static final BlockRenderLayer[] ENUM_WORLD_BLOCK_LAYERS = BlockRenderLayer.values();
     @Unique
     private final BlockRenderLayer[] blockLayersSingle = new BlockRenderLayer[1];

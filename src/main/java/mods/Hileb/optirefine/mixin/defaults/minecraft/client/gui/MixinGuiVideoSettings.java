@@ -204,11 +204,11 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique @Public
+    @Public
     private static int getButtonWidth(GuiButton btn) { return btn.width; }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique @Public
+    @Public
     private static int getButtonHeight(GuiButton btn) { return btn.height; }
 
     @Unique
@@ -221,7 +221,7 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique @Public
+    @Public
     private static void drawGradientRect(GuiScreen guiScreen,
                                          int left, int top, int right, int bottom,
                                          int startColor, int endColor) {
@@ -229,7 +229,7 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique @Public
+    @Public
     private static String getGuiChatText(GuiChat guiChat) {
         return _acc_GuiChatAccessor_getInputField(guiChat).getText();
     }

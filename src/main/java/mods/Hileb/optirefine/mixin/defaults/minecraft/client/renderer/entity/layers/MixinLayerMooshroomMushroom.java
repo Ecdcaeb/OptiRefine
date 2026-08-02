@@ -38,7 +38,7 @@ public abstract class MixinLayerMooshroomMushroom {
 
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique @Public
+    @Public
     private static void update() {
         hasTextureMushroom = Config.hasResource(LOCATION_MUSHROOM_RED);
     }

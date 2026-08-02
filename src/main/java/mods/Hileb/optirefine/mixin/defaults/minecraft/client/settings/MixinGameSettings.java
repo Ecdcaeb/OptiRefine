@@ -188,31 +188,22 @@ public abstract class MixinGameSettings {
     public boolean ofAnimatedTerrain = true;
     @Unique
     public boolean ofAnimatedTextures = true;
-    @Unique
     @Public
     private static final int DEFAULT = 0;
-    @Unique
     @Public
     private static final int FAST = 1;
-    @Unique
     @Public
     private static final int FANCY = 2;
-    @Unique
     @Public
     private static final int OFF = 3;
-    @Unique
     @Public
     private static final int SMART = 4;
-    @Unique
     @Public
     private static final int ANIM_ON = 0;
-    @Unique
     @Public
     private static final int ANIM_GENERATED = 1;
-    @Unique
     @Public
     private static final int ANIM_OFF = 2;
-    @Unique
     @Public
     private static final String DEFAULT_STR = "Default";
     @Unique

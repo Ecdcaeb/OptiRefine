@@ -52,11 +52,11 @@ import net.minecraft.client.renderer.RegionRenderCacheBuilder;
 import net.optifine.shaders.Shaders;
 @Mixin(BlockModelRenderer.class)
 public abstract class MixinBlockModelRenderer {
-    @Unique @Public 
+    @Public 
     private static float aoLightValueOpaque = 0.2F;
-    @Unique @Public 
+    @Public 
     private static boolean separateAoLightValue = false;
-    @Unique @Public 
+    @Public 
     private static final BlockRenderLayer[] OVERLAY_LAYERS = new BlockRenderLayer[]{
             BlockRenderLayer.CUTOUT, BlockRenderLayer.CUTOUT_MIPPED, BlockRenderLayer.TRANSLUCENT
     };
@@ -421,12 +421,12 @@ public abstract class MixinBlockModelRenderer {
         }
     }
 
-    @Unique @Public
+    @Public
     private static float fixAoLightValue(float val) {
         return val == 0.2F ? aoLightValueOpaque : val;
     }
 
-    @Unique @Public
+    @Public
     private static void updateAoLightValue() {
         aoLightValueOpaque = 1.0F - Config.getAmbientOcclusionLevel() * 0.8F;
         separateAoLightValue = Config.isShaders() && Shaders.isSeparateAo();

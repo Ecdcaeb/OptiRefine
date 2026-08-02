@@ -57,7 +57,7 @@ public abstract class MixinRenderItemFrame {
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique @Public
+    @Public
     private static void updateItemRenderDistance() {
         Minecraft mc = Config.getMinecraft();
         double fov = Config.limit(mc.gameSettings.fovSetting, 1.0F, 120.0F);

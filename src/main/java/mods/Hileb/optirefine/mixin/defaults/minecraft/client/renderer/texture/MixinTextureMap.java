@@ -115,10 +115,10 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
     @Unique
     private CounterInt counterIndexInMap = new CounterInt(0);
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique @Public
+    @Public
     public int atlasWidth = 0;
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique @Public
+    @Public
     public int atlasHeight = 0;
     // ===== cross-class private access =====
 
@@ -532,7 +532,7 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
         return this.completeResourceLocation(resourcelocation);
     }
 
-    @Unique @Public
+    @Public
     public ResourceLocation completeResourceLocation(ResourceLocation location) {
         return TextureMap_isAbsoluteLocation((net.minecraft.client.renderer.texture.TextureMap)(Object) this, location)
                 ? new ResourceLocation(location.getNamespace(), location.getPath() + ".png")
@@ -645,13 +645,13 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
 
     // ===== new methods =====
 
-    @Unique @Public
+    @Public
     public TextureAtlasSprite getSpriteSafe(String name) {
         ResourceLocation resourcelocation = new ResourceLocation(name);
         return this.mapRegisteredSprites.get(resourcelocation.toString());
     }
 
-    @Unique @Public
+    @Public
     public TextureAtlasSprite getRegisteredSprite(ResourceLocation location) {
         return this.mapRegisteredSprites.get(location.toString());
     }
@@ -671,7 +671,7 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
         }
     }
 
-    @Unique @Public
+    @Public
     public int getCountRegisteredSprites() {
         return this.counterIndexInMap.getValue();
     }
@@ -763,7 +763,7 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
         return aint;
     }
 
-    @Unique @Public
+    @Public
     public boolean isTextureBound() {
         int i = GlStateManager_getBoundTexture();
         int j = this.getGlTextureId();
@@ -812,7 +812,7 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
         }
     }
 
-    @Unique @Public
+    @Public
     public TextureAtlasSprite getIconByUV(double u, double v) {
         if (this.iconGrid == null) {
             return null;
@@ -840,12 +840,12 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
         }
     }
 
-    @Unique @Public
+    @Public
     public int getCountAnimations() {
         return this.listAnimatedSprites.size();
     }
 
-    @Unique @Public
+    @Public
     public int getCountAnimationsActive() {
         return this.countAnimationsActive;
     }

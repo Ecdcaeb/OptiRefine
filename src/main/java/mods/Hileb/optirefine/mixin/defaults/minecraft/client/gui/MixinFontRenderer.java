@@ -119,7 +119,6 @@ public abstract class MixinFontRenderer implements ISelectiveResourceReloadListe
     @Shadow
     protected abstract float renderUnicodeChar(char ch, boolean italic);
 
-    @Unique
     @Public
     public GameSettings gameSettings;
 

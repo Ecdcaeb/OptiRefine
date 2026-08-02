@@ -17,7 +17,7 @@ public abstract class MixinI18n {
     private static Locale i18nLocale;
 
     @SuppressWarnings("unused")
-    @Unique @Public
+    @Public
     private static Map<String, String> getLocaleProperties() {
         return _acc_Locale_properties(i18nLocale);
     }

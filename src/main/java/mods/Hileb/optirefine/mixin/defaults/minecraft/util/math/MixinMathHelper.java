@@ -18,7 +18,8 @@ public abstract class MixinMathHelper {
 
     @SuppressWarnings("unused")
     @Shadow @Final
-    public static float SQRT_2;
+    @Public
+    private static float SQRT_2;
     @SuppressWarnings("unused")
     @Unique
     private static final int SIN_BITS = 12;
@@ -32,27 +33,27 @@ public abstract class MixinMathHelper {
     @Unique
     private static final int SIN_COUNT_D4 = 1024;
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique @Public
+    @Public
     private static final float PI = MathUtils.roundToFloat(Math.PI);
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique @Public
+    @Public
     private static final float PI2 = MathUtils.roundToFloat(Math.PI * 2);
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique @Public
+    @Public
     private static final float PId2 = MathUtils.roundToFloat(1.5707963267948966);
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique @Public
+    @Public
     private static final float radToIndex = MathUtils.roundToFloat(651.8986469044033);
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique @Public
+    @Public
     private static final float deg2Rad = MathUtils.roundToFloat(Math.PI / 180);
-    @Unique @Public
+    @Public
     private static float[] SIN_TABLE_FAST;
     @SuppressWarnings("MissingUnique")
     @AccessTransformer(access = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC | Opcodes.ACC_FINAL)
     private static float[] _ACC_SIN_TABLE_FAST;
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique @Public
+    @Public
     private static boolean fastMath = false;
     @Shadow @Final
     private static float[] SIN_TABLE;

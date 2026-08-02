@@ -95,52 +95,42 @@ public abstract class MixinModelRenderer {
     public float offsetZ;
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
     @Public
     public List<ModelSprite> spriteList = new ArrayList<>();
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
     @Public
     public boolean mirrorV = false;
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
     @Public
     public float scaleX = 1.0F;
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
     @Public
     public float scaleY = 1.0F;
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
     @Public
     public float scaleZ = 1.0F;
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
     @Public
     private int countResetDisplayList;
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
     @Public
     private ResourceLocation textureLocation = null;
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
     @Public
     private String id = null;
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
     @Public
     private ModelUpdater modelUpdater;
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
     @Public
     private RenderGlobal renderGlobal = Config.getRenderGlobal();
 
@@ -233,28 +223,24 @@ public abstract class MixinModelRenderer {
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
     @Public
     public void addSprite(float posX, float posY, float posZ, int sizeX, int sizeY, int sizeZ, float sizeAdd) {
         this.spriteList.add(new ModelSprite((ModelRenderer)(Object)this, this.textureOffsetX, this.textureOffsetY, posX, posY, posZ, sizeX, sizeY, sizeZ, sizeAdd));
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
     @Public
     public boolean getCompiled() {
         return this.compiled;
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
     @Public
     public int getDisplayList() {
         return this.displayList;
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
     @Public
     private void checkResetDisplayList() {
         if (this.countResetDisplayList != Shaders.countResetDisplayLists) {
@@ -264,28 +250,24 @@ public abstract class MixinModelRenderer {
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
     @Public
     public ResourceLocation getTextureLocation() {
         return this.textureLocation;
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
     @Public
     public void setTextureLocation(ResourceLocation textureLocation) {
         this.textureLocation = textureLocation;
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
     @Public
     public String getId() {
         return this.id;
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
     @Public
     public void setId(String id) {
         this.id = id;
@@ -297,7 +279,6 @@ public abstract class MixinModelRenderer {
     private native static ModelBox _new_ModelBox(AccessibleOperation.Construction construction, ModelRenderer renderer, int[][] faceUvs, float x, float y, float z, float dx, float dy, float dz, float delta, boolean mirror);
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
     @Public
     public void addBox(int[][] faceUvs, float x, float y, float z, float dx, float dy, float dz, float delta) {
         this.cubeList.add(_new_ModelBox(AccessibleOperation.Construction.construction(), _cast_this(), faceUvs, x, y, z, dx, dy, dz, delta, this.mirror));
@@ -317,7 +298,6 @@ public abstract class MixinModelRenderer {
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
     @Public
     public ModelRenderer getChild(String name) {
         if (name != null) {
@@ -339,7 +319,6 @@ public abstract class MixinModelRenderer {
     private static native ModelRenderer _acc_ModelRenderer_getChildDeep(ModelRenderer renderer, String a);
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
     @Public
     public ModelRenderer getChildDeep(String name) {
         if (name == null) {
@@ -364,7 +343,6 @@ public abstract class MixinModelRenderer {
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
     @Public
     public void setModelUpdater(ModelUpdater modelUpdater) {
         this.modelUpdater = modelUpdater;

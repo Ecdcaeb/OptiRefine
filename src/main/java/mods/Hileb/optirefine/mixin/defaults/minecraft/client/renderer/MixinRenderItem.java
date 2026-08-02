@@ -50,15 +50,15 @@ public abstract class MixinRenderItem {
     private ItemModelMesher itemModelMesher;
     @Shadow
     private TextureManager textureManager;
-    @Unique @Public
+    @Public
     @Nullable
     private ResourceLocation modelLocation;
-    @Unique @Public
+    @Public
     private boolean renderItemGui;
-    @Unique @Public
+    @Public
     private boolean renderModelEmissive;
 
-    @Unique @Public
+    @Public
     private boolean renderModelHasEmissive;
 
     @Shadow

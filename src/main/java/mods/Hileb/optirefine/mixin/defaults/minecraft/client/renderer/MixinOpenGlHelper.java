@@ -1,6 +1,7 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
+import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.renderer.OpenGlHelper;
 import org.lwjgl.opengl.ARBCopyBuffer;
@@ -35,23 +36,23 @@ import java.util.ArrayList;
 public abstract class MixinOpenGlHelper {
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
-    public static float lastBrightnessX = 0.0F;
+    @Public
+    private static float lastBrightnessX = 0.0F;
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
-    public static float lastBrightnessY = 0.0F;
+    @Public
+    private static float lastBrightnessY = 0.0F;
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
-    public static boolean openGL31;
+    @Public
+    private static boolean openGL31;
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
-    public static boolean vboRegions;
+    @Public
+    private static boolean vboRegions;
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
-    public static int GL_COPY_READ_BUFFER;
+    @Public
+    private static int GL_COPY_READ_BUFFER;
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
-    public static int GL_COPY_WRITE_BUFFER;
+    @Public
+    private static int GL_COPY_WRITE_BUFFER;
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     public static final int GL_QUADS = 7;
@@ -62,13 +63,16 @@ public abstract class MixinOpenGlHelper {
     @Shadow
     private static String logText;
     @Shadow
-    public static boolean vboSupported;
+    @Public
+    private static boolean vboSupported;
     @Shadow
     private static boolean arbVbo;
     @Shadow
-    public static int lightmapTexUnit;
+    @Public
+    private static int lightmapTexUnit;
     @Shadow
-    public static boolean framebufferSupported;
+    @Public
+    private static boolean framebufferSupported;
 
     @Inject(method = "initializeTextures", at = @At("HEAD"))
     private static void optiRefine$initializeTextures(CallbackInfo ci) {
@@ -119,8 +123,8 @@ public abstract class MixinOpenGlHelper {
         return Config.isAntialiasing() ? false : original;
     }
 
-    @Unique
-    public static void glBufferData(int target, long size, int usage) {
+    @Public
+    private static void glBufferData(int target, long size, int usage) {
         if (arbVbo) {
             ARBVertexBufferObject.glBufferDataARB(target, size, usage);
         } else {
@@ -128,8 +132,8 @@ public abstract class MixinOpenGlHelper {
         }
     }
 
-    @Unique
-    public static void glBufferSubData(int target, long offset, ByteBuffer data) {
+    @Public
+    private static void glBufferSubData(int target, long offset, ByteBuffer data) {
         if (arbVbo) {
             ARBVertexBufferObject.glBufferSubDataARB(target, offset, data);
         } else {
@@ -138,8 +142,8 @@ public abstract class MixinOpenGlHelper {
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
-    public static void glCopyBufferSubData(int readTarget, int writeTarget, long readOffset, long writeOffset, long size) {
+    @Public
+    private static void glCopyBufferSubData(int readTarget, int writeTarget, long readOffset, long writeOffset, long size) {
         if (openGL31) {
             GL31.glCopyBufferSubData(readTarget, writeTarget, readOffset, writeOffset, size);
         } else {

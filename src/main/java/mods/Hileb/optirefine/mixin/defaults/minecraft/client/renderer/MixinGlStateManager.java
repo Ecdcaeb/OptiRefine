@@ -3,6 +3,7 @@ package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
+import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
@@ -44,8 +45,8 @@ import java.nio.IntBuffer;
 public abstract class MixinGlStateManager {
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
-    public static boolean clearEnabled = true;
+    @Public
+    private static boolean clearEnabled = true;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private static LockCounter alphaLock = new LockCounter();
@@ -73,16 +74,20 @@ public abstract class MixinGlStateManager {
     @Shadow
     private static GlStateManager.TextureState[] textureState;
     @Shadow
-    public static native void alphaFunc(int func, float ref);
+    @Public
+    private static native void alphaFunc(int func, float ref);
 
     @Shadow
-    public static native void deleteTexture(int texture);
+    @Public
+    private static native void deleteTexture(int texture);
 
     @Shadow
-    public static native void blendFunc(int srcFactor, int dstFactor);
+    @Public
+    private static native void blendFunc(int srcFactor, int dstFactor);
 
     @Shadow
-    public static native void tryBlendFuncSeparate(int srcFactor, int dstFactor, int srcFactorAlpha, int dstFactorAlpha);    @SuppressWarnings({"unused", "MissingUnique"})
+    @Public
+    private static native void tryBlendFuncSeparate(int srcFactor, int dstFactor, int srcFactorAlpha, int dstFactorAlpha);    @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.GlStateManager$BooleanState currentState Z")
     private static native boolean BooleanState_currentState_get(GlStateManager.BooleanState instance);
 
@@ -275,8 +280,8 @@ public abstract class MixinGlStateManager {
     // ===== new methods =====
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
-    public static void callLists(IntBuffer lists) {
+    @Public
+    private static void callLists(IntBuffer lists) {
         org.lwjgl.opengl.GL11.glCallLists(lists);
         if (Config.isShaders() && !creatingDisplayList) {
             int instances = Shaders.activeProgram.getCountInstances();
@@ -291,8 +296,8 @@ public abstract class MixinGlStateManager {
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
-    public static void glMultiDrawArrays(int mode, IntBuffer firsts, IntBuffer counts) {
+    @Public
+    private static void glMultiDrawArrays(int mode, IntBuffer firsts, IntBuffer counts) {
         org.lwjgl.opengl.GL14.glMultiDrawArrays(mode, firsts, counts);
         if (Config.isShaders() && !creatingDisplayList) {
             int instances = Shaders.activeProgram.getCountInstances();
@@ -307,26 +312,26 @@ public abstract class MixinGlStateManager {
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
-    public static int getActiveTextureUnit() {
+    @Public
+    private static int getActiveTextureUnit() {
         return OpenGlHelper.defaultTexUnit + activeTextureUnit;
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
-    public static void bindCurrentTexture() {
+    @Public
+    private static void bindCurrentTexture() {
         org.lwjgl.opengl.GL11.glBindTexture(3553, textureState[activeTextureUnit].textureName);
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
-    public static int getBoundTexture() {
+    @Public
+    private static int getBoundTexture() {
         return textureState[activeTextureUnit].textureName;
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
-    public static void checkBoundTexture() {
+    @Public
+    private static void checkBoundTexture() {
         if (Config.isMinecraftThread()) {
             int glActive = org.lwjgl.opengl.GL11.glGetInteger(34016);
             int glTex = org.lwjgl.opengl.GL11.glGetInteger(32873);
@@ -341,8 +346,8 @@ public abstract class MixinGlStateManager {
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
-    public static void deleteTextures(IntBuffer textures) {
+    @Public
+    private static void deleteTextures(IntBuffer textures) {
         textures.rewind();
         while (textures.position() < textures.limit()) {
             int texture = textures.get();
@@ -352,20 +357,20 @@ public abstract class MixinGlStateManager {
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
-    public static boolean isFogEnabled() {
+    @Public
+    private static boolean isFogEnabled() {
         return BooleanState_currentState_get(fogState.fog);
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
-    public static void setFogEnabled(boolean enabled) {
+    @Public
+    private static void setFogEnabled(boolean enabled) {
         fogState.fog.setState(enabled);
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
-    public static void lockAlpha(GlAlphaState state) {
+    @Public
+    private static void lockAlpha(GlAlphaState state) {
         if (!alphaLock.isLocked()) {
             getAlphaState(alphaLockState);
             setAlphaState(state);
@@ -374,16 +379,16 @@ public abstract class MixinGlStateManager {
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
-    public static void unlockAlpha() {
+    @Public
+    private static void unlockAlpha() {
         if (alphaLock.unlock()) {
             setAlphaState(alphaLockState);
         }
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
-    public static void getAlphaState(GlAlphaState state) {
+    @Public
+    private static void getAlphaState(GlAlphaState state) {
         if (alphaLock.isLocked()) {
             state.setState(alphaLockState);
         } else {
@@ -392,8 +397,8 @@ public abstract class MixinGlStateManager {
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
-    public static void setAlphaState(GlAlphaState state) {
+    @Public
+    private static void setAlphaState(GlAlphaState state) {
         if (alphaLock.isLocked()) {
             alphaLockState.setState(state);
         } else {
@@ -403,8 +408,8 @@ public abstract class MixinGlStateManager {
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
-    public static void lockBlend(GlBlendState state) {
+    @Public
+    private static void lockBlend(GlBlendState state) {
         if (!blendLock.isLocked()) {
             getBlendState(blendLockState);
             setBlendState(state);
@@ -413,16 +418,16 @@ public abstract class MixinGlStateManager {
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
-    public static void unlockBlend() {
+    @Public
+    private static void unlockBlend() {
         if (blendLock.unlock()) {
             setBlendState(blendLockState);
         }
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
-    public static void getBlendState(GlBlendState state) {
+    @Public
+    private static void getBlendState(GlBlendState state) {
         if (blendLock.isLocked()) {
             state.setState(blendLockState);
         } else {
@@ -431,8 +436,8 @@ public abstract class MixinGlStateManager {
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
-    public static void setBlendState(GlBlendState state) {
+    @Public
+    private static void setBlendState(GlBlendState state) {
         if (blendLock.isLocked()) {
             blendLockState.setState(state);
         } else {
