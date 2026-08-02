@@ -3,6 +3,7 @@ package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
+import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessTransformer;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.Minecraft;
@@ -459,6 +460,13 @@ public abstract class MixinRenderGlobal {
     @Shadow
 // [AUDIT-OK] baseline member entityOutlineShader (SRG field_174991_A)
     private net.minecraft.client.shader.ShaderGroup entityOutlineShader;
+
+    // [AUDIT-FIXED] vanilla private fields cross-class accessed (EntityRenderer helpers): publicize via cursed AT
+    @AccessTransformer(name = "field_72738_E", deobf = true, access = org.objectweb.asm.Opcodes.ACC_PUBLIC)
+    private java.util.Map acc_damagedBlocks;
+
+    @AccessTransformer(name = "field_147595_R", deobf = true, access = org.objectweb.asm.Opcodes.ACC_PUBLIC)
+    private boolean acc_displayListEntitiesDirty;
 
     @Unique
     private boolean firstWorldLoad = false;

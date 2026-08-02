@@ -227,7 +227,11 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
     private static native void TextureAtlasSprite_spriteEmissive_set(TextureAtlasSprite sprite, TextureAtlasSprite value);
 
     @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureMap func_184397_a (Lnet/minecraft/client/resources/IResourceManager;Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;)Z", deobf = true)
+    // [AUDIT-FIXED] generateMipmaps is private vanilla; cross-class INVOKEVIRTUAL from TextureAtlasSprite needs public
+    @AccessTransformer(name = "func_184397_a", deobf = true, access = org.objectweb.asm.Opcodes.ACC_PUBLIC)
+    private boolean acc_generateMipmaps(net.minecraft.client.resources.IResourceManager resourceManager, net.minecraft.client.renderer.texture.TextureAtlasSprite sprite) { return false; }
+
+        @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureMap func_184397_a (Lnet/minecraft/client/resources/IResourceManager;Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;)Z", deobf = true)
     // [AUDIT-ISSUE] desc ends )V but func_184397_a returns Z (boolean); helper never called here (dead decl). Fix: )Z + deobf=true
     private static native boolean TextureMap_generateMipmaps(net.minecraft.client.renderer.texture.TextureMap textureMap, IResourceManager resourceManager, TextureAtlasSprite sprite);
 
