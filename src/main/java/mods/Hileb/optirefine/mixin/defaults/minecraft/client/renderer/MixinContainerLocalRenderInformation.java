@@ -1,6 +1,7 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer;
 
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessTransformer;
+import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.renderer.chunk.RenderChunk;
 import net.minecraft.util.EnumFacing;
 import org.objectweb.asm.Opcodes;
