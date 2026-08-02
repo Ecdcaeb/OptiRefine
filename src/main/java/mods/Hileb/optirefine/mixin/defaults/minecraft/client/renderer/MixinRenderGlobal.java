@@ -417,4 +417,10 @@ public abstract class MixinRenderGlobal {
     @Shadow
     private net.minecraft.client.shader.ShaderGroup entityOutlineShader;
 
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
+    @Unique
+    public void pauseChunkUpdates() {
+        this.renderDispatcher.pauseChunkUpdates();
+    }
+
 }

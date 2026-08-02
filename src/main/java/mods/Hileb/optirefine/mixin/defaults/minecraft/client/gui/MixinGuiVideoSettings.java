@@ -30,7 +30,7 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
     @Shadow @Final private GuiScreen parentGuiScreen;
     @Shadow protected String screenTitle;
     @Shadow @Final private GameSettings guiGameSettings;
-    @Shadow @Final private GuiListExtended optionsRowList;
+    @Shadow private GuiListExtended optionsRowList;
 
     @Unique
     private static final GameSettings.Options[] optiRefine$videoOptions = new GameSettings.Options[]{
