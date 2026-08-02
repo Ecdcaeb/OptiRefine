@@ -27,7 +27,6 @@ public abstract class MixinProfiler {
     @Unique
     public boolean profilerGlobalEnabled = true;
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
 // [AUDIT-OK] OF-added field profilerLocalEnabled, matches OF init (snapshot of global)
     @Unique
     private boolean profilerLocalEnabled = this.profilerGlobalEnabled;

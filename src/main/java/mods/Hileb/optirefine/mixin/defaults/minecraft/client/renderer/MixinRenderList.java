@@ -29,7 +29,6 @@ public abstract class MixinRenderList extends ChunkRenderContainer {
 // [AUDIT-OK] OF field viewEntityZ equivalent
     private double optiRefine$viewEntityZ;
 
-    @Unique
 // [AUDIT-OK] OF-added field (OF: package-private IntBuffer bufferLists), not in baseline
     @Unique
     IntBuffer bufferLists = GLAllocation.createDirectIntBuffer(16);

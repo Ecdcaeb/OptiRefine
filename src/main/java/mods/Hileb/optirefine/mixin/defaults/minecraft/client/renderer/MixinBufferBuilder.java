@@ -105,7 +105,6 @@ public abstract class MixinBufferBuilder {
     @Unique
     private final BitSet animatedSpritesCached = new BitSet();
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
 // [AUDIT-OK] OF-added field, not in baseline
     @Unique
     private boolean modeTriangles = false;
