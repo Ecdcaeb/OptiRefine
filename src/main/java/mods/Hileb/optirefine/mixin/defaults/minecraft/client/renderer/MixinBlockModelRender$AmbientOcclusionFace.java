@@ -39,8 +39,9 @@ public abstract class MixinBlockModelRender$AmbientOcclusionFace {
 
     @NewConstructor
     public void AmbientOcclusionFace() {
-// [AUDIT-FIXED] super() call added (cursed @NewConstructor does not auto-append super; without it <init>()V fails verification)
+// [AUDIT-FIXED] super() + explicit allocation: cursed-generated <init>()V does not run @Inject(<init>*) handlers
         _Object();
+        this.blockPosArr = new BlockPos.MutableBlockPos[5];
         for (int i = 0; i < this.blockPosArr.length; i++) {
             this.blockPosArr[i] = new BlockPos.MutableBlockPos();
         }
@@ -49,6 +50,9 @@ public abstract class MixinBlockModelRender$AmbientOcclusionFace {
     @Inject(method = "<init>", at = @At("RETURN"))
     public void injectConstructor(CallbackInfo ci){
 // [AUDIT-OK] target <init>(Lnet/minecraft/client/renderer/BlockModelRenderer;)V matches baseline; blockPosArr init matches OF ctor
+        if (this.blockPosArr == null) {
+            this.blockPosArr = new BlockPos.MutableBlockPos[5];
+        }
         for (int i = 0; i < this.blockPosArr.length; i++) {
             this.blockPosArr[i] = new BlockPos.MutableBlockPos();
         }
