@@ -50,8 +50,6 @@ import java.util.function.Predicate;
 @Mixin(FontRenderer.class)
 public abstract class MixinFontRenderer implements ISelectiveResourceReloadListener {
 
-    @AccessTransformer(name = "field_111273_g", deobf = true)
-    private ResourceLocation optirefine$acc$locationFontTexture;
 
     @Shadow
     @Final
