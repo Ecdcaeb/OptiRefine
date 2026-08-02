@@ -1,7 +1,6 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer;
 
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessTransformer;
-import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.NewConstructor;
 import net.minecraft.client.renderer.BlockModelRenderer;
 import net.minecraft.util.math.BlockPos;
 import org.objectweb.asm.Opcodes;
@@ -39,12 +38,6 @@ public abstract class MixinBlockModelRender$AmbientOcclusionFace {
         }
     }
 
-    @NewConstructor
-    public void AmbientOcclusionFace(BlockModelRenderer bmr) {
-        for (int i = 0; i < this.blockPosArr.length; i++) {
-            this.blockPosArr[i] = new BlockPos.MutableBlockPos();
-        }
-    }
 
     @Unique
     public void setMaxBlockLight() {
