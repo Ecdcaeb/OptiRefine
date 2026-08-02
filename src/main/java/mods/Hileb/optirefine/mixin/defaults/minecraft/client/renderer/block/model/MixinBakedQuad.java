@@ -23,17 +23,17 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class MixinBakedQuad {
 
     @Unique
-    @AccessTransformer(name = "field_178215_a", deobf = false)
+    @AccessTransformer(name = "field_178215_a", deobf = true)
     public int[] optirefine$acc_vertexData;
 
     @Unique
-    @AccessTransformer(name = "field_178213_b", deobf = false)
+    @AccessTransformer(name = "field_178213_b", deobf = true)
     public int optirefine$acc_tintIndex;
     @Unique
-    @AccessTransformer(name = "field_178214_c", deobf = false)
+    @AccessTransformer(name = "field_178214_c", deobf = true)
     public EnumFacing optirefine$acc_face;
     @Unique
-    @AccessTransformer(name = "field_187509_d", deobf = false)
+    @AccessTransformer(name = "field_187509_d", deobf = true)
     public TextureAtlasSprite optirefine$acc_sprite;
 
     @Unique

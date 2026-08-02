@@ -9,7 +9,7 @@ import java.util.List;
 @Mixin(ResourcePackRepository.class)
 public abstract class MixinResourcePackRepository {
     @Unique
-    @AccessTransformer(name = "field_110617_f", deobf = false)
+    @AccessTransformer(name = "field_110617_f", deobf = true)
     public List<ResourcePackRepository.Entry> acc_field_110617_f;
 
 

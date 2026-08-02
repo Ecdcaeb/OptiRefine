@@ -118,26 +118,26 @@ public abstract class MixinEntityRenderer {
 
     // ===== access-transformed fields (publicized by OptiFine) =====
 
-    @AccessTransformer(deobf = false, name = "field_78516_c")
+    @AccessTransformer(deobf = true, name = "field_78516_c")
     public ItemRenderer acc_itemRenderer;
 
     // Note: field_78527_v = mouseFilterXAxis, field_78526_w = mouseFilterYAxis (srg_to_stable_39-1.12.tsrg)
-    @AccessTransformer(name = "field_78527_v", deobf = false)
+    @AccessTransformer(name = "field_78527_v", deobf = true)
     public MouseFilter acc$mouseFilterXAxis;
 
-    @AccessTransformer(name = "field_78526_w", deobf = false)
+    @AccessTransformer(name = "field_78526_w", deobf = true)
     public MouseFilter acc$mouseFilterYAxis;
 
-    @AccessTransformer(name = "field_175080_Q", deobf = false)
+    @AccessTransformer(name = "field_175080_Q", deobf = true)
     public float acc$fogColorRed;
 
-    @AccessTransformer(name = "field_175082_R", deobf = false)
+    @AccessTransformer(name = "field_175082_R", deobf = true)
     public float acc$fogColorGreen;
 
-    @AccessTransformer(name = "field_175081_S", deobf = false)
+    @AccessTransformer(name = "field_175081_S", deobf = true)
     public float acc$fogColorBlue;
 
-    @AccessTransformer(name = "field_175084_ae", deobf = false)
+    @AccessTransformer(name = "field_175084_ae", deobf = true)
     public int frameCount;
 
     // ===== shadowed vanilla fields =====

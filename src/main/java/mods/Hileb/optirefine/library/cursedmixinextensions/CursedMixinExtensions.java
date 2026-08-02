@@ -171,6 +171,7 @@ public class CursedMixinExtensions {
                 String name = Annotations.getValue(accessTransform, "name");
                 if(name != null) name = name.replace('.', '/');
                 boolean deobf = Annotations.getValue(accessTransform, "deobf", Boolean.FALSE);
+                final boolean useDeobf = deobf && !isSrgRuntime(targetClass);
 
                 if ("<class>".equals(name)) {
                     if (access >= 0) {
@@ -181,6 +182,8 @@ public class CursedMixinExtensions {
                     if (access == -1) access = method.access;
                     if (name == null) name = method.name;
 
+                    String rawName = name;
+                    String rawDesc = desc;
                     if (deobf) {
                         name = FMLDeobfuscatingRemapper.INSTANCE.mapMethodName(targetClass.name, name, desc);
                         desc = FMLDeobfuscatingRemapper.INSTANCE.mapMethodDesc(desc);
@@ -188,6 +191,10 @@ public class CursedMixinExtensions {
 
                     for (MethodNode mn : targetClass.methods) {
                         if (mn.name.equals(name) && mn.desc.equals(desc)) {
+                            mn.access = access;
+                        }
+                        // deobf=true: also match the raw (SRG) name for SRG runtimes
+                        if (deobf && mn.name.equals(rawName) && mn.desc.equals(rawDesc)) {
                             mn.access = access;
                         }
                     }
@@ -205,6 +212,7 @@ public class CursedMixinExtensions {
                 if(desc != null) desc = desc.replace('.','/');
                 boolean itf = Annotations.getValue(accessibleOperation, "itf", Boolean.FALSE);
                 boolean deobf = Annotations.getValue(accessibleOperation, "deobf", Boolean.FALSE);
+                final boolean useDeobf = deobf && !isSrgRuntime(targetClass);
 
                 if (isBuildIn) {
                     method.access = method.access & ~(Opcodes.ACC_NATIVE | Opcodes.ACC_ABSTRACT);
@@ -237,7 +245,7 @@ public class CursedMixinExtensions {
                     final String name = "<init>";
                     final String _opt_desc;
                     if (str.length == 2) {
-                        if (deobf) {
+                        if (useDeobf) {
                             owner = FMLDeobfuscatingRemapper.INSTANCE.map(str[0]);
                             _opt_desc = FMLDeobfuscatingRemapper.INSTANCE.mapMethodDesc(str[1]);
                         } else {
@@ -245,7 +253,7 @@ public class CursedMixinExtensions {
                             _opt_desc = str[1];
                         }
                     } else if (str.length == 1) {
-                        if (deobf) {
+                        if (useDeobf) {
                             owner = targetClass.name;
                             _opt_desc = FMLDeobfuscatingRemapper.INSTANCE.mapMethodDesc(str[0]);
                         } else {
@@ -278,7 +286,7 @@ public class CursedMixinExtensions {
 
                 } else if (opcodes == Opcodes.INSTANCEOF) {
                     final String owner;
-                    if (deobf) {
+                    if (useDeobf) {
                         owner = FMLDeobfuscatingRemapper.INSTANCE.map(desc);
                     } else owner = desc;
                     LOGGER.debug("AccessibleOperation {} : INSTANCEOF : {}", targetClass.name, owner);
@@ -298,7 +306,7 @@ public class CursedMixinExtensions {
 
                     if (opcodes >= Opcodes.GETSTATIC && opcodes <= Opcodes.PUTFIELD) {
                         if (str.length == 2) {
-                            if (deobf) {
+                            if (useDeobf) {
                                 owner = FMLDeobfuscatingRemapper.INSTANCE.map(targetClass.name);
                                 name = FMLDeobfuscatingRemapper.INSTANCE.mapFieldName(targetClass.name, str[0], str[1]);
                                 _opt_desc = FMLDeobfuscatingRemapper.INSTANCE.mapDesc(str[1]);
@@ -308,7 +316,7 @@ public class CursedMixinExtensions {
                                 _opt_desc = str[1];
                             }
                         } else if (str.length == 3) {
-                            if (deobf) {
+                            if (useDeobf) {
                                 owner = FMLDeobfuscatingRemapper.INSTANCE.map(str[0]);
                                 name = FMLDeobfuscatingRemapper.INSTANCE.mapFieldName(str[0], str[1], str[2]);
                                 _opt_desc = FMLDeobfuscatingRemapper.INSTANCE.mapDesc(str[2]);
@@ -324,7 +332,7 @@ public class CursedMixinExtensions {
                         }
                     } else if (opcodes >= Opcodes.INVOKEVIRTUAL && opcodes <= Opcodes.INVOKEDYNAMIC) {
                         if (str.length == 2) {
-                            if (deobf) {
+                            if (useDeobf) {
                                 owner = FMLDeobfuscatingRemapper.INSTANCE.map(targetClass.name);
                                 name = FMLDeobfuscatingRemapper.INSTANCE.mapMethodName(targetClass.name, str[0], str[1]);
                                 _opt_desc = FMLDeobfuscatingRemapper.INSTANCE.mapMethodDesc(str[1]);
@@ -334,7 +342,7 @@ public class CursedMixinExtensions {
                                 _opt_desc = str[1];
                             }
                         } else if (str.length == 3) {
-                            if (deobf) {
+                            if (useDeobf) {
                                 owner = FMLDeobfuscatingRemapper.INSTANCE.map(str[0]);
                                 name = FMLDeobfuscatingRemapper.INSTANCE.mapMethodName(str[0], str[1], str[2]);
                                 _opt_desc = FMLDeobfuscatingRemapper.INSTANCE.mapMethodDesc(str[2]);
@@ -409,11 +417,14 @@ public class CursedMixinExtensions {
                 int access = Annotations.getValue(accesstrasnformer, "access", -1);
                 String name = Annotations.getValue(accesstrasnformer, "name");
                 boolean deobf = Annotations.getValue(accesstrasnformer, "deobf", Boolean.FALSE);
+                final boolean useDeobf = deobf && !isSrgRuntime(targetClass);
 
                 String desc = field.desc;
                 if (access == -1) access = field.access;
                 if (name == null) name = field.name;
 
+                String rawName = name;
+                String rawDesc = desc;
                 if(deobf) {
                     name = FMLDeobfuscatingRemapper.INSTANCE.mapFieldName(targetClass.name, name, desc);
                     desc = FMLDeobfuscatingRemapper.INSTANCE.mapDesc(desc);
@@ -421,6 +432,10 @@ public class CursedMixinExtensions {
 
                 for (FieldNode mn : targetClass.fields) {
                     if(mn.name.equals(name) && mn.desc.equals(desc)) {
+                        mn.access = access;
+                    }
+                    // deobf=true: also match the raw (SRG) name for SRG runtimes
+                    if(deobf && mn.name.equals(rawName) && mn.desc.equals(rawDesc)) {
                         mn.access = access;
                     }
                 }
@@ -480,6 +495,24 @@ public class CursedMixinExtensions {
 
     private static final boolean DUMP = Boolean.parseBoolean(System.getProperty("foundation.dump", "false"));
 
+
+    /**
+     * Detects whether the runtime uses SRG member names (production/cleanroom SRG runtime)
+     * or MCP member names (devrun / MCP runtime).
+     */
+    private static boolean isSrgRuntime(ClassNode targetClass) {
+        for (FieldNode field : targetClass.fields) {
+            if (field.name.matches("field_\\d+_[a-zA-Z]+")) {
+                return true;
+            }
+        }
+        for (MethodNode method : targetClass.methods) {
+            if (method.name.matches("func_\\d+_[a-zA-Z]+")) {
+                return true;
+            }
+        }
+        return false;
+    }
     public static AbstractInsnNode findPreviousNode(AbstractInsnNode start,
                                                     Predicate<AbstractInsnNode> checkNode) {
         final int MAX_SEARCH = 10000;
