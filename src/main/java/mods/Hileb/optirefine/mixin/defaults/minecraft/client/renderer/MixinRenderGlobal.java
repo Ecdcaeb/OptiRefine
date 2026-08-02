@@ -420,7 +420,11 @@ public abstract class MixinRenderGlobal {
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     public void pauseChunkUpdates() {
-        this.renderDispatcher.pauseChunkUpdates();
+        ChunkRenderDispatcher_pauseChunkUpdates(this.renderDispatcher);
     }
+
+    @SuppressWarnings({"unused", "MissingUnique"})
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher pauseChunkUpdates ()V")
+    private static native void ChunkRenderDispatcher_pauseChunkUpdates(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher dispatcher);
 
 }
