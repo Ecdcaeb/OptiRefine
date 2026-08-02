@@ -631,6 +631,17 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
         }
     }
 
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
+    private boolean isAbsoluteLocation(ResourceLocation location) {
+        return this.isAbsoluteLocationPath(location.getPath());
+    }
+
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
+    private boolean isAbsoluteLocationPath(String path) {
+        String s = path.toLowerCase();
+        return s.startsWith("mcpatcher/") || s.startsWith("optifine/");
+    }
+
     // ===== registerSprite: index + emissive =====
 
     @Inject(method = "registerSprite", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;makeAtlasSprite(Lnet/minecraft/util/ResourceLocation;)Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;", shift = At.Shift.AFTER))
