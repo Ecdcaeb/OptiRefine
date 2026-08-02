@@ -10,6 +10,7 @@ import net.optifine.shaders.ShadersTex;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Mutable;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -18,6 +19,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 @Mixin(DynamicTexture.class)
 public abstract class MixinDynamicTexture extends AbstractTexture {
 
+    @Mutable
     @Shadow @Final
     private int[] dynamicTextureData;
     @Shadow @Final
@@ -31,6 +33,10 @@ public abstract class MixinDynamicTexture extends AbstractTexture {
     @Redirect(method = "<init>(II)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/texture/TextureUtil;allocateTexture(III)V"))
     public void afterConstructed(int glTextureId, int textureWidth, int textureHeight){
         if (Config.isShaders()) {
+            if (this.dynamicTextureData == null || this.dynamicTextureData.length < textureWidth * textureHeight * 3) {
+                this.dynamicTextureData = new int[textureWidth * textureHeight * 3];
+            }
+
             ShadersTex.initDynamicTexture(glTextureId, textureWidth, textureHeight, (DynamicTexture)(Object)this);
             this.shadersInitialized = true;
         } else {
