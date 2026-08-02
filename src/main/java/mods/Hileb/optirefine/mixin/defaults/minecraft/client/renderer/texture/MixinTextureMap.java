@@ -3,6 +3,7 @@ package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer.texture;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
+import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessTransformer;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.renderer.GlStateManager;
