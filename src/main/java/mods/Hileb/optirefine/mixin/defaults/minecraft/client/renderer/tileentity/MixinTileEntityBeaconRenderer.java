@@ -30,7 +30,7 @@ public abstract class MixinTileEntityBeaconRenderer {
     }
 
     @WrapOperation(method = "renderBeamSegment(DDDDDDII[FDD)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GlStateManager;depthMask(Z)V"))
-    public void depthMask(boolean flagIn, Operation<Void> original){
+    private static void depthMask(boolean flagIn, Operation<Void> original){
         original.call(flagIn);
         if (Config.isShaders()) {
             GlStateManager.depthMask(Shaders.isBeaconBeamDepth());
