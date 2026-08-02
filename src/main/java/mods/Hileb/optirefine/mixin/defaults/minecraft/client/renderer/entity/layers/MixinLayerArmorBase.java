@@ -56,7 +56,7 @@ public abstract class MixinLayerArmorBase {
      * @reason OptiFine: shaders glint (isShadowPass skip + renderEnchantedGlintBegin/End)
      */
     @WrapMethod(method = "renderEnchantedGlint")
-    public static void optiRefine$renderEnchantedGlint(LayerArmorBase instance, RenderLivingBase<?> renderer, EntityLivingBase entityLivingBaseIn, ModelBase modelBaseIn, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, float scaleFactor, Operation<Void> original) {
+    private static void optiRefine$renderEnchantedGlint(LayerArmorBase instance, RenderLivingBase<?> renderer, EntityLivingBase entityLivingBaseIn, ModelBase modelBaseIn, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, float scaleFactor, Operation<Void> original) {
         if (!Config.isShaders() || !Shaders.isShadowPass) {
             float f = entityLivingBaseIn.ticksExisted + ageInTicks;
             renderer.bindTexture(LayerArmorBase.ENCHANTED_ITEM_GLINT_RES);
