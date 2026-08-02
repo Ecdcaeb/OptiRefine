@@ -420,11 +420,25 @@ public abstract class MixinRenderGlobal {
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     public void pauseChunkUpdates() {
-        ChunkRenderDispatcher_pauseChunkUpdates(this.renderDispatcher);
+        if (this.renderDispatcher != null) {
+            ChunkRenderDispatcher_pauseChunkUpdates(this.renderDispatcher);
+        }
+    }
+
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
+    @Unique
+    public void resumeChunkUpdates() {
+        if (this.renderDispatcher != null) {
+            ChunkRenderDispatcher_resumeChunkUpdates(this.renderDispatcher);
+        }
     }
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher pauseChunkUpdates ()V")
     private static native void ChunkRenderDispatcher_pauseChunkUpdates(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher dispatcher);
+
+    @SuppressWarnings({"unused", "MissingUnique"})
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.chunk.ChunkRenderDispatcher resumeChunkUpdates ()V")
+    private static native void ChunkRenderDispatcher_resumeChunkUpdates(net.minecraft.client.renderer.chunk.ChunkRenderDispatcher dispatcher);
 
 }
