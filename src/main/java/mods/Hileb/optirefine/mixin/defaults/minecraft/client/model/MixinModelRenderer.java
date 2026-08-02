@@ -264,7 +264,10 @@ public abstract class MixinModelRenderer {
 // [AUDIT-OK] glEndList()V invoke present in baseline compileDisplayList; sprites render before endList like OF
     @WrapOperation(method = "compileDisplayList", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GlStateManager;glEndList()V"))
     private void renderSpriteListForCompileDisplayList(Operation<Void> original, @Local(argsOnly = true) float scale){
-        for (ModelSprite sprite : spriteList) {
+        if (this.spriteList == null) {
+            this.spriteList = new ArrayList<>();
+        }
+        for (ModelSprite sprite : this.spriteList) {
             sprite.render(Tessellator.getInstance(), scale);
         }
         original.call();
@@ -274,6 +277,9 @@ public abstract class MixinModelRenderer {
 // [AUDIT-OK] OF-added API, not in baseline; @Public for OF-jar access
     @Public
     public void addSprite(float posX, float posY, float posZ, int sizeX, int sizeY, int sizeZ, float sizeAdd) {
+        if (this.spriteList == null) {
+            this.spriteList = new ArrayList<>();
+        }
         this.spriteList.add(new ModelSprite((ModelRenderer)(Object)this, this.textureOffsetX, this.textureOffsetY, posX, posY, posZ, sizeX, sizeY, sizeZ, sizeAdd));
     }
 
