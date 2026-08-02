@@ -15,10 +15,10 @@ public abstract class MixinEntityDataManager {
     @Public
 // [AUDIT-OK] OF-added fields spawnBiome/spawnPosition (in OF EntityDataManager, not in baseline), MCP names match (baseline has neither)
     @Unique
-    public Biome spawnBiome = Biomes.PLAINS;
+    private Biome spawnBiome = Biomes.PLAINS;
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Public
 // [AUDIT-OK] OF-added field spawnPosition (in OF, not in baseline), initializer matches OF (BlockPos.ORIGIN)
     @Unique
-    public BlockPos spawnPosition = BlockPos.ORIGIN;
+    private BlockPos spawnPosition = BlockPos.ORIGIN;
 }

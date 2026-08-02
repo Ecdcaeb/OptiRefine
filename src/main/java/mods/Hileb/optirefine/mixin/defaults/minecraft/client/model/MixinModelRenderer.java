@@ -122,31 +122,31 @@ public abstract class MixinModelRenderer {
 // [AUDIT-OK] OF-added member (public in OF), not in baseline; @Public for OF-jar access
     @Unique
     @Public
-    public List<ModelSprite> spriteList = new ArrayList<>();
+    private List<ModelSprite> spriteList = new ArrayList<>();
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
 // [AUDIT-OK] OF-added member (public in OF), not in baseline; @Public for OF-jar access
     @Unique
     @Public
-    public boolean mirrorV = false;
+    private boolean mirrorV = false;
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
 // [AUDIT-OK] OF-added member (public in OF), not in baseline; @Public for OF-jar access
     @Unique
     @Public
-    public float scaleX = 1.0F;
+    private float scaleX = 1.0F;
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
 // [AUDIT-OK] OF-added member (public in OF), not in baseline; @Public for OF-jar access
     @Unique
     @Public
-    public float scaleY = 1.0F;
+    private float scaleY = 1.0F;
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
 // [AUDIT-OK] OF-added member (public in OF), not in baseline; @Public for OF-jar access
     @Unique
     @Public
-    public float scaleZ = 1.0F;
+    private float scaleZ = 1.0F;
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
 // [AUDIT-OK] OF-added member, not in baseline; @Public informational (OF keeps private)

@@ -132,11 +132,11 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
     @Public
     // [AUDIT-OK] OF-added fields atlasWidth/atlasHeight (@Public), not in baseline
     @Unique
-    public int atlasWidth = 0;
+    private int atlasWidth = 0;
     @Unique
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
-    public int atlasHeight = 0;
+    private int atlasHeight = 0;
     // ===== cross-class private access =====
 
     @SuppressWarnings({"unused", "MissingUnique"})

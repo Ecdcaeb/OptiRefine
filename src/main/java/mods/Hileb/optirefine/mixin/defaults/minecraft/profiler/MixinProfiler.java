@@ -25,7 +25,7 @@ public abstract class MixinProfiler {
     @Public
 // [AUDIT-OK] OF-added field profilerGlobalEnabled (in OF Profiler, not in baseline), MCP name matches
     @Unique
-    public boolean profilerGlobalEnabled = true;
+    private boolean profilerGlobalEnabled = true;
     @SuppressWarnings("AddedMixinMembersNamePattern")
 // [AUDIT-OK] OF-added field profilerLocalEnabled, matches OF init (snapshot of global)
     @Unique

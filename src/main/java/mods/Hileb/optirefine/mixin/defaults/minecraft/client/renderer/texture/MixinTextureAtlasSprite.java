@@ -69,48 +69,48 @@ public abstract class MixinTextureAtlasSprite {
     @Public
     // [AUDIT-OK] OF-added field glSpriteTextureId (@Public), not in baseline
     @Unique
-    public int glSpriteTextureId = -1;
+    private int glSpriteTextureId = -1;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
     // [AUDIT-OK] OF-added fields spriteSingle/isSpriteSingle (@Public), not in baseline
     @Unique
-    public TextureAtlasSprite spriteSingle = null;
+    private TextureAtlasSprite spriteSingle = null;
     @Unique
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
-    public boolean isSpriteSingle = false;
+    private boolean isSpriteSingle = false;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
     // [AUDIT-OK] OF-added field mipmapLevels (@Public), not in baseline
     @Unique
-    public int mipmapLevels = 0;
+    private int mipmapLevels = 0;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
     // [AUDIT-OK] OF-added fields spriteNormal/spriteSpecular (@Public), not in baseline
     @Unique
-    public TextureAtlasSprite spriteNormal = null;
+    private TextureAtlasSprite spriteNormal = null;
     @Unique
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
-    public TextureAtlasSprite spriteSpecular = null;
+    private TextureAtlasSprite spriteSpecular = null;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
     // [AUDIT-OK] OF-added fields isShadersSprite/isDependencyParent/isEmissive (@Public), not in baseline
     @Unique
-    public boolean isShadersSprite = false;
+    private boolean isShadersSprite = false;
     @Unique
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
-    public boolean isDependencyParent = false;
+    private boolean isDependencyParent = false;
     @Unique
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
-    public boolean isEmissive = false;
+    private boolean isEmissive = false;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
     // [AUDIT-OK] OF-added field spriteEmissive (@Public), not in baseline
     @Unique
-    public TextureAtlasSprite spriteEmissive = null;
+    private TextureAtlasSprite spriteEmissive = null;
     @Unique
     private int animationIndex = -1;
     @Unique

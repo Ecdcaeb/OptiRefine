@@ -14,7 +14,7 @@ public abstract class MixinClippingHelper {
     @Public
     // [AUDIT-OK] OF-added field (OF:8 public); nit: '= false' initializer on @Public instance field (AGENT.md §4 convention)
     @Unique
-    public boolean disabled = false;
+    private boolean disabled = false;
 
     @Shadow
     // [AUDIT-OK] baseline member frustum (public float[][], deobf:9)

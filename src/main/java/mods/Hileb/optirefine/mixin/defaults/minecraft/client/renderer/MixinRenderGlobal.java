@@ -62,7 +62,7 @@ public abstract class MixinRenderGlobal {
     @Public
 // [AUDIT-OK] OF-added field, not in baseline (@Public)
     @Unique
-    public boolean renderOverlayDamaged = false;
+    private boolean renderOverlayDamaged = false;
     // ===== cross-class private access =====
 
     @SuppressWarnings({"unused", "MissingUnique"})
@@ -136,7 +136,7 @@ public abstract class MixinRenderGlobal {
     @Public
 // [AUDIT-OK] OF-added field, not in baseline (@Public)
     @Unique
-    public boolean renderOverlayEyes = false;
+    private boolean renderOverlayEyes = false;
 
     // ===== shadowed fields =====
 
