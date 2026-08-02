@@ -84,7 +84,7 @@ public abstract class MixinRenderChunk {
     @Unique
     public AabbFrame boundingBoxParent;
 
-    @AccessibleOperation(opcode = Opcodes.NEW, desc = "net.minecraft.client.renderer.RenderGlobal$ContainerLocalRenderInformation (Lnet/minecraft/client/renderer/RenderGlobal;Lnet/minecraft/client/renderer/chunk/RenderChunk;Lnet/minecraft/util/EnumFacing;I)V")
+    @AccessibleOperation(opcode = Opcodes.NEW, desc = "net.minecraft.client.renderer.RenderGlobal$ContainerLocalRenderInformation (Lnet/minecraft/client/renderer/chunk/RenderChunk;Lnet/minecraft/util/EnumFacing;I)V")
     private static native Object new_RenderGlobal_ContainerLocalRenderInformation(AccessibleOperation.Construction construction, RenderChunk p_i46248_2, @Nullable EnumFacing p_i46248_3, int p_i46248_4);
 
 
