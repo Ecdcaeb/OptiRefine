@@ -103,42 +103,42 @@ public abstract class MixinBlockModelRenderer {
         }
     }
 
-    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/BufferBuilder getRenderEnv (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/math/BlockPos;)Lnet/optifine/render/RenderEnv;", deobf = true)
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/BufferBuilder getRenderEnv (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/math/BlockPos;)Lnet/optifine/render/RenderEnv;", deobf = false)
     private static RenderEnv BufferBuilder_getRenderEnv(BufferBuilder builder, IBlockState blockStateIn, BlockPos blockPosIn) {
         throw new AbstractMethodError();
     }
 
-    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/BufferBuilder getBlockLayer ()Lnet.minecraft.util.BlockRenderLayer;", deobf = true)
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/BufferBuilder getBlockLayer ()Lnet.minecraft.util.BlockRenderLayer;", deobf = false)
     private static BlockRenderLayer BufferBuilder_getBlockLayer(BufferBuilder builder) {
         throw new AbstractMethodError();
     }
 
     @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite isEmissive Z", deobf = true)
+    @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite isEmissive Z", deobf = false)
     private static native boolean TextureAtlasSprite_isEmissive_get(TextureAtlasSprite sprite);
 
     @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/block/model/BakedQuad getVertexDataSingle ()[I", deobf = true)
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/block/model/BakedQuad getVertexDataSingle ()[I", deobf = false)
     private static native int[] BakedQuad_getVertexDataSingle(BakedQuad quad);
 
     @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/block/model/BakedQuad getQuadEmissive ()Lnet/minecraft/client/renderer/block/model/BakedQuad;", deobf = true)
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/block/model/BakedQuad getQuadEmissive ()Lnet/minecraft/client/renderer/block/model/BakedQuad;", deobf = false)
     private static native BakedQuad BakedQuad_getQuadEmissive(BakedQuad quad);
 
     @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/BufferBuilder getXOffset ()D", deobf = true)
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/BufferBuilder getXOffset ()D", deobf = false)
     private static native double BufferBuilder_getXOffset(BufferBuilder buffer);
 
     @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/BufferBuilder isDrawing ()Z", deobf = true)
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/BufferBuilder isDrawing ()Z", deobf = false)
     private static native boolean BufferBuilder_isDrawing(BufferBuilder buffer);
 
     @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/BufferBuilder getYOffset ()D", deobf = true)
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/BufferBuilder getYOffset ()D", deobf = false)
     private static native double BufferBuilder_getYOffset(BufferBuilder buffer);
 
     @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/BufferBuilder getZOffset ()D", deobf = true)
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/BufferBuilder getZOffset ()D", deobf = false)
     private static native double BufferBuilder_getZOffset(BufferBuilder buffer);
 
     @Inject(method = "renderModelSmooth", at = @At("HEAD"))
@@ -182,27 +182,27 @@ public abstract class MixinBlockModelRenderer {
     private static native boolean BufferBuilder_isMultiTexture(BufferBuilder builder);
 
     
-    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, deobf = true, desc = "net/minecraft/client/renderer/BufferBuilder putColorMultiplierRgba (FFFFI)V")
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, deobf = false, desc = "net/minecraft/client/renderer/BufferBuilder putColorMultiplierRgba (FFFFI)V")
     private static native void BufferBuilder_putColorMultiplierRgba(BufferBuilder builder, float red, float green, float blue, float alpha, int vertexIndex);
 
     
-    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, deobf = true, desc = "net/minecraft/client/renderer/BufferBuilder putSprite (Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;)V")
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, deobf = false, desc = "net/minecraft/client/renderer/BufferBuilder putSprite (Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;)V")
     private static native void BufferBuilder_putSprite(BufferBuilder builder, TextureAtlasSprite sprite);
 
     
-    @AccessibleOperation(opcode = Opcodes.GETFIELD, deobf = true, desc = "net.minecraft.client.renderer.BlockModelRenderer$AmbientOcclusionFace field_178206_b [F")
+    @AccessibleOperation(opcode = Opcodes.GETFIELD, deobf = false, desc = "net.minecraft.client.renderer.BlockModelRenderer$AmbientOcclusionFace field_178206_b [F")
     private static native float[] AmbientOcclusionFace_vertexColorMultiplier(Object instance);
 
     
-    @AccessibleOperation(opcode = Opcodes.GETFIELD, deobf = true, desc = "net.minecraft.client.renderer.BlockModelRenderer$AmbientOcclusionFace field_178207_c [I")
+    @AccessibleOperation(opcode = Opcodes.GETFIELD, deobf = false, desc = "net.minecraft.client.renderer.BlockModelRenderer$AmbientOcclusionFace field_178207_c [I")
     private static native int[] AmbientOcclusionFace_vertexBrightness(Object instance);
 
     
-    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, deobf = true, desc = "net.minecraft.client.renderer.BlockModelRenderer$AmbientOcclusionFace setMaxBlockLight ()V")
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, deobf = false, desc = "net.minecraft.client.renderer.BlockModelRenderer$AmbientOcclusionFace setMaxBlockLight ()V")
     private static native void AmbientOcclusionFace_setMaxBlockLight(Object instance);
 
     
-    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, deobf = true, desc = "net.minecraft.client.renderer.BlockModelRenderer$AmbientOcclusionFace func_187491_a (Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;[FLjava/util/BitSet;)V")
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, deobf = false, desc = "net.minecraft.client.renderer.BlockModelRenderer$AmbientOcclusionFace func_187491_a (Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;[FLjava/util/BitSet;)V")
     private static native void AmbientOcclusionFace_updateVertexBrightness(Object instance, IBlockAccess worldIn, IBlockState state, BlockPos centerPos, EnumFacing direction, float[] faceShape, BitSet shapeState);
 
 

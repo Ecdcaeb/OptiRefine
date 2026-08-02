@@ -73,7 +73,7 @@ public abstract class MixinModelBakery {
         }
     }
 
-    @AccessibleOperation(opcode = Opcodes.PUTFIELD, desc = "net.minecraft.client.renderer.block.model.ModelBlock field_178316_e Lnet.minecraft.util.ResourceLocation;", deobf = true)
+    @AccessibleOperation(opcode = Opcodes.PUTFIELD, desc = "net.minecraft.client.renderer.block.model.ModelBlock field_178316_e Lnet.minecraft.util.ResourceLocation;", deobf = false)
     private static native void ModelBlock_parentLocation_set(ModelBlock modelBlock, ResourceLocation resourceLocation);
 
     @Public @Unique

@@ -213,7 +213,7 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
 
     @Unique
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL,
-            desc = "net.minecraft.client.gui.GuiScreen func_73733_a (IIIIII)V", deobf = true)
+            desc = "net.minecraft.client.gui.GuiScreen func_73733_a (IIIIII)V", deobf = false)
     private static void _acc_GuiScreen_draw(GuiScreen guiScreen,
                                             int left, int top, int right, int bottom,
                                             int startColor, int endColor) {
@@ -236,6 +236,6 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.GETFIELD,
-            desc = "net.minecraft.client.gui.GuiChat field_146415_a Lnet.minecraft.client.gui.GuiTextField;", deobf = true)
+            desc = "net.minecraft.client.gui.GuiChat field_146415_a Lnet.minecraft.client.gui.GuiTextField;", deobf = false)
     private static native GuiTextField _acc_GuiChatAccessor_getInputField(GuiChat guiChat);
 }

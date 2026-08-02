@@ -8,7 +8,7 @@ import java.io.File;
 @Mixin(AbstractResourcePack.class)
 public abstract class MixinAbstractResourcePack {
 
-    @AccessTransformer(name = "field_110597_b", deobf = true)
+    @AccessTransformer(name = "field_110597_b", deobf = false)
     public final File acc__resourcePackFile;
 
     protected MixinAbstractResourcePack( File acc__resourcePackFile) {

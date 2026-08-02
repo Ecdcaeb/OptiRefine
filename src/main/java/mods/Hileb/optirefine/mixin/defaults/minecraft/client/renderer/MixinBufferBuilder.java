@@ -40,23 +40,25 @@ public abstract class MixinBufferBuilder {
 
     
     @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessTransformer(name = "field_178999_b", deobf = true)
+    @AccessTransformer(name = "field_178999_b", deobf = false)
     public IntBuffer acc_rawIntBuffer;
 
     
     @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessTransformer(name = "field_179000_c", deobf = true)
+    @AccessTransformer(name = "field_179000_c", deobf = false)
     public FloatBuffer acc_rawFloatBuffer;
 
     
     @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessTransformer(name = "field_178997_d", deobf = true)
+    @AccessTransformer(name = "field_178997_d", deobf = false)
     public int acc_vertexCount;
 
     
     @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessTransformer(name = "field_179006_k", deobf = true)
+    @AccessTransformer(name = "field_179006_k", deobf = false)
     public int acc_drawMode;
+
+
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
@@ -151,12 +153,12 @@ public abstract class MixinBufferBuilder {
 
     
     @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessTransformer(name = "func_181664_j", deobf = true, access = Opcodes.ACC_PUBLIC)
+    @AccessTransformer(name = "func_181664_j", deobf = false, access = Opcodes.ACC_PUBLIC)
     private static native int acc_getBufferSize();
 
     
     @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessTransformer(name = "func_181665_a", deobf = true, access = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC)
+    @AccessTransformer(name = "func_181665_a", deobf = false, access = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC)
     private static native float acc_getDistanceSq(FloatBuffer p_181665_0_, float p_181665_1_, float p_181665_2_, float p_181665_3_, int p_181665_4_, int p_181665_5_);
 
     @SuppressWarnings("MissingUnique")

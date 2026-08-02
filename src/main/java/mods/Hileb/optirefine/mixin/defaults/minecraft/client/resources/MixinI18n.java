@@ -22,6 +22,6 @@ public abstract class MixinI18n {
         return _acc_Locale_properties(i18nLocale);
     }
 
-    @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.resources.Locale field_135032_a Ljava.util.Map;", deobf = true)
+    @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.resources.Locale field_135032_a Ljava.util.Map;", deobf = false)
     private static native Map<String, String> _acc_Locale_properties(Locale locale);
 }

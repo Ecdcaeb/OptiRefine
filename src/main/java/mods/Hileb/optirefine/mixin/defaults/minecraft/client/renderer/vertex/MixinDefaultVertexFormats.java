@@ -24,11 +24,11 @@ public abstract class MixinDefaultVertexFormats {
     private static VertexFormat ITEM;
 
     @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessTransformer(name = "field_176600_a", deobf = true, access = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC)
+    @AccessTransformer(name = "field_176600_a", deobf = false, access = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC)
     private static VertexFormat ACC_BLOCK;
 
     @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessTransformer(name = "field_176599_b", deobf = true, access = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC)
+    @AccessTransformer(name = "field_176599_b", deobf = false, access = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC)
     private static VertexFormat ACC_ITEM;
 
     @Unique
