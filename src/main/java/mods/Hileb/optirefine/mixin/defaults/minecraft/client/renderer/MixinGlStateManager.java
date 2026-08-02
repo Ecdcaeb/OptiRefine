@@ -17,7 +17,9 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Constant;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyConstant;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
@@ -452,9 +454,9 @@ public abstract class MixinGlStateManager {
 
     // ===== texture unit array 8 -> 32 =====
 
-    @Redirect(method = "<clinit>", at = @At(value = "NEW", target = "[Lnet/minecraft/client/renderer/GlStateManager$TextureState;"))
-    private static GlStateManager.TextureState[] optiRefine$largerTextureState(int size) {
-        return new GlStateManager.TextureState[32];
+    @ModifyConstant(method = "<clinit>", constant = @Constant(intValue = 8, ordinal = 0))
+    private static int optiRefine$largerTextureState(int constant) {
+        return 32;
     }
 
     @Inject(method = "<clinit>", at = @At("TAIL"))

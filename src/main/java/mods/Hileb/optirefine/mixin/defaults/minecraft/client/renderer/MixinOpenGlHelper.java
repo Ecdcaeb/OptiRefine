@@ -55,10 +55,12 @@ public abstract class MixinOpenGlHelper {
     private static int GL_COPY_WRITE_BUFFER;
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
-    public static final int GL_QUADS = 7;
+    @Public
+    private static final int GL_QUADS = 7;
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
-    public static final int GL_TRIANGLES = 4;
+    @Public
+    private static final int GL_TRIANGLES = 4;
 
     @Shadow
     private static String logText;
