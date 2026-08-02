@@ -51,6 +51,16 @@ public abstract class MixinBufferBuilder {
 // [AUDIT-OK] vanilla SRG field_179000_c = rawFloatBuffer, deobf=true
     public FloatBuffer acc_rawFloatBuffer;
 
+    @Shadow
+    private FloatBuffer rawFloatBuffer;
+
+    @Inject(method = "growBuffer", at = @At("TAIL"))
+    // [AUDIT-FIXED] vanilla growBuffer leaves rawFloatBuffer READ-ONLY (asReadOnlyBuffer);
+    // OF keeps it writable (asFloatBuffer) - SVertexBuilder.calcNormal writes it under shaders
+    private void optiRefine$restoreWritableFloatBuffer(int p_181670_1_, CallbackInfo ci) {
+        this.rawFloatBuffer = this.byteBuffer.asFloatBuffer();
+    }
+
     
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessTransformer(name = "field_178997_d", deobf = true)
