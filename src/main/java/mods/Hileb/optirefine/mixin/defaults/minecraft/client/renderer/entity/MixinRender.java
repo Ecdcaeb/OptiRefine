@@ -34,7 +34,7 @@ public abstract class MixinRender {
 
     @SuppressWarnings("unused")
     @AccessTransformer(name = "shadowSize", access = org.objectweb.asm.Opcodes.ACC_PUBLIC)
-    protected float acc_shadowSize;
+    public float acc_shadowSize;
 
     @WrapOperation(method = "bindEntityTexture", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/Render;getEntityTexture(Lnet/minecraft/entity/Entity;)Lnet/minecraft/util/ResourceLocation;"))
     private ResourceLocation optiRefine$customTexture(Render instance, Entity entity, Operation<ResourceLocation> original) {

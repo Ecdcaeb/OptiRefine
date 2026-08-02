@@ -34,11 +34,11 @@ public abstract class MixinRenderLivingBase<T extends EntityLivingBase> {
 
     @SuppressWarnings("unused")
     @AccessTransformer(name = "mainModel", access = org.objectweb.asm.Opcodes.ACC_PUBLIC)
-    protected ModelBase acc_mainModel;
+    public ModelBase acc_mainModel;
 
     @SuppressWarnings("unused")
     @AccessTransformer(name = "addLayer", access = org.objectweb.asm.Opcodes.ACC_PUBLIC)
-    protected boolean acc_addLayer;
+    public boolean acc_addLayer;
 
     @Shadow
     protected ModelBase mainModel;

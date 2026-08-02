@@ -10,7 +10,7 @@ import java.util.List;
 public abstract class MixinResourcePackRepository {
     @Unique
     @AccessTransformer(name = "field_110617_f", deobf = false)
-    protected List<ResourcePackRepository.Entry> acc_field_110617_f;
+    public List<ResourcePackRepository.Entry> acc_field_110617_f;
 
 
 }

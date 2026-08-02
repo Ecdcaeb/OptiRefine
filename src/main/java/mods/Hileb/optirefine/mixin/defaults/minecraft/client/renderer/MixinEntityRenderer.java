@@ -123,10 +123,10 @@ public abstract class MixinEntityRenderer {
 
     // Note: field_78527_v = mouseFilterXAxis, field_78526_w = mouseFilterYAxis (srg_to_stable_39-1.12.tsrg)
     @AccessTransformer(name = "field_78527_v", deobf = false)
-    private MouseFilter acc$mouseFilterXAxis;
+    public MouseFilter acc$mouseFilterXAxis;
 
     @AccessTransformer(name = "field_78526_w", deobf = false)
-    private MouseFilter acc$mouseFilterYAxis;
+    public MouseFilter acc$mouseFilterYAxis;
 
     @AccessTransformer(name = "field_175080_Q", deobf = false)
     public float acc$fogColorRed;

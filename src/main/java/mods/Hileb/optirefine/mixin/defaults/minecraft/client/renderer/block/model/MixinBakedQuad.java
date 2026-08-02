@@ -24,25 +24,25 @@ public abstract class MixinBakedQuad {
 
     @Unique
     @AccessTransformer(name = "field_178215_a", deobf = false)
-    protected int[] optirefine$acc_vertexData;
+    public int[] optirefine$acc_vertexData;
 
     @Unique
     @AccessTransformer(name = "field_178213_b", deobf = false)
-    protected int optirefine$acc_tintIndex;
+    public int optirefine$acc_tintIndex;
     @Unique
     @AccessTransformer(name = "field_178214_c", deobf = false)
-    protected EnumFacing optirefine$acc_face;
+    public EnumFacing optirefine$acc_face;
     @Unique
     @AccessTransformer(name = "field_187509_d", deobf = false)
-    protected TextureAtlasSprite optirefine$acc_sprite;
+    public TextureAtlasSprite optirefine$acc_sprite;
 
     @Unique
     @AccessTransformer(name = "format")
-    protected VertexFormat  optirefine$acc_format;
+    public VertexFormat  optirefine$acc_format;
 
     @Unique
     @AccessTransformer(name = "applyDiffuseLighting")
-    protected boolean  optirefine$acc_applyDiffuseLighting;
+    public boolean  optirefine$acc_applyDiffuseLighting;
 
 
     @Shadow @Final @Mutable
