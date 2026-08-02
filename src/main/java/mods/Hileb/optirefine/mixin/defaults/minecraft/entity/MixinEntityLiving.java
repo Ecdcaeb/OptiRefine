@@ -23,6 +23,7 @@ public abstract class MixinEntityLiving extends EntityLivingBase {
 // [AUDIT-OK] OF-added fields teamUuid/teamUuidString (in OF EntityLiving, not in baseline), MCP names match
     @Unique
     private UUID teamUuid = null;
+    @Unique
     @SuppressWarnings("AddedMixinMembersNamePattern")
     private String teamUuidString = null;
 

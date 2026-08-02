@@ -68,12 +68,14 @@ public abstract class MixinTextureAtlasSprite {
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
     // [AUDIT-OK] OF-added field glSpriteTextureId (@Public), not in baseline
+    @Unique
     public int glSpriteTextureId = -1;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
     // [AUDIT-OK] OF-added fields spriteSingle/isSpriteSingle (@Public), not in baseline
     @Unique
     public TextureAtlasSprite spriteSingle = null;
+    @Unique
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
     public boolean isSpriteSingle = false;
@@ -85,6 +87,7 @@ public abstract class MixinTextureAtlasSprite {
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
     // [AUDIT-OK] OF-added fields spriteNormal/spriteSpecular (@Public), not in baseline
+    @Unique
     public TextureAtlasSprite spriteNormal = null;
     @Unique
     @SuppressWarnings("AddedMixinMembersNamePattern")
@@ -93,11 +96,13 @@ public abstract class MixinTextureAtlasSprite {
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
     // [AUDIT-OK] OF-added fields isShadersSprite/isDependencyParent/isEmissive (@Public), not in baseline
+    @Unique
     public boolean isShadersSprite = false;
     @Unique
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
     public boolean isDependencyParent = false;
+    @Unique
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
     public boolean isEmissive = false;
@@ -106,6 +111,7 @@ public abstract class MixinTextureAtlasSprite {
     // [AUDIT-OK] OF-added field spriteEmissive (@Public), not in baseline
     @Unique
     public TextureAtlasSprite spriteEmissive = null;
+    @Unique
     private int animationIndex = -1;
     @Unique
     private boolean animationActive = false;

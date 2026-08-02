@@ -116,18 +116,22 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
     // [AUDIT-OK] OF-added fields (iconGrid/iconGridSize/iconGridCountX/Y/iconGridSizeU/V/counterIndexInMap/countAnimationsActive/frameCountAnimations), not in baseline
     @Unique
     private TextureAtlasSprite[] iconGrid = null;
+    @Unique
     private int iconGridSize = -1;
     @Unique
     private int iconGridCountX = -1;
+    @Unique
     private int iconGridCountY = -1;
     @Unique
     private double iconGridSizeU = -1.0;
+    @Unique
     private double iconGridSizeV = -1.0;
     @Unique
     private CounterInt counterIndexInMap = new CounterInt(0);
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
     // [AUDIT-OK] OF-added fields atlasWidth/atlasHeight (@Public), not in baseline
+    @Unique
     public int atlasWidth = 0;
     @Unique
     @SuppressWarnings("AddedMixinMembersNamePattern")

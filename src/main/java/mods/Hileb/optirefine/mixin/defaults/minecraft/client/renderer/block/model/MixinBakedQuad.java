@@ -54,6 +54,7 @@ public abstract class MixinBakedQuad {
     @Shadow @Final @Mutable
     protected TextureAtlasSprite sprite;
 
+    @Unique
     private int[] vertexDataSingle = null;
     @Unique
     private QuadBounds quadBounds;

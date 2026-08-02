@@ -60,6 +60,7 @@ public abstract class MixinRenderChunk {
     // [AUDIT-OK] OF-added fields blockLayersSingle/isMipmaps/fixBlockLayer (OF:71-73)
     @Unique
     private final BlockRenderLayer[] blockLayersSingle = new BlockRenderLayer[1];
+    @Unique
     private final boolean isMipmaps = Config.isMipmaps();
     @Unique
     private final boolean fixBlockLayer = !Reflector.BetterFoliageClient.exists();
@@ -73,12 +74,15 @@ public abstract class MixinRenderChunk {
     // [AUDIT-OK] OF-added fields renderChunksOfset16/renderChunksOffset16Updated/chunk/renderChunkNeighbours/renderChunkNeighboursValid/renderChunkNeighboursUpated (OF:77-82)
     @Unique
     private final RenderChunk[] renderChunksOfset16 = new RenderChunk[6];
+    @Unique
     private boolean renderChunksOffset16Updated = false;
     @Unique
     private Chunk chunk;
+    @Unique
     private RenderChunk[] renderChunkNeighbours = new RenderChunk[EnumFacing.VALUES.length];
     @Unique
     private RenderChunk[] renderChunkNeighboursValid = new RenderChunk[EnumFacing.VALUES.length];
+    @Unique
     private boolean renderChunkNeighboursUpated = false;
     @Unique
     // [AUDIT-FIXED] field init moved to <init> RETURN: field initializer runs before javac assigns ctor params, so this.renderGlobal was null -> 4-arg vanilla ctor requireNonNull NPE

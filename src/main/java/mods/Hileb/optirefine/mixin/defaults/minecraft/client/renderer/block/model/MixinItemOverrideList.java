@@ -25,6 +25,7 @@ public abstract class MixinItemOverrideList {
 // [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
     @Shadow @Final
     // [AUDIT-OK] baseline member overrides declared in ItemOverrideList (deobf:17); shadow initializer is ignored by mixin (nit)
+    @Unique
     private List<ItemOverride> overrides = Lists.newArrayList();
     @Unique
     // [AUDIT-OK] OF-added field (OF ItemOverrideList:18), not in baseline

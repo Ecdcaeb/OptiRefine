@@ -13,6 +13,7 @@ public abstract class MixinClippingHelper {
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
     // [AUDIT-OK] OF-added field (OF:8 public); nit: '= false' initializer on @Public instance field (AGENT.md §4 convention)
+    @Unique
     public boolean disabled = false;
 
     @Shadow

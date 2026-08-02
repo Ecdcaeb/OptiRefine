@@ -50,108 +50,143 @@ public abstract class MixinGameSettings {
     // [AUDIT-OK] OF-added fields (ofFogType..ofAnimatedTextures; 80+), not in baseline
     @Unique
     public int ofFogType = 1;
+    @Unique
     public float ofFogStart = 0.8F;
     @Unique
     public int ofMipmapType = 0;
+    @Unique
     public boolean ofOcclusionFancy = false;
     @Unique
     public boolean ofSmoothFps = false;
+    @Unique
     public boolean ofSmoothWorld = Config.isSingleProcessor();
     @Unique
     public boolean ofLazyChunkLoading = Config.isSingleProcessor();
+    @Unique
     public boolean ofRenderRegions = false;
     @Unique
     public boolean ofSmartAnimations = false;
+    @Unique
     public float ofAoLevel = 1.0F;
     @Unique
     public int ofAaLevel = 0;
+    @Unique
     public int ofAfLevel = 1;
     @Unique
     public int ofClouds = 0;
+    @Unique
     public float ofCloudsHeight = 0.0F;
     @Unique
     public int ofTrees = 0;
+    @Unique
     public int ofRain = 0;
     @Unique
     public int ofDroppedItems = 0;
+    @Unique
     public int ofBetterGrass = 3;
     @Unique
     public int ofAutoSaveTicks = 4000;
+    @Unique
     public boolean ofLagometer = false;
     @Unique
     public boolean ofProfiler = false;
+    @Unique
     public boolean ofShowFps = false;
     @Unique
     public boolean ofWeather = true;
+    @Unique
     public boolean ofSky = true;
     @Unique
     public boolean ofStars = true;
+    @Unique
     public boolean ofSunMoon = true;
     @Unique
     public int ofVignette = 0;
+    @Unique
     public int ofChunkUpdates = 1;
     @Unique
     public boolean ofChunkUpdatesDynamic = false;
+    @Unique
     public int ofTime = 0;
     @Unique
     public boolean ofClearWater = false;
+    @Unique
     public boolean ofBetterSnow = false;
     @Unique
     public String ofFullscreenMode = "Default";
+    @Unique
     public boolean ofSwampColors = true;
     @Unique
     public boolean ofRandomEntities = true;
+    @Unique
     public boolean ofSmoothBiomes = true;
     @Unique
     public boolean ofCustomFonts = true;
+    @Unique
     public boolean ofCustomColors = true;
     @Unique
     public boolean ofCustomSky = true;
+    @Unique
     public boolean ofShowCapes = true;
     @Unique
     public int ofConnectedTextures = 2;
+    @Unique
     public boolean ofCustomItems = true;
     @Unique
     public boolean ofNaturalTextures = false;
+    @Unique
     public boolean ofEmissiveTextures = true;
     @Unique
     public boolean ofFastMath = false;
+    @Unique
     public boolean ofFastRender = false;
     @Unique
     public int ofTranslucentBlocks = 0;
+    @Unique
     public boolean ofDynamicFov = true;
     @Unique
     public boolean ofAlternateBlocks = true;
+    @Unique
     public int ofDynamicLights = 3;
     @Unique
     public boolean ofCustomEntityModels = true;
+    @Unique
     public boolean ofCustomGuis = true;
     @Unique
     public boolean ofShowGlErrors = true;
+    @Unique
     public int ofScreenshotSize = 1;
     @Unique
     public int ofAnimatedWater = 0;
+    @Unique
     public int ofAnimatedLava = 0;
     @Unique
     public boolean ofAnimatedFire = true;
+    @Unique
     public boolean ofAnimatedPortal = true;
     @Unique
     public boolean ofAnimatedRedstone = true;
+    @Unique
     public boolean ofAnimatedExplosion = true;
     @Unique
     public boolean ofAnimatedFlame = true;
+    @Unique
     public boolean ofAnimatedSmoke = true;
     @Unique
     public boolean ofVoidParticles = true;
+    @Unique
     public boolean ofWaterParticles = true;
     @Unique
     public boolean ofRainSplash = true;
+    @Unique
     public boolean ofPortalParticles = true;
     @Unique
     public boolean ofPotionParticles = true;
+    @Unique
     public boolean ofFireworkParticles = true;
     @Unique
     public boolean ofDrippingWaterLava = true;
+    @Unique
     public boolean ofAnimatedTerrain = true;
     @Unique
     public boolean ofAnimatedTextures = true;

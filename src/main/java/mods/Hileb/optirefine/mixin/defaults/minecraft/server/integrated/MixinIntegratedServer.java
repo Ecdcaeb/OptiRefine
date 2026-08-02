@@ -45,6 +45,7 @@ public abstract class MixinIntegratedServer extends MinecraftServer {
 // [AUDIT-OK] OF-added fields difficultyUpdateWorld/difficultyUpdatePos/difficultyLast (in OF, not in baseline; public in OF)
     @Unique
     public World difficultyUpdateWorld = null;
+    @Unique
     @SuppressWarnings("AddedMixinMembersNamePattern")
     public BlockPos difficultyUpdatePos = null;
     @SuppressWarnings("AddedMixinMembersNamePattern")

@@ -61,6 +61,7 @@ public abstract class MixinRenderGlobal {
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
 // [AUDIT-OK] OF-added field, not in baseline (@Public)
+    @Unique
     public boolean renderOverlayDamaged = false;
     // ===== cross-class private access =====
 
@@ -469,6 +470,7 @@ public abstract class MixinRenderGlobal {
     @AccessTransformer(name = "field_147595_R", deobf = true, access = org.objectweb.asm.Opcodes.ACC_PUBLIC)
     private boolean acc_displayListEntitiesDirty;
 
+    @Unique
     private boolean firstWorldLoad = false;
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})

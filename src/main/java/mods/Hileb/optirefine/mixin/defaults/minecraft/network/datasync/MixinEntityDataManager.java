@@ -14,6 +14,7 @@ public abstract class MixinEntityDataManager {
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Public
 // [AUDIT-OK] OF-added fields spawnBiome/spawnPosition (in OF EntityDataManager, not in baseline), MCP names match (baseline has neither)
+    @Unique
     public Biome spawnBiome = Biomes.PLAINS;
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Public

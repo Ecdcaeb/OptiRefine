@@ -92,6 +92,7 @@ public abstract class MixinBufferBuilder {
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
 // [AUDIT-OK] OF-added field, not in baseline (@Public)
+    @Unique
     private RenderEnv renderEnv = null;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
@@ -101,10 +102,12 @@ public abstract class MixinBufferBuilder {
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
 // [AUDIT-OK] OF-added field, not in baseline (@Public)
+    @Unique
     private final BitSet animatedSpritesCached = new BitSet();
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
 // [AUDIT-OK] OF-added field, not in baseline
+    @Unique
     private boolean modeTriangles = false;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique

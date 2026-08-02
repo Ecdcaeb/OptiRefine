@@ -31,6 +31,7 @@ public abstract class MixinRenderList extends ChunkRenderContainer {
 
     @Unique
 // [AUDIT-OK] OF-added field (OF: package-private IntBuffer bufferLists), not in baseline
+    @Unique
     IntBuffer bufferLists = GLAllocation.createDirectIntBuffer(16);
 
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.chunk.RenderChunk regionX I")

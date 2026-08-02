@@ -21,6 +21,7 @@ public abstract class MixinGuiOverlayDebug extends Gui {
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
 // [AUDIT-OK] OF-added member (OF GuiOverlayDebug private field), not in baseline
+    @Unique
     private String debugOF = null;
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
@@ -30,6 +31,7 @@ public abstract class MixinGuiOverlayDebug extends Gui {
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
 // [AUDIT-OK] OF-added member, not in baseline
+    @Unique
     private List<String> debugInfoRight = null;
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
@@ -39,6 +41,7 @@ public abstract class MixinGuiOverlayDebug extends Gui {
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
 // [AUDIT-OK] OF-added member, not in baseline
+    @Unique
     private long updateInfoRightTimeMs = 0L;
 
     @SuppressWarnings("unused")
