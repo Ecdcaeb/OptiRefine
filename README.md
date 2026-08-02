@@ -4,38 +4,50 @@
 OptiRefine is a mod that utilizes Mixin to patch Optifine, keeping optifine compatible with cleanroom and reducing its destructiveness.
 
 Post incompatible issues of optifine here!
+
 ## Project Steps
 
 [✔] Make the patches
 
 [✔] Disable OptiFineClassTransformer as it make file replacement
 
-[*] Reimplement OptiFine with mixin (181/249) !!! Note that currently builds from actions are in a hybrid state, unstable and unsuitable for use.
+[✔] Reimplement OptiFine with mixin (122/122)
+
+[✔] Migrate build toolchain to the CleanroomModTemplate `mixin` branch (Gradle 9.6.1 / unimined 1.4.26-kappa / Cleanroom loader 0.5.17-alpha / JDK 26) and make `gradlew build` pass
+
+[] Runtime verification in-game (mixin apply, AccessibleOperation, cursed mixin extensions)
 
 [] Fix optifine and update to lwjgl3
 
 ### High Priority:
-
 Cleanroom conflict fixes
 
 Mod conflict fixes
 
 ### Medium Priority:
-
 Latest GL support
 
 Latest OptiFine features
 
 ### Low Priority:
-
 Syntax sugar
 
 Continue optimization
 
+## Build
+
+Requires JDK 26 (`JAVA_HOME` must point to it). Then:
+
+```
+./gradlew build
+```
+
+Note: mixins are written against the vanilla MCP classes on the compile classpath;
+OptiFine-only members are accessed via `@AccessibleOperation` / `@Shadow` (see FOR_AGENT.md).
+
 ## Feats
 
 ### Cleanroom removed Realms
-
 OptiRefine does not perform any special repairs, which may prove to be universal.
 
 with Fugue
@@ -45,5 +57,3 @@ with Fugue
 with OptiRefine
 
 <img width="833" height="507" alt="image" src="https://github.com/user-attachments/assets/2c701e4b-1325-4b61-a5c7-5308e7d34528" />
-
-

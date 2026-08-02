@@ -65,6 +65,7 @@
     "minecraft.client.renderer.MixinEntityRenderer",
     "minecraft.client.renderer.MixinImageBufferDownload",
     "minecraft.client.renderer.MixinMatrix4f",
+    "minecraft.client.renderer.MixinOpenGlHelper",
     "minecraft.client.renderer.MixinRenderList",
     "minecraft.client.renderer.MixinTessellator",
     "minecraft.client.renderer.MixinThreadDownloadImageData",
@@ -124,6 +125,15 @@
     "minecraft.client.settings.MixinGameSettingsOption",
     "minecraft.server.integrated.MixinIntegratedServer",
     "minecraft.util.MixinScreenShotHelper",
-    "minecraftforge.client.MixinGuiIngameForge"
+    "minecraftforge.client.MixinGuiIngameForge",
+    "minecraft.client.renderer.texture.MixinTextureUtil",
+    "minecraft.client.renderer.MixinItemRenderer",
+    "minecraft.client.renderer.MixinGlStateManager",
+    "minecraft.client.renderer.texture.MixinTextureAtlasSprite",
+    "minecraft.client.renderer.texture.MixinTextureMap",
+    "minecraft.client.renderer.MixinRenderItem",
+    "minecraft.client.renderer.MixinRenderGlobal",
+    "minecraft.client.renderer.MixinBlockModelRender$AmbientOcclusionFace",
+    "minecraft.client.renderer.texture.MixinStitcher"
   ]
 }

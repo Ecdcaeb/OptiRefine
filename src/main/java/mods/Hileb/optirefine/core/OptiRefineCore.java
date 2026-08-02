@@ -96,7 +96,17 @@ public class OptiRefineCore implements IFMLLoadingPlugin {
         }
 
         private static ModMetadata decodeData() {
+
             File source = coremodLocation;
+
+            if (source == null) {
+
+                LOGGER.warn("coremodLocation is null, falling back to default metadata");
+
+                return fallbackMetadata();
+
+            }
+
             if (source.isFile()) {
                 try (FileSystem fs = FileSystems.newFileSystem(source.toPath(), (ClassLoader)null)){
                     try (InputStream inputStream = Files.newInputStream(Objects.requireNonNull(fs.getPath("/mcmod.info")))) {
@@ -107,19 +117,23 @@ public class OptiRefineCore implements IFMLLoadingPlugin {
                 } catch (IOException e) {
                     LOGGER.error("Error loading FileSystem from jar: ", e);
                 }
-            } else if (source.isDirectory()) {
-                try (InputStream inputStream = Files.newInputStream(Objects.requireNonNull(source.toPath().resolve("mcmod.info")))) {
-                    return MetaDataDecoder.decodeMcModInfo(inputStream).get("optirefine");
-                } catch (Throwable t) {
-                    LOGGER.error("Error loading metadata from jar: ", t);
-                }
-            }
-            ModMetadata modMetadata = new ModMetadata();
-            modMetadata.name = "OptiRefine";
-            modMetadata.modId = "optirefine";
-            modMetadata.authorList.add("Hileb");
-            modMetadata.version = "Unknown";
-            return modMetadata;
+            } else if (source.isDirectory()) {
+                try (InputStream inputStream = Files.newInputStream(Objects.requireNonNull(source.toPath().resolve("mcmod.info")))) {
+                    return MetaDataDecoder.decodeMcModInfo(inputStream).get("optirefine");
+                } catch (Throwable t) {
+                    LOGGER.error("Error loading metadata from jar: ", t);
+                }
+            }
+            return fallbackMetadata();
+        }
+
+        private static ModMetadata fallbackMetadata() {
+            ModMetadata modMetadata = new ModMetadata();
+            modMetadata.name = "OptiRefine";
+            modMetadata.modId = "optirefine";
+            modMetadata.authorList.add("Hileb");
+            modMetadata.version = "Unknown";
+            return modMetadata;
         }
 
         @Override
@@ -157,8 +171,10 @@ public class OptiRefineCore implements IFMLLoadingPlugin {
         public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
             targetClassName = targetClassName.replace('/', '.');
 
-            boolean should = !targetClassName.startsWith("net.minecraft.") || OptiRefineBlackboard.isOverwritePatches(targetClassName);;
-            LOGGER.info("OptiRefine ShouldApply For {} ? {}", targetClassName, should);
+            boolean should = !targetClassName.startsWith("net.minecraft.") || OptiRefineBlackboard.isOverwritePatches(targetClassName);
+
+            LOGGER.debug("OptiRefine ShouldApply For {} ? {}", targetClassName, should);
+
             return should;
         }
 
@@ -196,10 +212,23 @@ public class OptiRefineCore implements IFMLLoadingPlugin {
         }
 
         @Override
+
         public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
+
             //mods.Hileb.optirefine.mixin.mods.<modId>.path.MixinClass
-            String modId = mixinClassName.split("\\.")[5];
+
+            String[] parts = mixinClassName.split("\\.");
+
+            if (parts.length < 6 || !"mods".equals(parts[0]) || !"Hileb".equals(parts[1]) || !"optirefine".equals(parts[2]) || !"mixin".equals(parts[3]) || !"mods".equals(parts[4])) {
+
+                return false;
+
+            }
+
+            String modId = parts[5];
+
             return Loader.isModLoaded(modId);
+
         }
 
         @Override

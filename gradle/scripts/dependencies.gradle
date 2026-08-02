@@ -1,33 +1,31 @@
-apply from: 'gradle/scripts/helpers.gradle'
-
 repositories {
     // Other repositories described by default:
     // CleanroomMC: https://maven.cleanroommc.com
     maven {
-        name 'CurseMaven'
-        url 'https://curse.cleanroommc.com'
+        name = 'CurseMaven'
+        url = 'https://cursemaven.com'
     }
     maven {
-        name 'Modrinth'
-        url 'https://api.modrinth.com/maven'
+        name = 'CleanroomCurseMaven'
+        url = 'https://curse.cleanroommc.com'
     }
     maven {
-        name 'CleanroomMC Maven'
-        url 'https://maven.cleanroommc.com'
+        name = 'Modrinth'
+        url = 'https://api.modrinth.com/maven'
     }
     maven {
-        name 'Hileb'
-        url 'https://ecdcaeb.github.io/maven/'
+        name = 'Hileb'
+        url = 'https://ecdcaeb.github.io/maven/'
     }
+    mavenCentral()
     mavenLocal() // Must be last for caching to work
 }
 
 dependencies {
-    compileOnly "com.cleanroommc:sponge-mixin:0.20.12+mixin.0.8.7"
-    if (propertyBool('enable_lwjglx')) {
+    compileOnly "com.cleanroommc:sponge-mixin:0.20.13+mixin.0.8.7"
+    if (enable_lwjglx.toBoolean()) {
         compileOnly "com.cleanroommc:lwjglx:1.0.0"
     }
-    modImplementation 'curse.maven:hei-557549:6187146' // Use for mod Mixin example
 
     compileOnly "net.optifine:optifine:1.12.2-HD_U_G5_unpatched_srg"
 
@@ -51,7 +49,7 @@ dependencies {
     // runtimeOnly = runtime dependency
     // compileOnly = compile time dependency
     // annotationProcessor = annotation processing dependencies
-    // contain = bundle dependency jars into final artifact, will extract them in mod loading. Please only do this to non-mod dependencies.
+    // contain = bundle dependency jars into final artifact, will extract them in mod loading. Can be used it as jar-in-jar
     // shadow = bundle dependencies into shadow output artifact (relocation configurable in shadowJar task)
     // modImplementation = mod dependency available at both compile time and runtime
     // modCompileOnly = mod dependency available only at compile time

@@ -358,7 +358,7 @@ public class CursedMixinExtensions {
                     if (opcodes >= Opcodes.GETSTATIC && opcodes <= Opcodes.PUTFIELD) {
                         tasks.add((instructions, call) -> {
                             if (call.owner.equals(targetClass.name) && call.name.equals(method.name) && call.desc.equals(method.desc)) {
-                                instructions.insert(call, new FieldInsnNode(opc, owner, name, _opt_desc));
+                                instructions.insert(call, new FieldInsnNode(opc, owner.replace('.', '/'), name.replace('.', '/'), _opt_desc.replace('.', '/')));
                                 instructions.remove(call);
                             }
                         });

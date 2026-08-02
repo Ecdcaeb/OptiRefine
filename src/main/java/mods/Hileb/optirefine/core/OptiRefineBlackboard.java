@@ -3,57 +3,22 @@ package mods.Hileb.optirefine.core;
 import com.google.common.collect.Sets;
 import com.google.gson.*;
 import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
+
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
-import mods.Hileb.optirefine.library.common.utils.Initializer;
+
 import mods.Hileb.optirefine.library.common.utils.Lazy;
 import net.minecraft.launchwrapper.Launch;
-import net.minecraftforge.fml.relauncher.FMLLaunchHandler;
-import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.apache.hc.core5.http.io.entity.EntityUtils;
-import org.objectweb.asm.*;
-import org.objectweb.asm.tree.*;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.*;
 
 public class OptiRefineBlackboard {
 
-    public static boolean IS_INDEV = Boolean.parseBoolean(System.getProperty("optirefine.dev", "false"));
-
-    public static final Set<String> TEST_INDEV_CLASS = Initializer.initializeSystemProperty(
-            "optirefine.dev.classes",
-            str -> Sets.newHashSet(str.split(";")) ,
-            Set.of()
-        );
-
-    public static final HashSet<String> INDEV_CLASS = Sets.newHashSet(
-            "net.minecraft.client.gui.FontRenderer",
-            "net.minecraft.client.renderer.block.model.BakedQuad",
-            "net.minecraft.client.renderer.block.model.BakedQuadRetextured",
-            "net.minecraft.client.renderer.block.model.FaceBakery",
-            "net.minecraft.client.renderer.block.model.FaceBakery$1",
-            "net.minecraft.client.renderer.block.model.FaceBakery$2",
-            "net.minecraft.client.renderer.block.model.FaceBakery$3",
-            "net.minecraft.client.renderer.block.model.FaceBakery$4",
-            "net.minecraft.client.renderer.block.model.FaceBakery$5",
-            "net.minecraft.client.renderer.block.model.FaceBakery$Rotation",
-            "net.minecraft.client.renderer.block.model.ItemOverrideList",
-            "net.minecraft.client.renderer.chunk.RenderChunk",
-            "net.minecraft.client.renderer.BlockModelRender",
-            "net.minecraft.client.renderer.BlockModelRender$AmbientOcclusionFace" //TODO
-    );
 
 
     public static final HashSet<String> CLASSES = Sets.newHashSet(
@@ -164,7 +129,7 @@ public class OptiRefineBlackboard {
             "net.minecraft.client.renderer.vertex.VertexBuffer",
             "net.minecraft.client.renderer.BlockFluidRenderer",
             "net.minecraft.client.renderer.BlockModelRender",
-            "net.minecraft.client.renderer.BlockModelRender$AmbientOcclusionFace", //TODO
+            "net.minecraft.client.renderer.BlockModelRender$AmbientOcclusionFace",
             "net.minecraft.client.renderer.BlockModelRender$EnumNeighborInfo",
             "net.minecraft.client.renderer.BlockModelRender$Orientation",
             "net.minecraft.client.renderer.BlockModelRender$VertexTranslations",
@@ -193,9 +158,8 @@ public class OptiRefineBlackboard {
             "net.minecraft.client.resources.ResourcePackRepository$Entry",
             "net.minecraft.client.settings.GameSettings",
             "net.minecraft.client.settings.GameSettings$1",
-            "net.minecraft.client.settings.GameSettings$2",
-            "net.minecraft.client.settings.GameSettings$Options",
-            "net.minecraft.client.LoadingScreenRenderer",
+            "net.minecraft.client.settings.GameSettings$2",
+            "net.minecraft.client.settings.GameSettings$Options",
             "net.minecraft.crash.CrashReport",
             "net.minecraft.crash.CrashReport$1",
             "net.minecraft.crash.CrashReport$2",
@@ -282,121 +246,8 @@ public class OptiRefineBlackboard {
     });
 
     public static boolean isOverwritePatches(String className) {
-        return (IS_INDEV && TEST_INDEV_CLASS.contains(className)) || ( !INDEV_CLASS.contains(className) || (REPATCH_CONFIG.get().containsKey(className) && REPATCH_CONFIG.get().getBoolean(className)));
+
+        return REPATCH_CONFIG.get().containsKey(className) && REPATCH_CONFIG.get().getBoolean(className);
+
     }
 }
-
-    /*
-    net.minecraft.block.BlockAir
-net.minecraft.block.material.MapColor
-net.minecraft.block.state.BlockStateBase
-net.minecraft.block.state.BlockStateContainer
-net.minecraft.client.LoadingScreenRenderer
-net.minecraft.client.entity.AbstractClientPlayer
-net.minecraft.client.gui.FontRenderer
-net.minecraft.client.gui.GuiCustomizeSkin
-net.minecraft.client.gui.GuiDownloadTerrain
-net.minecraft.client.gui.GuiIngame
-net.minecraft.client.gui.GuiMainMenu
-net.minecraft.client.gui.GuiOverlayDebug
-net.minecraft.client.gui.GuiScreenWorking
-net.minecraft.client.gui.GuiSlot
-net.minecraft.client.gui.GuiVideoSettings
-net.minecraft.client.model.ModelBox
-net.minecraft.client.model.ModelPlayer
-net.minecraft.client.model.ModelRenderer
-net.minecraft.client.model.TexturedQuad
-net.minecraft.client.multiplayer.WorldClient
-net.minecraft.client.particle.ParticleItemPickup
-net.minecraft.client.particle.ParticleManager
-net.minecraft.client.renderer.BlockFluidRenderer
-net.minecraft.client.renderer.BlockModelRenderer
-net.minecraft.client.renderer.BufferBuilder
-net.minecraft.client.renderer.ChunkRenderContainer
-net.minecraft.client.renderer.EntityRenderer
-net.minecraft.client.renderer.GlStateManager
-net.minecraft.client.renderer.ImageBufferDownload
-net.minecraft.client.renderer.ItemRenderer
-net.minecraft.client.renderer.OpenGlHelper
-net.minecraft.client.renderer.RenderGlobal
-net.minecraft.client.renderer.RenderItem
-net.minecraft.client.renderer.RenderList
-net.minecraft.client.renderer.Tessellator
-net.minecraft.client.renderer.ThreadDownloadImageData
-net.minecraft.client.renderer.VboRenderList
-net.minecraft.client.renderer.VertexBufferUploader
-net.minecraft.client.renderer.ViewFrustum
-net.minecraft.client.renderer.WorldVertexBufferUploader
-net.minecraft.client.renderer.block.model.BakedQuad
-net.minecraft.client.renderer.block.model.BakedQuadRetextured
-net.minecraft.client.renderer.block.model.FaceBakery
-net.minecraft.client.renderer.block.model.ItemOverrideList
-net.minecraft.client.renderer.block.model.ModelBakery
-net.minecraft.client.renderer.block.model.ModelRotation
-net.minecraft.client.renderer.chunk.ChunkRenderDispatcher
-net.minecraft.client.renderer.chunk.CompiledChunk
-net.minecraft.client.renderer.chunk.RenderChunk
-net.minecraft.client.renderer.chunk.SetVisibility
-net.minecraft.client.renderer.chunk.VisGraph
-net.minecraft.client.renderer.culling.ClippingHelper
-net.minecraft.client.renderer.culling.Frustum
-net.minecraft.client.renderer.debug.DebugRendererChunkBorder
-net.minecraft.client.renderer.entity.Render
-net.minecraft.client.renderer.entity.RenderItemFrame
-net.minecraft.client.renderer.entity.RenderLiving
-net.minecraft.client.renderer.entity.RenderLivingBase
-net.minecraft.client.renderer.entity.RenderManager
-net.minecraft.client.renderer.entity.RenderXPOrb
-net.minecraft.client.renderer.entity.layers.LayerArmorBase
-net.minecraft.client.renderer.entity.layers.LayerCape
-net.minecraft.client.renderer.entity.layers.LayerElytra
-net.minecraft.client.renderer.entity.layers.LayerEnderDragonEyes
-net.minecraft.client.renderer.entity.layers.LayerEndermanEyes
-net.minecraft.client.renderer.entity.layers.LayerEntityOnShoulder
-net.minecraft.client.renderer.entity.layers.LayerMooshroomMushroom
-net.minecraft.client.renderer.entity.layers.LayerSheepWool
-net.minecraft.client.renderer.entity.layers.LayerSpiderEyes
-net.minecraft.client.renderer.entity.layers.LayerWolfCollar
-net.minecraft.client.renderer.texture.AbstractTexture
-net.minecraft.client.renderer.texture.DynamicTexture
-net.minecraft.client.renderer.texture.ITextureObject
-net.minecraft.client.renderer.texture.LayeredColorMaskTexture
-net.minecraft.client.renderer.texture.LayeredTexture
-net.minecraft.client.renderer.texture.SimpleTexture
-net.minecraft.client.renderer.texture.Stitcher
-net.minecraft.client.renderer.texture.TextureAtlasSprite
-net.minecraft.client.renderer.texture.TextureManager
-net.minecraft.client.renderer.texture.TextureMap
-net.minecraft.client.renderer.texture.TextureUtil
-net.minecraft.client.renderer.tileentity.TileEntityBeaconRenderer
-net.minecraft.client.renderer.tileentity.TileEntityEndPortalRenderer
-net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher
-net.minecraft.client.renderer.tileentity.TileEntitySignRenderer
-net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
-net.minecraft.client.renderer.vertex.DefaultVertexFormats
-net.minecraft.client.renderer.vertex.VertexBuffer
-net.minecraft.client.resources.AbstractResourcePack
-net.minecraft.client.resources.DefaultResourcePack
-net.minecraft.client.resources.I18n
-net.minecraft.client.resources.ResourcePackRepository
-net.minecraft.client.settings.GameSettings
-net.minecraft.crash.CrashReport
-net.minecraft.entity.EntityLiving
-net.minecraft.network.PacketThreadUtil
-net.minecraft.network.datasync.EntityDataManager
-net.minecraft.potion.PotionUtils
-net.minecraft.profiler.Profiler
-net.minecraft.server.integrated.IntegratedServer
-net.minecraft.server.management.PlayerChunkMap
-net.minecraft.util.ClassInheritanceMultiMap
-net.minecraft.util.EnumFacing
-net.minecraft.util.IntegerCache
-net.minecraft.util.ScreenShotHelper
-net.minecraft.util.Util
-net.minecraft.util.math.ChunkPos
-net.minecraft.util.math.MathHelper
-net.minecraft.world.GameRules
-net.minecraft.world.WorldEntitySpawner
-net.minecraft.world.chunk.storage.ExtendedBlockStorage
-net.minecraft.world.gen.layer.GenLayerZoom
-    */

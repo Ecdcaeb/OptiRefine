@@ -1,11 +1,13 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer.texture;
 
+import mods.Hileb.optirefine.library.common.utils.Checked;
 import mods.Hileb.optirefine.library.api.DeprecatedHelper;
 import net.minecraft.client.renderer.texture.ITextureObject;
 import net.optifine.shaders.MultiTexID;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
+@Checked
 @Mixin(ITextureObject.class)
 public interface MixinITextureObject {
 
@@ -16,23 +18,3 @@ public interface MixinITextureObject {
         return new MultiTexID(0, 0, 0);
     }
 }
-/*
-@@ -1,14 +1,17 @@
- package net.minecraft.client.renderer.texture;
-
- import java.io.IOException;
- import net.minecraft.client.resources.IResourceManager;
-+import net.optifine.shaders.MultiTexID;
-
- public interface ITextureObject {
-    void setBlurMipmap(boolean var1, boolean var2);
-
-    void restoreLastBlurMipmap();
-
-    void loadTexture(IResourceManager var1) throws IOException;
-
-    int getGlTextureId();
-+
-+   MultiTexID getMultiTexID();
- }
- */

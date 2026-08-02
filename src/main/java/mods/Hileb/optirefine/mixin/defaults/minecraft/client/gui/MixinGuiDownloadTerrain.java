@@ -16,46 +16,13 @@ import org.spongepowered.asm.mixin.injection.At;
 public abstract class MixinGuiDownloadTerrain extends GuiScreen {
 
     @Unique
-    private CustomLoadingScreen gradle_properties$customLoadingScreen = CustomLoadingScreens.getCustomLoadingScreen();
+    private CustomLoadingScreen optiRefine$customLoadingScreen = CustomLoadingScreens.getCustomLoadingScreen();
 
     @WrapOperation(method = "drawScreen", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiDownloadTerrain;drawBackground(I)V"))
     public void injectDrawScreen(GuiDownloadTerrain instance, int i, Operation<Void> original) {
-        if (gradle_properties$customLoadingScreen != null) {
-            gradle_properties$customLoadingScreen.drawBackground(this.width, this.height);
+        if (optiRefine$customLoadingScreen != null) {
+            optiRefine$customLoadingScreen.drawBackground(this.width, this.height);
         } else original.call(instance, i);
     }
 
 }
-/*
-+++ net/minecraft/client/gui/GuiDownloadTerrain.java	Tue Aug 19 14:59:58 2025
-@@ -1,18 +1,27 @@
- package net.minecraft.client.gui;
-
- import net.minecraft.client.resources.I18n;
-+import net.optifine.CustomLoadingScreen;
-+import net.optifine.CustomLoadingScreens;
-
- public class GuiDownloadTerrain extends GuiScreen {
-+   private CustomLoadingScreen customLoadingScreen = CustomLoadingScreens.getCustomLoadingScreen();
-+
-    public void initGui() {
-       this.buttonList.clear();
-    }
-
-    public void drawScreen(int var1, int var2, float var3) {
--      this.drawBackground(0);
--      this.drawCenteredString(this.fontRenderer, I18n.format("multiplayer.downloadingTerrain"), this.width / 2, this.height / 2 - 50, 16777215);
-+      if (this.customLoadingScreen != null) {
-+         this.customLoadingScreen.drawBackground(this.width, this.height);
-+      } else {
-+         this.drawBackground(0);
-+      }
-+
-+      this.a(this.fontRenderer, I18n.format("multiplayer.downloadingTerrain"), this.width / 2, this.height / 2 - 50, 16777215);
-       super.drawScreen(var1, var2, var3);
-    }
-
-    public boolean doesGuiPauseGame() {
-       return false;
-    }
- */

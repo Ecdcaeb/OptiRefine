@@ -88,12 +88,12 @@ public class OptifineTransformerTransformer implements TransformerHelper.Targete
         return ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS;
     }
 
-    public static boolean couldNotTransform(String transformedName) {
-        LOGGER.debug("Optifine try class {}", transformedName);
-        if (OptiRefineBlackboard.isOverwritePatches(transformedName)) {
-            LOGGER.debug("Optifine skipped class {}", transformedName);
-            return true;
-        }
-        else return false;
+    public static boolean couldNotTransform(String transformedName) {
+        LOGGER.debug("Optifine try class {}", transformedName);
+        if (OptiRefineBlackboard.isOverwritePatches(transformedName)) {
+            LOGGER.debug("Optifine skipped class {}", transformedName);
+            return true;
+        }
+        return false;
     }
 }

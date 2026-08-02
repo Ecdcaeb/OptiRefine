@@ -22,3 +22,6 @@ eclipse
 run
 /mcmodsrepo/
 libs
+.alma-snapshots
+.alma
+patch
