@@ -348,7 +348,11 @@ public abstract class MixinRenderChunk {
 
     @WrapOperation(method = "rebuildChunk", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/chunk/CompiledChunk;setVisibility(Lnet/minecraft/client/renderer/chunk/SetVisibility;)V"))
     public void renderFinished(CompiledChunk instance, SetVisibility visibility, Operation<Void> original, @Share(namespace = "optifine", value = "chunkCacheOF") LocalRef<IBlockAccess> chunkCacheOF){
-        ((ChunkCacheOF)chunkCacheOF.get()).renderFinish();
+        // [AUDIT-FIXED] empty chunk regions never set chunkCacheOF (OF only calls renderFinish in the non-empty branch); null-guard
+        IBlockAccess chunkCacheOFValue = chunkCacheOF.get();
+        if (chunkCacheOFValue != null) {
+            ((ChunkCacheOF)chunkCacheOFValue).renderFinish();
+        }
         original.call(instance, visibility);
     }
 
