@@ -174,7 +174,7 @@ public abstract class MixinTextureAtlasSprite {
     private static native void TextureAtlasSprite_isShadersSprite_set(TextureAtlasSprite sprite, boolean value);
 
     @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureMap generateMipmaps (Lnet/minecraft/client/resources/IResourceManager;Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;)V")
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureMap func_184397_a (Lnet/minecraft/client/resources/IResourceManager;Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;)V")
     private static native void TextureMap_generateMipmaps(net.minecraft.client.renderer.texture.TextureMap textureMap, IResourceManager resourceManager, TextureAtlasSprite sprite);
 
     @SuppressWarnings({"unused", "MissingUnique"})
@@ -186,11 +186,11 @@ public abstract class MixinTextureAtlasSprite {
     private static native void TextureAtlasSprite_setAnimationIndex(TextureAtlasSprite sprite, int animationIndex);
 
     @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite allocateFrameTextureData (I)V")
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite func_130099_d (I)V")
     private static native void TextureAtlasSprite_allocateFrameTextureData(TextureAtlasSprite sprite, int index);
 
     @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite resetSprite ()V")
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite func_130102_n ()V")
     private static native void TextureAtlasSprite_resetSprite(TextureAtlasSprite sprite);
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern", "MissingUnique"})

@@ -348,7 +348,7 @@ public abstract class MixinRenderChunk {
 
     }
 
-    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.ViewFrustum getRenderChunk (Lnet.minecraft.util.math.BlockPos;)Lnet.minecraft.client.renderer.chunk.RenderChunk;")
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.ViewFrustum func_178161_a (Lnet.minecraft.util.math.BlockPos;)Lnet.minecraft.client.renderer.chunk.RenderChunk;")
     private static native RenderChunk ViewFrustum_getRenderChunk(ViewFrustum viewFrustum, BlockPos b);
     @Unique
     @SuppressWarnings("AddedMixinMembersNamePattern")

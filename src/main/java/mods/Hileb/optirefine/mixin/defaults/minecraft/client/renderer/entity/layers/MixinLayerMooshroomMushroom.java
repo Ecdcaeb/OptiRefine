@@ -57,7 +57,7 @@ public abstract class MixinLayerMooshroomMushroom {
     }
 
     @SuppressWarnings("MissingUnique")
-    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.model.ModelRenderer addBox ([[IFFFFFFF)V")
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.model.ModelRenderer func_78790_a ([[IFFFFFFF)V")
     private static native void ModelRenderer_addBox(ModelRenderer modelRendererMushroom, int[][] faceUvs, float x, float y, float z, float dx, float dy, float dz, float delta);
 
     @Redirect(method = "doRenderLayer(Lnet/minecraft/entity/passive/EntityMooshroom;FFFFFFF)V", at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/texture/TextureMap;LOCATION_BLOCKS_TEXTURE:Lnet/minecraft/util/ResourceLocation;"))

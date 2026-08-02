@@ -196,7 +196,7 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
     private static native void TextureAtlasSprite_spriteEmissive_set(TextureAtlasSprite sprite, TextureAtlasSprite value);
 
     @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureMap generateMipmaps (Lnet/minecraft/client/resources/IResourceManager;Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;)V")
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureMap func_184397_a (Lnet/minecraft/client/resources/IResourceManager;Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;)V")
     private static native void TextureMap_generateMipmaps(net.minecraft.client.renderer.texture.TextureMap textureMap, IResourceManager resourceManager, TextureAtlasSprite sprite);
 
     @SuppressWarnings({"unused", "MissingUnique"})
@@ -212,7 +212,7 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
     private static native int GlStateManager_getBoundTexture();
 
     @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.client.renderer.texture.TextureUtil bindTexture (I)V")
+    @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.client.renderer.texture.TextureUtil func_94277_a (I)V")
     private static native void TextureUtil_bindTexture(int texture);
 
     @Unique

@@ -90,11 +90,11 @@ public abstract class MixinRenderGlobal {
     private static native int RenderGlobal_getCountChunksToUpdate(RenderGlobal renderGlobal);
 
     @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.RenderGlobal hasNoChunkUpdates ()Z")
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.RenderGlobal func_184384_n ()Z")
     private static native boolean RenderGlobal_hasNoChunkUpdates(RenderGlobal renderGlobal);
 
     @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.multiplayer.ChunkProviderClient loadedChunks Lit/unimi/dsi/fastutil/longs/Long2ObjectMap;")
+    @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.multiplayer.ChunkProviderClient field_73236_b Lit/unimi/dsi/fastutil/longs/Long2ObjectMap;")
     private static native Long2ObjectMap ChunkProviderClient_loadedChunks_get(ChunkProviderClient chunkProviderClient);
 
     @SuppressWarnings({"unused", "MissingUnique"})

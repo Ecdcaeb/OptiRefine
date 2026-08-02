@@ -231,11 +231,11 @@ public abstract class MixinEntityRenderer {
     // ===== cross-class private access =====
 
     @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessibleOperation(opcode = Opcodes.PUTFIELD, desc = "net.minecraft.client.renderer.RenderGlobal displayListEntitiesDirty Z")
+    @AccessibleOperation(opcode = Opcodes.PUTFIELD, desc = "net.minecraft.client.renderer.RenderGlobal field_147595_R Z")
     private static native void RenderGlobal_displayListEntitiesDirty_set(RenderGlobal renderGlobal, boolean value);
 
     @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.RenderGlobal damagedBlocks Ljava/util/Map;")
+    @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.RenderGlobal field_72738_E Ljava/util/Map;")
     private static native java.util.Map RenderGlobal_damagedBlocks_get(RenderGlobal renderGlobal);
 
     @SuppressWarnings({"unused", "MissingUnique"})
@@ -299,7 +299,7 @@ public abstract class MixinEntityRenderer {
     private static native int RenderGlobal_getCountChunksToUpdate(RenderGlobal renderGlobal);
 
     @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.RenderGlobal hasNoChunkUpdates ()Z")
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.RenderGlobal func_184384_n ()Z")
     private static native boolean RenderGlobal_hasNoChunkUpdates(RenderGlobal renderGlobal);    // ===== new fields (OptiFine) =====
 
     @Unique
@@ -405,7 +405,7 @@ public abstract class MixinEntityRenderer {
     }
 
     @SuppressWarnings("unused")
-    @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.client.settings.GameSettings isKeyDown (Lnet/minecraft/client/settings/KeyBinding;)Z")
+    @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.client.settings.GameSettings func_100015_a (Lnet/minecraft/client/settings/KeyBinding;)Z")
     private static native boolean GameSettingsIsKeyDown(net.minecraft.client.settings.KeyBinding key);
 
     // ===== setupCameraTransform =====

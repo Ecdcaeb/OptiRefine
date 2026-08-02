@@ -39,7 +39,7 @@ public abstract class MixinBakedQuadRetextured {
     }
 
     @SuppressWarnings("MissingUnique")
-    @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.block.model.BakedQuadRetextured texture Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;")
+    @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.block.model.BakedQuadRetextured field_178218_d Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;")
     private static native TextureAtlasSprite BakedQuadRetextured_texture_get(BakedQuadRetextured instance);
 
 }
