@@ -144,9 +144,14 @@ public abstract class MixinEntityRenderer {
 // [AUDIT-OK] vanilla SRG field_175081_S = fogColorBlue, deobf=true
     public float acc$fogColorBlue;
 
-    @AccessTransformer(name = "field_175084_ae", deobf = true)
-// [AUDIT-OK] vanilla SRG field_175084_ae = frameCount, deobf=true
+    // [AUDIT-FIXED] @Shadow provides the MCP-named reference (remapped to SRG field_175084_ae at runtime);
+    // AT placeholder is separate (acc_frameCount) - the old public frameCount placeholder was deleted by
+    // cursed AT processing, leaving this.frameCount refs dangling -> NoSuchFieldError
+    @Shadow
     public int frameCount;
+
+    @AccessTransformer(name = "field_175084_ae", deobf = true, access = org.objectweb.asm.Opcodes.ACC_PUBLIC)
+    private int acc_frameCount;
 
     // ===== shadowed vanilla fields =====
 
