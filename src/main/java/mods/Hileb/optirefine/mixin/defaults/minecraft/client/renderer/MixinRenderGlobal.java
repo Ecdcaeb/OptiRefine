@@ -172,10 +172,10 @@ public abstract class MixinRenderGlobal {
     private boolean entityOutlinesRendered;
     @Public
 // [AUDIT-OK] OF-added field, not in baseline (@Public; OF keeps private)
-    private List<RenderGlobal.ContainerLocalRenderInformation> renderInfosEntities;
+    private List<RenderGlobal.ContainerLocalRenderInformation> renderInfosEntities = new java.util.ArrayList<>(1024);
     @Public
 // [AUDIT-OK] OF-added field, not in baseline (@Public; OF keeps private)
-    private List<RenderGlobal.ContainerLocalRenderInformation> renderInfosTileEntities;
+    private List<RenderGlobal.ContainerLocalRenderInformation> renderInfosTileEntities = new java.util.ArrayList<>(1024);
     @Shadow
 // [AUDIT-OK] baseline member setTileEntities (SRG field_181024_n)
     private Set<TileEntity> setTileEntities;
@@ -269,9 +269,6 @@ public abstract class MixinRenderGlobal {
             List<Entity> list2 = com.google.common.collect.Lists.newArrayList();
             PooledMutableBlockPos pooledmutableblockpos = PooledMutableBlockPos.retain();
             boolean flag1 = Shaders.isShadowPass && !this.mc.player.isSpectator();
-            if (this.renderInfosEntities == null) {
-                this.renderInfosEntities = new java.util.ArrayList<>(1024);
-            }
             for (RenderGlobal.ContainerLocalRenderInformation renderglobal$containerlocalrenderinformation : this.renderInfosEntities) {
                 Chunk chunk = RenderChunk_getChunk(renderglobal$containerlocalrenderinformation.renderChunk);
                 ClassInheritanceMultiMap<Entity> classinheritancemultimap = chunk.getEntityLists()[renderglobal$containerlocalrenderinformation.renderChunk.getPosition().getY() / 16];
@@ -389,9 +386,6 @@ public abstract class MixinRenderGlobal {
             net.minecraft.client.renderer.RenderHelper.enableStandardItemLighting();
             TileEntityRendererDispatcher.instance.preDrawBatch();
             TileEntitySignRenderer_updateTextRenderDistance();
-            if (this.renderInfosTileEntities == null) {
-                this.renderInfosTileEntities = new java.util.ArrayList<>(1024);
-            }
             for (RenderGlobal.ContainerLocalRenderInformation renderglobal$containerlocalrenderinformation1 : this.renderInfosTileEntities) {
                 List<TileEntity> list3 = renderglobal$containerlocalrenderinformation1.renderChunk.getCompiledChunk().getTileEntities();
                 if (!list3.isEmpty()) {
