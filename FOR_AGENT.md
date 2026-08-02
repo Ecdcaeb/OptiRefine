@@ -338,12 +338,6 @@ python .alma/deobf.py --src patch/forge --out patch/deobf --tsrg srg_to_stable_3
 
 ---
 
-## 11. 联系上下文
-
-- 所有者/主用户：洛铃（Lolin）  
-- 工作区：`E:\project\MC MOD\OptiRefine`（以实际 clone 为准）  
-- 日期锚点：文档更新于 **2026-08-02**
-
 ---
 
 **交接完成。** 下一任：先跑 deobf（若缺），再按 §7 做运行时规则审查，不要假设 122=`@Checked` 等于可玩。
