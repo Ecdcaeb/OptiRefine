@@ -111,7 +111,8 @@ public abstract class MixinGuiOverlayDebug extends Gui {
         if (tm != null) sbx.append(_acc_TextureMap_getCountAnimations_(tm) + TextureAnimations.getCountAnimations());
         String ofInfo = sbx.toString();
 
-        return original.call().stream().map((s) -> s.startsWith("P: ") ? s + ofInfo : s).toList();
+        // [AUDIT-FIXED] .toList() is immutable; Forge's GuiOverlayDebugForge.getLeft adds rows to the returned list -> UnsupportedOperationException
+        return new java.util.ArrayList<>(original.call().stream().map((s) -> s.startsWith("P: ") ? s + ofInfo : s).toList());
     }
 
     @Inject(method = "<init>*", at = @At("RETURN"))

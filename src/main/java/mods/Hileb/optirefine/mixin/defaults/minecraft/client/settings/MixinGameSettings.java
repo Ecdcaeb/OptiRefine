@@ -444,7 +444,6 @@ public abstract class MixinGameSettings {
     private static native void MathHelper_fastMath_set(boolean b);
 
 
-    @Unique
     @WrapMethod(method = "setOptionFloatValue")
     // [AUDIT-FIXED] dispatch OF float options first, then vanilla branches (OF GameSettings:407-408)
     public void optiRefine$setOptionFloatValue(GameSettings.Options option, float val, Operation<Void> original) {

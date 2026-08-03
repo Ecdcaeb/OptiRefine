@@ -177,6 +177,10 @@ public abstract class MixinRenderGlobal {
     private boolean entityOutlinesRendered;
     @Public
 // [AUDIT-OK] OF-added field, not in baseline (@Public; OF keeps private)
+    @Shadow
+// [AUDIT-OK] baseline member renderInfos (SRG field_72755_R) - filled by baseline setupTerrain
+    public java.util.List<RenderGlobal.ContainerLocalRenderInformation> renderInfos;
+
     private List<RenderGlobal.ContainerLocalRenderInformation> renderInfosEntities = new java.util.ArrayList<>(1024);
     @Public
 // [AUDIT-OK] OF-added field, not in baseline (@Public; OF keeps private)
@@ -282,7 +286,9 @@ public abstract class MixinRenderGlobal {
             List<Entity> list2 = com.google.common.collect.Lists.newArrayList();
             PooledMutableBlockPos pooledmutableblockpos = PooledMutableBlockPos.retain();
             boolean flag1 = Shaders.isShadowPass && !this.mc.player.isSpectator();
-            for (RenderGlobal.ContainerLocalRenderInformation renderglobal$containerlocalrenderinformation : this.renderInfosEntities) {
+            // [AUDIT-FIXED] iterate baseline renderInfos (field_72755_R, filled by baseline setupTerrain);
+            // mixin-added renderInfosEntities was never populated -> entities/TEs never rendered
+            for (RenderGlobal.ContainerLocalRenderInformation renderglobal$containerlocalrenderinformation : this.renderInfos) {
                 Chunk chunk = RenderChunk_getChunk(renderglobal$containerlocalrenderinformation.renderChunk);
                 ClassInheritanceMultiMap<Entity> classinheritancemultimap = chunk.getEntityLists()[renderglobal$containerlocalrenderinformation.renderChunk.getPosition().getY() / 16];
                 if (!classinheritancemultimap.isEmpty()) {
@@ -399,7 +405,7 @@ public abstract class MixinRenderGlobal {
             net.minecraft.client.renderer.RenderHelper.enableStandardItemLighting();
             TileEntityRendererDispatcher.instance.preDrawBatch();
             TileEntitySignRenderer_updateTextRenderDistance();
-            for (RenderGlobal.ContainerLocalRenderInformation renderglobal$containerlocalrenderinformation1 : this.renderInfosTileEntities) {
+            for (RenderGlobal.ContainerLocalRenderInformation renderglobal$containerlocalrenderinformation1 : this.renderInfos) {
                 List<TileEntity> list3 = renderglobal$containerlocalrenderinformation1.renderChunk.getCompiledChunk().getTileEntities();
                 if (!list3.isEmpty()) {
                     for (TileEntity tileentity : list3) {
