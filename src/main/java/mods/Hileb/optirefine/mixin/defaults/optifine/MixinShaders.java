@@ -4,6 +4,8 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
+import org.objectweb.asm.Opcodes;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.resource.SelectiveReloadStateHandler;
 import net.minecraftforge.client.resource.VanillaResourceType;
@@ -18,7 +20,9 @@ public abstract class MixinShaders {
     @WrapOperation(method = "loadShaderPack", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;func_175603_A()Lcom/google/common/util/concurrent/ListenableFuture;"))
     private static ListenableFuture<Object> optiRefine$selectiveRefresh(Minecraft mc, Operation<ListenableFuture<Object>> original) {
         // SelectiveReloadStateHandler state is read at reload time, so run the reload
-        // synchronously inside begin/end (async submission would lose the predicate).
+        // OptiFine updates BLOCK/ITEM before scheduling the resource reload. The Cleanroom
+        // reload path immediately rebuilds RenderChunk VBOs, so preserve that ordering here.
+        DefaultVertexFormats_updateVertexFormats();
         SelectiveReloadStateHandler.INSTANCE.beginReload(type -> type == VanillaResourceType.TEXTURES || type == VanillaResourceType.MODELS);
         try {
             mc.refreshResources();
@@ -27,4 +31,8 @@ public abstract class MixinShaders {
         }
         return Futures.immediateFuture(null);
     }
+
+    @SuppressWarnings("MissingUnique")
+    @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.client.renderer.vertex.DefaultVertexFormats updateVertexFormats ()V")
+    private static native void DefaultVertexFormats_updateVertexFormats();
 }
