@@ -56,11 +56,16 @@ public abstract class MixinDynamicTexture extends AbstractTexture {
     public void onUpdate(int glTextureId, int[] textureData, int width, int height){
         if (Config.isShaders()) {
             if (!this.shadersInitialized) {
+                // [AUDIT-FIXED] expand data here too: instances created outside the (II) ctor path
+                // (e.g. Forge CloudRenderer) reach this branch with a 1x buffer -> ShadersTex.initDynamicTexture overflows
+                if (this.dynamicTextureData == null || this.dynamicTextureData.length < this.width * this.height * 3) {
+                    this.dynamicTextureData = new int[this.width * this.height * 3];
+                }
                 ShadersTex.initDynamicTexture(this.getGlTextureId(), this.width, this.height, DynamicTexture_cast(this));
                 this.shadersInitialized = true;
             }
 
-            ShadersTex.updateDynamicTexture(this.getGlTextureId(), textureData, this.width, this.height, DynamicTexture_cast(this));
+            ShadersTex.updateDynamicTexture(this.getGlTextureId(), this.dynamicTextureData, this.width, this.height, DynamicTexture_cast(this));
         } else {
             TextureUtil.uploadTexture(glTextureId, textureData, width, height);
         }
