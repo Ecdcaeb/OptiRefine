@@ -2,6 +2,7 @@ package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessTransformer;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
@@ -120,8 +121,34 @@ public abstract class MixinRenderGlobal {
     private static int renderEntitiesCounter = 0;
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
+    @Unique
     @Public
-// [AUDIT-OK] OF-added method, not in baseline
+    // [AUDIT-FIXED] OF RenderGlobal:3002-3016 - Config.drawFps calls these; missing -> NoSuchMethodError
+    private int getCountRenderers() {
+        return this.viewFrustum.renderChunks.length;
+    }
+
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
+    @Unique
+    @Public
+    private int getCountActiveRenderers() {
+        return this.renderInfos.size();
+    }
+
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
+    @Unique
+    @Public
+    private int getCountEntitiesRendered() {
+        return this.countEntitiesRendered;
+    }
+
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
+    @Unique
+    @Public
+    private int getCountTileEntitiesRendered() {
+        return this.countTileEntitiesRendered;
+    }
+
     public int getCountLoadedChunks() {
         // [AUDIT-FIXED] null-guard provider/map like OF RenderGlobal:3018-3033
         if (this.world == null || this.world.getChunkProvider() == null) {
@@ -201,6 +228,9 @@ public abstract class MixinRenderGlobal {
     private net.minecraft.client.renderer.chunk.ChunkRenderDispatcher renderDispatcher;
 
     @Shadow
+    public net.minecraft.client.renderer.ViewFrustum viewFrustum;
+
+    @Shadow
 // [AUDIT-OK] baseline member loadRenderers (func_72712_a)
     public abstract void loadRenderers();
 
@@ -218,6 +248,20 @@ public abstract class MixinRenderGlobal {
     @Shadow
 // [AUDIT-OK] baseline member preRenderDamagedBlocks()V (SRG func_180443_s)
     protected abstract void preRenderDamagedBlocks();
+
+    @WrapOperation(method = "renderBlockLayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/ChunkRenderContainer;renderChunkLayer(Lnet/minecraft/util/BlockRenderLayer;)V"))
+    // [AUDIT-FIXED] shaders hooks around renderChunkLayer (OF RenderGlobal:1275-1282): pre/postRenderChunkLayer
+    // enable GL_NORMAL_ARRAY + midTexCoord/tangent/entity attrib arrays and flip backface culling.
+    // Missing -> terrain programs read default attributes -> blocks render black/blank under shaderpacks.
+    public void optiRefine$renderChunkLayer(net.minecraft.client.renderer.ChunkRenderContainer instance, net.minecraft.util.BlockRenderLayer layer, Operation<Void> original) {
+        if (Config.isShaders()) {
+            net.optifine.shaders.ShadersRender.preRenderChunkLayer(layer);
+        }
+        original.call(instance, layer);
+        if (Config.isShaders()) {
+            net.optifine.shaders.ShadersRender.postRenderChunkLayer(layer);
+        }
+    }
     @Shadow
 // [AUDIT-OK] baseline member postRenderDamagedBlocks()V (SRG func_174969_t)
     protected abstract void postRenderDamagedBlocks();
