@@ -249,7 +249,7 @@ public abstract class MixinRenderGlobal {
 // [AUDIT-OK] baseline member preRenderDamagedBlocks()V (SRG func_180443_s)
     protected abstract void preRenderDamagedBlocks();
 
-    @WrapOperation(method = "renderBlockLayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/ChunkRenderContainer;renderChunkLayer(Lnet/minecraft/util/BlockRenderLayer;)V"))
+    @WrapOperation(method = "renderBlockLayer(Lnet/minecraft/util/BlockRenderLayer;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/ChunkRenderContainer;renderChunkLayer(Lnet/minecraft/util/BlockRenderLayer;)V"))
     // [AUDIT-FIXED] shaders hooks around renderChunkLayer (OF RenderGlobal:1275-1282): pre/postRenderChunkLayer
     // enable GL_NORMAL_ARRAY + midTexCoord/tangent/entity attrib arrays and flip backface culling.
     // Missing -> terrain programs read default attributes -> blocks render black/blank under shaderpacks.
