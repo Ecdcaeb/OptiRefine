@@ -721,8 +721,10 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
     }
 
     @SuppressWarnings("MissingUnique")
-    @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite makeAtlasSprite (Lnet/minecraft/util/ResourceLocation;)Lnet.minecraft.client.renderer.texture.TextureAtlasSprite;", deobf = true)
-    // [AUDIT-OK] vanilla protected static makeAtlasSprite (SRG func_188534_a), deobf=true; invoked cross-class
+    @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite func_176604_a (Lnet/minecraft/util/ResourceLocation;)Lnet.minecraft.client.renderer.texture.TextureAtlasSprite;", deobf = true)
+    // [AUDIT-FIXED] 2026-08-05 crash: SRG runtime uses the raw desc name (deobf remaps only on MCP
+    // runtime), so the vanilla member must be written as its SRG name func_176604_a (= makeAtlasSprite,
+    // tsrg:12970). The MCP name caused NoSuchMethodError at startup.
     private static native TextureAtlasSprite TextureAtlasSprite_makeAtlasSprite(ResourceLocation location);
 
     // ===== new methods =====
