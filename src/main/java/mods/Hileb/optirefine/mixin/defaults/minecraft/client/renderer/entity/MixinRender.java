@@ -28,7 +28,10 @@ public abstract class MixinRender {
 // [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     // [AUDIT-OK] OF-added fields entityClass/locationTextureCustom (OF Render:35-36)
-    private Class<? extends Entity> entityClass = null;
+    @Unique
+    // [AUDIT-FIXED] three-way audit (P13): dropped '= null' initializer + added @Unique per convention
+    // (cleanmix does not inject instance-field initializers; default null == OF:35 semantics)
+    private Class<? extends Entity> entityClass;
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     private ResourceLocation locationTextureCustom;

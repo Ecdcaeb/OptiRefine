@@ -22,8 +22,9 @@ public abstract class MixinRenderLiving {
         }
     }
 
-    @Inject(method = "renderLeash", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GlStateManager;disableCull()V"))
-    // [AUDIT-OK] GlStateManager.disableCull INVOKE unique; beginLeash placement matches OF
+    @Inject(method = "renderLeash", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GlStateManager;disableCull()V", shift = At.Shift.AFTER))
+    // [AUDIT-FIXED] three-way audit (P13): OF order is disableCull() then beginLeash() (OF:90-93);
+    // INVOKE defaults to BEFORE -> beginLeash ran first.
     public void beforeRenderLeashForConfig(EntityLiving entityLivingIn, double x, double y, double z, float entityYaw, float partialTicks, CallbackInfo ci){
         if (Config.isShaders()) {
             Shaders.beginLeash();

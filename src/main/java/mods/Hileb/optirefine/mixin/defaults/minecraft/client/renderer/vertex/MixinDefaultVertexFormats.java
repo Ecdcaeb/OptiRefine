@@ -35,6 +35,7 @@ public abstract class MixinDefaultVertexFormats {
     private static VertexFormat ACC_ITEM;
 
     // [AUDIT-ISSUE] FORGE_BAKED = Attributes.DEFAULT_BAKED_FORMAT is a LIVE reference, OF uses SVertexFormat.duplicate(...) snapshot (OF:17); else-branch SVertexFormat.copy(FORGE_BAKED, DEFAULT_BAKED_FORMAT) is then a self-copy no-op, so the shaders-off restore of DEFAULT_BAKED_FORMAT is lost — needs-verification of SVertexFormat.setDefBakedFormat/copy semantics
+    @Unique
     private static final VertexFormat BLOCK_VANILLA = DefaultVertexFormats.BLOCK;
     @Unique
     private static final VertexFormat ITEM_VANILLA = DefaultVertexFormats.ITEM;

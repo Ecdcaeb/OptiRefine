@@ -45,6 +45,9 @@ public abstract class MixinLayerEntityOnShoulder {
                 }
             }
         }
+        // [AUDIT-FIXED] three-way audit (P16): original.bindTexture was never called (OF:138) ->
+        // shoulder parrot rendered with stale/unbound texture. Call it after the renderedEntity block.
+        original.call(instance, location);
         entityLocalRef.set(renderedEntityOld);
     }
 

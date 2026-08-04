@@ -25,8 +25,10 @@ import java.util.Map;
 public abstract class MixinRenderManager {
 // [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
 
-    // [AUDIT-OK] OF-added field (OF:142 public); nit: '= null' initializer on @Unique instance field (AGENT.md §4 convention)
-    public Render<?> renderRender = null;
+    @Unique
+    // [AUDIT-FIXED] three-way audit (P14): added @Unique, dropped '= null' initializer
+    // (cleanmix does not inject instance-field initializers; default null == OF semantics)
+    public Render<?> renderRender;
 
     @Shadow
     @Final

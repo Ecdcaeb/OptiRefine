@@ -57,10 +57,12 @@ public abstract class MixinLayerArmorBase {
      * @reason OptiFine: shaders glint (isShadowPass skip + renderEnchantedGlintBegin/End)
      */
     @WrapMethod(method = "renderEnchantedGlint")
-    // [AUDIT-ISSUE] handler float order is (limbSwing,limbSwingAmount,ageInTicks,netHeadYaw,headPitch,scaleFactor,partialTicks) but runtime (Forge/OF) order is (limbSwing,limbSwingAmount,partialTicks,ageInTicks,netHeadYaw,headPitch,scale) — WrapMethod binds positionally so every value after limbSwingAmount is shifted: f=ticksExisted+partialTicks (OF uses ageInTicks) and model.render gets shifted pose args; reorder handler params to (…,partialTicks,ageInTicks,netHeadYaw,headPitch,scale)
+    // [AUDIT-FIXED] three-way audit (P15): param order (limbSwing,limbSwingAmount,partialTicks,ageInTicks,
+    // netHeadYaw,headPitch,scale) matches vanilla/OF; the f scroll phase must use partialTicks (OF),
+    // not ageInTicks (fixed below).
     private static void optiRefine$renderEnchantedGlint(RenderLivingBase<?> renderer, EntityLivingBase entityLivingBaseIn, ModelBase modelBaseIn, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch, float scale, Operation<Void> original) {
         if (!Config.isShaders() || !Shaders.isShadowPass) {
-            float f = entityLivingBaseIn.ticksExisted + ageInTicks;
+            float f = entityLivingBaseIn.ticksExisted + partialTicks;
             renderer.bindTexture(LayerArmorBase.ENCHANTED_ITEM_GLINT_RES);
             if (Config.isShaders()) {
                 ShadersRender.renderEnchantedGlintBegin();

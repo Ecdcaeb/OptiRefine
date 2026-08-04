@@ -84,7 +84,8 @@ public abstract class MixinRenderLivingBase<T extends EntityLivingBase> {
     }
 
     @WrapOperation(method = "doRender(Lnet/minecraft/entity/EntityLivingBase;DDDFF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/ModelBase;setRotationAngles(FFFFFFLnet/minecraft/entity/Entity;)V", ordinal = 0))
-    // [AUDIT-ISSUE] @Local(argsOnly=true, ordinal=1) resolves to doRender arg1 (double x), NOT partialTicks (arg5) — float local binding fails/wrong value at apply; change ordinal to 5
+    // [AUDIT-FIXED] three-way audit (P13): @Local(argsOnly=true, ordinal=5) = doRender arg5 partialTicks
+    // (argsOnly ordinal counts all params 0-based) — code correct, comment was stale.
     public void customEntityModelsAction(ModelBase instance, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, float scaleFactor, Entity entityIn, Operation<Void> original, @Local(argsOnly = true, ordinal = 5) float partialTicks){
         original.call(instance, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scaleFactor, entityIn);
         if (CustomEntityModels.isActive()) {

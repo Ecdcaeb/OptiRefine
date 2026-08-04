@@ -31,8 +31,10 @@ public abstract class MixinTileEntityBeaconRenderer {
         }
     }
 
-    @WrapOperation(method = "renderBeamSegment(DDDDDDII[FDD)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GlStateManager;depthMask(Z)V"))
-    // [AUDIT-ISSUE] no ordinal -> applies isBeaconBeamDepth() override to ALL THREE depthMask calls in renderBeamSegment (start true, mid false, end true); OF only overrides the depthMask(false) at OF:108-110 — restrict to ordinal 1 (the false call) or only override when flag==false
+    @WrapOperation(method = "renderBeamSegment(DDDDDDII[FDD)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GlStateManager;depthMask(Z)V", ordinal = 1))
+    // [AUDIT-FIXED] three-way audit (P18): OF only overrides the middle depthMask(false) call (OF:108-110);
+    // without ordinal the override hit all three (start true / mid false / end true), wrongly disabling
+    // depth writes on the first/last passes when beaconBeamDepth=false.
     private static void depthMask(boolean flagIn, Operation<Void> original){
         original.call(flagIn);
         if (Config.isShaders()) {

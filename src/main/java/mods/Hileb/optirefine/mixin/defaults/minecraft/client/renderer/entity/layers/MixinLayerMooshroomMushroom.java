@@ -31,6 +31,7 @@ public abstract class MixinLayerMooshroomMushroom {
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     // [AUDIT-OK] OF-added members modelRendererMushroom/LOCATION_MUSHROOM_RED/hasTextureMushroom (OF)
+    @Unique
     private ModelRenderer modelRendererMushroom;
     @Unique
     private static final ResourceLocation LOCATION_MUSHROOM_RED = new ResourceLocation("textures/entity/cow/mushroom_red.png");
