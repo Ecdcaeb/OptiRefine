@@ -152,6 +152,20 @@ public abstract class MixinRenderGlobal {
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     @Public
+    // [AUDIT-FIXED] 2026-08-05 crash: GameSettings cloud-height slider calls RenderGlobal.resetClouds()
+    // (OF:2998); missing provider -> NoSuchMethodError. OF field cloudRenderer + ctor init replicated.
+    private net.optifine.render.CloudRenderer cloudRenderer;
+
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
+    @Unique
+    @Public
+    public void resetClouds() {
+        this.cloudRenderer.reset();
+    }
+
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
+    @Unique
+    @Public
     // [AUDIT-FIXED] OF RenderGlobal:3002-3016 - Config.drawFps calls these; missing -> NoSuchMethodError
     private int getCountRenderers() {
         return this.viewFrustum.renderChunks.length;
