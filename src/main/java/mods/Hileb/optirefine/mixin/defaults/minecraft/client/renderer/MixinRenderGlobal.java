@@ -642,5 +642,6 @@ public abstract class MixinRenderGlobal {
         this.renderOverlayDamaged = false;
         this.renderOverlayEyes = false;
         this.firstWorldLoad = false;
+        this.cloudRenderer = new net.optifine.render.CloudRenderer(this.mc);
     }
 }
