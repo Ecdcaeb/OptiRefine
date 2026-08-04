@@ -143,6 +143,15 @@ public abstract class MixinRenderGlobal {
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     @Public
+    // [AUDIT-FIXED] 2026-08-05 crash: OF DynamicLights.updateMapDynamicLights calls
+    // RenderGlobal.getWorld() (OF-added, OF:3073); missing provider -> NoSuchMethodError.
+    public net.minecraft.client.multiplayer.WorldClient getWorld() {
+        return this.world;
+    }
+
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
+    @Unique
+    @Public
     // [AUDIT-FIXED] OF RenderGlobal:3002-3016 - Config.drawFps calls these; missing -> NoSuchMethodError
     private int getCountRenderers() {
         return this.viewFrustum.renderChunks.length;
