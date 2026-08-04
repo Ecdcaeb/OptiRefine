@@ -43,8 +43,10 @@ public abstract class MixinVertexBufferUploader {
     private static native void VertexBuffer_setDrawMode(VertexBuffer builder, int arg1) ;
 
     @SuppressWarnings("MissingUnique")
-    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.vertex.VertexBuffer bufferData (Ljava.nio.ByteBuffer;)V")
-// [AUDIT-OK] baseline member VertexBuffer.bufferData (SRG func_181722_a); goes through MixinVertexBuffer vboRegion wrap
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.vertex.VertexBuffer func_181722_a (Ljava.nio.ByteBuffer;)V", deobf = true)
+// [AUDIT-FIXED] 2026-08-05: SRG runtime uses the raw desc name -> vanilla member must be SRG
+// func_181722_a (= bufferData, tsrg:13267); MCP name would NoSuchMethodError on every VBO upload.
+// Goes through MixinVertexBuffer vboRegion wrap.
     private static native void VertexBuffer_bufferData(VertexBuffer builder, java.nio.ByteBuffer data) ;
 
 }
