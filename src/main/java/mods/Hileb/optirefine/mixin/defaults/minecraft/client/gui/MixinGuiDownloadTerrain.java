@@ -7,6 +7,9 @@ import net.minecraft.client.gui.GuiScreen;
 import net.optifine.CustomLoadingScreen;
 import net.optifine.CustomLoadingScreens;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 @Mixin(GuiDownloadTerrain.class)
@@ -16,7 +19,10 @@ public abstract class MixinGuiDownloadTerrain extends GuiScreen {
 
 // [AUDIT-OK] OF-added member, not in baseline
     @Unique
-    private CustomLoadingScreen optiRefine$customLoadingScreen = CustomLoadingScreens.getCustomLoadingScreen();
+    // [AUDIT-FIXED] three-way audit (P20): cleanmix does not inject @Unique instance-field
+    // initializers -> field stayed null and the custom loading screen never rendered.
+    // Init moved to <init>* RETURN below.
+    private CustomLoadingScreen optiRefine$customLoadingScreen;
 
 // [AUDIT-OK] target drawScreen matches baseline; drawBackground(I)V invoke (inherited GuiScreen) matches; replicates OF
     @WrapOperation(method = "drawScreen", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiDownloadTerrain;drawBackground(I)V"))
@@ -26,4 +32,8 @@ public abstract class MixinGuiDownloadTerrain extends GuiScreen {
         } else original.call(instance, i);
     }
 
+    @Inject(method = "<init>*", at = @At("RETURN"))
+    private void optiRefine$initFields(CallbackInfo ci) {
+        this.optiRefine$customLoadingScreen = CustomLoadingScreens.getCustomLoadingScreen();
+    }
 }

@@ -9,6 +9,9 @@ import net.minecraft.client.gui.GuiScreenWorking;
 import net.optifine.CustomLoadingScreen;
 import net.optifine.CustomLoadingScreens;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -21,7 +24,10 @@ public abstract class MixinGuiScreenWorking extends GuiScreen {
     @Shadow private int progress;
 // [AUDIT-OK] OF-added member, not in baseline
     @Unique
-    private CustomLoadingScreen optiRefine$customLoadingScreen = CustomLoadingScreens.getCustomLoadingScreen();
+    // [AUDIT-FIXED] three-way audit (P20): cleanmix does not inject @Unique instance-field
+    // initializers -> field stayed null and the custom loading screen never rendered.
+    // Init moved to <init>* RETURN below.
+    private CustomLoadingScreen optiRefine$customLoadingScreen;
 
 // [AUDIT-OK] target drawScreen(III)V matches baseline; drawDefaultBackground invoke (inherited GuiScreen) matches; replicates OF custom-loading bg
     @WrapOperation(method = "drawScreen", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiScreenWorking;drawDefaultBackground()V"))
@@ -37,5 +43,10 @@ public abstract class MixinGuiScreenWorking extends GuiScreen {
     @WrapWithCondition(method = "drawScreen", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiScreenWorking;drawCenteredString(Lnet/minecraft/client/gui/FontRenderer;Ljava/lang/String;III)V"))
     public boolean drawCenteredStringOnlyWhenProgressPositive(GuiScreenWorking instance, FontRenderer fontRenderer, String s, int i1, int i2, int i3){
         return this.progress > 0;
+    }
+
+    @Inject(method = "<init>*", at = @At("RETURN"))
+    private void optiRefine$initFields(CallbackInfo ci) {
+        this.optiRefine$customLoadingScreen = CustomLoadingScreens.getCustomLoadingScreen();
     }
 }

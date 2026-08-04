@@ -59,9 +59,11 @@ public abstract class MixinProfiler {
         this.profilerLocalEnabled = this.profilerGlobalEnabled;
     }
 
-    @Inject(method = "startSection(Ljava/lang/String;)V", at = @At("HEAD"))
-// [AUDIT-OK] Lagometer timing + fastRender clearEnabled logic matches OF startSection; note: OF also gates the vanilla body on profilerLocalEnabled (dormant divergence, see endSection issue)
-    public void injectStartSection(String name, CallbackInfo ci){
+    @WrapMethod(method = "startSection(Ljava/lang/String;)V")
+    // [AUDIT-FIXED] three-way audit (P25): OF gates the vanilla body on profilerLocalEnabled (OF:64-75);
+    // converted from @Inject HEAD so the body can be gated while Lagometer/fastRender side effects run
+    // unconditionally (mirroring endSection/func_194340_a which are already gated).
+    public void injectStartSection(String name, Operation<Void> original){
         if (Lagometer.isActive()) {
             int hashName = name.hashCode();
             if (hashName == HASH_SCHEDULED_EXECUTABLES && name.equals("scheduledExecutables")) {
@@ -81,6 +83,10 @@ public abstract class MixinProfiler {
             } else if (hashName == HASH_DISPLAY && name.equals("display")) {
                 _set_GlStateManager_clearEnabled(true);
             }
+        }
+
+        if (this.profilerLocalEnabled) {
+            original.call(name);
         }
     }
 

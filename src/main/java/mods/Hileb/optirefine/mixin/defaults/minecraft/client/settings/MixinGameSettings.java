@@ -312,7 +312,8 @@ public abstract class MixinGameSettings {
     }
 
     @WrapMethod(method = "loadOptions")
-    // [AUDIT-ISSUE] OF ctor forces renderDistanceChunks=8 BEFORE loadOptions; mixin omits it -> fresh installs default 12 (64-bit) instead of 8. Also optionsFileOF = Launch.minecraftHome vs OF new File(optionsFile.parent, "optionsof.txt") (same dir normally; needs-verification)
+    // [AUDIT-FIXED] three-way audit (P21): OF ctor forces renderDistanceChunks=8 BEFORE loadOptions (OF:334);
+    // baseline fresh-install default is 12 on 64-bit -> now matches OF.
     public void hookForoadOfOptions(Operation<Void> original) {
         boolean init = this.optionsFileOF == null;
         if (init) {
@@ -320,6 +321,7 @@ public abstract class MixinGameSettings {
             this.limitFramerate = (int) GameSettings.Options.FRAMERATE_LIMIT.getValueMax();
             this.ofKeyBindZoom = new KeyBinding("of.key.zoom", 46, "key.categories.misc");
             this.keyBindings = ArrayUtils.add(this.keyBindings, this.ofKeyBindZoom);
+            this.renderDistanceChunks = 8;
         }
         original.call();
         this.loadOfOptions();

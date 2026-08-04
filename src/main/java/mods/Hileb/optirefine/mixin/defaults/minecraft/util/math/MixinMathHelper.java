@@ -60,11 +60,7 @@ public abstract class MixinMathHelper {
     @Public
 // [AUDIT-OK] OF-added field SIN_TABLE_FAST (in OF MathHelper, not in baseline; OF: private static final, filled in <clinit>) - filled here via <clinit> inject
     private static float[] SIN_TABLE_FAST;
-    @SuppressWarnings("MissingUnique")
-    @AccessTransformer(access = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC | Opcodes.ACC_FINAL)
-// [AUDIT-ISSUE] @AccessTransformer has no name attribute - name defaults to the placeholder "_ACC_SIN_TABLE_FAST", which is removed before matching, so the AT matches nothing and is a silent no-op
-// (SIN_TABLE_FAST stays public non-final via @Public; intended ACC_PUBLIC|ACC_STATIC|ACC_FINAL never applied). Fix: add name = "SIN_TABLE_FAST" or remove the dead AT.
-    private static float[] _ACC_SIN_TABLE_FAST;
+
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
 // [AUDIT-OK] OF-added field fastMath (in OF MathHelper, not in baseline; public in OF)

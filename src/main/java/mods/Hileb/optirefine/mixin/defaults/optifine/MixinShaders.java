@@ -20,10 +20,12 @@ public abstract class MixinShaders {
     @WrapOperation(method = "loadShaderPack", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;func_175603_A()Lcom/google/common/util/concurrent/ListenableFuture;"))
     private static ListenableFuture<Object> optiRefine$selectiveRefresh(Minecraft mc, Operation<ListenableFuture<Object>> original) {
         // SelectiveReloadStateHandler state is read at reload time, so run the reload
-        // OptiFine updates BLOCK/ITEM before scheduling the resource reload. The Cleanroom
-        // reload path immediately rebuilds RenderChunk VBOs, so preserve that ordering here.
-        DefaultVertexFormats_updateVertexFormats();
-        SelectiveReloadStateHandler.INSTANCE.beginReload(type -> type == VanillaResourceType.TEXTURES || type == VanillaResourceType.MODELS);
+        // synchronously inside begin/end (async submission would lose the predicate).
+        // [AUDIT-FIXED] three-way audit (P27): OF's loadShaderPack already calls
+        // DefaultVertexFormats.updateVertexFormats() earlier (javap offset 379), so the explicit call
+        // here was a redundant second invocation — removed. SHADERS listener added to the predicate
+        // (OF's full reload re-arms the entity-renderer vanilla shaders on shaderpack switch).
+        SelectiveReloadStateHandler.INSTANCE.beginReload(type -> type == VanillaResourceType.TEXTURES || type == VanillaResourceType.MODELS || type == VanillaResourceType.SHADERS);
         try {
             mc.refreshResources();
         } finally {
@@ -31,8 +33,4 @@ public abstract class MixinShaders {
         }
         return Futures.immediateFuture(null);
     }
-
-    @SuppressWarnings("MissingUnique")
-    @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.client.renderer.vertex.DefaultVertexFormats updateVertexFormats ()V")
-    private static native void DefaultVertexFormats_updateVertexFormats();
 }

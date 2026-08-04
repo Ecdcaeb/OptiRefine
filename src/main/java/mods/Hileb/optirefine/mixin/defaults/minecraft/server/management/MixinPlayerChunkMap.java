@@ -11,6 +11,7 @@ import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.management.PlayerChunkMap;
 import net.minecraft.server.management.PlayerChunkMapEntry;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.WorldServer;
 import net.optifine.ChunkPosComparator;
@@ -35,11 +36,19 @@ public abstract class MixinPlayerChunkMap {
     private int playerViewRadius;
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-// [AUDIT-OK] OF-added field mapPlayerPendingEntries (in OF, not in baseline), MCP name matches
-    private final Map<EntityPlayerMP, Set<ChunkPos>> mapPlayerPendingEntries = new HashMap<>();
+    @Unique
+    // [AUDIT-FIXED] three-way audit (P25): cleanmix does not inject @Unique instance-field
+    // initializers -> init moved to <init>* RETURN; dropped final to allow assignment there.
+    private Map<EntityPlayerMP, Set<ChunkPos>> mapPlayerPendingEntries;
+
+    @Inject(method = "<init>*", at = @At("RETURN"))
+    private void optiRefine$initFields(CallbackInfo ci) {
+        this.mapPlayerPendingEntries = new HashMap<>();
+    }
 
 // [AUDIT-OK] baseline member getOrCreateEntry(II) exists in target class (odd "native" modifier on shadow is inert)
     @Shadow public native PlayerChunkMapEntry getOrCreateEntry(int chunkX, int chunkZ) ;
+    @Shadow public native PlayerChunkMapEntry getEntry(int chunkX, int chunkZ) ;
 
 
     @Inject(method = "tick", at = @At("HEAD"))
@@ -74,14 +83,7 @@ public abstract class MixinPlayerChunkMap {
         }
     }
 
-    @Definition(id = "players", field = "Lnet/minecraft/server/management/PlayerChunkMap;players:Ljava/util/List;")
-    @Definition(id = "isEmpty", method = "Ljava/util/List;isEmpty()Z")
-    @Expression("this.players.isEmpty()")
-    @ModifyExpressionValue(method = "tick", at = @At("MIXINEXTRAS:EXPRESSION"))
-// [AUDIT-ISSUE] expression change is a behavioral no-op: baseline AND OF tick already guard the unload with !provider.canRespawnHere() inside the players.isEmpty() block; outer AND just duplicates the inner check
-    public boolean changeUnloadLogic(boolean original){
-        return original && !this.world.provider.canRespawnHere();
-    }
+
 
 
 
@@ -160,10 +162,18 @@ public abstract class MixinPlayerChunkMap {
     @Redirect(method = "updateMovingPlayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/management/PlayerChunkMap;getEntry(II)Lnet/minecraft/server/management/PlayerChunkMapEntry;"))
 // [AUDIT-OK] getEntry redirect does pending-set removal before getEntry, matching OF updateMovingPlayer second branch
     public PlayerChunkMapEntry removeEntry(PlayerChunkMap instance, int p_187301_1_, int p_187301_2_, @Share("setPendingEntries")LocalRef<Set<ChunkPos>> setPendingEntries){
+        // [AUDIT-FIXED] three-way audit (P25): OF:358-363 removes then getEntry (no creation);
+        // getOrCreateEntry leaked an empty entry which tick would then provide chunks for.
         setPendingEntries.get().remove(new ChunkPos(p_187301_1_, p_187301_2_));
-        return this.getOrCreateEntry(p_187301_1_, p_187301_2_);
+        return this.getEntry(p_187301_1_, p_187301_2_);
     }
 
+
+    @Redirect(method = "setPlayerViewRadius", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/math/MathHelper;clamp(III)I"))
+    // [AUDIT-FIXED] three-way audit (P25): OF:382 clamps view radius to (3,64); baseline caps at 32.
+    public int wrap_clamp(int value, int min, int max) {
+        return MathHelper.clamp(value, 3, 64);
+    }
 
     @Redirect(method = "setPlayerViewRadius", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/management/PlayerChunkMap;getOrCreateEntry(II)Lnet/minecraft/server/management/PlayerChunkMapEntry;"))
 // [AUDIT-ISSUE] non-lazy branch returns instance.getEntry(...) instead of getOrCreateEntry(...) - on view-radius increase new-ring chunks often have no entry yet; the following containsPlayer redirect then adds to pending and returns false, and entry.addPlayer(player) runs on null -> NPE in non-lazy mode. Fix: return getOrCreateEntry.
@@ -176,6 +186,16 @@ public abstract class MixinPlayerChunkMap {
             chunkZ.set(p_187302_2_);
             return null;
         } else return this.getOrCreateEntry(p_187302_1_, p_187302_2_);
+    }
+
+    @Redirect(method = "setPlayerViewRadius", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/management/PlayerChunkMapEntry;addPlayer(Lnet/minecraft/entity/player/EntityPlayerMP;)V"))
+    // [AUDIT-FIXED] three-way audit (P25): lazy mode redirects getOrCreateEntry to null; the baseline
+    // body then runs entry.addPlayer(player) unconditionally -> NPE. OF's lazy branch (OF:397-407)
+    // never touches the entry; guard null here.
+    public void wrap_addPlayer2(PlayerChunkMapEntry instance, EntityPlayerMP player){
+        if (instance != null) {
+            instance.addPlayer(player);
+        }
     }
 
     @Redirect(method = "setPlayerViewRadius", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/management/PlayerChunkMapEntry;containsPlayer(Lnet/minecraft/entity/player/EntityPlayerMP;)Z"))
