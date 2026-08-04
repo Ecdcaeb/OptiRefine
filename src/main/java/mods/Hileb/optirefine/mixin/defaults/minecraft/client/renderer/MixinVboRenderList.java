@@ -25,6 +25,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class MixinVboRenderList extends ChunkRenderContainer {
 // [AUDIT] 2026-08-03 — see AGENT.md; issues: 0
 // [AUDIT-OK] OF field viewEntityX equivalent (prefixed @Unique private, internal only)
+    @Unique
     private double optiRefine$viewEntityX;
     @Unique
 // [AUDIT-OK] OF field viewEntityY equivalent
@@ -44,7 +45,7 @@ public abstract class MixinVboRenderList extends ChunkRenderContainer {
 // [AUDIT-OK] OF field RenderChunk.regionZ, not in baseline
     private static native int RenderChunk_regionZ(RenderChunk renderChunk);
 
-    @ModifyExpressionValue(method = "renderChunkLayer", at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/VboRenderList;initialized:Z"))
+    @ModifyExpressionValue(method = "renderChunkLayer", at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/ChunkRenderContainer;initialized:Z"))
     public boolean shouldRender(boolean original, @Local(argsOnly = true) BlockRenderLayer layer){
 // [AUDIT-OK] target renderChunkLayer (SRG func_178001_a) GETFIELD initialized matches baseline; region loop == OF VboRenderList.renderChunkLayer
         if (original) {

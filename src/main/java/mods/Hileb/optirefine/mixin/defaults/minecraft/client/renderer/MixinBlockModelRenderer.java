@@ -352,27 +352,27 @@ public abstract class MixinBlockModelRenderer {
         switch (face) {
             case DOWN:
                 boundsFlags.set(1, f >= f9 || f2 >= f9 || f3 <= f10 || f5 <= f10);
-                boundsFlags.set(0, (f1 < f9 || stateIn.useNeighborBrightness()) && f1 == f4);
+                boundsFlags.set(0, (f1 < f9 || stateIn.isFullCube()) && f1 == f4);
                 break;
             case UP:
                 boundsFlags.set(1, f >= f9 || f2 >= f9 || f3 <= f10 || f5 <= f10);
-                boundsFlags.set(0, (f4 > f10 || stateIn.useNeighborBrightness()) && f1 == f4);
+                boundsFlags.set(0, (f4 > f10 || stateIn.isFullCube()) && f1 == f4);
                 break;
             case NORTH:
                 boundsFlags.set(1, f >= f9 || f1 >= f9 || f3 <= f10 || f4 <= f10);
-                boundsFlags.set(0, (f2 < f9 || stateIn.useNeighborBrightness()) && f2 == f5);
+                boundsFlags.set(0, (f2 < f9 || stateIn.isFullCube()) && f2 == f5);
                 break;
             case SOUTH:
                 boundsFlags.set(1, f >= f9 || f1 >= f9 || f3 <= f10 || f4 <= f10);
-                boundsFlags.set(0, (f5 > f10 || stateIn.useNeighborBrightness()) && f2 == f5);
+                boundsFlags.set(0, (f5 > f10 || stateIn.isFullCube()) && f2 == f5);
                 break;
             case WEST:
                 boundsFlags.set(1, f1 >= f9 || f2 >= f9 || f4 <= f10 || f5 <= f10);
-                boundsFlags.set(0, (f < f9 || stateIn.useNeighborBrightness()) && f == f3);
+                boundsFlags.set(0, (f < f9 || stateIn.isFullCube()) && f == f3);
                 break;
             case EAST:
                 boundsFlags.set(1, f1 >= f9 || f2 >= f9 || f4 <= f10 || f5 <= f10);
-                boundsFlags.set(0, (f3 > f10 || stateIn.useNeighborBrightness()) && f == f3);
+                boundsFlags.set(0, (f3 > f10 || stateIn.isFullCube()) && f == f3);
         }
     }
 
@@ -399,7 +399,7 @@ public abstract class MixinBlockModelRenderer {
             if (ownBrightness) {
                 this.fillQuadBounds(stateIn, bakedquad.getVertexData(), bakedquad.getFace(), null, bitSet);
                 BlockPos blockpos = bitSet.get(0) ? posIn.offset(bakedquad.getFace()) : posIn;
-                brightnessIn = stateIn.getLightValue(blockAccessIn, blockpos);
+                brightnessIn = stateIn.getPackedLightmapCoords(blockAccessIn, blockpos);
             }
 
             if (TextureAtlasSprite_isEmissive_get(bakedquad.getSprite())) {
@@ -502,7 +502,7 @@ public abstract class MixinBlockModelRenderer {
                             if (smooth) {
                                 this.renderQuadsSmooth(worldIn, quadBlockState, posIn, overlayBuffer, listQuadSingle, renderEnv);
                             } else {
-                                int col = quadBlockState.getLightValue(worldIn, posIn.offset(quad.getFace()));
+                                int col = quadBlockState.getPackedLightmapCoords(worldIn, posIn.offset(quad.getFace()));
                                 this.renderQuadsFlat(worldIn, quadBlockState, posIn, col, false, overlayBuffer, listQuadSingle, renderEnv);
                             }
                         }

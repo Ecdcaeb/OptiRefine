@@ -14,6 +14,7 @@ import net.minecraft.client.renderer.chunk.RenderChunk;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderGlobal;
+import net.minecraft.client.renderer.ViewFrustum;
 import net.minecraft.client.renderer.culling.ICamera;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.entity.RenderItemFrame;
@@ -545,6 +546,18 @@ public abstract class MixinRenderGlobal {
             this.firstWorldLoad = false;
         }
     }
+
+    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
+    @Unique
+// [AUDIT-FIXED] three-way audit (P9): OF-added getRenderChunk(BlockPos) (OF:3040-3042); no mixin
+// provided it -> MixinRenderChunk.getBoundingBoxParent chain NoSuchMethodError on parent lookup.
+    public RenderChunk getRenderChunk(net.minecraft.util.math.BlockPos pos) {
+        return ViewFrustum_getRenderChunk(this.viewFrustum, pos);
+    }
+
+    @SuppressWarnings({"unused", "MissingUnique"})
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.ViewFrustum func_178161_a (Lnet.minecraft.util.math.BlockPos;)Lnet.minecraft.client.renderer.chunk.RenderChunk;", deobf = true)
+    private static native RenderChunk ViewFrustum_getRenderChunk(ViewFrustum viewFrustum, net.minecraft.util.math.BlockPos pos);
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
 // [AUDIT-OK] OF-added method, not in baseline

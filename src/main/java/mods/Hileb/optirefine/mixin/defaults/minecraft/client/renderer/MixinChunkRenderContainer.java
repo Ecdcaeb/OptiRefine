@@ -19,6 +19,7 @@ public abstract class MixinChunkRenderContainer {
 // [AUDIT] 2026-08-03 — see AGENT.md; issues: 1
     @SuppressWarnings("AddedMixinMembersNamePattern")
 // [AUDIT-OK] OF-added field, not in baseline
+    @Unique
     private BitSet animatedSpritesRendered;
     @SuppressWarnings("AddedMixinMembersNamePattern")
 // [AUDIT-OK] OF-added field, not in baseline

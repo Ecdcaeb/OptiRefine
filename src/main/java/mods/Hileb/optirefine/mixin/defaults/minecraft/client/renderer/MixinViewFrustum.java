@@ -32,8 +32,17 @@ public abstract class MixinViewFrustum {
 // [AUDIT-OK] baseline member renderChunks (SRG field_178164_f)
     public RenderChunk[] renderChunks;
 
-// [AUDIT-OK] OF-added field (OF: mapVboRegions), not in baseline
-    private Map<ChunkPos, VboRegion[]> optiRefine$mapVboRegions = new HashMap<>();
+    @SuppressWarnings("AddedMixinMembersNamePattern")
+    @Unique
+// [AUDIT-FIXED] three-way audit (P8): cleanmix does not inject @Unique instance-field initializers ->
+// `= new HashMap<>()` left the field null at runtime; updateVboRegion/deleteVboRegions would NPE.
+// Init moved to <init>* RETURN per convention.
+    private Map<ChunkPos, VboRegion[]> optiRefine$mapVboRegions;
+
+    @Inject(method = "<init>*", at = @At("RETURN"))
+    private void optiRefine$initFields(CallbackInfo ci) {
+        this.optiRefine$mapVboRegions = new HashMap<>();
+    }
 
     @WrapOperation(method = "createRenderChunks", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/chunk/RenderChunk;setPosition(III)V"))
     public void updateMapVboRegions(RenderChunk instance, int i, int x, int y, Operation<Void> original){
@@ -61,6 +70,12 @@ public abstract class MixinViewFrustum {
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.chunk.RenderChunk setRenderChunkNeighbour (Lnet.minecraft.util.EnumFacing;Lnet.minecraft.client.renderer.chunk.RenderChunk;)V")
 // [AUDIT-OK] OF-added member setRenderChunkNeighbour (MixinRenderChunk @Unique public provides), not in baseline
     private static native void RenderChunk_setRenderChunkNeighbour(RenderChunk renderChunk, EnumFacing enumFacing, RenderChunk neighbour);
+
+    @SuppressWarnings({"unused", "MissingUnique"})
+    @mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessTransformer(name = "func_178161_a", deobf = true, access = org.objectweb.asm.Opcodes.ACC_PUBLIC)
+    // [AUDIT-FIXED] three-way audit (P9): OF makes ViewFrustum.getRenderChunk public (OF:157);
+    // MixinRenderGlobal provider calls it cross-class -> cursed AT public.
+    protected RenderChunk acc_getRenderChunk(BlockPos pos) { return null; }
 
     @Shadow
 // [AUDIT-OK] baseline member getRenderChunk(Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/client/renderer/chunk/RenderChunk; (SRG func_178161_a)

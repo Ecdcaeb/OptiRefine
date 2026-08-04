@@ -159,13 +159,20 @@ public abstract class MixinRenderChunk {
     @WrapOperation(method = "rebuildChunk", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/RegionRenderCacheBuilder;getWorldRendererByLayerId(I)Lnet/minecraft/client/renderer/BufferBuilder;"))
     // [AUDIT-OK] getWorldRendererByLayerId INVOKE; getRenderEnv + setRegionRenderCacheBuilder match OF:225-227
     public BufferBuilder processPreBlockRender(RegionRenderCacheBuilder instance, int id, Operation<BufferBuilder> original, @Local IBlockState iblockstate, @Local BlockPos.MutableBlockPos blockpos$mutableblockpos, @Local(argsOnly = true) ChunkCompileTaskGenerator generator,
-                                               @Share(namespace = "optifine", value = "renderEnv")LocalRef<RenderEnv> renderEnvLocalRef){
+                                               @Share(namespace = "optifine", value = "renderEnv")LocalRef<RenderEnv> renderEnvLocalRef, @Local BlockRenderLayer blockRenderLayer){
         BufferBuilder bufferBuilder = original.call(instance, id);
+        // [AUDIT-FIXED] three-way audit (P9): OF:227 setBlockLayer(fixed layer) before renderBlock;
+        // drawnIcons/multi-texture key off it.
+        BufferBuilder_setBlockLayer(bufferBuilder, this.optiRefine$fixBlockLayer(iblockstate, blockRenderLayer));
         RenderEnv renderEnv = BufferBuilder_getRenderEnv(bufferBuilder, iblockstate, blockpos$mutableblockpos);
         renderEnv.setRegionRenderCacheBuilder(generator.getRegionRenderCacheBuilder());
         renderEnvLocalRef.set(renderEnv);
         return bufferBuilder;
     }
+
+    @SuppressWarnings("MissingUnique")
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/BufferBuilder setBlockLayer (Lnet.minecraft.util.BlockRenderLayer;)V")
+    private static native void BufferBuilder_setBlockLayer(BufferBuilder builder, BlockRenderLayer blockLayer);
 
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/BufferBuilder getRenderEnv (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/math/BlockPos;)Lnet/optifine/render/RenderEnv;")
@@ -174,8 +181,8 @@ public abstract class MixinRenderChunk {
     @WrapOperation(method = "rebuildChunk", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/BlockRendererDispatcher;renderBlock(Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/client/renderer/BufferBuilder;)Z"))
     // [AUDIT-OK] renderBlock INVOKE; overlays post-render matches OF:231-236
     public boolean rebuildChunk$renderBlock(BlockRendererDispatcher instance, IBlockState enumblockrendertype, BlockPos crashreport, IBlockAccess crashreportcategory, BufferBuilder throwable, Operation<Boolean> original, @Share(namespace = "optifine", value = "renderEnv")LocalRef<RenderEnv> renderEnvLocalRef, @Local BlockRenderLayer blockRenderLayer, @Local boolean[] aboolean, @Local(argsOnly = true) ChunkCompileTaskGenerator generator, @Local CompiledChunk compiledchunk){
-        boolean b;
-        aboolean[blockRenderLayer.ordinal()] = b = original.call(instance, enumblockrendertype, crashreport, crashreportcategory, throwable);
+        boolean b = original.call(instance, enumblockrendertype, crashreport, crashreportcategory, throwable);
+        aboolean[blockRenderLayer.ordinal()] |= b;
         RenderEnv renderEnv = renderEnvLocalRef.get();
         if (renderEnv != null && renderEnv.isOverlaysRendered()) {
             this.optiRefine$postRenderOverlays(generator.getRegionRenderCacheBuilder(), compiledchunk, aboolean);
@@ -203,6 +210,25 @@ public abstract class MixinRenderChunk {
 
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.chunk.CompiledChunk setAnimatedSprites (Lnet.minecraft.util.BlockRenderLayer;Ljava.util.BitSet;)V")
     private static native void CompiledChunk_setAnimatedSprites(CompiledChunk compiledChunk, BlockRenderLayer layer, BitSet animatedSprites);
+
+    @WrapOperation(method = "rebuildChunk", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/BlockRenderLayer;ordinal()I", ordinal = 0))
+    // [AUDIT-FIXED] three-way audit (P9): OF applies fixBlockLayer right after layer selection (OF:223),
+    // before ordinal/getWorldRendererByLayerId; main-loop ordinal() is the first ordinal() in rebuildChunk.
+    public int rebuildChunk$fixBlockLayerOrdinal(BlockRenderLayer layer, Operation<Integer> original, @Local IBlockState iblockstate) {
+        return this.optiRefine$fixBlockLayer(iblockstate, layer).ordinal();
+    }
+
+    @WrapOperation(method = "rebuildChunk", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/chunk/CompiledChunk;isLayerStarted(Lnet/minecraft/util/BlockRenderLayer;)Z", ordinal = 0))
+    // [AUDIT-FIXED] three-way audit (P9): main-loop isLayerStarted must see the FIXED layer (OF:233-236).
+    public boolean rebuildChunk$fixBlockLayerIsStarted(CompiledChunk instance, BlockRenderLayer layer, Operation<Boolean> original, @Local IBlockState iblockstate) {
+        return original.call(instance, this.optiRefine$fixBlockLayer(iblockstate, layer));
+    }
+
+    @WrapOperation(method = "rebuildChunk", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/chunk/CompiledChunk;setLayerStarted(Lnet/minecraft/util/BlockRenderLayer;)V"))
+    // [AUDIT-FIXED] three-way audit (P9): setLayerStarted with the fixed layer (OF:234).
+    public void rebuildChunk$fixBlockLayerSetStarted(CompiledChunk instance, BlockRenderLayer layer, Operation<Void> original, @Local IBlockState iblockstate) {
+        original.call(instance, this.optiRefine$fixBlockLayer(iblockstate, layer));
+    }
 
     @WrapOperation(method = "rebuildChunk", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/chunk/CompiledChunk;isLayerStarted(Lnet/minecraft/util/BlockRenderLayer;)Z", ordinal = 1))
     // [AUDIT-OK] isLayerStarted ordinal 1 (post-loop); null-reset matches OF:264
@@ -235,9 +261,11 @@ public abstract class MixinRenderChunk {
         }
     }
 
-    @Inject(method = "needsUpdate", at = @At("TAIL"))
-    // [AUDIT-ISSUE] hooks needsUpdate() TAIL, but OF sets playerUpdate inside setNeedsUpdate (OF:431-440); needsUpdate() is polled every frame so the flag goes true for ALL chunks during player-update ticks (false positives) — move the hook to setNeedsUpdate
-    public void postNeedsUpdate(CallbackInfoReturnable<Boolean> cir){
+    @Inject(method = "setNeedsUpdate", at = @At("TAIL"))
+    // [AUDIT-FIXED] three-way audit (P9): moved from needsUpdate() TAIL to setNeedsUpdate TAIL —
+    // OF sets playerUpdate inside setNeedsUpdate (OF:431-440); needsUpdate() is polled every frame
+    // so the old hook raised false positives for all chunks during player-update ticks.
+    public void postNeedsUpdate(boolean needsImmediateUpdate, CallbackInfo ci){
         if (this.isWorldPlayerUpdate()) {
             this.playerUpdate = true;
         }
@@ -380,7 +408,7 @@ public abstract class MixinRenderChunk {
 
     }
 
-    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.ViewFrustum func_178161_a (Lnet.minecraft.util.math.BlockPos;)Lnet.minecraft.client.renderer.chunk.RenderChunk;")
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.ViewFrustum func_178161_a (Lnet.minecraft.util.math.BlockPos;)Lnet.minecraft.client.renderer.chunk.RenderChunk;", deobf = true)
     // [AUDIT-ISSUE] SRG func_178161_a (=ViewFrustum.getRenderChunk, tsrg) correct for SRG runtime but missing deobf=true — MCP (devrun) runtime would fail; add deobf=true
     private static native RenderChunk ViewFrustum_getRenderChunk(ViewFrustum viewFrustum, BlockPos b);
     @SuppressWarnings("AddedMixinMembersNamePattern")

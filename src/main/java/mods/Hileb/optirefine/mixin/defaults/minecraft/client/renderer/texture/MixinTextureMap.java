@@ -358,9 +358,11 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
                     textureatlassprite.loadSprite(pngsizeinfo, flag);
                 } catch (RuntimeException runtimeexception) {
                     org.apache.logging.log4j.LogManager.getLogger().error("Unable to parse metadata from {}", resourcelocation, runtimeexception);
+                    net.minecraftforge.fml.client.FMLClientHandler.instance().trackBrokenTexture(resourcelocation, runtimeexception.getMessage());
                     continue;
                 } catch (IOException ioexception) {
                     org.apache.logging.log4j.LogManager.getLogger().error("Using missing texture, unable to load " + resourcelocation + ", " + ioexception.getClass().getName());
+                    net.minecraftforge.fml.client.FMLClientHandler.instance().trackMissingTexture(resourcelocation);
                     continue;
                 } finally {
                     IOUtils.closeQuietly(iresource);
@@ -524,8 +526,9 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
         ResourceLocation resourcelocation = this.getResourceLocation(sprite);
         IResource iresource = null;
         if (sprite.hasCustomLoader(resourceManager, resourcelocation)) {
+            // [AUDIT-FIXED] three-way audit (P12): OF falls through to the shared sprite.generateMipmaps
+            // tail after generateCustomMipmaps (OF:353-366); early return skipped it.
             TextureUtils.generateCustomMipmaps(sprite, this.mipmapLevels);
-            return true;
         } else {
             boolean flag;
             label58:
@@ -546,19 +549,19 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
                 }
                 return flag;
             }
+        }
 
-            try {
-                sprite.generateMipmaps(this.mipmapLevels);
-                return true;
-            } catch (Throwable throwable) {
-                CrashReport crashreport = CrashReport.makeCrashReport(throwable, "Applying mipmap");
-                CrashReportCategory crashreportcategory = crashreport.makeCategory("Sprite being mipmapped");
-                crashreportcategory.addDetail("Sprite name", (ICrashReportDetail<String>) sprite::getIconName);
-                crashreportcategory.addDetail("Sprite size", (ICrashReportDetail<String>) () -> sprite.getIconWidth() + " x " + sprite.getIconHeight());
-                crashreportcategory.addDetail("Sprite frames", (ICrashReportDetail<String>) () -> sprite.getFrameCount() + " frames");
-                crashreportcategory.addCrashSection("Mipmap levels", this.mipmapLevels);
-                throw new ReportedException(crashreport);
-            }
+        try {
+            sprite.generateMipmaps(this.mipmapLevels);
+            return true;
+        } catch (Throwable throwable) {
+            CrashReport crashreport = CrashReport.makeCrashReport(throwable, "Applying mipmap");
+            CrashReportCategory crashreportcategory = crashreport.makeCategory("Sprite being mipmapped");
+            crashreportcategory.addDetail("Sprite name", (ICrashReportDetail<String>) sprite::getIconName);
+            crashreportcategory.addDetail("Sprite size", (ICrashReportDetail<String>) () -> sprite.getIconWidth() + " x " + sprite.getIconHeight());
+            crashreportcategory.addDetail("Sprite frames", (ICrashReportDetail<String>) () -> sprite.getFrameCount() + " frames");
+            crashreportcategory.addCrashSection("Mipmap levels", this.mipmapLevels);
+            throw new ReportedException(crashreport);
         }
     }
 
@@ -697,17 +700,30 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
 
     // ===== registerSprite: index + emissive =====
 
-    @Inject(method = "registerSprite", at = @At("RETURN"))
-    // [AUDIT-FIXED] inject at RETURN: mapRegisteredSprites already populated; use cir.getReturnValue()
-    private void optiRefine$registerSprite(ResourceLocation location, CallbackInfoReturnable<TextureAtlasSprite> cir) {
-        TextureAtlasSprite textureatlassprite = cir.getReturnValue();
-        if (textureatlassprite != null) {
+    @WrapMethod(method = "registerSprite")
+    // [AUDIT-FIXED] three-way audit (P12): RETURN-inject re-ran updateIndexInMap+checkEmissive on
+    // cache hits -> counterIndexInMap inflated, getCountRegisteredSprites distorted. Replaced with
+    // OF's exact body (OF:518-531): index+emissive only in the new-sprite branch.
+    private TextureAtlasSprite optiRefine$registerSprite(ResourceLocation location, Operation<TextureAtlasSprite> original) {
+        if (location == null) {
+            throw new IllegalArgumentException("Location cannot be null!");
+        }
+        TextureAtlasSprite textureatlassprite = this.mapRegisteredSprites.get(location.toString());
+        if (textureatlassprite == null) {
+            textureatlassprite = TextureAtlasSprite_makeAtlasSprite(location);
+            this.mapRegisteredSprites.put(location.toString(), textureatlassprite);
             TextureAtlasSprite_updateIndexInMap(textureatlassprite, this.counterIndexInMap);
             if (Config.isEmissiveTextures()) {
                 this.checkEmissive(location, textureatlassprite);
             }
         }
+        return textureatlassprite;
     }
+
+    @SuppressWarnings("MissingUnique")
+    @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite makeAtlasSprite (Lnet/minecraft/util/ResourceLocation;)Lnet.minecraft.client.renderer.texture.TextureAtlasSprite;", deobf = true)
+    // [AUDIT-OK] vanilla protected static makeAtlasSprite (SRG func_188534_a), deobf=true; invoked cross-class
+    private static native TextureAtlasSprite TextureAtlasSprite_makeAtlasSprite(ResourceLocation location);
 
     // ===== new methods =====
 
