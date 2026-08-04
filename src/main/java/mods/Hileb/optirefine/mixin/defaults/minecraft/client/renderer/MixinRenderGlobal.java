@@ -33,6 +33,7 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.client.MinecraftForgeClient;
+import net.optifine.DynamicLights;
 import net.optifine.shaders.Shaders;
 import org.spongepowered.asm.mixin.Mixin;
 import org.objectweb.asm.Opcodes;
@@ -120,6 +121,24 @@ public abstract class MixinRenderGlobal {
     @Public
 // [AUDIT-OK] OF-added field, not in baseline (@Public static)
     private static int renderEntitiesCounter = 0;
+
+    @WrapMethod(method = "onEntityAdded")
+    // [AUDIT-FIXED] 2026-08-05: OF registers dynamic-light entities on world events (OF:2626).
+    public void optiRefine$onEntityAdded(Entity entityIn, Operation<Void> original) {
+        original.call(entityIn);
+        if (Config.isDynamicLights()) {
+            DynamicLights.entityAdded(entityIn, (net.minecraft.client.renderer.RenderGlobal)(Object)this);
+        }
+    }
+
+    @WrapMethod(method = "onEntityRemoved")
+    // [AUDIT-FIXED] 2026-08-05: OF unregisters dynamic-light entities (OF:2633).
+    public void optiRefine$onEntityRemoved(Entity entityIn, Operation<Void> original) {
+        original.call(entityIn);
+        if (Config.isDynamicLights()) {
+            DynamicLights.entityRemoved(entityIn, (net.minecraft.client.renderer.RenderGlobal)(Object)this);
+        }
+    }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
@@ -235,11 +254,32 @@ public abstract class MixinRenderGlobal {
 // [AUDIT-OK] baseline member loadRenderers (func_72712_a)
     public abstract void loadRenderers();
 
+    @Inject(method = "setupTerrain", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/ViewFrustum;updateChunkPositions(DD)V", shift = At.Shift.AFTER))
+    // [AUDIT-FIXED] 2026-08-05: OF calls DynamicLights.update(this) after the frustum chunk-position
+    // update (OF RenderGlobal:914); without it dynamic lights never recompute per frame.
+    private void optiRefine$dynamicLightsUpdate(Entity entityIn, double partialTicks, ICamera p_174970_4_, int p_174970_5_, boolean p_174970_6_, CallbackInfo ci) {
+        if (Config.isDynamicLights()) {
+            DynamicLights.update((net.minecraft.client.renderer.RenderGlobal)(Object)this);
+        }
+    }
+
+    @Inject(method = "setWorldAndLoadRenderers", at = @At("TAIL"))
+    // [AUDIT-FIXED] 2026-08-05: OF clears dynamic lights when the world is swapped (OF:461).
+    private void optiRefine$dynamicLightsClearWorld(net.minecraft.client.multiplayer.WorldClient worldIn, CallbackInfo ci) {
+        if (Config.isDynamicLights()) {
+            DynamicLights.clear();
+        }
+    }
+
     @Inject(method = "loadRenderers", at = @At("TAIL"))
     // [AUDIT-FIXED] OF RenderGlobal:539-542 sets firstWorldLoad when mc.player==null so onPlayerPositionSet re-runs loadRenderers on world join
     private void optiRefine$markFirstWorldLoad(CallbackInfo ci) {
         if (this.mc.player == null) {
             this.firstWorldLoad = true;
+        }
+        // [AUDIT-FIXED] 2026-08-05: OF clears dynamic lights in loadRenderers (OF:500).
+        if (Config.isDynamicLights()) {
+            DynamicLights.clear();
         }
     }
 

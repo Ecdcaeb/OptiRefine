@@ -692,6 +692,23 @@ public abstract class MixinBufferBuilder {
 // [AUDIT-OK] baseline member growBuffer(I)V (SRG func_181670_b)
     private void growBuffer(int p_181670_1_) {}
 
+    @Inject(method = "putBulkData", at = @At("HEAD"))
+    // [AUDIT-FIXED] 2026-08-05: the runtime putBulkData (Cleanroom patch version) has no SVertexBuilder
+    // hooks -> Forge LightUtil item rendering wrote 56-byte vertices without midTexCoord/tangent/entity
+    // data -> items corrupted under shaders. Hook the runtime method directly.
+    private void optiRefine$beforePutBulkData(java.nio.ByteBuffer buffer, CallbackInfo ci) {
+        if (Config.isShaders()) {
+            SVertexBuilder.beginAddVertexData((BufferBuilder) (Object)this, buffer);
+        }
+    }
+
+    @Inject(method = "putBulkData", at = @At("RETURN"))
+    private void optiRefine$afterPutBulkData(java.nio.ByteBuffer buffer, CallbackInfo ci) {
+        if (Config.isShaders()) {
+            SVertexBuilder.endAddVertexData((BufferBuilder) (Object)this);
+        }
+    }
+
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
 // [AUDIT-OK] runtime-provided by Cleanroom patch (no SVertexBuilder hooks); mixin @Unique copy discarded (AGENT.md S5)
