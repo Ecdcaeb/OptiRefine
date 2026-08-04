@@ -178,7 +178,7 @@ public class OptiRefineCore implements IFMLLoadingPlugin {
             "net.minecraft.client.gui.GuiScreenWorking", "net.minecraft.client.gui.GuiSlot", "net.minecraft.client.gui.GuiVideoSettings", "net.minecraft.client.model.ModelBox",
             "net.minecraft.client.model.ModelPlayer", "net.minecraft.client.model.ModelRenderer", "net.minecraft.client.model.TexturedQuad", "net.minecraft.client.multiplayer.ChunkProviderClient",
             "net.minecraft.client.multiplayer.WorldClient", "net.minecraft.client.particle.ParticleItemPickup", "net.minecraft.client.particle.ParticleManager", "net.minecraft.client.renderer.BlockFluidRenderer",
-            "net.minecraft.client.renderer.BlockModelRenderer", "net.minecraft.client.renderer.BlockModelRenderer$AmbientOcclusionFace", "net.minecraft.client.renderer.BufferBuilder", "net.minecraft.client.renderer.BufferBuilder.State",
+            "net.minecraft.client.renderer.BlockModelRenderer", "net.minecraft.client.renderer.BlockModelRenderer$AmbientOcclusionFace", "net.minecraft.client.renderer.BufferBuilder", "net.minecraft.client.renderer.BufferBuilder$State",
             "net.minecraft.client.renderer.ChunkRenderContainer", "net.minecraft.client.renderer.EntityRenderer", "net.minecraft.client.renderer.GlStateManager", "net.minecraft.client.renderer.ImageBufferDownload",
             "net.minecraft.client.renderer.ItemRenderer", "net.minecraft.client.renderer.Matrix4f", "net.minecraft.client.renderer.OpenGlHelper", "net.minecraft.client.renderer.RenderGlobal",
             "net.minecraft.client.renderer.RenderGlobal$ContainerLocalRenderInformation", "net.minecraft.client.renderer.RenderItem", "net.minecraft.client.renderer.RenderList", "net.minecraft.client.renderer.Tessellator",
@@ -197,12 +197,12 @@ public class OptiRefineCore implements IFMLLoadingPlugin {
             "net.minecraft.client.renderer.tileentity.TileEntityBeaconRenderer", "net.minecraft.client.renderer.tileentity.TileEntityEndPortalRenderer", "net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher", "net.minecraft.client.renderer.tileentity.TileEntitySignRenderer",
             "net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer", "net.minecraft.client.renderer.vertex.DefaultVertexFormats", "net.minecraft.client.renderer.vertex.VertexBuffer", "net.minecraft.client.resources.AbstractResourcePack",
             "net.minecraft.client.resources.DefaultResourcePack", "net.minecraft.client.resources.I18n", "net.minecraft.client.resources.ResourcePackRepository", "net.minecraft.client.settings.GameSettings",
-            "net.minecraft.client.settings.GameSettings.Options", "net.minecraft.crash.CrashReport", "net.minecraft.entity.EntityLiving", "net.minecraft.network.PacketThreadUtil",
+            "net.minecraft.client.settings.GameSettings$Options", "net.minecraft.crash.CrashReport", "net.minecraft.entity.EntityLiving", "net.minecraft.network.PacketThreadUtil",
             "net.minecraft.network.datasync.EntityDataManager", "net.minecraft.potion.PotionUtils", "net.minecraft.profiler.Profiler", "net.minecraft.server.integrated.IntegratedServer",
             "net.minecraft.server.management.PlayerChunkMap", "net.minecraft.util.ClassInheritanceMultiMap", "net.minecraft.util.EnumFacing", "net.minecraft.util.ScreenShotHelper",
             "net.minecraft.util.Util", "net.minecraft.util.math.ChunkPos", "net.minecraft.util.math.MathHelper", "net.minecraft.util.text.translation.I18n",
             "net.minecraft.world.GameRules$Value", "net.minecraft.world.WorldEntitySpawner", "net.minecraft.world.chunk.BlockStateContainer", "net.minecraft.world.chunk.storage.ExtendedBlockStorage",
-            "net.minecraft.world.gen.layer.GenLayerZoom", "net.minecraftforge.client.GuiIngameForge", "net.minecraftforge.fml.FMLClientHandler", "net.optifine.Config",
+            "net.minecraft.world.gen.layer.GenLayerZoom", "net.minecraftforge.client.GuiIngameForge", "net.minecraftforge.fml.client.FMLClientHandler", "Config",
             "net.optifine.shaders.Shaders",
         };
 
