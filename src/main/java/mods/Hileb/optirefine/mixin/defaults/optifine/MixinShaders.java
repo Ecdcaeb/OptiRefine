@@ -31,6 +31,7 @@ public abstract class MixinShaders {
         } finally {
             SelectiveReloadStateHandler.INSTANCE.endReload();
         }
+        mods.Hileb.optirefine.core.OptiRefineLog.log.info("[DIAG] post shaderpack reload: BLOCK.size={}", net.minecraft.client.renderer.vertex.DefaultVertexFormats.BLOCK.getSize());
         return Futures.immediateFuture(null);
     }
 }
