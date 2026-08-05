@@ -270,7 +270,7 @@ public abstract class MixinTextureAtlasSprite {
     // [AUDIT-FIXED] 2026-08-05: cleanroom patch REMOVED the 0.01F UV inset from initSprite
     // (patch: @@ -49,12 +49,10); OF keeps it (OF:79-87) as the atlas-border bleeding guard.
     // Recompute minU..maxV with the inset, then OF baseU/baseV + sprite propagation.
-    private void optiRefine$initSprite(int inX, int inY, int originInX, int originInY, CallbackInfo ci) {
+    private void optiRefine$initSprite(int inX, int inY, int originInX, int originInY, boolean rotatedIn, CallbackInfo ci) {
         float f = (float) (0.01F / inX);
         float f1 = (float) (0.01F / inY);
         this.minU = originInX / (float) inX + f;
