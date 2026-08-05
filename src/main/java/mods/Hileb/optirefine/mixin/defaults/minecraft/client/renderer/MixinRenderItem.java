@@ -2,8 +2,11 @@ package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.optifine.Config;
+import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.ItemModelMesher;
 import net.minecraft.client.renderer.OpenGlHelper;
@@ -247,6 +250,25 @@ public abstract class MixinRenderItem {
             }
         }
     }
+
+    // ===== renderQuads: revert Forge LightUtil to vanilla direct-write =====
+    // [AUDIT-FIXED] 2026-08-05: cleanroom patch replaced renderQuad with LightUtil.renderQuadColor.
+    // Under shaders DefaultVertexFormats.ITEM is the 56-byte SVertexFormat layout; LightUtil's
+    // unpack/repack then corrupts vertex data (pos.x -> 0, verified via quad-vs-buffer dumps:
+    // ender_eye quad source (0,0,.53)(1,0,.53)(1,1,.53)(0,1,.53) reached the buffer as four
+    // degenerate (0,0,.53) points). OF renders items via vanilla direct addVertexData + the
+    // SVertexBuilder hooks (entityData/calcNormal) in MixinBufferBuilder — replicate that here.
+    @WrapOperation(method = "renderQuads", at = @At(value = "INVOKE", target = "Lnet/minecraftforge/client/model/pipeline/LightUtil;renderQuadColor(Lnet/minecraft/client/renderer/BufferBuilder;Lnet/minecraft/client/renderer/block/model/BakedQuad;I)V"))
+    private void optiRefine$renderQuadDirect(BufferBuilder renderer, net.minecraft.client.renderer.block.model.BakedQuad quad, int color, Operation<Void> original){
+        renderer.addVertexData(quad.getVertexData());
+        renderer.putColor4(color);
+        BufferBuilder_setSprite(renderer, quad.getSprite());
+        renderer.putNormal((float) quad.getFace().getDirectionVec().getX(), (float) quad.getFace().getDirectionVec().getY(), (float) quad.getFace().getDirectionVec().getZ());
+    }
+
+    @SuppressWarnings("MissingUnique")
+    @AccessibleOperation(opcode = org.objectweb.asm.Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.BufferBuilder setSprite (Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;)V")
+    private static native void BufferBuilder_setSprite(BufferBuilder builder, net.minecraft.client.renderer.texture.TextureAtlasSprite sprite);
 
     // ===== renderItemOverlayIntoGUI: custom durability color =====
     // [AUDIT-FIXED] vanilla hsvToRGB call was removed by the Cleanroom RenderItem patch (durability now uses
