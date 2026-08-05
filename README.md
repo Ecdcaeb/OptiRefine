@@ -1,4 +1,8 @@
-# OptiRefine 目前没有可用版本，请勿在任何实际场景下载安装。暂不接受由OptiRefine引发崩溃或错误的issue。但你仍然可以反馈OptiFine本身在Cleanroom环境下存在的问题，需要的特性。
+# OptiRefine — Runtime Alpha Test
+
+> **状态：Runtime Alpha Test**（运行时 alpha 测试）。可下载体验，但**不建议**在存档/服务器等重要场景使用；
+> 可能仍有崩溃或渲染问题。暂不接受由 OptiRefine 引发崩溃或错误的 issue；但你仍然可以反馈
+> OptiFine 本身在 Cleanroom 环境下存在的问题与需要的特性。
 
 # OptiRefine
 OptiRefine is a mod that utilizes Mixin to patch Optifine, keeping optifine compatible with cleanroom and reducing its destructiveness.
@@ -11,11 +15,13 @@ Post incompatible issues of optifine here!
 
 [✔] Disable OptiFineClassTransformer as it make file replacement
 
-[✔] Reimplement OptiFine with mixin (122/122)
+[✔] Reimplement OptiFine with mixin (125/125)
 
-[✔] Migrate build toolchain to the CleanroomModTemplate `mixin` branch (Gradle 9.6.1 / unimined 1.4.26-kappa / Cleanroom loader 0.5.17-alpha / JDK 26) and make `gradlew build` pass
+[✔] Migrate build toolchain to the CleanroomModTemplate `mixin` branch (Gradle 9.6.1 / unimined 1.4.26-kappa / Cleanroom loader 0.6.7-alpha / JDK 26) and make `gradlew build` pass
 
-[] Runtime verification in-game (mixin apply, AccessibleOperation, cursed mixin extensions)
+[~] Runtime verification in-game (mixin apply, AccessibleOperation, cursed mixin extensions)
+    - Verified: non-shader rendering, dynamic lights, skins/capes, item lighting in inventory
+    - In progress: hand-held items / GUI icons under shaders, shader terrain (black triangle root cause fixed, pending re-verify)
 
 [] Fix optifine and update to lwjgl3
 
@@ -44,6 +50,12 @@ Requires JDK 26 (`JAVA_HOME` must point to it). Then:
 
 Note: mixins are written against the vanilla MCP classes on the compile classpath;
 OptiFine-only members are accessed via `@AccessibleOperation` / `@Shadow` (see FOR_AGENT.md).
+
+## Test Environment
+
+- Cleanroom `0.6.7-alpha` + `OptiFine_1.12.2_HD_U_G6_pre1.jar`
+- Deployment: copy `build/libs/optirefine-0.0.1-indev.jar` into the instance `mods/` folder
+- Bug reports: attach `logs/latest.log` / `crash-reports/crash-*.txt`
 
 ## Feats
 
