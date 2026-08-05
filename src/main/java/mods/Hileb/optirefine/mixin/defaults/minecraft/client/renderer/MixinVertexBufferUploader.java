@@ -10,6 +10,7 @@ import net.minecraft.client.renderer.vertex.VertexBuffer;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 @Mixin(VertexBufferUploader.class)
 public abstract class MixinVertexBufferUploader {
 // [AUDIT] 2026-08-03 — see AGENT.md; issues: 1

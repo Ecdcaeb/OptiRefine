@@ -50,7 +50,6 @@ public abstract class MixinDefaultVertexFormats {
             BLOCK = SVertexFormat.makeDefVertexFormatBlock();
             ITEM = SVertexFormat.makeDefVertexFormatItem();
             SVertexFormat.setDefBakedFormat(Attributes.DEFAULT_BAKED_FORMAT);
-            mods.Hileb.optirefine.core.OptiRefineLog.log.info("[DIAG] updateVertexFormats shaders: BLOCK.size={} ITEM.size={} isShaders={}", BLOCK.getSize(), ITEM.getSize(), Config.isShaders());
         } else {
             BLOCK = BLOCK_VANILLA;
             ITEM = ITEM_VANILLA;
