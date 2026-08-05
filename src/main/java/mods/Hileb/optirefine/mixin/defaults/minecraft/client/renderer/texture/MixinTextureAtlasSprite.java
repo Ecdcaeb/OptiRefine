@@ -39,8 +39,8 @@ import java.util.List;
  * <p>Implements the OptiFine-specific fields and methods (spriteSingle/spriteNormal/spriteSpecular
  * bookkeeping, SmartAnimations integration, transparent color fixing, shaders sprites, mipmap
  * propagation, custom UV helpers). The {@code hasCustomLoader}/{@code load}/{@code getDependencies}
- * methods and the UV inset change in {@code initSprite} are already provided by the Cleanroom
- * patches and thus skipped here.</p>
+ * methods are provided by the Cleanroom patches; the UV inset in {@code initSprite} was REMOVED by
+ * the Cleanroom patch and is restored by {@code optiRefine$initSprite} (OF behavior, 2026-08-05).</p>
  */
 @Mixin(TextureAtlasSprite.class)
 // [AUDIT] 2026-08-03 - see AGENT.md; issues: 1
@@ -215,7 +215,7 @@ public abstract class MixinTextureAtlasSprite {
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureMap func_184397_a (Lnet/minecraft/client/resources/IResourceManager;Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;)Z", deobf = true)
-    // [AUDIT-ISSUE] desc ends )V but func_184397_a returns Z (boolean) -> NoSuchMethodError at runtime in loadShadersSprites; also missing deobf=true. Fix: )Z + deobf=true
+    // [AUDIT-OK] desc )Z + deobf=true verified 2026-08-05
     private static native boolean TextureMap_generateMipmaps(net.minecraft.client.renderer.texture.TextureMap textureMap, IResourceManager resourceManager, TextureAtlasSprite sprite);
 
     @SuppressWarnings({"unused", "MissingUnique"})
@@ -267,8 +267,16 @@ public abstract class MixinTextureAtlasSprite {
     // ===== initSprite: baseU/baseV + sprite propagation =====
 
     @Inject(method = "initSprite", at = @At("RETURN"))
-    // [AUDIT-OK] target initSprite(IIIIZ)V matches baseline; RETURN inject replicates OF baseU/baseV + propagation
-    private void optiRefine$initSprite(CallbackInfo ci) {
+    // [AUDIT-FIXED] 2026-08-05: cleanroom patch REMOVED the 0.01F UV inset from initSprite
+    // (patch: @@ -49,12 +49,10); OF keeps it (OF:79-87) as the atlas-border bleeding guard.
+    // Recompute minU..maxV with the inset, then OF baseU/baseV + sprite propagation.
+    private void optiRefine$initSprite(int inX, int inY, int originInX, int originInY, CallbackInfo ci) {
+        float f = (float) (0.01F / inX);
+        float f1 = (float) (0.01F / inY);
+        this.minU = originInX / (float) inX + f;
+        this.maxU = (originInX + this.width) / (float) inX - f;
+        this.minV = (float) originInY / inY + f1;
+        this.maxV = (float) (originInY + this.height) / inY - f1;
         this.baseU = Math.min(this.minU, this.maxU);
         this.baseV = Math.min(this.minV, this.maxV);
         if (this.spriteSingle != null) {

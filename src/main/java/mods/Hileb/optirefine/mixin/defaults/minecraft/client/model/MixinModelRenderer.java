@@ -75,6 +75,9 @@ public abstract class MixinModelRenderer {
 // [AUDIT-OK] baseline member rotateAngleZ exists in target class
     @Shadow
     public float rotateAngleZ;
+// [AUDIT-OK] baseline member compileDisplayList exists in target class (protected, vanilla)
+    @Shadow
+    protected abstract void compileDisplayList(float scale);
 // [AUDIT-OK] baseline member compiled exists in target class
     @Shadow
     private boolean compiled;
@@ -196,6 +199,9 @@ public abstract class MixinModelRenderer {
     public void injectPreRender(float scale, Operation<Void> original){
         if (!this.isHidden && this.showModel) {
             this.checkResetDisplayList();
+            if (!this.compiled) {
+                this.compileDisplayList(scale);
+            }
 
             int lastTextureId = 0;
             if (this.textureLocation != null && !_acc_RenderGlobal_renderOverlayDamaged_(this.renderGlobal)) {
@@ -211,8 +217,61 @@ public abstract class MixinModelRenderer {
                 this.modelUpdater.update();
             }
 
-            original.call(scale);
 
+            boolean scaled = this.scaleX != 1.0F || this.scaleY != 1.0F || this.scaleZ != 1.0F;
+            GlStateManager.translate(this.offsetX, this.offsetY, this.offsetZ);
+            if (this.rotateAngleX != 0.0F || this.rotateAngleY != 0.0F || this.rotateAngleZ != 0.0F) {
+                GlStateManager.pushMatrix();
+                GlStateManager.translate(this.rotationPointX * scale, this.rotationPointY * scale, this.rotationPointZ * scale);
+                if (this.rotateAngleZ != 0.0F) {
+                    GlStateManager.rotate(this.rotateAngleZ * (180.0F / (float) Math.PI), 0.0F, 0.0F, 1.0F);
+                }
+                if (this.rotateAngleY != 0.0F) {
+                    GlStateManager.rotate(this.rotateAngleY * (180.0F / (float) Math.PI), 0.0F, 1.0F, 0.0F);
+                }
+                if (this.rotateAngleX != 0.0F) {
+                    GlStateManager.rotate(this.rotateAngleX * (180.0F / (float) Math.PI), 1.0F, 0.0F, 0.0F);
+                }
+                if (scaled) {
+                    GlStateManager.scale(this.scaleX, this.scaleY, this.scaleZ);
+                }
+                GlStateManager.callList(this.displayList);
+                if (this.childModels != null) {
+                    for (ModelRenderer childModel : this.childModels) {
+                        childModel.render(scale);
+                    }
+                }
+                GlStateManager.popMatrix();
+            } else if (this.rotationPointX == 0.0F && this.rotationPointY == 0.0F && this.rotationPointZ == 0.0F) {
+                if (scaled) {
+                    GlStateManager.scale(this.scaleX, this.scaleY, this.scaleZ);
+                }
+                GlStateManager.callList(this.displayList);
+                if (this.childModels != null) {
+                    for (ModelRenderer childModel : this.childModels) {
+                        childModel.render(scale);
+                    }
+                }
+                if (scaled) {
+                    GlStateManager.scale(1.0F / this.scaleX, 1.0F / this.scaleY, 1.0F / this.scaleZ);
+                }
+            } else {
+                GlStateManager.translate(this.rotationPointX * scale, this.rotationPointY * scale, this.rotationPointZ * scale);
+                if (scaled) {
+                    GlStateManager.scale(this.scaleX, this.scaleY, this.scaleZ);
+                }
+                GlStateManager.callList(this.displayList);
+                if (this.childModels != null) {
+                    for (ModelRenderer childModel : this.childModels) {
+                        childModel.render(scale);
+                    }
+                }
+                if (scaled) {
+                    GlStateManager.scale(1.0F / this.scaleX, 1.0F / this.scaleY, 1.0F / this.scaleZ);
+                }
+                GlStateManager.translate(-this.rotationPointX * scale, -this.rotationPointY * scale, -this.rotationPointZ * scale);
+            }
+            GlStateManager.translate(-this.offsetX, -this.offsetY, -this.offsetZ);
             if (lastTextureId != 0) {
                 GlStateManager.bindTexture(lastTextureId);
             }
@@ -224,6 +283,9 @@ public abstract class MixinModelRenderer {
     public void injectPreRenderWithRotation(float scale, Operation<Void> original){
         if (!this.isHidden && this.showModel) {
             this.checkResetDisplayList();
+            if (!this.compiled) {
+                this.compileDisplayList(scale);
+            }
 
             int lastTextureId = 0;
             if (this.textureLocation != null && !_acc_RenderGlobal_renderOverlayDamaged_(this.renderGlobal)) {
@@ -239,8 +301,29 @@ public abstract class MixinModelRenderer {
                 this.modelUpdater.update();
             }
 
-            original.call(scale);
 
+            boolean scaled = this.scaleX != 1.0F || this.scaleY != 1.0F || this.scaleZ != 1.0F;
+            GlStateManager.pushMatrix();
+            GlStateManager.translate(this.rotationPointX * scale, this.rotationPointY * scale, this.rotationPointZ * scale);
+            if (this.rotateAngleY != 0.0F) {
+                GlStateManager.rotate(this.rotateAngleY * (180.0F / (float) Math.PI), 0.0F, 1.0F, 0.0F);
+            }
+            if (this.rotateAngleX != 0.0F) {
+                GlStateManager.rotate(this.rotateAngleX * (180.0F / (float) Math.PI), 1.0F, 0.0F, 0.0F);
+            }
+            if (this.rotateAngleZ != 0.0F) {
+                GlStateManager.rotate(this.rotateAngleZ * (180.0F / (float) Math.PI), 0.0F, 0.0F, 1.0F);
+            }
+            if (scaled) {
+                GlStateManager.scale(this.scaleX, this.scaleY, this.scaleZ);
+            }
+            GlStateManager.callList(this.displayList);
+            if (this.childModels != null) {
+                for (ModelRenderer childModel : this.childModels) {
+                    childModel.render(scale);
+                }
+            }
+            GlStateManager.popMatrix();
             if (lastTextureId != 0) {
                 GlStateManager.bindTexture(lastTextureId);
             }

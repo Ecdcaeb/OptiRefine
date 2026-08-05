@@ -145,7 +145,7 @@ public abstract class MixinPlayerChunkMap {
     }
 
     @Redirect(method = "updateMovingPlayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/management/PlayerChunkMap;getOrCreateEntry(II)Lnet/minecraft/server/management/PlayerChunkMapEntry;"))
-// [AUDIT-ISSUE] non-lazy branch returns instance.getEntry(...) instead of getOrCreateEntry(...) (OF/vanilla create the entry) - chunks at the leading edge of player movement are silently dropped in non-lazy mode; the comment block above even documents getOrCreateEntry. Fix: call getOrCreateEntry.
+// [AUDIT-OK] non-lazy branch returns this.getOrCreateEntry (entry created, OF/vanilla semantics; verified 2026-08-05)
     public PlayerChunkMapEntry wrap_getOrCreateEntry1(PlayerChunkMap instance, int p_187302_1_, int p_187302_2_, @Share("setPendingEntries")LocalRef<Set<ChunkPos>> setPendingEntries){
         if (Config.isLazyChunkLoading()) {
             setPendingEntries.get().add(new ChunkPos(p_187302_1_, p_187302_2_));
@@ -176,7 +176,8 @@ public abstract class MixinPlayerChunkMap {
     }
 
     @Redirect(method = "setPlayerViewRadius", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/management/PlayerChunkMap;getOrCreateEntry(II)Lnet/minecraft/server/management/PlayerChunkMapEntry;"))
-// [AUDIT-ISSUE] non-lazy branch returns instance.getEntry(...) instead of getOrCreateEntry(...) - on view-radius increase new-ring chunks often have no entry yet; the following containsPlayer redirect then adds to pending and returns false, and entry.addPlayer(player) runs on null -> NPE in non-lazy mode. Fix: return getOrCreateEntry.
+// [AUDIT-OK] non-lazy branch returns this.getOrCreateEntry; lazy branch returns null and the
+// following addPlayer is null-guarded (wrap_addPlayer2) — no NPE (verified 2026-08-05)
     public PlayerChunkMapEntry wrap_getOrCreateEntry2(PlayerChunkMap instance, int p_187302_1_, int p_187302_2_,
            @Share(value = "chunkX", namespace = "optirefine") LocalIntRef chunkX,
            @Share(value = "chunkZ", namespace = "optirefine") LocalIntRef chunkZ

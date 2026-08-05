@@ -49,13 +49,13 @@ public abstract class MixinTextureUtil {
     private static int[] dataArray = new int[4194304];
 
     @SuppressWarnings("unused")
-    @AccessTransformer(name = "setTextureClamped", access = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC)
-    // [AUDIT-ISSUE] vanilla member setTextureClamped = func_110997_a; AT uses MCP name w/o deobf=true -> no-op at SRG runtime (stays private -> OF jar external callers IllegalAccessError). Fix: name="func_110997_a", deobf=true
+    @AccessTransformer(name = "func_110997_a", access = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, deobf = true)
+    // [AUDIT-FIXED] 2026-08-05: SRG name + deobf=true (was MCP name -> silent no-op at SRG runtime)
     private static native void acc_setTextureClamped(boolean flag);
 
     @SuppressWarnings("unused")
-    @AccessTransformer(name = "setTextureBlurMipmap", access = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC)
-    // [AUDIT-ISSUE] vanilla member setTextureBlurMipmap = func_147954_b; AT uses MCP name w/o deobf=true -> no-op at SRG runtime. Fix: name="func_147954_b", deobf=true
+    @AccessTransformer(name = "func_147954_b", access = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, deobf = true)
+    // [AUDIT-FIXED] 2026-08-05: SRG name + deobf=true (was MCP name -> silent no-op at SRG runtime)
     private static native void acc_setTextureBlurMipmap(boolean blur, boolean mipmap);
 
     @Shadow

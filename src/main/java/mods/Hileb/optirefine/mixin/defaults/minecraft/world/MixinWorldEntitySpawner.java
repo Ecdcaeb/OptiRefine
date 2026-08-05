@@ -157,7 +157,7 @@ public abstract class MixinWorldEntitySpawner {
 //        return blockPosM;
 //    }
     @Unique
-// [AUDIT-ISSUE] findChunksForSpawning OF override is commented out - OF chunk-spawn cache/eligible-chunks logic is NOT implemented (behavioral gap vs OF, perf only)
+// [AUDIT-REGISTERED] findChunksForSpawning OF override commented out — OF chunk-spawn cache is NOT implemented (perf-only gap, AGENTS.md legacy list, 2026-08-05)
 // [AUDIT-OK] OF-added fields mapSampleEntitiesByClass/lastPlayerChunkX/lastPlayerChunkZ/countChunkPos (in OF WorldEntitySpawner, not in baseline), MCP names - currently dead code
     private Map<Class<?>, EntityLiving> mapSampleEntitiesByClass = new HashMap<>();
     @Unique

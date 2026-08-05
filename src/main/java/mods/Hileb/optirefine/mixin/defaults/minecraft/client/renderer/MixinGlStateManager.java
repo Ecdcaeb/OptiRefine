@@ -504,7 +504,7 @@ public abstract class MixinGlStateManager {
 
     @ModifyConstant(method = "<clinit>", constant = @Constant(intValue = 8, ordinal = 2))
     private static int optiRefine$largerTextureState(int constant) {
-// [AUDIT-ISSUE] <clinit> intValue=8 ordinal=0 hits lightState = new BooleanState[8] (FIRST 8 in <clinit>) not textureState = new TextureState[8] (third 8) -> OF 32-texture-unit feature inert; use ordinal=2 (or match via the TAIL init only)
+// [AUDIT-OK] ordinal=2 verified: lightState arr#0, lightState loop#1, textureState arr#2 (2026-08-05)
         return 32;
     }
 

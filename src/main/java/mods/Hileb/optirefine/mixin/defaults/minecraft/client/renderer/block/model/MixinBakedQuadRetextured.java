@@ -50,12 +50,12 @@ public abstract class MixinBakedQuadRetextured {
     @Unique
     // [AUDIT-OK] OF-added member (OF getSprite returns texture field)
     public TextureAtlasSprite getSprite() {
-        // [AUDIT-ISSUE] vanilla SRG field_178218_d (=texture, tsrg) missing deobf=true — MCP (devrun) runtime would fail to resolve; add deobf=true per convention
+        // [AUDIT-OK] SRG field_178218_d + deobf=true double-matching (2026-08-05)
         return BakedQuadRetextured_texture_get((BakedQuadRetextured) (Object) this);
     }
 
     @SuppressWarnings("MissingUnique")
-    @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.block.model.BakedQuadRetextured field_178218_d Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;")
+    @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.block.model.BakedQuadRetextured field_178218_d Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;", deobf = true)
     private static native TextureAtlasSprite BakedQuadRetextured_texture_get(BakedQuadRetextured instance);
 
 }

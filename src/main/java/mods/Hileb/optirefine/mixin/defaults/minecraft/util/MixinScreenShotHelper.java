@@ -19,8 +19,7 @@ public abstract class MixinScreenShotHelper {
 
 
     @WrapOperation(method = "saveScreenshot(Ljava/io/File;Ljava/lang/String;IILnet/minecraft/client/shader/Framebuffer;)Lnet/minecraft/util/text/ITextComponent;", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/ScreenShotHelper;createScreenshot(IILnet/minecraft/client/shader/Framebuffer;)Ljava/awt/image/BufferedImage;"))
-// [AUDIT-OK] resize/capture/restore flow around createScreenshot matches OF saveScreenshot (guiScale*guiScale-mul, clear 16640, updateCameraAndRender, restore)
-// [AUDIT-ISSUE] guiScale is restored from sr.getScaleFactor() instead of the saved guiScaleOld (declared unused) - with guiScale=0 (Auto) the setting permanently becomes a fixed scale after the first screenshot. Fix: Config.getGameSettings().guiScale = guiScaleOld;
+// [AUDIT-OK] resize/capture/restore flow around createScreenshot matches OF saveScreenshot (guiScale*guiScale-mul, clear 16640, updateCameraAndRender, restore); guiScale restored from saved guiScaleOld (verified 2026-08-05)
     private static BufferedImage beforecreateScreenshot(int width, int height, Framebuffer framebufferIn, Operation<BufferedImage> original){
         Minecraft mc = Minecraft.getMinecraft();
         //noinspection unused

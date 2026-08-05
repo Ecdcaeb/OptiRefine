@@ -106,9 +106,8 @@ public abstract class MixinProfiler {
     }
 
     @WrapMethod(method = "getProfilingData")
-// [AUDIT-ISSUE] (see endSection issue) extra profilerGlobalEnabled gate not present in OF getProfilingData (OF only checks profilingEnabled)
+// [AUDIT-OK] no extra gate — OF getProfilingData checks profilingEnabled only (verified 2026-08-05)
     public List<Profiler.Result> injectGetProfilingData(String p_76321_1_, Operation<List<Profiler.Result>> original){
-// [AUDIT-FIXED] no extra gate (OF getProfilingData checks profilingEnabled only)
         return original.call(p_76321_1_);
     }
 

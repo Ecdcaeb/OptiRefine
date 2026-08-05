@@ -70,6 +70,20 @@ public abstract class MixinRender {
         }
     }
 
+    @Inject(method = "renderEntityOnFire", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/Render;bindTexture(Lnet/minecraft/util/ResourceLocation;)V"))
+    // [AUDIT-FIXED] 2026-08-05: OF:138 sets the per-iteration fire sprite before the quads
+    // (multi-texture mode); missing -> fire quads carry a stale sprite. @Local ordinal=2 = the
+    // loop-local sprite (textureatlassprite2), third TextureAtlasSprite local in the method.
+    public void setFireSprite_renderEntityOnFire(Entity entity, double x, double y, double z, float partialTicks, CallbackInfo ci, @Local(ordinal = 2) net.minecraft.client.renderer.texture.TextureAtlasSprite sprite, @Local(ordinal = 0) BufferBuilder builder){
+        if (Config.isMultiTexture()) {
+            BufferBuilder_setSprite(builder, sprite);
+        }
+    }
+
+    @SuppressWarnings("MissingUnique")
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.BufferBuilder setSprite (Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;)V")
+    private static native void BufferBuilder_setSprite(BufferBuilder builder, net.minecraft.client.renderer.texture.TextureAtlasSprite sprite);
+
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.client.renderer.GlStateManager bindCurrentTexture ()V")
     private static native void GlStateManager_bindCurrentTexture();

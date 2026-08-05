@@ -34,6 +34,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.client.MinecraftForgeClient;
 import net.optifine.DynamicLights;
+import net.optifine.RandomEntities;
 import net.optifine.shaders.Shaders;
 import org.spongepowered.asm.mixin.Mixin;
 import org.objectweb.asm.Opcodes;
@@ -105,12 +106,12 @@ public abstract class MixinRenderGlobal {
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.RenderGlobal func_184384_n ()Z", deobf = true)
-// [AUDIT-ISSUE] vanilla SRG func_184384_n = hasNoChunkUpdates verified, but deobf=true missing -> devrun (MCP runtime) breaks; SRG runtime OK
+// [AUDIT-OK] SRG func_184384_n + deobf=true double-matching (verified 2026-08-05)
     private static native boolean RenderGlobal_hasNoChunkUpdates(RenderGlobal renderGlobal);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.multiplayer.ChunkProviderClient field_73236_b Lit/unimi/dsi/fastutil/longs/Long2ObjectMap;", deobf = true)
-// [AUDIT-ISSUE] vanilla SRG field_73236_b = loadedChunks verified, but deobf=true missing -> devrun breaks; SRG runtime OK
+// [AUDIT-OK] SRG field_73236_b + deobf=true double-matching (verified 2026-08-05)
     private static native Long2ObjectMap ChunkProviderClient_loadedChunks_get(ChunkProviderClient chunkProviderClient);
 
     @SuppressWarnings({"unused", "MissingUnique"})
@@ -126,6 +127,8 @@ public abstract class MixinRenderGlobal {
     // [AUDIT-FIXED] 2026-08-05: OF registers dynamic-light entities on world events (OF:2626).
     public void optiRefine$onEntityAdded(Entity entityIn, Operation<Void> original) {
         original.call(entityIn);
+        // [AUDIT-FIXED] 2026-08-05: OF:2624 also feeds RandomEntities (random mob skins, default on).
+        RandomEntities.entityLoaded(entityIn, this.world);
         if (Config.isDynamicLights()) {
             DynamicLights.entityAdded(entityIn, (net.minecraft.client.renderer.RenderGlobal)(Object)this);
         }
@@ -135,6 +138,8 @@ public abstract class MixinRenderGlobal {
     // [AUDIT-FIXED] 2026-08-05: OF unregisters dynamic-light entities (OF:2633).
     public void optiRefine$onEntityRemoved(Entity entityIn, Operation<Void> original) {
         original.call(entityIn);
+        // [AUDIT-FIXED] 2026-08-05: OF:2630 RandomEntities.entityUnloaded (random mob skins).
+        RandomEntities.entityUnloaded(entityIn, this.world);
         if (Config.isDynamicLights()) {
             DynamicLights.entityRemoved(entityIn, (net.minecraft.client.renderer.RenderGlobal)(Object)this);
         }
@@ -277,9 +282,10 @@ public abstract class MixinRenderGlobal {
 // [AUDIT-OK] baseline member loadRenderers (func_72712_a)
     public abstract void loadRenderers();
 
-    @Inject(method = "setupTerrain", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/ViewFrustum;updateChunkPositions(DD)V", shift = At.Shift.AFTER))
-    // [AUDIT-FIXED] 2026-08-05: OF calls DynamicLights.update(this) after the frustum chunk-position
-    // update (OF RenderGlobal:914); without it dynamic lights never recompute per frame.
+    @Inject(method = "setupTerrain", at = @At(value = "HEAD"))
+    // [AUDIT-FIXED] 2026-08-05: OF:912-915 DynamicLights.update(this) runs EVERY setupTerrain call,
+    // outside the frustum-move if block; the previous INVOKE updateChunkPositions(AFTER) anchor only
+    // fired on camera moves, so dynamic lights never recomputed while standing still.
     private void optiRefine$dynamicLightsUpdate(Entity entityIn, double partialTicks, ICamera p_174970_4_, int p_174970_5_, boolean p_174970_6_, CallbackInfo ci) {
         if (Config.isDynamicLights()) {
             DynamicLights.update((net.minecraft.client.renderer.RenderGlobal)(Object)this);

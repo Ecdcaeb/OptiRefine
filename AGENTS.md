@@ -1,6 +1,6 @@
 # Repository Guidelines
 
-> 面向 AI 助手的代码库指南。最后更新 2026-08-05（4 路 scout 全量扫描重建；12 提交已推送 origin/dev=6fb0748）。
+> 面向 AI 助手的代码库指南。最后更新 2026-08-05（全量三路语义审计第二轮完成：P1–P26 + core/lib，全部 DIFF 已修或登记）。
 > 优先读 `AGENT.md`（现行交接手册，含逐轮崩溃修复记录与硬规则）。
 
 ## Project Overview
@@ -161,3 +161,14 @@ cp build/libs/optirefine-0.0.1-indev.jar "D:\Program Disk\HMCL\.minecraft\versio
 - `MixinFMLClientHandler` brand 追加待运行时验证
 - Kirino headless 4 段（renderWorldPass 的 Cleanroom 渲染委托阶段）未重实现（TODO）
 - emissive 重渲染在 Cleanroom patch 替换 renderQuad 后为死代码（已知）
+- `@AccessibleOperation` desc 点分隔风格（26 处 MIXED-SEPARATORS，处理器统一转斜杠，无功能影响）
+
+## 二轮审计修复记录（2026-08-05，P1–P26 + core/lib 全量复查）
+
+HIGH：①`rebuildChunk$renderBlock` layersUsed 索引用 unfixed ordinal（OF:235 用 fixBlockLayer 后 ordinal）→ 草/火把等重映射方块不可见；②`MixinThreadDownloadImageData` markUploaded 置 HEAD 使上传守卫恒 false → 皮肤/披风永不传 GL；③FaceBakery 三方法步长硬编码 7 而 makeQuadVertexData 已扩 56 → shaders 模式 quad 布局错位（疑似黑三角根因）。
+
+MED：④`DynamicLights.update` 注入点移到 setupTerrain HEAD（OF 在 if 块外每帧执行）；⑤onEntityAdded/Removed 补 `RandomEntities.entityLoaded/Unloaded`；⑥MixinTextureUtil 两处 `@AccessTransformer` 补 SRG 名+deobf=true；⑦MixinBakedQuadRetextured texture GETFIELD 补 deobf=true；⑧MixinImageBufferDownload 补 const56（HD 皮肤镜像源矩形）；⑨MixinTextureAtlasSprite 恢复 cleanroom patch 删除的 0.01F UV inset；⑩MixinItemRenderer updateEquippedItem PUTFIELD ordinal=1→0（运行时单次写入，ordinal=1 找不到注入点）；⑪ModelRenderer render/renderWithRotation 全替换含 scaleX/Y/Z 分支。
+
+LOW/注释清理：renderCloudsCheck 补 `renderDistanceChunks>=4`（OF:1549）；BlockFluidRenderer 补返回前 `setSprite(null)`（OF:290）；MixinRender.renderEntityOnFire 循环内补 `setSprite`（OF:138，多纹理火纹）；23 条过期 [AUDIT-ISSUE] 注释更新为 [AUDIT-OK]（onPlayerPositionSet/float 选项/State 内嵌类 desc 等——均先前已修复）；scan_review.py 支持 `<init>*` 通配与 patch/patches 落地方法（恢复 NO PROBLEMS FOUND）。
+
+实证关闭：`State` 为非静态内部类（forge:582），NEW/@NewConstructor desc 含外层 this$0 正确；`stateQuadSprites` 有 cursed @Public 无 IllegalAccessError；CustomItems 走 Reflector.ModelLoader 独立路径不调 ModelBakery.loadItemModel（MED 关闭）；SVertexFormat.duplicate 深拷贝（FORGE_BAKED 非 live 引用）。

@@ -125,4 +125,13 @@ public abstract class MixinBlockFluidRenderer {
         return value;
     }
 
+    @Inject(method = "renderFluid", at = @At("RETURN"))
+    // [AUDIT-FIXED] 2026-08-05: OF:290 setSprite(null) before return (success path); without it the
+    // next consumer of the BufferBuilder inherits the fluid sprite (multi-texture state leakage).
+    public void resetSprite_renderFluid(IBlockAccess blockAccess, IBlockState blockStateIn, BlockPos blockPosIn, BufferBuilder worldRendererIn, CallbackInfoReturnable<Boolean> cir){
+        if (cir.getReturnValue()) {
+            BufferBuilder_setSprite(worldRendererIn, null);
+        }
+    }
+
 }

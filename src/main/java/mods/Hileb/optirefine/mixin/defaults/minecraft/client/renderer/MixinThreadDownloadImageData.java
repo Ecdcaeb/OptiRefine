@@ -62,6 +62,12 @@ public abstract class MixinThreadDownloadImageData extends SimpleTexture{
     @WrapOperation(method = "checkTextureUploaded", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/texture/TextureUtil;uploadTextureImage(ILjava/awt/image/BufferedImage;)I"))
     public int blockTextureUploadForConfig(int textureId, BufferedImage texture, Operation<Integer> original){
 // [AUDIT-OK] target checkTextureUploaded()V (SRG func_147640_e) TextureUtil.uploadTextureImage matches baseline; shaders branch matches OF
+// [AUDIT-FIXED] 2026-08-05: textureUploaded=true set here, BEFORE any upload — OF:52-53 sets it as the
+// first statement inside the guard (re-entry from ShadersTex.getMultiTexID -> loadTexture ->
+// checkTextureUploaded while still false would recurse). The previous method-HEAD @Inject made the
+// vanilla guard if(!textureUploaded) always false, so deleteGlTexture + this upload never ran and
+// skins/capes never reached GL.
+        this.textureUploaded = true;
         if (Config.isShaders()) {
             return ShadersTex.loadSimpleTexture(textureId, texture, false, false, Config.getResourceManager(), this.textureLocation, getMultiTexID((ThreadDownloadImageData)(Object)this));
         } else {
@@ -101,14 +107,6 @@ public abstract class MixinThreadDownloadImageData extends SimpleTexture{
     @Shadow
 // [AUDIT-OK] baseline member textureUploaded (SRG field_110559_g)
     private boolean textureUploaded;
-
-    @Inject(method = "checkTextureUploaded", at = @At("HEAD"))
-    // [AUDIT-FIXED] set textureUploaded=true at HEAD like OF: the vanilla order (after upload) let
-    // ShadersTex.getMultiTexID -> loadTexture -> checkTextureUploaded re-enter while still false ->
-    // unbounded recursion (StackOverflowError)
-    private void optiRefine$markUploaded(CallbackInfo ci) {
-        this.textureUploaded = true;
-    }
 
     @Unique
 // [AUDIT-OK] OF-added method (OF: loadPipelined private), not in baseline

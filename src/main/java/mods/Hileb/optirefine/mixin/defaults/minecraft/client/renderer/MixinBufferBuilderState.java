@@ -26,17 +26,18 @@ public abstract class MixinBufferBuilderState {
 
     @SuppressWarnings({"unused", "FieldCanBeLocal", "AddedMixinMembersNamePattern"})
     @Unique
-// [AUDIT-ISSUE] @Unique private field read cross-class by MixinBufferBuilder BufferBuilder$State_stateQuadSprites_get (GETFIELD from BufferBuilder) -> IllegalAccessError risk; make @Public
+// [AUDIT-OK] @Unique + cursed @Public (postApply widens to public) — cross-class GETFIELD from
+// MixinBufferBuilder is legal (verified 2026-08-05)
     @Public
     private TextureAtlasSprite[] stateQuadSprites;
 
     @SuppressWarnings({"unused", "MissingUnique", "AddedMixinMembersNamePattern"})
     @NewConstructor
     public void State(BufferBuilder bufferBuilder, int[] buffer, VertexFormat format, TextureAtlasSprite[] quadSprites) {
-// [AUDIT-OK] OF-added ctor State(LBufferBuilder;[ILVertexFormat;[LTextureAtlasSprite;)V matching OF; note MixinBufferBuilder NEW AccessibleOperation desc must match this arity (see its issue)
+// [AUDIT-OK] OF-added ctor State(LBufferBuilder;[ILVertexFormat;[LTextureAtlasSprite;)V matching OF:874;
+// State is a NON-STATIC inner class (forge:582), the JVM ctor desc includes the outer this$0 as the
+// first parameter, which this BufferBuilder arg provides (verified 2026-08-05)
         _Object();
-        // [AUDIT-FIXED] this$0 removed: vanilla BufferBuilder$State is a STATIC inner class (no outer ref);
-        // the BufferBuilder ctor param is kept only to match the NEW bridge desc
         this.stateRawBuffer = buffer;
         this.stateVertexFormat = format;
         this.stateQuadSprites = quadSprites;

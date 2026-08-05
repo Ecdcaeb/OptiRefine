@@ -235,7 +235,7 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
     private boolean acc_generateMipmaps(net.minecraft.client.resources.IResourceManager resourceManager, net.minecraft.client.renderer.texture.TextureAtlasSprite sprite) { return false; }
 
         @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureMap func_184397_a (Lnet/minecraft/client/resources/IResourceManager;Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;)Z", deobf = true)
-    // [AUDIT-ISSUE] desc ends )V but func_184397_a returns Z (boolean); helper never called here (dead decl). Fix: )Z + deobf=true
+    // [AUDIT-OK] desc )Z + deobf=true verified 2026-08-05
     private static native boolean TextureMap_generateMipmaps(net.minecraft.client.renderer.texture.TextureMap textureMap, IResourceManager resourceManager, TextureAtlasSprite sprite);
 
     @SuppressWarnings({"unused", "MissingUnique"})
@@ -569,7 +569,7 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
 
     @SuppressWarnings("unused")
     @mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessTransformer(name = "func_184396_a", access = org.objectweb.asm.Opcodes.ACC_PUBLIC, deobf = true)
-    // [AUDIT-ISSUE] vanilla member getResourceLocation = func_184396_a; AT uses MCP name w/o deobf=true -> silent no-op at SRG runtime (stays private); impact needs-verification
+    // [AUDIT-OK] SRG name func_184396_a + deobf=true verified 2026-08-05
     private ResourceLocation acc_getResourceLocation(TextureAtlasSprite sprite) {
         return null;
     }

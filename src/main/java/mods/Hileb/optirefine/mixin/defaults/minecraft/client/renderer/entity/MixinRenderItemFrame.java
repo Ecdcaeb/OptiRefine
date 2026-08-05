@@ -28,7 +28,7 @@ public abstract class MixinRenderItemFrame {
     private static double itemRenderDistanceSq = 4096.0;
 
     @ModifyExpressionValue(method = "renderItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;isEmpty()Z"))
-    // [AUDIT-OK] isEmpty() INVOKE unique in renderItem; isRenderItem pre-check + zoomMode match OF:85-93; [AUDIT-ISSUE] player-distance check uses itemRenderDistanceSq but OF hardcodes 4096.0 there (OF:90-92) — slightly looser culling
+    // [AUDIT-OK] isEmpty() INVOKE unique; player-distance cull hardcodes 4096.0 (= OF:90-92, [AUDIT-FIXED]); isRenderItem uses itemRenderDistanceSq (= OF:144-158) — verified 2026-08-05
     public boolean extraRenderCondition(boolean original, @Local(argsOnly = true) EntityItemFrame itemFrame){
         if (!original) {
             if (!this.isRenderItem(itemFrame)) {

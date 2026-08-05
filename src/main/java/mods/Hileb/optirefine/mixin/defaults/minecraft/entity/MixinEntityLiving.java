@@ -47,7 +47,7 @@ public abstract class MixinEntityLiving extends EntityLivingBase {
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
-// [AUDIT-ISSUE] missing OF null-world guard (OF: if (getEntityWorld() == null) return false before playerEntities.size()) - minor NPE risk, same for getFirst() vs OF get(0)
+// [AUDIT-OK] OF null-world guard present; getFirst() == get(0) on JDK26 List (2026-08-05)
     private boolean canSkipUpdate() {
         if (this.isChild()) {
             return false;

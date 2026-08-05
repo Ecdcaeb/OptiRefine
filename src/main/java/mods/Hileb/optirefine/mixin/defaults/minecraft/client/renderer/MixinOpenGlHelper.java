@@ -143,7 +143,8 @@ public abstract class MixinOpenGlHelper {
     }
 
     @Public
-// [AUDIT-ISSUE] name collides with vanilla glBufferData(I Ljava/nio/ByteBuffer; I)V (SRG func_176071_a) — different signature, but per AGENT.md S4 @Unique-public same-name members may be silently discarded -> needs-verification at runtime; OF jar calls (I J I)V form
+    @Unique
+// [AUDIT-OK] OF-added overload glBufferData(IJI)V — distinct desc from vanilla (I Ljava/nio/ByteBuffer; I)V so no same-name collision; @Unique guards against mixin rename (2026-08-05)
     private static void glBufferData(int target, long size, int usage) {
         if (arbVbo) {
             ARBVertexBufferObject.glBufferDataARB(target, size, usage);

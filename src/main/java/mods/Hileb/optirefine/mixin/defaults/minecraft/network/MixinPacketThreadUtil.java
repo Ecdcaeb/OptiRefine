@@ -65,6 +65,6 @@ public abstract class MixinPacketThreadUtil {
     @SuppressWarnings("unused")
     @Unique
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.RenderGlobal onPlayerPositionSet ()V")
-// [AUDIT-ISSUE] target RenderGlobal.onPlayerPositionSet()V is OF-added (in OF RenderGlobal, NOT in baseline and NOT in tsrg) but NO mixin provides it - the generated INVOKEVIRTUAL throws NoSuchMethodError whenever a SPacketPlayerPosLook is processed (world join/teleport). Fix: add to MixinRenderGlobal a @Unique @Public onPlayerPositionSet() (+ firstWorldLoad backing field) per OF body (loadRenderers on firstWorldLoad)
+// [AUDIT-OK] provider MixinRenderGlobal.onPlayerPositionSet exists (2026-08-05 verified: @Unique @Public + firstWorldLoad backing)
     private static void _acc_RenderGlobal_onPlayerPositionSet(RenderGlobal renderGlobal){}
 }

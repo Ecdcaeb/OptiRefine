@@ -121,4 +121,11 @@ public abstract class MixinImageBufferDownload {
 // [AUDIT-OK] scales drawImage bounds by k — matches OF
         return kRef.get() > 0 ? constant * kRef.get() : constant;
     }
+
+    @ModifyConstant(method = "parseUserSkin", constant = @Constant(intValue = 56))
+    public int const56(int constant,  @Share(namespace = "optirefine", value = "k") LocalIntRef kRef){
+// [AUDIT-FIXED] 2026-08-05: OF:49 last drawImage source rect uses 56*k; without it HD skins
+// (k>1) get an invalid mirrored head-side source rect (sx1>sx2).
+        return kRef.get() > 0 ? constant * kRef.get() : constant;
+    }
 }

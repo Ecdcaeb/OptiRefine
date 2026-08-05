@@ -278,12 +278,12 @@ public abstract class MixinEntityRenderer {
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.PUTFIELD, desc = "net.minecraft.client.renderer.RenderGlobal field_147595_R Z", deobf = true)
-// [AUDIT-ISSUE] vanilla SRG field_147595_R = displayListEntitiesDirty verified, but deobf=true missing -> devrun breaks; SRG runtime OK
+// [AUDIT-OK] SRG field_147595_R + deobf=true double-matching (verified 2026-08-05)
     private static native void RenderGlobal_displayListEntitiesDirty_set(RenderGlobal renderGlobal, boolean value);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.RenderGlobal field_72738_E Ljava/util/Map;", deobf = true)
-// [AUDIT-ISSUE] vanilla SRG field_72738_E = damagedBlocks verified, but deobf=true missing -> devrun breaks; SRG runtime OK
+// [AUDIT-OK] SRG field_72738_E + deobf=true double-matching (verified 2026-08-05)
     private static native java.util.Map RenderGlobal_damagedBlocks_get(RenderGlobal renderGlobal);
 
     @SuppressWarnings({"unused", "MissingUnique"})
@@ -363,7 +363,7 @@ public abstract class MixinEntityRenderer {
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.RenderGlobal func_184384_n ()Z", deobf = true)
-// [AUDIT-ISSUE] vanilla SRG func_184384_n = hasNoChunkUpdates verified, but deobf=true missing -> devrun breaks; SRG runtime OK
+// [AUDIT-OK] SRG func_184384_n + deobf=true double-matching (verified 2026-08-05)
     private static native boolean RenderGlobal_hasNoChunkUpdates(RenderGlobal renderGlobal);    // ===== new fields (OptiFine) =====
 
 // [AUDIT-OK] OF-added field, not in baseline
@@ -484,7 +484,7 @@ public abstract class MixinEntityRenderer {
 
     @SuppressWarnings("unused")
     @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.client.settings.GameSettings func_100015_a (Lnet/minecraft/client/settings/KeyBinding;)Z", deobf = true)
-// [AUDIT-ISSUE] vanilla SRG func_100015_a = GameSettings.isKeyDown verified, but deobf=true missing -> devrun breaks; SRG runtime OK
+// [AUDIT-OK] SRG func_100015_a + deobf=true double-matching (verified 2026-08-05)
     private static native boolean GameSettingsIsKeyDown(net.minecraft.client.settings.KeyBinding key);
 
     // ===== setupCameraTransform =====
@@ -951,7 +951,9 @@ public abstract class MixinEntityRenderer {
     @Redirect(method = "renderCloudsCheck", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/settings/GameSettings;shouldRenderClouds()I"))
     private int optiRefine$shouldRenderClouds(net.minecraft.client.settings.GameSettings settings) {
 // [AUDIT-OK] target renderCloudsCheck(LRenderGlobal;FIDDD)V shouldRenderClouds()I matches baseline
-        if (Config.isCloudsOff()) {
+// [AUDIT-FIXED] 2026-08-05: OF:1549 guard is (renderDistanceChunks >= 4) && !isCloudsOff &&
+// Shaders.shouldRenderClouds; vanilla baseline only tests shouldRenderClouds()!=0.
+        if (Config.isCloudsOff() || this.mc.gameSettings.renderDistanceChunks < 4) {
             return 0;
         }
         return Shaders.shouldRenderClouds(settings) ? 1 : 0;

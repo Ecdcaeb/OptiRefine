@@ -151,9 +151,11 @@ public abstract class MixinItemRenderer {
     /**
      * OptiFine: notify shaders when the equipped main-hand item changes.
      */
-    @Inject(method = "updateEquippedItem", at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/ItemRenderer;itemStackMainHand:Lnet/minecraft/item/ItemStack;", opcode = Opcodes.PUTFIELD, ordinal = 1, shift = At.Shift.AFTER))
+    @Inject(method = "updateEquippedItem", at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/ItemRenderer;itemStackMainHand:Lnet/minecraft/item/ItemStack;", opcode = Opcodes.PUTFIELD, ordinal = 0, shift = At.Shift.AFTER))
     private void optiRefine$setItemToRenderMain(CallbackInfo ci) {
-// [AUDIT-ISSUE] target updateEquippedItem()V (SRG func_78441_a) has exactly ONE PUTFIELD itemStackMainHand (line 601); ordinal=1 injection point cannot be found -> mixin apply failure risk; use ordinal=0
+// [AUDIT-FIXED] 2026-08-05: updateEquippedItem has exactly ONE PUTFIELD itemStackMainHand
+// (forge line 601; cleanroom patch wraps it in a condition, does not add a second store);
+// ordinal=1 could not be found -> mixin apply failure. ordinal=0 verified.
         if (Config.isShaders()) {
             Shaders.setItemToRenderMain(this.itemStackMainHand);
         }
@@ -162,9 +164,9 @@ public abstract class MixinItemRenderer {
     /**
      * OptiFine: notify shaders when the equipped off-hand item changes.
      */
-    @Inject(method = "updateEquippedItem", at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/ItemRenderer;itemStackOffHand:Lnet/minecraft/item/ItemStack;", opcode = Opcodes.PUTFIELD, ordinal = 1, shift = At.Shift.AFTER))
+    @Inject(method = "updateEquippedItem", at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/ItemRenderer;itemStackOffHand:Lnet/minecraft/item/ItemStack;", opcode = Opcodes.PUTFIELD, ordinal = 0, shift = At.Shift.AFTER))
     private void optiRefine$setItemToRenderOff(CallbackInfo ci) {
-// [AUDIT-ISSUE] same as above: single PUTFIELD itemStackOffHand (line 606); ordinal=1 not found -> use ordinal=0
+// [AUDIT-FIXED] 2026-08-05: single PUTFIELD itemStackOffHand (forge line 606); ordinal=1 not found -> apply failure. ordinal=0 verified.
         if (Config.isShaders()) {
             Shaders.setItemToRenderOff(this.itemStackOffHand);
         }

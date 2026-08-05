@@ -177,14 +177,14 @@ public abstract class MixinBufferBuilder {
 
     @Redirect(method = "getVertexState", at = @At(value = "NEW", target = "(Lnet/minecraft/client/renderer/BufferBuilder;[ILnet/minecraft/client/renderer/vertex/VertexFormat;)Lnet/minecraft/client/renderer/BufferBuilder$State;"))
     public BufferBuilder.State getVertexStateReturn(BufferBuilder p_i46453_1_, int[] p_i46453_2_, VertexFormat p_i46453_3_){
-// [AUDIT-ISSUE] NEW redirect desc omits inner-class outer param: real/NewConstructor State.<init> is (LBufferBuilder;[ILVertexFormat;[LTextureAtlasSprite;)V, emitted ([I,VertexFormat,TextureAtlasSprite)V cannot resolve -> NoSuchMethodError when getVertexState runs (called by RenderChunk compile)
+// [AUDIT-OK] NEW desc correct: State is a non-static inner class (forge:582), JVM ctor desc includes outer this$0 (LBufferBuilder;[ILVertexFormat;)V — verified 2026-08-05
         return newBufferBuilder$State(AccessibleOperation.Construction.construction(), p_i46453_1_, p_i46453_2_, p_i46453_3_, this.quadSprites == null ? null : this.quadSprites.clone());
     }
 
     
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.NEW, desc = "net.minecraft.client.renderer.BufferBuilder$State (Lnet/minecraft/client/renderer/BufferBuilder;[ILnet/minecraft/client/renderer/vertex/VertexFormat;[Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;)V")
-// [AUDIT-ISSUE] ctor desc arity mismatch (see getVertexStateReturn) — pass outer BufferBuilder instance + add LBufferBuilder; param
+// [AUDIT-OK] @NewConstructor desc (LBufferBuilder;[ILVertexFormat;[LTextureAtlasSprite;)V matches non-static inner-class JVM ctor arity — verified 2026-08-05
     private static native BufferBuilder.State newBufferBuilder$State(AccessibleOperation.Construction construction, BufferBuilder bufferBuilder, int[] p_i46453_2_, VertexFormat p_i46453_3_, TextureAtlasSprite[] textureAtlasSprites);
 
     
@@ -201,7 +201,7 @@ public abstract class MixinBufferBuilder {
 
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.BufferBuilder$State stateQuadSprites [Lnet.minecraft.client.renderer.texture.TextureAtlasSprite;")
-// [AUDIT-ISSUE] reads MixinBufferBuilderState.stateQuadSprites which is @Unique private -> cross-class GETFIELD = IllegalAccessError risk; make that field @Public
+// [AUDIT-OK] stateQuadSprites is @Public (cursed postApply widens) — cross-class GETFIELD legal, verified 2026-08-05
     private native static TextureAtlasSprite[] BufferBuilder$State_stateQuadSprites_get(BufferBuilder.State ins) ;
 
     @Inject(method = "setVertexState", at = @At("TAIL"))

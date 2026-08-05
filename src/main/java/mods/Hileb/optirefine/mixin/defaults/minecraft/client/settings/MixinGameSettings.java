@@ -342,7 +342,7 @@ public abstract class MixinGameSettings {
     private static native void RenderGlobal_resetClouds(RenderGlobal renderGlobal);
 
     @Unique
-    // [AUDIT-ISSUE] DEAD CODE: defined but never invoked - no WrapMethod/Inject on setOptionFloatValue/getOptionFloatValue -> OF float options (CLOUD_HEIGHT/AO_LEVEL/AA_LEVEL/AF_LEVEL/MIPMAP_TYPE/FULLSCREEN_MODE) not dispatched (sliders no-op, show 0.0F). Fix: WrapMethod both vanilla methods calling OF-* helper first (mirror OF setOptionFloatValue/getOptionFloatValue)
+    // [AUDIT-OK] wired 2026-08-05: invoked via optiRefine$setOptionFloatValue @WrapMethod (OF:407-408); CLOUD_HEIGHT/AO_LEVEL/AA_LEVEL/AF_LEVEL/MIPMAP_TYPE/FULLSCREEN_MODE dispatch matches OF:1310-1373
     private void optiRefine$setOptionFloatValueOF(GameSettings.Options option, float val) {
         if (option == GameSettingsOptionOF.CLOUD_HEIGHT) {
             this.ofCloudsHeight = val;
@@ -413,7 +413,7 @@ public abstract class MixinGameSettings {
     // [AUDIT-OK] baseline member enableVsync exists in GameSettings
     public boolean enableVsync;
 
-    // [AUDIT-ISSUE] DEAD CODE: same as setOptionFloatValueOF - never called; getOptionFloatValue never dispatches to OF branch. Fix: WrapMethod getOptionFloatValue (return OF value if != Float.MAX_VALUE, else original)
+    // [AUDIT-OK] wired 2026-08-05: invoked via optiRefine$getOptionFloatValue @WrapMethod; returns Float.MAX_VALUE for unhandled options (OF:636-639)
     private float optiRefine$getOptionFloatValueOF(GameSettings.Options settingOption) {
         if (settingOption == GameSettingsOptionOF.CLOUD_HEIGHT) {
             return this.ofCloudsHeight;

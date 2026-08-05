@@ -182,7 +182,10 @@ public abstract class MixinRenderChunk {
     // [AUDIT-OK] renderBlock INVOKE; overlays post-render matches OF:231-236
     public boolean rebuildChunk$renderBlock(BlockRendererDispatcher instance, IBlockState enumblockrendertype, BlockPos crashreport, IBlockAccess crashreportcategory, BufferBuilder throwable, Operation<Boolean> original, @Share(namespace = "optifine", value = "renderEnv")LocalRef<RenderEnv> renderEnvLocalRef, @Local BlockRenderLayer blockRenderLayer, @Local boolean[] aboolean, @Local(argsOnly = true) ChunkCompileTaskGenerator generator, @Local CompiledChunk compiledchunk){
         boolean b = original.call(instance, enumblockrendertype, crashreport, crashreportcategory, throwable);
-        aboolean[blockRenderLayer.ordinal()] |= b;
+        // [AUDIT-FIXED] three-way audit (2026-08-05): OF:235 aboolean[fixed ordinal] |= b (var43 = fixBlockLayer(...).ordinal(), OF:223-224);
+        // unfixed ordinal mis-indexes layersUsed when fixBlockLayer remaps (mipmaps/CustomBlockLayers)
+        // -> RenderGlobal.isLayerEmpty skips populated layer, block invisible.
+        aboolean[this.optiRefine$fixBlockLayer(enumblockrendertype, blockRenderLayer).ordinal()] |= b;
         RenderEnv renderEnv = renderEnvLocalRef.get();
         if (renderEnv != null && renderEnv.isOverlaysRendered()) {
             this.optiRefine$postRenderOverlays(generator.getRegionRenderCacheBuilder(), compiledchunk, aboolean);
@@ -297,7 +300,7 @@ public abstract class MixinRenderChunk {
     }
 
     @Unique
-    // [AUDIT-ISSUE] defined but NEVER invoked; OF applies fixBlockLayer in rebuildChunk (OF:223) — CustomBlockLayers + mipmap CUTOUT fix not applied at runtime (needs-verification: may be intentional)
+    // [AUDIT-OK] wired 2026-08-05: invoked from rebuildChunk$renderBlock/processPreBlockRender/fixBlockLayer* (4 call sites, matches OF:223)
     private BlockRenderLayer optiRefine$fixBlockLayer(IBlockState blockState, BlockRenderLayer layer) {
         if (CustomBlockLayers.isActive()) {
             BlockRenderLayer layerCustom = CustomBlockLayers.getRenderLayer(blockState);
@@ -409,7 +412,7 @@ public abstract class MixinRenderChunk {
     }
 
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.ViewFrustum func_178161_a (Lnet.minecraft.util.math.BlockPos;)Lnet.minecraft.client.renderer.chunk.RenderChunk;", deobf = true)
-    // [AUDIT-ISSUE] SRG func_178161_a (=ViewFrustum.getRenderChunk, tsrg) correct for SRG runtime but missing deobf=true — MCP (devrun) runtime would fail; add deobf=true
+    // [AUDIT-OK] SRG func_178161_a (=ViewFrustum.getRenderChunk, tsrg) + deobf=true double-matching (2026-08-05 verified)
     private static native RenderChunk ViewFrustum_getRenderChunk(ViewFrustum viewFrustum, BlockPos b);
     @SuppressWarnings("AddedMixinMembersNamePattern")
     // [AUDIT-OK] OF-added member (OF:534); matches OF:534-544
@@ -520,7 +523,7 @@ public abstract class MixinRenderChunk {
     }
 
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.RenderGlobal getRenderChunk (Lnet.minecraft.util.math.BlockPos;)Lnet.minecraft.client.renderer.chunk.RenderChunk;")
-    // [AUDIT-ISSUE] RenderGlobal.getRenderChunk(BlockPos) is OF-added (OF RenderGlobal:3040, delegates to viewFrustum) but NO mixin provides it — NoSuchMethodError when getBoundingBoxParent() invokes it; add @Unique @Public getRenderChunk to MixinRenderGlobal
+    // [AUDIT-OK] provider MixinRenderGlobal.optiRefine$getRenderChunk exists (2026-08-05 verified)
     private static native RenderChunk RenderGrobal_getRenderChunk(RenderGlobal renderGlobal, BlockPos blockPos);
 
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.chunk.RenderChunk getBoundingBoxParent ()Lnet.optifine.render.AabbFrame;")
