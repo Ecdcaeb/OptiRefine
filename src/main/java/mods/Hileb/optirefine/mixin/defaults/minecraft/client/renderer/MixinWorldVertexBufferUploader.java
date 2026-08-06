@@ -19,6 +19,7 @@ public abstract class MixinWorldVertexBufferUploader {
 // [AUDIT] 2026-08-03 — see AGENT.md; issues: 0
     @Inject(method = "draw", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/BufferBuilder;getVertexFormat()Lnet/minecraft/client/renderer/vertex/VertexFormat;"))
     public void beforeDraw(BufferBuilder vertexBufferIn, CallbackInfo ci){
+// [AUDIT-OK] target draw(Lnet/minecraft/client/renderer/BufferBuilder;)V (SRG func_181679_a) matches baseline; runs after isDrawing/vertexCount guards (getVertexFormat INVOKE) so quadsToTriangles safe
         if (vertexBufferIn.getDrawMode() == 7 && Config.isQuadsToTriangles()) {
             BufferBuilder_quadsToTriangles(vertexBufferIn);
         }
@@ -26,6 +27,7 @@ public abstract class MixinWorldVertexBufferUploader {
 
     @WrapOperation(method = "draw", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GlStateManager;glDrawArrays(III)V"))
     public void openShader(int mode, int first, int count, Operation<Void> original, @Local(argsOnly = true) BufferBuilder vertexBufferIn){
+// [AUDIT-OK] target GlStateManager.glDrawArrays(III)V in draw matches baseline; multiTexture/shaders/vanilla branches == OF
         if (BufferBuilder_isMultiTexture(vertexBufferIn)) {
             BufferBuilder_drawMultiTexture(vertexBufferIn);
         } else if (Config.isShaders()) {
