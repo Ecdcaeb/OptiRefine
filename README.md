@@ -9,6 +9,8 @@ OptiRefine is a mod that utilizes Mixin to patch Optifine, keeping optifine comp
 
 <img width="854" height="480" alt="2026-08-09_02 35 59" src="https://github.com/user-attachments/assets/3619baee-7b8a-4af3-846b-e4cf78c08717" />
 
+[Go and get Mellow](https://modrinth.com/shader/mellow/versions?g=1.12.2) which i like
+
 Post incompatible issues of optifine here!
 
 ## Build
