@@ -11,7 +11,9 @@ import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Constant;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyConstant;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Collections;
@@ -109,6 +111,13 @@ public abstract class MixinProfiler {
 // [AUDIT-OK] no extra gate — OF getProfilingData checks profilingEnabled only (verified 2026-08-05)
     public List<Profiler.Result> injectGetProfilingData(String p_76321_1_, Operation<List<Profiler.Result>> original){
         return original.call(p_76321_1_);
+    }
+
+    @ModifyConstant(method = "getProfilingData", constant = @Constant(longValue = 999L))
+// [AUDIT-FIXED] three-way audit: OF:146 decays profilingMap by 950L/1000L vs vanilla 999L/1000L; 999L is unique in the method.
+// MixinExtras @WrapMethod applies in postApply AFTER the injector phase, so this patches the original body before it moves into the wrapped method.
+    private long optiRefine$decayProfilingData(long value) {
+        return 950L;
     }
 
     @WrapMethod(method = "endStartSection")

@@ -83,6 +83,12 @@ public abstract class MixinPlayerChunkMap {
         }
     }
 
+    @Inject(method = "removePlayer", at = @At("HEAD"))
+// [AUDIT-FIXED] OF:266-267 removes the player's pending lazy-chunk entries before the vanilla body runs
+    public void injectRemovePlayer(EntityPlayerMP player, CallbackInfo ci) {
+        this.mapPlayerPendingEntries.remove(player);
+    }
+
 
 
 

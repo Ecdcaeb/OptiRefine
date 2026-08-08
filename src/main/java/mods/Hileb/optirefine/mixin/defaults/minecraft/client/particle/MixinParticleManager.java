@@ -4,14 +4,25 @@ import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.llamalad7.mixinextras.sugar.Local;
+import com.llamalad7.mixinextras.sugar.Share;
+import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import mods.Hileb.optirefine.library.common.utils.Caster;
 import mods.Hileb.optirefine.optifine.Config;
+import net.minecraft.block.material.Material;
 import net.minecraft.client.particle.Barrier;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleFirework;
 import net.minecraft.client.particle.ParticleManager;
+import net.minecraft.client.particle.ParticleSuspend;
+import net.minecraft.client.renderer.ActiveRenderInfo;
+import net.minecraft.client.renderer.BufferBuilder;
+import net.minecraft.entity.Entity;
+import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.ArrayDeque;
 import java.util.Iterator;
@@ -25,6 +36,30 @@ public abstract class MixinParticleManager {
     @WrapWithCondition(method = "addEffect", at = @At(value = "INVOKE", target = "Ljava/util/Queue;add(Ljava/lang/Object;)Z"))
     public boolean injectAddEffect(Queue<?> instance, Object effect) {
         return !(effect instanceof ParticleFirework.Spark) || Config.isFireworkParticles();
+    }
+
+// [AUDIT-OK] baseline member world (World), declared in ParticleManager
+    @Shadow
+    protected World world;
+
+// [AUDIT-FIXED] OF renderParticles computes the camera-in-water flag once at method start
+// (ActiveRenderInfo.getBlockStateAtEntityViewpoint(...).getMaterial() == Material.WATER)
+// and gates the render call with "if (var9 || !(var16 instanceof ParticleSuspend))"; vanilla has no flag.
+    @Inject(method = "renderParticles", at = @At("HEAD"))
+    public void optiRefine$computeCameraInWater(Entity entityIn, float partialTicks, CallbackInfo ci,
+                                                @Share(namespace = "optirefine", value = "cameraInWater") LocalRef<Boolean> cameraInWater) {
+        cameraInWater.set(ActiveRenderInfo.getBlockStateAtEntityViewpoint(this.world, entityIn, partialTicks).getMaterial() == Material.WATER);
+    }
+
+    @WrapOperation(method = "renderParticles", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/particle/Particle;renderParticle(Lnet/minecraft/client/renderer/BufferBuilder;Lnet/minecraft/entity/Entity;FFFFFFFF)V"))
+// [AUDIT-FIXED] OF renderParticles:312-313 skips ParticleSuspend when the camera block is WATER
+    public void optiRefine$skipSuspendInWater(BufferBuilder bufferbuilder, Entity entityIn, float partialTicks, float f1, float f2, float f3, float f4, float f5, Operation<Void> original,
+                                              @Local Particle particle,
+                                              @Share(namespace = "optirefine", value = "cameraInWater") LocalRef<Boolean> cameraInWater) {
+        Boolean inWater = cameraInWater.get();
+        if (inWater == null || !inWater || !(particle instanceof ParticleSuspend)) {
+            original.call(bufferbuilder, entityIn, partialTicks, f1, f2, f3, f4, f5);
+        }
     }
 
 // [AUDIT-OK] baseline method tickParticle(Lnet/minecraft/client/particle/Particle;)V declared in ParticleManager

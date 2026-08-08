@@ -10,6 +10,8 @@ import net.minecraft.client.gui.GuiOverlayDebug;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.optifine.SmartAnimations;
 import net.optifine.TextureAnimations;
+import net.optifine.util.MemoryMonitor;
+import net.optifine.util.NativeMemory;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -59,6 +61,13 @@ public abstract class MixinGuiOverlayDebug extends Gui {
 // [AUDIT-OK] OF-added member (not in tsrg): MCP name getCountAnimations correct
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureMap getCountAnimations ()I")
     private native static int _acc_TextureMap_getCountAnimations_(TextureMap instance);
+
+    @SuppressWarnings("unused")
+    @Unique
+    @AccessibleOperation.Reference(GuiOverlayDebug.class)
+// [AUDIT-OK] vanilla private static bytesToMb(J)J declared in GuiOverlayDebug (deobf:343); private static -> own @AccessibleOperation bridge (an instance @Shadow of a static member would apply-crash)
+    @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.client.gui.GuiOverlayDebug bytesToMb (J)J")
+    private native static long _acc_GuiOverlayDebug_bytesToMb_(long bytes);
 
 // [AUDIT-OK] target call() (List<String>) matches baseline; instance handler, List return type matches
     @WrapMethod(method = "call")
@@ -113,6 +122,20 @@ public abstract class MixinGuiOverlayDebug extends Gui {
 
         // [AUDIT-FIXED] .toList() is immutable; Forge's GuiOverlayDebugForge.getLeft adds rows to the returned list -> UnsupportedOperationException
         return new java.util.ArrayList<>(original.call().stream().map((s) -> s.startsWith("P: ") ? s + ofInfo : s).toList());
+    }
+
+// [AUDIT-OK] target getDebugInfoRight()Ljava/util/List; declared in baseline; OF: add(4, "Native: X/YMB"), set(5, "GC: X MB/s"); 100ms cache via debugInfoRight/updateInfoRightTimeMs mirrors OF renderDebugInfoRight caching
+    @WrapMethod(method = "getDebugInfoRight")
+    public List<String> injectGetDebugInfoRight(Operation<List<String>> original) {
+        List<String> list = this.debugInfoRight;
+        if (list == null || System.currentTimeMillis() > this.updateInfoRightTimeMs) {
+            list = original.call();
+            list.add(4, "Native: " + _acc_GuiOverlayDebug_bytesToMb_(NativeMemory.getBufferAllocated()) + "/" + _acc_GuiOverlayDebug_bytesToMb_(NativeMemory.getBufferMaximum()) + "MB");
+            list.set(5, "GC: " + MemoryMonitor.getAllocationRateMb() + "MB/s");
+            this.debugInfoRight = list;
+            this.updateInfoRightTimeMs = System.currentTimeMillis() + 100L;
+        }
+        return list;
     }
 
     @Inject(method = "<init>*", at = @At("RETURN"))

@@ -24,10 +24,9 @@ import java.util.ArrayList;
  * OptiFine additions to {@link OpenGlHelper}.
  *
  * <ul>
- *     <li>new public fields: lastBrightnessX/Y, openGL31, vboRegions, GL_COPY_READ/WRITE_BUFFER, GL_QUADS, GL_TRIANGLES</li>
+ *     <li>new public fields: openGL31, vboRegions, GL_COPY_READ/WRITE_BUFFER, GL_QUADS, GL_TRIANGLES (lastBrightnessX/Y land via cleanroom, shadowed)</li>
  *     <li>{@code initializeTextures()} now calls {@code Config.initDisplay()} and detects GL 1.3/ARB_copy_buffer (vboRegions)</li>
  *     <li>{@code useVbo()} disabled by multi-texture / render-regions</li>
- *     <li>{@code setLightmapTextureCoords()} records last brightness</li>
  *     <li>{@code isFramebufferEnabled()} disabled by fast-render / antialiasing</li>
  *     <li>new glBufferData / glBufferSubData / glCopyBufferSubData helpers</li>
  * </ul>
@@ -36,14 +35,15 @@ import java.util.ArrayList;
 public abstract class MixinOpenGlHelper {
 // [AUDIT] 2026-08-03 — see AGENT.md; issues: 1
 
-    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
+    @Shadow
     @Public
-// [AUDIT-OK] OF-added static member (OF: public static float lastBrightnessX), not in baseline
-    private static float lastBrightnessX = 0.0F;
-    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
+// [AUDIT-FIXED] cleanroom already lands lastBrightnessX (public static float, cleanroom OpenGlHelper patch) and records it in
+// setLightmapTextureCoords — @Shadow instead of a duplicate new member (duplicate would collide with the runtime field)
+    private static float lastBrightnessX;
+    @Shadow
     @Public
-// [AUDIT-OK] OF-added static member, not in baseline
-    private static float lastBrightnessY = 0.0F;
+// [AUDIT-FIXED] cleanroom already lands lastBrightnessY (public static float, cleanroom OpenGlHelper patch) — @Shadow, no duplicate member
+    private static float lastBrightnessY;
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Public
 // [AUDIT-OK] OF-added static member, not in baseline
@@ -122,15 +122,6 @@ public abstract class MixinOpenGlHelper {
             return false;
         }
         return Config.isRenderRegions() && !vboRegions ? false : original;
-    }
-
-    @Inject(method = "setLightmapTextureCoords", at = @At("TAIL"))
-    private static void optiRefine$setLightmapTextureCoords(int texUnit, float brightnessX, float brightnessY, CallbackInfo ci) {
-// [AUDIT-OK] target setLightmapTextureCoords(IFF)V (SRG func_77475_a) matches baseline; lastBrightness recording matches OF
-        if (texUnit == lightmapTexUnit) {
-            lastBrightnessX = brightnessX;
-            lastBrightnessY = brightnessY;
-        }
     }
 
     @ModifyReturnValue(method = "isFramebufferEnabled", at = @At("RETURN"))

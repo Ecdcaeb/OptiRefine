@@ -8,8 +8,10 @@ import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.util.ResourceLocation;
 import net.optifine.CustomPanorama;
 import net.optifine.CustomPanoramaProperties;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.*;
@@ -25,6 +27,22 @@ public abstract class MixinGuiMainMenu extends GuiScreen {
         if (cpp != null) {
             return cpp.getBlur1();
         } else return value;
+    }
+
+// [AUDIT-OK] baseline static final member TITLE_PANORAMA_PATHS declared in GuiMainMenu (deobf:66)
+    @Shadow
+    @Final
+    private static ResourceLocation[] TITLE_PANORAMA_PATHS;
+
+// [AUDIT-OK] OF drawPanorama: var14 = var8.getPanoramaLocations() replaces TITLE_PANORAMA_PATHS (single GETSTATIC read, deobf:385)
+    @Redirect(method = "drawPanorama", at = @At(value = "FIELD", target = "Lnet/minecraft/client/gui/GuiMainMenu;TITLE_PANORAMA_PATHS:[Lnet/minecraft/util/ResourceLocation;"))
+    public ResourceLocation[] injectPanoramaLocations() {
+        CustomPanoramaProperties cpp = CustomPanorama.getCustomPanoramaProperties();
+        if (cpp != null) {
+            return cpp.getPanoramaLocations();
+        } else {
+            return TITLE_PANORAMA_PATHS;
+        }
     }
 
 // [AUDIT-OK] target rotateAndBlurSkybox()V matches baseline
@@ -48,7 +66,7 @@ public abstract class MixinGuiMainMenu extends GuiScreen {
 // [AUDIT-OK] baseline member drawScreen exists in target class
     @Shadow public abstract void drawScreen(int p_73863_1_, int p_73863_2_, float p_73863_3_);
 
-// [AUDIT-OK] target renderSkybox(IIF)V matches baseline; handler params match; replicates OF renderSkybox
+// [AUDIT-FIXED] target renderSkybox(IIF)V matches baseline; handler params match; replicates OF renderSkybox (total passes = 1 + 2*blur3)
     @WrapMethod(method = "renderSkybox")
     public void injectRenderSkybox(int mouseX, int mouseY, float partialTicks, Operation<Void> original){
         CustomPanoramaProperties cpp = CustomPanorama.getCustomPanoramaProperties();
@@ -56,6 +74,7 @@ public abstract class MixinGuiMainMenu extends GuiScreen {
             this.mc.getFramebuffer().unbindFramebuffer();
             GlStateManager.viewport(0, 0, 256, 256);
             this.drawPanorama(mouseX, mouseY, partialTicks);
+            this.rotateAndBlurSkybox();
             for (int i = 0; i < cpp.getBlur3(); i++) {
                 this.rotateAndBlurSkybox();
                 this.rotateAndBlurSkybox();

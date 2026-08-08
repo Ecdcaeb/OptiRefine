@@ -1,5 +1,6 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer;
 
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
@@ -10,6 +11,7 @@ import net.minecraft.client.renderer.ThreadDownloadImageData;
 import net.minecraft.client.renderer.texture.ITextureObject;
 import net.minecraft.client.renderer.texture.SimpleTexture;
 import net.minecraft.client.renderer.texture.TextureUtil;
+import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.util.ResourceLocation;
 import net.optifine.http.HttpPipeline;
 import net.optifine.http.HttpRequest;
@@ -33,7 +35,11 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.Proxy;
+import java.net.URL;
+import java.util.concurrent.atomic.AtomicInteger;
 @Mixin(ThreadDownloadImageData.class)
 public abstract class MixinThreadDownloadImageData extends SimpleTexture{
 // [AUDIT] 2026-08-03 — see AGENT.md; issues: 0
@@ -81,13 +87,88 @@ public abstract class MixinThreadDownloadImageData extends SimpleTexture{
         this.imageFound = this.bufferedImage != null;
     }
 
-    @WrapOperation(method = "loadTextureFromServer", at = @At(value = "INVOKE", target = "Ljava/lang/Thread;setDaemon(Z)V"))
-    public void setPipelineForLoadTextureFromServer(Thread value, boolean on, Operation<Void> original){
-// [AUDIT-OK] target loadTextureFromServer()V (SRG func_152433_a) Thread.setDaemon matches baseline; reassigning this.imageThread lets vanilla start() launch the pipeline thread (matches OF shouldPipeline/loadPipelined)
-        if (this.optiRefine$shouldPipeline()) {
-            original.call(this.imageThread = new Thread(this::optiRefine$loadPipelined, value.getName()), on);
-        } else {
-            original.call(value, on);
+    @Shadow @Final
+// [AUDIT-OK] baseline member TEXTURE_DOWNLOADER_THREAD_ID (SRG field_152433_a)
+    private static AtomicInteger TEXTURE_DOWNLOADER_THREAD_ID;
+
+    @Shadow
+// [AUDIT-OK] baseline member loadTextureFromServer (SRG func_152433_a)
+    protected abstract void loadTextureFromServer();
+
+    @WrapMethod(method = "loadTextureFromServer")
+    // [AUDIT-FIXED] full OF loadTextureFromServer body (OF:106-153): pipelined dispatch lives inside the
+    // thread's run(), and the non-pipelined HttpURLConnection download drains the error stream via
+    // Config.readAll on non-2xx and calls loadingFinished() in finally. The vanilla download body sits in the
+    // anonymous $1 run(), so a whole-method replacement matches OF. The old Thread.setDaemon WrapOperation is
+    // removed because the shouldPipeline() dispatch is now inline (OF shape).
+    private void optiRefine$loadTextureFromServer(Operation<Void> original) {
+        this.imageThread = new Thread(() -> {
+            HttpURLConnection httpurlconnection = null;
+            LOGGER.debug("Downloading http texture from {} to {}", this.imageUrl, this.cacheFile);
+            if (this.optiRefine$shouldPipeline()) {
+                this.optiRefine$loadPipelined();
+            } else {
+                try {
+                    httpurlconnection = (HttpURLConnection) new URL(this.imageUrl).openConnection(Minecraft.getMinecraft().getProxy());
+                    httpurlconnection.setDoInput(true);
+                    httpurlconnection.setDoOutput(false);
+                    httpurlconnection.connect();
+                    if (httpurlconnection.getResponseCode() / 100 != 2) {
+                        if (httpurlconnection.getErrorStream() != null) {
+                            Config.readAll(httpurlconnection.getErrorStream());
+                        }
+                        return;
+                    }
+                    BufferedImage bufferedimage;
+                    if (this.cacheFile != null) {
+                        FileUtils.copyInputStreamToFile(httpurlconnection.getInputStream(), this.cacheFile);
+                        bufferedimage = ImageIO.read(this.cacheFile);
+                    } else {
+                        bufferedimage = TextureUtil.readBufferedImage(httpurlconnection.getInputStream());
+                    }
+                    if (this.imageBuffer != null) {
+                        bufferedimage = this.imageBuffer.parseUserSkin(bufferedimage);
+                    }
+                    this.setBufferedImage(bufferedimage);
+                } catch (Exception exception) {
+                    LOGGER.error("Couldn't download http texture: " + exception.getMessage());
+                    return;
+                } finally {
+                    if (httpurlconnection != null) {
+                        httpurlconnection.disconnect();
+                    }
+                    this.optiRefine$loadingFinished();
+                }
+            }
+        }, "Texture Downloader #" + TEXTURE_DOWNLOADER_THREAD_ID.incrementAndGet());
+        this.imageThread.setDaemon(true);
+        this.imageThread.start();
+    }
+
+    @WrapMethod(method = "loadTexture")
+    // [AUDIT-FIXED] full OF loadTexture body (OF:70-88): after a successful local-cache read the OF version
+    // calls loadingFinished() (sets imageFound + CapeImageBuffer.cleanup even when imageBuffer==null); the
+    // mixin previously only reached loadingFinished() from the pipelined path
+    private void optiRefine$loadTexture(IResourceManager resourceManager, Operation<Void> original) throws IOException {
+        if (this.bufferedImage == null && this.textureLocation != null) {
+            super.loadTexture(resourceManager);
+        }
+        if (this.imageThread == null) {
+            if (this.cacheFile != null && this.cacheFile.isFile()) {
+                LOGGER.debug("Loading http texture from local cache ({})", this.cacheFile);
+                try {
+                    this.bufferedImage = ImageIO.read(this.cacheFile);
+                    if (this.imageBuffer != null) {
+                        this.setBufferedImage(this.imageBuffer.parseUserSkin(this.bufferedImage));
+                    }
+                    this.optiRefine$loadingFinished();
+                } catch (IOException ioexception) {
+                    LOGGER.error("Couldn't load skin {}", this.cacheFile, ioexception);
+                    this.loadTextureFromServer();
+                }
+            } else {
+                this.loadTextureFromServer();
+            }
         }
     }
 

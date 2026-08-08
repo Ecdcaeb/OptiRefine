@@ -16,6 +16,7 @@ import net.minecraft.server.management.PlayerProfileCache;
 import net.minecraft.util.datafix.DataFixer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.DifficultyInstance;
+import net.minecraft.world.EnumDifficulty;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.WorldSettings;
@@ -85,6 +86,14 @@ public abstract class MixinIntegratedServer extends MinecraftServer {
 // [AUDIT-OK] tick HEAD onTick() matches OF tick start
     public void injectTick(CallbackInfo ci) {
         this.onTick();
+    }
+
+    @Inject(method = "setDifficultyForAllWorlds", at = @At("TAIL"))
+// [AUDIT-FIXED] OF:332-337 after super.setDifficultyForAllWorlds syncs the client world's difficulty (mc @Shadow already present)
+    public void injectSetDifficultyForAllWorlds(EnumDifficulty difficulty, CallbackInfo ci) {
+        if (this.mc.world != null) {
+            this.mc.world.getWorldInfo().setDifficulty(difficulty);
+        }
     }
 
     @SuppressWarnings("unused")

@@ -2,6 +2,7 @@ package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import java.util.BitSet;
 import java.util.List;
@@ -173,9 +174,20 @@ public abstract class MixinBlockModelRenderer {
     public void makeCustomQuadsRenderModelSmooth(BlockModelRenderer instance, IBlockAccess k, IBlockState f, BlockPos f1, BufferBuilder f2, List<BakedQuad> bakedquad, float[] j, BitSet bitSet, BlockModelRenderer.AmbientOcclusionFace blockAccessIn,
 // [AUDIT-OK] target renderQuadsSmooth (SRG func_187492_a) matches baseline
                                                  @Share(namespace = "optirefine", value = "renderEnv") LocalRef<RenderEnv> envLocalRef,
-                                                 @Share(namespace = "optirefine", value = "layer") LocalRef<BlockRenderLayer> layerLocalRef, @Local(argsOnly = true) long rand) {
-        bakedquad = BlockModelCustomizer.getRenderQuads(bakedquad, k, f, f1, null, layerLocalRef.get(), rand, envLocalRef.get());
+                                                 @Share(namespace = "optirefine", value = "layer") LocalRef<BlockRenderLayer> layerLocalRef,
+                                                 @Share(namespace = "optirefine", value = "facing") LocalRef<EnumFacing> facingLocalRef, @Local(argsOnly = true) long rand) {
+        bakedquad = BlockModelCustomizer.getRenderQuads(bakedquad, k, f, f1, facingLocalRef.get(), layerLocalRef.get(), rand, envLocalRef.get());
         this.renderQuadsSmooth(k, f, f1, f2, bakedquad, envLocalRef.get());
+    }
+
+    @WrapOperation(method = {"renderModelSmooth", "renderModelFlat"}, at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/block/model/IBakedModel;getQuads(Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/EnumFacing;J)Ljava/util/List;"))
+// [AUDIT-FIXED] OF renderModelSmooth/renderModelFlat pass the per-face EnumFacing into BlockModelCustomizer.getRenderQuads
+// (SmartLeaves.isSameLeaves and BetterGrass.getFaceQuads are gated on enumfacing != null); the vanilla loop
+// variable is captured here and forwarded to the getRenderQuads handlers via @Share (null at the null-quad site).
+    public List<BakedQuad> optiRefine$captureQuadsFacing(IBakedModel model, IBlockState state, EnumFacing facing, long rand, Operation<List<BakedQuad>> original,
+                                                         @Share(namespace = "optirefine", value = "facing") LocalRef<EnumFacing> facingLocalRef) {
+        facingLocalRef.set(facing);
+        return original.call(model, state, facing, rand);
     }
 
 
@@ -193,8 +205,8 @@ public abstract class MixinBlockModelRenderer {
     @Redirect(method = "renderModelFlat", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/BlockModelRenderer;renderQuadsFlat(Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/math/BlockPos;IZLnet/minecraft/client/renderer/BufferBuilder;Ljava/util/List;Ljava/util/BitSet;)V"))
     public void makeCustomQuadsRenderModelFlat(BlockModelRenderer instance, IBlockAccess diffuse, IBlockState k, BlockPos f, int f1, boolean f2, BufferBuilder
 // [AUDIT-OK] target renderQuadsFlat (SRG func_187496_a) matches baseline
-            builder, List<BakedQuad> bakedquad, BitSet j, @Share(namespace = "optirefine", value = "renderEnv") LocalRef<RenderEnv> envLocalRef, @Share(namespace = "optirefine", value = "layer") LocalRef<BlockRenderLayer> layerLocalRef, @Local(argsOnly = true) long rand) {
-        bakedquad = BlockModelCustomizer.getRenderQuads(bakedquad, diffuse, k, f, null, layerLocalRef.get(), rand, envLocalRef.get());
+            builder, List<BakedQuad> bakedquad, BitSet j, @Share(namespace = "optirefine", value = "renderEnv") LocalRef<RenderEnv> envLocalRef, @Share(namespace = "optirefine", value = "layer") LocalRef<BlockRenderLayer> layerLocalRef, @Share(namespace = "optirefine", value = "facing") LocalRef<EnumFacing> facingLocalRef, @Local(argsOnly = true) long rand) {
+        bakedquad = BlockModelCustomizer.getRenderQuads(bakedquad, diffuse, k, f, facingLocalRef.get(), layerLocalRef.get(), rand, envLocalRef.get());
         this.renderQuadsFlat(diffuse, k, f, f1, f2, builder, bakedquad, envLocalRef.get());
     }
 

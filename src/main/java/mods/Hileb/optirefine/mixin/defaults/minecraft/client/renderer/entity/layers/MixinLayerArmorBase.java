@@ -1,16 +1,11 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer.entity.layers;
 
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import mods.Hileb.optirefine.optifine.Config;
-import net.minecraft.client.renderer.entity.RenderLivingBase;
-import net.minecraft.client.renderer.entity.layers.LayerArmorBase;
-import net.minecraft.entity.Entity;
-import net.minecraft.inventory.EntityEquipmentSlot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
+import com.llamalad7.mixinextras.sugar.Local;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ModelBase;
@@ -50,6 +45,30 @@ public abstract class MixinLayerArmorBase {
     // [AUDIT-OK] bindTexture skip-when-null complements the null-returning getArmorResource wrap (OF pattern)
     public boolean replace_renderer_bindTexture_this_getArmorResource(RenderLivingBase instance, ResourceLocation location) {
         return location != null;
+    }
+
+    @ModifyExpressionValue(method = "renderArmorLayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;hasEffect()Z"))
+    // [AUDIT-FIXED] OF:90/118 gates renderEnchantedGlint on `!skipRenderGlint && stack.hasEffect() &&
+    // (!Config.isCustomItems() || !CustomItems.renderCustomArmorEffect(entity, stack, model, limbSwing,
+    // limbSwingAmount, partialTicks, ageInTicks, netHeadYaw, headPitch, scale))`; custom armor effect textures
+    // (CustomItemProperties "effect") never rendered before (renderCustomArmorEffect never invoked). Runtime
+    // cleanroom merged the Forge/vanilla glint branches into the single `!skipRenderGlint && itemstack.hasEffect()`.
+    private boolean optiRefine$customArmorEffectGlint(boolean original,
+                                                      @Local(argsOnly = true) EntityLivingBase entityLivingBaseIn,
+                                                      @Local(argsOnly = true, ordinal = 0) float limbSwing,
+                                                      @Local(argsOnly = true, ordinal = 1) float limbSwingAmount,
+                                                      @Local(argsOnly = true, ordinal = 2) float partialTicks,
+                                                      @Local(argsOnly = true, ordinal = 3) float ageInTicks,
+                                                      @Local(argsOnly = true, ordinal = 4) float netHeadYaw,
+                                                      @Local(argsOnly = true, ordinal = 5) float headPitch,
+                                                      @Local(argsOnly = true, ordinal = 6) float scale,
+                                                      @Local(argsOnly = true) EntityEquipmentSlot slot,
+                                                      @Local ModelBase model) {
+        if (original && Config.isCustomItems()) {
+            ItemStack itemstack = entityLivingBaseIn.getItemStackFromSlot(slot);
+            return !CustomItems.renderCustomArmorEffect(entityLivingBaseIn, itemstack, model, limbSwing, limbSwingAmount, partialTicks, ageInTicks, netHeadYaw, headPitch, scale);
+        }
+        return original;
     }
 
     /**

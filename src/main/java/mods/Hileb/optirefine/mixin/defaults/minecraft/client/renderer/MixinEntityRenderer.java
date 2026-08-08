@@ -63,6 +63,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 
 import java.nio.FloatBuffer;
 
@@ -107,10 +108,12 @@ import java.nio.FloatBuffer;
  *
  * <p>Minor OptiFine extras left as TODO: new-version/64-bit-Java chat notifications and
  * {@code GuiChatOF} swap in {@code frameInit}, {@code RenderChunk.renderChunksUpdated} reset in
- * {@code loadAllVisibleChunks}, {@code Minecraft.actionKeyF3} toggle, the {@code cameraZoom}
+ * {@code loadAllVisibleChunks}, {@code Minecraft.actionKeyF3} toggle and the {@code cameraZoom}
  * scaling in {@code setupCameraTransform} (dead branch in the reference — {@code cameraZoom} is
- * never assigned, so it stays 1.0) and the {@code Config.isRainOff()}/{@code addRainParticles}
- * rain hooks in {@code renderRainSnow}. The {@code ShaderLinkHelper} init in {@code updateRenderer}
+ * never assigned, so it stays 1.0). The {@code Config.isRainOff()}/{@code Config.isRainFancy()}/
+ * {@code Config.isRainSplash()} rain hooks in {@code renderRainSnow}/{@code addRainParticles} are
+ * implemented via {@code optiRefine$addRainParticles}/{@code optiRefine$isRainOff}/
+ * {@code optiRefine$isRainFancy*} below. The {@code ShaderLinkHelper} init in {@code updateRenderer}
  * is already present in the vanilla runtime body, so no hook is needed.</p>
  */
 @Mixin(EntityRenderer.class)
@@ -245,6 +248,37 @@ public abstract class MixinEntityRenderer {
     @Shadow
 // [AUDIT-OK] baseline member renderRainSnow(F)V (SRG func_78474_d)
     protected abstract void renderRainSnow(float partialTicks);
+
+    @WrapMethod(method = "addRainParticles")
+// [AUDIT-FIXED] OF EntityRenderer:1573 gates the whole splash-emission body on Config.isRainSplash()
+// (with the halving handled by optiRefine$isRainFancy below)
+    public void optiRefine$addRainParticles(Operation<Void> original) {
+        if (Config.isRainSplash()) {
+            original.call();
+        }
+    }
+
+    @ModifyExpressionValue(method = "addRainParticles", at = @At(value = "FIELD", target = "Lnet/minecraft/client/settings/GameSettings;fancyGraphics:Z"))
+// [AUDIT-FIXED] OF EntityRenderer:1569-1571 halves the rain-particle count when !Config.isRainFancy()
+// (replaces the vanilla fancyGraphics read)
+    public boolean optiRefine$isRainFancyAddRainParticles(boolean fancyGraphics) {
+        return Config.isRainFancy();
+    }
+
+    @ModifyExpressionValue(method = "renderRainSnow", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/WorldClient;getRainStrength(F)F"))
+// [AUDIT-FIXED] OF EntityRenderer:1645-1648 early-returns when Config.isRainOff(); mapping the rain
+// strength to 0 skips the whole vanilla body, and the cleanroom Forge weather-renderer branch
+// (getWeatherRenderer) above the strength read is preserved untouched.
+    public float optiRefine$isRainOff(float rainStrength) {
+        return Config.isRainOff() ? 0.0F : rainStrength;
+    }
+
+    @ModifyExpressionValue(method = "renderRainSnow", at = @At(value = "FIELD", target = "Lnet/minecraft/client/settings/GameSettings;fancyGraphics:Z"))
+// [AUDIT-FIXED] OF EntityRenderer:1672-1675 renders within radius 10 when Config.isRainFancy()
+// (vanilla 5); replaces the fancyGraphics read
+    public boolean optiRefine$isRainFancyRenderRainSnow(boolean fancyGraphics) {
+        return Config.isRainFancy();
+    }
 
     @Shadow
 // [AUDIT-OK] baseline member renderHand(FI)V (SRG func_78476_b)

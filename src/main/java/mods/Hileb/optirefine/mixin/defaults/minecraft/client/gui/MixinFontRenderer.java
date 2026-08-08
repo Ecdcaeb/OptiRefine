@@ -349,6 +349,20 @@ public abstract class MixinFontRenderer implements ISelectiveResourceReloadListe
         return v;
     }
 
+// [AUDIT-OK] OF renderStringAtPos: float var10 = var5 != -1 && !unicodeFlag ? offsetBold : 0.5F replaces
+// vanilla f1 = unicodeFlag ? 0.5F : 1.0F (shadow offset). First float-1.0F constant = the ternary else branch.
+    @ModifyConstant(method = "renderStringAtPos", constant = @Constant(floatValue = 1.0F, ordinal = 0))
+    private float optiRefine$shadowOffset(float constant, @Local(ordinal = 3) int glyphIndex) {
+        return glyphIndex != -1 && !this.unicodeFlag ? this.offsetBold : 0.5F;
+    }
+
+// [AUDIT-OK] OF bold advance: var8 += var10 (same offsetBold formula) replaces vanilla ++f.
+// Second float-1.0F constant = the ++f bold advance.
+    @ModifyConstant(method = "renderStringAtPos", constant = @Constant(floatValue = 1.0F, ordinal = 1))
+    private float optiRefine$boldAdvance(float constant, @Local(ordinal = 3) int glyphIndex) {
+        return glyphIndex != -1 && !this.unicodeFlag ? this.offsetBold : 0.5F;
+    }
+
 // [AUDIT-OK] target renderChar(CI)F matches baseline; single float-4.0F constant (space branch)
     @ModifyConstant(method = "renderChar", constant = @Constant(floatValue = 4.0F))
     private float optiRefine$renderCharSpaceWidth(float constant, char ch) {

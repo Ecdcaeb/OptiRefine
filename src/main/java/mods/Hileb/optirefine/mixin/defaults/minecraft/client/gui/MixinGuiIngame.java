@@ -4,16 +4,29 @@ import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import mods.Hileb.optirefine.optifine.Config;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiIngame;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.optifine.CustomColors;
+import net.optifine.TextureAnimations;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(GuiIngame.class)
 public abstract class MixinGuiIngame {
 // [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
+
+// [AUDIT-OK] target updateTick()V declared in baseline (deobf:1164); OF updateTick starts with
+// if (this.mc.world == null) TextureAnimations.updateAnimations(); mc inherited -> use Minecraft.getMinecraft()
+    @Inject(method = "updateTick", at = @At("HEAD"))
+    private void optiRefine$updateTickAnimations(CallbackInfo ci) {
+        if (Minecraft.getMinecraft().world == null) {
+            TextureAnimations.updateAnimations();
+        }
+    }
 
 // [AUDIT-OK] target renderExpBar(Lnet/minecraft/client/gui/ScaledResolution;I)V matches baseline; drawString(String,III)I invokes present; handler params match
     @WrapOperation(method = "renderExpBar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/FontRenderer;drawString(Ljava/lang/String;III)I"))

@@ -6,8 +6,6 @@ import net.minecraft.client.renderer.block.model.BakedQuadRetextured;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -46,16 +44,7 @@ public abstract class MixinBakedQuadRetextured {
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.block.model.BakedQuad field_187509_d Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;", deobf = true)
     private static native TextureAtlasSprite BakedQuad_sprite_get(BakedQuad instance);
 
-    @SuppressWarnings("AddedMixinMembersNamePattern")
-    @Unique
-    // [AUDIT-OK] OF-added member (OF getSprite returns texture field)
-    public TextureAtlasSprite getSprite() {
-        // [AUDIT-OK] SRG field_178218_d + deobf=true double-matching (2026-08-05)
-        return BakedQuadRetextured_texture_get((BakedQuadRetextured) (Object) this);
-    }
-
-    @SuppressWarnings("MissingUnique")
-    @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.block.model.BakedQuadRetextured field_178218_d Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;", deobf = true)
-    private static native TextureAtlasSprite BakedQuadRetextured_texture_get(BakedQuadRetextured instance);
-
+    // [AUDIT-FIXED] 2026-08-09: duplicate getSprite() override + BakedQuadRetextured_texture_get helper removed —
+    // cleanroom BakedQuadRetextured patch already provides getSprite() (returns texture, identical semantics); the
+    // @Unique member would collide with the runtime method. spriteOld + remapQuad redirect remain (genuine OF delta).
 }

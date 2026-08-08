@@ -1,8 +1,10 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer;
 
+import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessTransformer;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.NewConstructor;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.ShadowSuper;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.renderer.BlockModelRenderer;
 import net.minecraft.util.math.BlockPos;
 import org.objectweb.asm.Opcodes;
@@ -13,6 +15,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(targets = "net.minecraft.client.renderer.BlockModelRenderer$AmbientOcclusionFace")
 @SuppressWarnings("unused")
@@ -64,6 +67,20 @@ public abstract class MixinBlockModelRender$AmbientOcclusionFace {
         }
     }
 
+
+    @SuppressWarnings({"unused", "MissingUnique"})
+    @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.client.renderer.BlockModelRenderer fixAoLightValue (F)F")
+// [AUDIT-FIXED] OF AmbientOcclusionFace.updateVertexBrightness routes all AO light values through
+// BlockModelRenderer.fixAoLightValue (aoLightValueOpaque from Config.getAmbientOcclusionLevel); bridge
+// pattern matches MixinGameSettings' updateAoLightValue bridge, declared here per mixin-class rule.
+    private static native float BlockModelRenderer_fixAoLightValue(float value);
+
+    @Redirect(method = "updateVertexBrightness", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/state/IBlockState;getAmbientOcclusionLightValue()F"))
+// [AUDIT-FIXED] all ~10 invoke sites (4 corners, 4 edges, 2 center-ternary) of getAmbientOcclusionLightValue
+// inside updateVertexBrightness get fixAoLightValue applied, matching OF lines 499-561.
+    public float optiRefine$fixAoLightValue(IBlockState state) {
+        return BlockModelRenderer_fixAoLightValue(state.getAmbientOcclusionLightValue());
+    }
 
     @Unique
 // [AUDIT-OK] OF-added method, not in baseline (OF AmbientOcclusionFace.setMaxBlockLight)

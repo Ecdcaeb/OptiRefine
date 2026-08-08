@@ -1,7 +1,9 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer;
 
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.sugar.Local;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.optifine.Config;
@@ -248,6 +250,18 @@ public abstract class MixinRenderItem {
         this.renderModel(modelIn, stack);
     }
 
+    // ===== renderItem: custom enchantment glint (OF RenderItem:165) =====
+
+    @ModifyExpressionValue(method = "renderItem(Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/renderer/block/model/IBakedModel;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;hasEffect()Z"))
+    // [AUDIT-FIXED] OF:165 gates renderEffect on `stack.hasEffect() && (!Config.isCustomItems() || !CustomItems.renderCustomEffect(this, stack, model))`;
+    // CustomItemProperties "effect" textures never rendered before (renderCustomEffect never invoked)
+    private boolean optiRefine$customEffectGlint(boolean original, @Local(argsOnly = true) ItemStack stack, @Local(argsOnly = true) IBakedModel model) {
+        if (original && Config.isCustomItems()) {
+            return !CustomItems.renderCustomEffect((RenderItem) (Object) this, stack, model);
+        }
+        return original;
+    }
+
     // ===== renderItemModel: off-hand + emissive =====
 
     @Inject(method = "renderItemModel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/RenderItem;renderItem(Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/renderer/block/model/IBakedModel;)V", shift = At.Shift.BEFORE))
@@ -336,5 +350,16 @@ public abstract class MixinRenderItem {
     // ===== renderItemOverlayIntoGUI: custom durability color =====
     // [AUDIT-FIXED] vanilla hsvToRGB call was removed by the Cleanroom RenderItem patch (durability now uses
     // Item.getRGBDurabilityForDisplay); the old @Redirect target no longer exists -> mixin apply crash.
-    // CustomColors.getDurabilityColor hook for the Forge path is TODO.
+    // OF renderItemOverlayIntoGUI: `var12 = CustomColors.getDurabilityColor(var10, var12)` where var10 is the
+    // remaining-durability ratio and var12 is the Forge getRGBDurabilityForDisplay result — applied here by
+    // modifying the getRGBDurabilityForDisplay value (keeps item-specific override, matches OF:479-481).
+    @ModifyExpressionValue(method = "renderItemOverlayIntoGUI", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/Item;getRGBDurabilityForDisplay(Lnet/minecraft/item/ItemStack;)I"))
+    private int optiRefine$durabilityColor(int original, @Local(argsOnly = true) ItemStack stack) {
+        if (Config.isCustomColors()) {
+            float f = stack.getItemDamage();
+            float f1 = stack.getMaxDamage();
+            return CustomColors.getDurabilityColor(Math.max(0.0F, (f1 - f) / f1), original);
+        }
+        return original;
+    }
 }
