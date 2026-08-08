@@ -24,7 +24,7 @@ base {
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(26)
+        languageVersion = JavaLanguageVersion.of(25)
     }
     if (generate_sources_jar.toBoolean()) {
         withSourcesJar()
@@ -170,7 +170,7 @@ if (!enable_shadow.toBoolean()) {
 }
 
 compileJava {
-    sourceCompatibility = targetCompatibility = JavaVersion.VERSION_26
+    sourceCompatibility = targetCompatibility = JavaVersion.VERSION_25
 }
 
 jar {
@@ -221,13 +221,13 @@ tasks.named(remapTaskName).configure {
 }
 
 compileTestJava {
-    sourceCompatibility = targetCompatibility = JavaVersion.VERSION_26
+    sourceCompatibility = targetCompatibility = JavaVersion.VERSION_25
 }
 
 test {
     useJUnitPlatform()
     javaLauncher.set(javaToolchains.launcherFor {
-        languageVersion = JavaLanguageVersion.of(26)
+        languageVersion = JavaLanguageVersion.of(25)
     })
     if (show_testing_output.toBoolean()) {
         testLogging {
