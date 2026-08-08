@@ -8,6 +8,7 @@
 	"credits": "{{ mod_credits }}",
 	"url": "{{ mod_url }}",
 	"updateJSON": "{{ mod_update_json }}",
+	"issueTrackerURL": "{{ mod_issue_tracker }}",
 	"logoFile": "{{ mod_logo_path }}",
-	"modProperties": {"iconItem": "minecraft:ender_eye", "issueTracker": "{{ mod_issue_tracker }}"}
+	"modProperties": {"iconItem": "minecraft:ender_eye", "issueTrackerUrl": "{{ mod_issue_tracker }}"}
 }]

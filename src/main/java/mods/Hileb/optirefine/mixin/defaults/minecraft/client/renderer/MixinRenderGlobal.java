@@ -1101,217 +1101,40 @@ public abstract class MixinRenderGlobal {
     }
 
     /**
-     * @author OptiRefine
-     * @reason OptiFine: cloud renderer (GL-list cache + ofCloudsHeight) with shaders hooks and F3 cloud config gates
+     * [AUDIT 2026-08-09] OF cloud rendering moved OUT of RenderGlobal.
+     *
+     * PROBLEM: OF's renderClouds override conflicted with the cleanroom Forge hook chain.
+     * cleanroom renderClouds: FMLClientHandler.renderClouds() -> WorldProvider.getCloudRenderer()
+     * (mod-set IRenderHandler) OR Forge's default CloudRenderer (net.minecraftforge.client.CloudRenderer,
+     * always built while the VANILLA cloud setting is on). OF only honors WorldProvider.getCloudRenderer();
+     * when null it continues with its own pipeline (fancy/fast, Shaders.beginClouds/endClouds,
+     * ofCloudsHeight). Using the cleanroom hook from a wrap either suppressed the OF branch entirely
+     * (Forge default CloudRenderer returns true) or double-rendered (two cloud passes in the frame).
+     *
+     * RESOLUTION: RenderGlobal.renderClouds stays vanilla (cleanroom hook chain intact); the OF cloud
+     * deltas (ofClouds OFF gate, Shaders.beginClouds/endClouds, ofCloudsHeight Y offset) are rebuilt
+     * on net.minecraftforge.client.CloudRenderer in MixinCloudRenderer (minecraftforge/client).
+     * Fancy/fast split is dropped (Forge geometry is vanilla-fixed) — acceptable degradation.
      */
-    @WrapMethod(method = "renderClouds")
-    // [AUDIT-FIXED] OF RenderGlobal:1700-1802; Reflector.ForgeWorldProvider_getCloudRenderer -> cleanroom-native FMLClientHandler.renderClouds
-    private void optiRefine$renderClouds(float partialTicks, int pass, double x, double y, double z, Operation<Void> original) {
-        if (!Config.isCloudsOff()) {
-            if (FMLClientHandler.instance().renderClouds(this.cloudTickCounter, partialTicks)) {
-                return;
-            }
-            if (this.mc.world.provider.isSurfaceWorld()) {
-                if (Config.isShaders()) {
-                    Shaders.beginClouds();
-                }
-                if (Config.isCloudsFancy()) {
-                    this.renderCloudsFancy(partialTicks, pass, x, y, z);
-                } else {
-                    float f = 0.0F;
-                    GlStateManager.disableCull();
-                    byte b0 = 32;
-                    byte b1 = 8;
-                    Tessellator tessellator = Tessellator.getInstance();
-                    BufferBuilder bufferbuilder = tessellator.getBuffer();
-                    this.renderEngine.bindTexture(CLOUDS_TEXTURES);
-                    GlStateManager.enableBlend();
-                    GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
-                    Vec3d vec3d = this.world.getCloudColour(f);
-                    float f1 = (float) vec3d.x;
-                    float f2 = (float) vec3d.y;
-                    float f3 = (float) vec3d.z;
-                    this.cloudRenderer.prepareToRender(false, this.cloudTickCounter, partialTicks, vec3d);
-                    if (this.cloudRenderer.shouldUpdateGlList()) {
-                        this.cloudRenderer.startUpdateGlList();
-                        if (pass != 2) {
-                            float f4 = (f1 * 30.0F + f2 * 59.0F + f3 * 11.0F) / 100.0F;
-                            float f5 = (f1 * 30.0F + f2 * 70.0F) / 100.0F;
-                            float f6 = (f1 * 30.0F + f3 * 70.0F) / 100.0F;
-                            f1 = f4;
-                            f2 = f5;
-                            f3 = f6;
-                        }
-                        float f7 = 4.8828125E-4F;
-                        double d0 = (double) ((float) this.cloudTickCounter + f);
-                        double d1 = x + d0 * 0.03F;
-                        int i = MathHelper.floor(d1 / 2048.0);
-                        int j = MathHelper.floor(z / 2048.0);
-                        d1 -= i * 2048;
-                        double d2 = z - j * 2048;
-                        float f8 = this.world.provider.getCloudHeight() - (float) y + 0.33F;
-                        f8 += GameSettings_ofCloudsHeight_get(this.mc.gameSettings) * 128.0F;
-                        float f9 = (float) (d1 * 4.8828125E-4);
-                        float f10 = (float) (d2 * 4.8828125E-4);
-                        bufferbuilder.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
-                        for (short short1 = -256; short1 < 256; short1 += 32) {
-                            for (short short2 = -256; short2 < 256; short2 += 32) {
-                                bufferbuilder.pos(short1 + 0, f8, short2 + 32).tex((short1 + 0) * 4.8828125E-4F + f9, (short2 + 32) * 4.8828125E-4F + f10).color(f1, f2, f3, 0.8F).endVertex();
-                                bufferbuilder.pos(short1 + 32, f8, short2 + 32).tex((short1 + 32) * 4.8828125E-4F + f9, (short2 + 32) * 4.8828125E-4F + f10).color(f1, f2, f3, 0.8F).endVertex();
-                                bufferbuilder.pos(short1 + 32, f8, short2 + 0).tex((short1 + 32) * 4.8828125E-4F + f9, (short2 + 0) * 4.8828125E-4F + f10).color(f1, f2, f3, 0.8F).endVertex();
-                                bufferbuilder.pos(short1 + 0, f8, short2 + 0).tex((short1 + 0) * 4.8828125E-4F + f9, (short2 + 0) * 4.8828125E-4F + f10).color(f1, f2, f3, 0.8F).endVertex();
-                            }
-                        }
-                        tessellator.draw();
-                        this.cloudRenderer.endUpdateGlList();
-                    }
-                    this.cloudRenderer.renderGlList();
-                    GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-                    GlStateManager.disableBlend();
-                    GlStateManager.enableCull();
-                }
-                if (Config.isShaders()) {
-                    Shaders.endClouds();
-                }
-            }
-        }
-    }
+
 
     /**
-     * @author OptiRefine
-     * @reason OptiFine: fancy clouds with CloudRenderer two-pass colorMask + GL-list cache over all six face groups
+     * [AUDIT 2026-08-09] OF cloud rendering moved OUT of RenderGlobal.
+     *
+     * PROBLEM: OF's renderClouds override conflicted with the cleanroom Forge hook chain.
+     * cleanroom renderClouds: FMLClientHandler.renderClouds() -> WorldProvider.getCloudRenderer()
+     * (mod-set IRenderHandler) OR Forge's default CloudRenderer (net.minecraftforge.client.CloudRenderer,
+     * always built while the VANILLA cloud setting is on). OF only honors WorldProvider.getCloudRenderer();
+     * when null it continues with its own pipeline (fancy/fast, Shaders.beginClouds/endClouds,
+     * ofCloudsHeight). Using the cleanroom hook from a wrap either suppressed the OF branch entirely
+     * (Forge default CloudRenderer returns true) or double-rendered (two cloud passes in the frame).
+     *
+     * RESOLUTION: RenderGlobal.renderClouds stays vanilla (cleanroom hook chain intact); the OF cloud
+     * deltas (ofClouds OFF gate, Shaders.beginClouds/endClouds, ofCloudsHeight Y offset) are rebuilt
+     * on net.minecraftforge.client.CloudRenderer in MixinCloudRenderer (minecraftforge/client).
+     * Fancy/fast split is dropped (Forge geometry is vanilla-fixed) — acceptable degradation.
      */
-    @WrapMethod(method = "renderCloudsFancy")
-    // [AUDIT-FIXED] OF RenderGlobal:1804-2103
-    private void optiRefine$renderCloudsFancy(float partialTicks, int pass, double x, double y, double z, Operation<Void> original) {
-        float f = 0.0F;
-        GlStateManager.disableCull();
-        Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder bufferbuilder = tessellator.getBuffer();
-        float f1 = 12.0F;
-        float f2 = 4.0F;
-        double d0 = (double) ((float) this.cloudTickCounter + f);
-        double d1 = (x + d0 * 0.03F) / 12.0;
-        double d2 = z / 12.0 + 0.33F;
-        float f3 = this.world.provider.getCloudHeight() - (float) y + 0.33F;
-        f3 += GameSettings_ofCloudsHeight_get(this.mc.gameSettings) * 128.0F;
-        int i = MathHelper.floor(d1 / 2048.0);
-        int j = MathHelper.floor(d2 / 2048.0);
-        d1 -= i * 2048;
-        d2 -= j * 2048;
-        this.renderEngine.bindTexture(CLOUDS_TEXTURES);
-        GlStateManager.enableBlend();
-        GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
-        Vec3d vec3d = this.world.getCloudColour(f);
-        float f4 = (float) vec3d.x;
-        float f5 = (float) vec3d.y;
-        float f6 = (float) vec3d.z;
-        this.cloudRenderer.prepareToRender(true, this.cloudTickCounter, partialTicks, vec3d);
-        if (pass != 2) {
-            float f7 = (f4 * 30.0F + f5 * 59.0F + f6 * 11.0F) / 100.0F;
-            float f8 = (f4 * 30.0F + f5 * 70.0F) / 100.0F;
-            float f9 = (f4 * 30.0F + f6 * 70.0F) / 100.0F;
-            f4 = f7;
-            f5 = f8;
-            f6 = f9;
-        }
-        float f10 = f4 * 0.9F;
-        float f11 = f5 * 0.9F;
-        float f12 = f6 * 0.9F;
-        float f13 = f4 * 0.7F;
-        float f14 = f5 * 0.7F;
-        float f15 = f6 * 0.7F;
-        float f16 = f4 * 0.8F;
-        float f17 = f5 * 0.8F;
-        float f18 = f6 * 0.8F;
-        float f19 = 0.00390625F;
-        float f20 = MathHelper.floor(d1) * 0.00390625F;
-        float f21 = MathHelper.floor(d2) * 0.00390625F;
-        float f22 = (float) (d1 - MathHelper.floor(d1));
-        float f23 = (float) (d2 - MathHelper.floor(d2));
-        byte b0 = 8;
-        byte b1 = 4;
-        float f24 = 9.765625E-4F;
-        GlStateManager.scale(12.0F, 1.0F, 12.0F);
-        for (int k = 0; k < 2; ++k) {
-            if (k == 0) {
-                GlStateManager.colorMask(false, false, false, false);
-            } else {
-                switch (pass) {
-                    case 0:
-                        GlStateManager.colorMask(false, true, true, true);
-                        break;
-                    case 1:
-                        GlStateManager.colorMask(true, false, false, true);
-                        break;
-                    case 2:
-                        GlStateManager.colorMask(true, true, true, true);
-                }
-            }
-            this.cloudRenderer.renderGlList();
-        }
-        if (this.cloudRenderer.shouldUpdateGlList()) {
-            this.cloudRenderer.startUpdateGlList();
-            for (int l = -3; l <= 4; ++l) {
-                for (int i1 = -3; i1 <= 4; ++i1) {
-                    bufferbuilder.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR_NORMAL);
-                    float f25 = l * 8;
-                    float f26 = i1 * 8;
-                    float f27 = f25 - f22;
-                    float f28 = f26 - f23;
-                    if (f3 > -5.0F) {
-                        bufferbuilder.pos(f27 + 0.0F, f3 + 0.0F, f28 + 8.0F).tex((f25 + 0.0F) * 0.00390625F + f20, (f26 + 8.0F) * 0.00390625F + f21).color(f13, f14, f15, 0.8F).normal(0.0F, -1.0F, 0.0F).endVertex();
-                        bufferbuilder.pos(f27 + 8.0F, f3 + 0.0F, f28 + 8.0F).tex((f25 + 8.0F) * 0.00390625F + f20, (f26 + 8.0F) * 0.00390625F + f21).color(f13, f14, f15, 0.8F).normal(0.0F, -1.0F, 0.0F).endVertex();
-                        bufferbuilder.pos(f27 + 8.0F, f3 + 0.0F, f28 + 0.0F).tex((f25 + 8.0F) * 0.00390625F + f20, (f26 + 0.0F) * 0.00390625F + f21).color(f13, f14, f15, 0.8F).normal(0.0F, -1.0F, 0.0F).endVertex();
-                        bufferbuilder.pos(f27 + 0.0F, f3 + 0.0F, f28 + 0.0F).tex((f25 + 0.0F) * 0.00390625F + f20, (f26 + 0.0F) * 0.00390625F + f21).color(f13, f14, f15, 0.8F).normal(0.0F, -1.0F, 0.0F).endVertex();
-                    }
-                    if (f3 <= 5.0F) {
-                        bufferbuilder.pos(f27 + 0.0F, f3 + 4.0F - 9.765625E-4F, f28 + 8.0F).tex((f25 + 0.0F) * 0.00390625F + f20, (f26 + 8.0F) * 0.00390625F + f21).color(f4, f5, f6, 0.8F).normal(0.0F, 1.0F, 0.0F).endVertex();
-                        bufferbuilder.pos(f27 + 8.0F, f3 + 4.0F - 9.765625E-4F, f28 + 8.0F).tex((f25 + 8.0F) * 0.00390625F + f20, (f26 + 8.0F) * 0.00390625F + f21).color(f4, f5, f6, 0.8F).normal(0.0F, 1.0F, 0.0F).endVertex();
-                        bufferbuilder.pos(f27 + 8.0F, f3 + 4.0F - 9.765625E-4F, f28 + 0.0F).tex((f25 + 8.0F) * 0.00390625F + f20, (f26 + 0.0F) * 0.00390625F + f21).color(f4, f5, f6, 0.8F).normal(0.0F, 1.0F, 0.0F).endVertex();
-                        bufferbuilder.pos(f27 + 0.0F, f3 + 4.0F - 9.765625E-4F, f28 + 0.0F).tex((f25 + 0.0F) * 0.00390625F + f20, (f26 + 0.0F) * 0.00390625F + f21).color(f4, f5, f6, 0.8F).normal(0.0F, 1.0F, 0.0F).endVertex();
-                    }
-                    if (l > -1) {
-                        for (int j1 = 0; j1 < 8; ++j1) {
-                            bufferbuilder.pos(f27 + j1 + 0.0F, f3 + 0.0F, f28 + 8.0F).tex((f25 + j1 + 0.5F) * 0.00390625F + f20, (f26 + 8.0F) * 0.00390625F + f21).color(f10, f11, f12, 0.8F).normal(-1.0F, 0.0F, 0.0F).endVertex();
-                            bufferbuilder.pos(f27 + j1 + 0.0F, f3 + 4.0F, f28 + 8.0F).tex((f25 + j1 + 0.5F) * 0.00390625F + f20, (f26 + 8.0F) * 0.00390625F + f21).color(f10, f11, f12, 0.8F).normal(-1.0F, 0.0F, 0.0F).endVertex();
-                            bufferbuilder.pos(f27 + j1 + 0.0F, f3 + 4.0F, f28 + 0.0F).tex((f25 + j1 + 0.5F) * 0.00390625F + f20, (f26 + 0.0F) * 0.00390625F + f21).color(f10, f11, f12, 0.8F).normal(-1.0F, 0.0F, 0.0F).endVertex();
-                            bufferbuilder.pos(f27 + j1 + 0.0F, f3 + 0.0F, f28 + 0.0F).tex((f25 + j1 + 0.5F) * 0.00390625F + f20, (f26 + 0.0F) * 0.00390625F + f21).color(f10, f11, f12, 0.8F).normal(-1.0F, 0.0F, 0.0F).endVertex();
-                        }
-                    }
-                    if (l <= 1) {
-                        for (int k1 = 0; k1 < 8; ++k1) {
-                            bufferbuilder.pos(f27 + k1 + 1.0F - 9.765625E-4F, f3 + 0.0F, f28 + 8.0F).tex((f25 + k1 + 0.5F) * 0.00390625F + f20, (f26 + 8.0F) * 0.00390625F + f21).color(f10, f11, f12, 0.8F).normal(1.0F, 0.0F, 0.0F).endVertex();
-                            bufferbuilder.pos(f27 + k1 + 1.0F - 9.765625E-4F, f3 + 4.0F, f28 + 8.0F).tex((f25 + k1 + 0.5F) * 0.00390625F + f20, (f26 + 8.0F) * 0.00390625F + f21).color(f10, f11, f12, 0.8F).normal(1.0F, 0.0F, 0.0F).endVertex();
-                            bufferbuilder.pos(f27 + k1 + 1.0F - 9.765625E-4F, f3 + 4.0F, f28 + 0.0F).tex((f25 + k1 + 0.5F) * 0.00390625F + f20, (f26 + 0.0F) * 0.00390625F + f21).color(f10, f11, f12, 0.8F).normal(1.0F, 0.0F, 0.0F).endVertex();
-                            bufferbuilder.pos(f27 + k1 + 1.0F - 9.765625E-4F, f3 + 0.0F, f28 + 0.0F).tex((f25 + k1 + 0.5F) * 0.00390625F + f20, (f26 + 0.0F) * 0.00390625F + f21).color(f10, f11, f12, 0.8F).normal(1.0F, 0.0F, 0.0F).endVertex();
-                        }
-                    }
-                    if (i1 > -1) {
-                        for (int l1 = 0; l1 < 8; ++l1) {
-                            bufferbuilder.pos(f27 + 0.0F, f3 + 4.0F, f28 + l1 + 0.0F).tex((f25 + 0.0F) * 0.00390625F + f20, (f26 + l1 + 0.5F) * 0.00390625F + f21).color(f16, f17, f18, 0.8F).normal(0.0F, 0.0F, -1.0F).endVertex();
-                            bufferbuilder.pos(f27 + 8.0F, f3 + 4.0F, f28 + l1 + 0.0F).tex((f25 + 8.0F) * 0.00390625F + f20, (f26 + l1 + 0.5F) * 0.00390625F + f21).color(f16, f17, f18, 0.8F).normal(0.0F, 0.0F, -1.0F).endVertex();
-                            bufferbuilder.pos(f27 + 8.0F, f3 + 0.0F, f28 + l1 + 0.0F).tex((f25 + 8.0F) * 0.00390625F + f20, (f26 + l1 + 0.5F) * 0.00390625F + f21).color(f16, f17, f18, 0.8F).normal(0.0F, 0.0F, -1.0F).endVertex();
-                            bufferbuilder.pos(f27 + 0.0F, f3 + 0.0F, f28 + l1 + 0.0F).tex((f25 + 0.0F) * 0.00390625F + f20, (f26 + l1 + 0.5F) * 0.00390625F + f21).color(f16, f17, f18, 0.8F).normal(0.0F, 0.0F, -1.0F).endVertex();
-                        }
-                    }
-                    if (i1 <= 1) {
-                        for (int i2 = 0; i2 < 8; ++i2) {
-                            bufferbuilder.pos(f27 + 0.0F, f3 + 4.0F, f28 + i2 + 1.0F - 9.765625E-4F).tex((f25 + 0.0F) * 0.00390625F + f20, (f26 + i2 + 0.5F) * 0.00390625F + f21).color(f16, f17, f18, 0.8F).normal(0.0F, 0.0F, 1.0F).endVertex();
-                            bufferbuilder.pos(f27 + 8.0F, f3 + 4.0F, f28 + i2 + 1.0F - 9.765625E-4F).tex((f25 + 8.0F) * 0.00390625F + f20, (f26 + i2 + 0.5F) * 0.00390625F + f21).color(f16, f17, f18, 0.8F).normal(0.0F, 0.0F, 1.0F).endVertex();
-                            bufferbuilder.pos(f27 + 8.0F, f3 + 0.0F, f28 + i2 + 1.0F - 9.765625E-4F).tex((f25 + 8.0F) * 0.00390625F + f20, (f26 + i2 + 0.5F) * 0.00390625F + f21).color(f16, f17, f18, 0.8F).normal(0.0F, 0.0F, 1.0F).endVertex();
-                            bufferbuilder.pos(f27 + 0.0F, f3 + 0.0F, f28 + i2 + 1.0F - 9.765625E-4F).tex((f25 + 0.0F) * 0.00390625F + f20, (f26 + i2 + 0.5F) * 0.00390625F + f21).color(f16, f17, f18, 0.8F).normal(0.0F, 0.0F, 1.0F).endVertex();
-                        }
-                    }
-                    tessellator.draw();
-                }
-            }
-            this.cloudRenderer.endUpdateGlList();
-        }
-        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-        GlStateManager.disableBlend();
-        GlStateManager.enableCull();
-    }
+
 
     /**
      * @author OptiRefine

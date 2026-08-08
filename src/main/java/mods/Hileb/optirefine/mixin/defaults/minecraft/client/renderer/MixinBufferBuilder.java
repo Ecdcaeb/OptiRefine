@@ -175,17 +175,31 @@ public abstract class MixinBufferBuilder {
         }
     }
 
-    @Redirect(method = "getVertexState", at = @At(value = "NEW", target = "(Lnet/minecraft/client/renderer/BufferBuilder;[ILnet/minecraft/client/renderer/vertex/VertexFormat;)Lnet/minecraft/client/renderer/BufferBuilder$State;"))
-    public BufferBuilder.State getVertexStateReturn(BufferBuilder p_i46453_1_, int[] p_i46453_2_, VertexFormat p_i46453_3_){
-// [AUDIT-OK] NEW desc correct: State is a non-static inner class (forge:582), JVM ctor desc includes outer this$0 (LBufferBuilder;[ILVertexFormat;)V — verified 2026-08-05
-        return newBufferBuilder$State(AccessibleOperation.Construction.construction(), p_i46453_1_, p_i46453_2_, p_i46453_3_, this.quadSprites == null ? null : this.quadSprites.clone());
+    @Shadow
+// [AUDIT-OK] baseline member getBufferSize (SRG func_181664_j)
+    protected abstract int getBufferSize();
+
+    @WrapMethod(method = "getVertexState")
+    // [AUDIT-FIXED 2026-08-09] crash: setVertexState(State) NPE'd on State.getRawBuffer()==null in
+    // RenderChunk.resortTransparency. The old @Redirect NEW -> @NewConstructor 5-arg State chain
+    // (static native newBufferBuilder$State renamed to <init>, colliding desc with
+    // MixinBufferBuilderState's @NewConstructor) intermittently produced a State whose stateRawBuffer
+    // was never assigned. Replaced with a plain wrap building the vanilla 2-arg State and setting
+    // stateQuadSprites via a PUTFIELD bridge — same OF semantics, no cursed ctor codegen.
+    public BufferBuilder.State optiRefine$getVertexState(Operation<BufferBuilder.State> original) {
+        int[] aint = new int[this.getBufferSize()];
+        this.rawIntBuffer.rewind();
+        this.rawIntBuffer.get(aint);
+        this.rawIntBuffer.position(this.getBufferSize());
+        BufferBuilder.State state = ((BufferBuilder) (Object) this).new State(aint, new VertexFormat(this.vertexFormat));
+        BufferBuilder$State_stateQuadSprites_set(state, this.quadSprites == null ? null : this.quadSprites.clone());
+        return state;
     }
 
-    
-    @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessibleOperation(opcode = Opcodes.NEW, desc = "net.minecraft.client.renderer.BufferBuilder$State (Lnet/minecraft/client/renderer/BufferBuilder;[ILnet/minecraft/client/renderer/vertex/VertexFormat;[Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;)V")
-// [AUDIT-OK] @NewConstructor desc (LBufferBuilder;[ILVertexFormat;[LTextureAtlasSprite;)V matches non-static inner-class JVM ctor arity — verified 2026-08-05
-    private static native BufferBuilder.State newBufferBuilder$State(AccessibleOperation.Construction construction, BufferBuilder bufferBuilder, int[] p_i46453_2_, VertexFormat p_i46453_3_, TextureAtlasSprite[] textureAtlasSprites);
+    @SuppressWarnings("MissingUnique")
+    @AccessibleOperation(opcode = Opcodes.PUTFIELD, desc = "net.minecraft.client.renderer.BufferBuilder$State stateQuadSprites [Lnet.minecraft.client.renderer.texture.TextureAtlasSprite;")
+// [AUDIT-OK] stateQuadSprites is @Public (cursed postApply widens) — cross-class PUTFIELD legal
+    private native static void BufferBuilder$State_stateQuadSprites_set(BufferBuilder.State ins, TextureAtlasSprite[] sprites);
 
     
     @SuppressWarnings({"unused", "MissingUnique"})

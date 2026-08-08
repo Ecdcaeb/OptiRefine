@@ -64,10 +64,12 @@ public abstract class MixinGuiOverlayDebug extends Gui {
 
     @SuppressWarnings("unused")
     @Unique
-    @AccessibleOperation.Reference(GuiOverlayDebug.class)
-// [AUDIT-OK] vanilla private static bytesToMb(J)J declared in GuiOverlayDebug (deobf:343); private static -> own @AccessibleOperation bridge (an instance @Shadow of a static member would apply-crash)
-    @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.client.gui.GuiOverlayDebug bytesToMb (J)J")
-    private native static long _acc_GuiOverlayDebug_bytesToMb_(long bytes);
+// [AUDIT-FIXED] 2026-08-09: runtime GuiOverlayDebug (cleanroom 0.6.9) has NO bytesToMb(J)J — the 0.6.7-era
+// deobf/cleanroom baseline has it, so the old @AccessibleOperation bridge threw NoSuchMethodError in-game.
+// Implement locally (identical formula: /1024/1024) instead of linking the missing runtime member.
+    private static long optiRefine$bytesToMb(long bytes) {
+        return bytes / 1024L / 1024L;
+    }
 
 // [AUDIT-OK] target call() (List<String>) matches baseline; instance handler, List return type matches
     @WrapMethod(method = "call")
@@ -130,7 +132,7 @@ public abstract class MixinGuiOverlayDebug extends Gui {
         List<String> list = this.debugInfoRight;
         if (list == null || System.currentTimeMillis() > this.updateInfoRightTimeMs) {
             list = original.call();
-            list.add(4, "Native: " + _acc_GuiOverlayDebug_bytesToMb_(NativeMemory.getBufferAllocated()) + "/" + _acc_GuiOverlayDebug_bytesToMb_(NativeMemory.getBufferMaximum()) + "MB");
+            list.add(4, "Native: " + optiRefine$bytesToMb(NativeMemory.getBufferAllocated()) + "/" + optiRefine$bytesToMb(NativeMemory.getBufferMaximum()) + "MB");
             list.set(5, "GC: " + MemoryMonitor.getAllocationRateMb() + "MB/s");
             this.debugInfoRight = list;
             this.updateInfoRightTimeMs = System.currentTimeMillis() + 100L;

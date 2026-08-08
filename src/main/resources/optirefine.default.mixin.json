@@ -128,6 +128,7 @@
     "minecraft.util.MixinScreenShotHelper",
     "minecraft.util.MixinIntegerCache",
     "minecraftforge.client.MixinGuiIngameForge",
+    "minecraftforge.client.MixinCloudRenderer",
     "minecraft.client.renderer.texture.MixinTextureUtil",
     "minecraft.client.renderer.MixinItemRenderer",
     "minecraft.client.renderer.MixinGlStateManager",

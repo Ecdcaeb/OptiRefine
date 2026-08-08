@@ -24,25 +24,25 @@ public abstract class MixinTileEntityRendererDispatcher {
 
     @Inject(method = "render(Lnet/minecraft/tileentity/TileEntity;DDDFIF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/tileentity/TileEntitySpecialRenderer;render(Lnet/minecraft/tileentity/TileEntity;DDDFIF)V", shift = At.Shift.BEFORE))
     // [AUDIT-FIXED] OF:164 sets tileEntityRendered = var1 at dispatch start (slow TESR.render branch)
-    private void optiRefine$setTileEntityRendered(TileEntity tileEntityIn, CallbackInfo ci) {
+    private void optiRefine$setTileEntityRendered(TileEntity tileEntityIn, double x, double y, double z, float partialTicks, int destroyStage, float p_192841_7_, CallbackInfo ci) {
         this.tileEntityRendered = tileEntityIn;
     }
 
     @Inject(method = "render(Lnet/minecraft/tileentity/TileEntity;DDDFIF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/tileentity/TileEntitySpecialRenderer;render(Lnet/minecraft/tileentity/TileEntity;DDDFIF)V", shift = At.Shift.AFTER))
     // [AUDIT-FIXED] OF:171 clears tileEntityRendered after dispatch (slow branch)
-    private void optiRefine$clearTileEntityRendered(CallbackInfo ci) {
+    private void optiRefine$clearTileEntityRendered(TileEntity tileEntityIn, double x, double y, double z, float partialTicks, int destroyStage, float p_192841_7_, CallbackInfo ci) {
         this.tileEntityRendered = null;
     }
 
     @Inject(method = "render(Lnet/minecraft/tileentity/TileEntity;DDDFIF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/tileentity/TileEntitySpecialRenderer;renderTileEntityFast(Lnet/minecraft/tileentity/TileEntity;DDDFIFLnet/minecraft/client/renderer/BufferBuilder;)V", shift = At.Shift.BEFORE))
     // [AUDIT-FIXED] OF:164 sets tileEntityRendered = var1 at dispatch start (fast renderTileEntityFast branch)
-    private void optiRefine$setTileEntityRenderedFast(TileEntity tileEntityIn, CallbackInfo ci) {
+    private void optiRefine$setTileEntityRenderedFast(TileEntity tileEntityIn, double x, double y, double z, float partialTicks, int destroyStage, float p_192841_7_, CallbackInfo ci) {
         this.tileEntityRendered = tileEntityIn;
     }
 
     @Inject(method = "render(Lnet/minecraft/tileentity/TileEntity;DDDFIF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/tileentity/TileEntitySpecialRenderer;renderTileEntityFast(Lnet/minecraft/tileentity/TileEntity;DDDFIFLnet/minecraft/client/renderer/BufferBuilder;)V", shift = At.Shift.AFTER))
     // [AUDIT-FIXED] OF:171 clears tileEntityRendered after dispatch (fast branch)
-    private void optiRefine$clearTileEntityRenderedFast(CallbackInfo ci) {
+    private void optiRefine$clearTileEntityRenderedFast(TileEntity tileEntityIn, double x, double y, double z, float partialTicks, int destroyStage, float p_192841_7_, CallbackInfo ci) {
         this.tileEntityRendered = null;
     }
 

@@ -69,18 +69,10 @@ public abstract class MixinBlockModelRender$AmbientOcclusionFace {
 
 
     @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.client.renderer.BlockModelRenderer fixAoLightValue (F)F")
-// [AUDIT-FIXED] OF AmbientOcclusionFace.updateVertexBrightness routes all AO light values through
-// BlockModelRenderer.fixAoLightValue (aoLightValueOpaque from Config.getAmbientOcclusionLevel); bridge
-// pattern matches MixinGameSettings' updateAoLightValue bridge, declared here per mixin-class rule.
-    private static native float BlockModelRenderer_fixAoLightValue(float value);
-
-    @Redirect(method = "updateVertexBrightness", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/state/IBlockState;getAmbientOcclusionLightValue()F"))
-// [AUDIT-FIXED] all ~10 invoke sites (4 corners, 4 edges, 2 center-ternary) of getAmbientOcclusionLightValue
-// inside updateVertexBrightness get fixAoLightValue applied, matching OF lines 499-561.
-    public float optiRefine$fixAoLightValue(IBlockState state) {
-        return BlockModelRenderer_fixAoLightValue(state.getAmbientOcclusionLightValue());
-    }
+// [AUDIT-REVERTED 2026-08-09] fixAoLightValue application removed: runtime BlockModelRenderer.fixAoLightValue
+// is private static (no @Public on MixinBlockModelRenderer's copy) — the INVOKESTATIC bridge risked
+// IllegalAccessError, and shaders-on renders went fully black with the redirect active. AO stays vanilla;
+// ofAmbientOcclusionLevel remains a known-unresolved (audit GAP).
 
     @Unique
 // [AUDIT-OK] OF-added method, not in baseline (OF AmbientOcclusionFace.setMaxBlockLight)
