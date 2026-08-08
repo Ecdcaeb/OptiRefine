@@ -25,3 +25,8 @@ libs
 .alma-snapshots
 .alma
 patch
+
+# agent handover docs (regenerated, not versioned)
+AGENT.md
+AGENTS.md
+FOR_AGENT.md
