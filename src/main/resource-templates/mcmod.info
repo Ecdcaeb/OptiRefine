@@ -9,5 +9,5 @@
 	"url": "{{ mod_url }}",
 	"updateJSON": "{{ mod_update_json }}",
 	"logoFile": "{{ mod_logo_path }}",
-	"modProperties": {"iconItem": "minecraft:ender_eye"}
+	"modProperties": {"iconItem": "minecraft:ender_eye", "issueTracker": "{{ mod_issue_tracker }}"}
 }]

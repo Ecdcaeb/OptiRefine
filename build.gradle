@@ -125,6 +125,7 @@ sourceSets {
                 property('mod_credits', mod_credits)
                 property('mod_url', mod_url)
                 property('mod_update_json', mod_update_json)
+                property('mod_issue_tracker', mod_issue_tracker)
                 property('mod_logo_path', mod_logo_path)
             }
         }
