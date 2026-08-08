@@ -48,3 +48,15 @@ OptiRefine is the rebuild — not a patch on a patch, but a faithful re-implemen
 The features are back. The compatibility is back. The look is back.
 
 Make OptiFine great again.
+
+## Fixed Issue under Cleanroommc/Cleanroom
+
+https://github.com/CleanroomMC/Cleanroom/issues/600
+
+https://github.com/CleanroomMC/Cleanroom/issues/513
+
+https://github.com/CleanroomMC/Cleanroom/issues/359
+
+https://github.com/CleanroomMC/Fugue/issues/123
+
+https://github.com/CleanroomMC/Fugue/issues/113
