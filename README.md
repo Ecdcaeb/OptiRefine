@@ -7,11 +7,13 @@
 # OptiRefine
 OptiRefine is a mod that utilizes Mixin to patch Optifine, keeping optifine compatible with cleanroom and reducing its destructiveness.
 
+<img width="854" height="480" alt="2026-08-09_02 35 59" src="https://github.com/user-attachments/assets/3619baee-7b8a-4af3-846b-e4cf78c08717" />
+
 Post incompatible issues of optifine here!
 
 ## Build
 
-The project targets **Java 25**; the local build environment runs **JDK 26** (`JAVA_HOME` must point to it). Then:
+The project targets **Java 25**
 
 ```
 ./gradlew build
@@ -22,7 +24,7 @@ OptiFine-only members are accessed via `@AccessibleOperation` / `@Shadow` (see F
 
 ## Test Environment
 
-- Cleanroom `0.6.7-alpha` + `OptiFine_1.12.2_HD_U_G6_pre1.jar`
+- Cleanroom `0.6.9-alpha` + `OptiFine_1.12.2_HD_U_G5.jar` (or you like `OptiFine_1.12.2_HD_U_G6_pre1.jar` )
 - Deployment: copy `build/libs/optirefine-0.0.1-indev.jar` into the instance `mods/` folder
 - Bug reports: attach `logs/latest.log` / `crash-reports/crash-*.txt`
 
