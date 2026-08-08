@@ -4,29 +4,59 @@ on:
   push:
     tags:
       - "*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version for manual runs (tag pushes derive it from the tag)"
+        required: false
+        type: string
+
+permissions:
+  contents: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - uses: actions/checkout@v6
+
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
           java-version: '25'
           distribution: 'temurin'
-      - uses: gradle/actions/setup-gradle@v6
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
         with:
           gradle-version: 9.6.1
-        name: Set up Gradle
+
       - name: Add permission
         run: chmod +x ./gradlew
-      - name: Execute Gradle build
-        run: ./gradlew build
 
-      - uses: ncipollo/release-action@v1.21.0
+      - name: Resolve version
+        id: version
+        # tag "v0.0.2" -> "0.0.2"; manual runs use the input; fall back to the git ref name
+        run: echo "value=${{ inputs.version || github.ref_name#v }}" >> "$GITHUB_OUTPUT"
+
+      - name: Execute Gradle build
+        # -P overrides gradle.properties mod_version so the artifact name matches the release version
+        run: ./gradlew build -Pmod_version=${{ steps.version.outputs.value }}
+
+      - name: Generate checksums
+        run: |
+          cd build/libs
+          sha256sum optirefine-${{ steps.version.outputs.value }}.jar optirefine-${{ steps.version.outputs.value }}-sources.jar > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: Publish release
+        uses: ncipollo/release-action@v1.21.0
         with:
-          artifacts: "build/libs/*"
+          # only the remapped runtime jar + sources; the -dev jar is the pre-remap MCP intermediate
+          artifacts: "build/libs/optirefine-${{ steps.version.outputs.value }}.jar,build/libs/optirefine-${{ steps.version.outputs.value }}-sources.jar,build/libs/SHA256SUMS.txt"
           generateReleaseNotes: true
+          failOnUnmatchedFiles: true
+          # alpha project: create as draft, publish manually; set draft: false for auto-release
+          draft: true
+          # tags containing '-' (e.g. v0.0.2-indev) become prereleases
+          prerelease: ${{ contains(github.ref_name, '-') }}
