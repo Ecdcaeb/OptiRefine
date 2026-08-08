@@ -46,6 +46,12 @@ public class MetaDataDecoder {
         if (json.has("url")) metadata.url = json.get("url").getAsString();
         if (json.has("updateJSON")) metadata.updateJSON = json.get("updateJSON").getAsString();
         if (json.has("logoFile")) metadata.logoFile = json.get("logoFile").getAsString();
+        if (json.has("modProperties")) {
+            JsonObject props = json.getAsJsonObject("modProperties");
+            for (Map.Entry<String, JsonElement> entry : props.entrySet()) {
+                metadata.modProperties.put(entry.getKey(), entry.getValue().getAsString());
+            }
+        }
         if (json.has("version")) metadata.version = json.get("version").getAsString();
         if (json.has("parent")) metadata.parent = json.get("parent").getAsString();
         if (json.has("useDependencyInformation")) metadata.useDependencyInformation = json.get("useDependencyInformation").getAsBoolean();

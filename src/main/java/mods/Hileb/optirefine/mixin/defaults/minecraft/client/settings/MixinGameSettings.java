@@ -867,7 +867,6 @@ public abstract class MixinGameSettings {
     public String getKeyBindingOFForged(GameSettings.Options settingOption, Operation<String> original){
         String str = getKeyBindingOF(settingOption);
         if (str != null) {
-            OptiRefineLog.log.info("getKeyBindingOF : {}", str);
             return str;
         }
         else return original.call(settingOption);
