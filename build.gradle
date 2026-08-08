@@ -23,9 +23,7 @@ base {
 }
 
 java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(25)
-    }
+    // No toolchain pin: compile runs on the Gradle JVM (locally JDK 26) while source/target stays 25.
     if (generate_sources_jar.toBoolean()) {
         withSourcesJar()
     }
@@ -226,9 +224,6 @@ compileTestJava {
 
 test {
     useJUnitPlatform()
-    javaLauncher.set(javaToolchains.launcherFor {
-        languageVersion = JavaLanguageVersion.of(25)
-    })
     if (show_testing_output.toBoolean()) {
         testLogging {
             showStandardStreams = true

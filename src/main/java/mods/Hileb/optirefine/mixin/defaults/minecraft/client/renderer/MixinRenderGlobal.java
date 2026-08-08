@@ -282,10 +282,12 @@ public abstract class MixinRenderGlobal {
 // [AUDIT-OK] baseline member loadRenderers (func_72712_a)
     public abstract void loadRenderers();
 
-    @Inject(method = "setupTerrain", at = @At(value = "HEAD"))
+    @Inject(method = "setupTerrain", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/ChunkRenderContainer;initialize(DDD)V"))
     // [AUDIT-FIXED] 2026-08-05: OF:912-915 DynamicLights.update(this) runs EVERY setupTerrain call,
     // outside the frustum-move if block; the previous INVOKE updateChunkPositions(AFTER) anchor only
     // fired on camera moves, so dynamic lights never recomputed while standing still.
+    // [AUDIT-FIXED] 2026-08-08: anchor moved HEAD -> INVOKE ChunkRenderContainer.initialize BEFORE
+    // (unconditional, right after the frustum-move block) to match OF:914 exactly.
     private void optiRefine$dynamicLightsUpdate(Entity entityIn, double partialTicks, ICamera p_174970_4_, int p_174970_5_, boolean p_174970_6_, CallbackInfo ci) {
         if (Config.isDynamicLights()) {
             DynamicLights.update((net.minecraft.client.renderer.RenderGlobal)(Object)this);
