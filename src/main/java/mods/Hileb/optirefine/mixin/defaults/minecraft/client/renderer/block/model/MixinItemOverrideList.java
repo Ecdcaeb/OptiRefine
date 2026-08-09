@@ -1,7 +1,6 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer.block.model;
 
 
-import com.google.common.collect.Lists;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import net.minecraft.client.renderer.block.model.ItemOverride;
@@ -23,9 +22,12 @@ import java.util.List;
 @Mixin(ItemOverrideList.class)
 public abstract class MixinItemOverrideList {
 // [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
-    @Shadow @Final
-    // [AUDIT-OK] baseline member overrides declared in ItemOverrideList (deobf:17); shadow initializer is ignored by mixin (nit)
-    private List<ItemOverride> overrides = Lists.newArrayList();
+    @Shadow
+    @Final
+    // [AUDIT-OK] baseline member overrides declared in ItemOverrideList (deobf:17); @Final annotation per
+    // user directive 2026-08-09 — the Lists.newArrayList() initializer generated a PUTFIELD in the mixin
+    // <init> which mixin's checkFinal flags as a write to a @Final shadow field ("should be final" warning).
+    private List<ItemOverride> overrides;
     @Unique
     // [AUDIT-OK] OF-added field (OF ItemOverrideList:18), not in baseline
     private ItemOverrideCache itemOverrideCache;

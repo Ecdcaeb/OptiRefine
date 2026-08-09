@@ -686,7 +686,7 @@ public abstract class MixinBufferBuilder {
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-// [AUDIT-OK] member provided by Cleanroom patch (patch/patches adds 5-arg putColorRGBA/isColorDisabled/putBulkData); mixin @Unique copy is discarded at apply (AGENT.md S5) — harmless, but mixin putBulkData SVertexBuilder shaders hooks are lost to the runtime version
+// [AUDIT-OK] member provided by Cleanroom patch (patch/patches adds 5-arg putColorRGBA/isColorDisabled/putBulkData); no @Unique here so the member silently resolves to the runtime-provided one (no warning)
     public void putColorRGBA(int index, int red, int green, int blue, int alpha) {
         if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN) {
             this.rawIntBuffer.put(index, alpha << 24 | blue << 16 | green << 8 | red);
@@ -695,46 +695,21 @@ public abstract class MixinBufferBuilder {
         }
     }
 
-    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
-// [AUDIT-OK] runtime-provided by Cleanroom patch; mixin @Unique copy discarded (AGENT.md S5)
-    public boolean isColorDisabled() {
-        return this.noColor;
-    }
-
     @Shadow
 // [AUDIT-OK] baseline member growBuffer(I)V (SRG func_181670_b)
     private void growBuffer(int p_181670_1_) {}
 
-    @Inject(method = "putBulkData", at = @At("HEAD"))
-    // [AUDIT-FIXED] 2026-08-05: the runtime putBulkData (Cleanroom patch version) has no SVertexBuilder
-    // hooks -> Forge LightUtil item rendering wrote 56-byte vertices without midTexCoord/tangent/entity
-    // data -> items corrupted under shaders. Hook the runtime method directly.
-    private void optiRefine$beforePutBulkData(java.nio.ByteBuffer buffer, CallbackInfo ci) {
+    @WrapMethod(method = "putBulkData")
+    // [AUDIT-FIXED 2026-08-05, reworked 2026-08-09] the runtime putBulkData (Cleanroom patch version) has
+    // no SVertexBuilder hooks -> Forge LightUtil item rendering wrote 56-byte vertices without
+    // midTexCoord/tangent/entity data -> items corrupted under shaders. WrapMethod replicates OF's
+    // beginAddVertexData/endAddVertexData around the original body (was an @Inject HEAD/RETURN pair;
+    // the @Unique copy of putBulkData is discarded at apply, runtime version is Cleanroom's).
+    private void optiRefine$putBulkData(java.nio.ByteBuffer buffer, Operation<Void> original) {
         if (Config.isShaders()) {
             SVertexBuilder.beginAddVertexData((BufferBuilder) (Object)this, buffer);
         }
-    }
-
-    @Inject(method = "putBulkData", at = @At("RETURN"))
-    private void optiRefine$afterPutBulkData(java.nio.ByteBuffer buffer, CallbackInfo ci) {
-        if (Config.isShaders()) {
-            SVertexBuilder.endAddVertexData((BufferBuilder) (Object)this);
-        }
-    }
-
-    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Unique
-// [AUDIT-OK] runtime-provided by Cleanroom patch (no SVertexBuilder hooks); mixin @Unique copy discarded (AGENT.md S5)
-    public void putBulkData(ByteBuffer buffer) {
-        if (Config.isShaders()) {
-            SVertexBuilder.beginAddVertexData((BufferBuilder) (Object)this, buffer);
-        }
-
-        this.growBuffer(buffer.limit() + this.vertexFormat.getSize());
-        ((Buffer)this.byteBuffer).position(this.vertexCount * this.vertexFormat.getSize());
-        this.byteBuffer.put(buffer);
-        this.vertexCount = this.vertexCount + buffer.limit() / this.vertexFormat.getSize();
+        original.call(buffer);
         if (Config.isShaders()) {
             SVertexBuilder.endAddVertexData((BufferBuilder) (Object)this);
         }

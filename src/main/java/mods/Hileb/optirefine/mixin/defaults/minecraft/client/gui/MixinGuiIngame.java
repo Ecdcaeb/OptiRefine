@@ -10,6 +10,7 @@ import net.minecraft.client.gui.GuiIngame;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.optifine.CustomColors;
+import net.optifine.CustomItems;
 import net.optifine.TextureAnimations;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -26,6 +27,28 @@ public abstract class MixinGuiIngame {
         if (Minecraft.getMinecraft().world == null) {
             TextureAnimations.updateAnimations();
         }
+    }
+
+// ===== renderHotbar: CustomItems.setRenderOffHand (OF GuiIngame:490/499/507) =====
+// [AUDIT-FIXED 2026-08-09] three-way runtime audit (mixed vs OF): OF sets renderOffHand false before the
+// main-hand loop, true before the offhand item, false after; offhand custom item variants otherwise dead.
+// Main-hand: renderHotbarItem INVOKE ordinal 0 (the loop call). Offhand: the item-render block's
+// ItemStack.isEmpty() INVOKE ordinal 1 (after check, before both LEFT/RIGHT branches). Reset at TAIL
+// (nothing between offhand draw and TAIL renders custom items; keeps flag true no longer than needed).
+
+    @Inject(method = "renderHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiIngame;renderHotbarItem(IIFLnet/minecraft/entity/EntityPlayer;Lnet/minecraft/item/ItemStack;)V", ordinal = 0, shift = At.Shift.BEFORE))
+    private void optiRefine$renderHotbarMainHand(CallbackInfo ci) {
+        CustomItems.setRenderOffHand(false);
+    }
+
+    @Inject(method = "renderHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;isEmpty()Z", ordinal = 1, shift = At.Shift.AFTER))
+    private void optiRefine$renderHotbarOffHand(CallbackInfo ci) {
+        CustomItems.setRenderOffHand(true);
+    }
+
+    @Inject(method = "renderHotbar", at = @At("TAIL"))
+    private void optiRefine$clearRenderHotbarOffHand(CallbackInfo ci) {
+        CustomItems.setRenderOffHand(false);
     }
 
 // [AUDIT-OK] target renderExpBar(Lnet/minecraft/client/gui/ScaledResolution;I)V matches baseline; drawString(String,III)I invokes present; handler params match

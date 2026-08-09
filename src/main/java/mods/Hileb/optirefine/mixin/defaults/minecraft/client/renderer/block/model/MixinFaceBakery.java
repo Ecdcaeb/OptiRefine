@@ -5,6 +5,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
+import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessTransformer;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.renderer.block.model.BlockFaceUV;
 import net.minecraft.client.renderer.EnumFaceDirection;
@@ -15,6 +16,7 @@ import net.minecraft.util.math.MathHelper;
 import net.optifine.model.BlockModelUtils;
 import net.optifine.shaders.Shaders;
 import org.lwjgl.util.vector.Vector3f;
+import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Constant;
@@ -22,6 +24,9 @@ import org.spongepowered.asm.mixin.injection.ModifyConstant;
 @Mixin(FaceBakery.class)
 public abstract class MixinFaceBakery {
 // [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
+
+    @AccessTransformer(access = Opcodes.ACC_PUBLIC, name = "getFaceBrightness", deobf = true)
+    public float optirefine$acc_getFaceBrightness(EnumFacing facing) { return 0.0F; }
 
     @WrapOperation(method = "fillVertexData([IILnet/minecraft/util/EnumFacing;Lnet/minecraft/client/renderer/block/model/BlockFaceUV;[FLnet/minecraft/client/renderer/texture/TextureAtlasSprite;Lnet/minecraftforge/common/model/ITransformation;Lnet/minecraft/client/renderer/block/model/BlockPartRotation;Z)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/block/model/FaceBakery;storeVertexData([IIILorg/lwjgl/util/vector/Vector3f;ILnet/minecraft/client/renderer/texture/TextureAtlasSprite;Lnet/minecraft/client/renderer/block/model/BlockFaceUV;)V"))
     // [AUDIT-OK] fillVertexData 9-arg ITransformation desc matches cleanroom patch (FaceBakery.java.patch); storeVertexData desc baseline; snapVertexPosition matches OF:178

@@ -4,6 +4,7 @@ import mods.Hileb.optirefine.core.OptiRefineLog;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.*;
 import mods.Hileb.optirefine.library.cursedmixinextensions.util.CallTransformTask;
 import mods.Hileb.optirefine.library.foundationx.asm.NonLoadingClassWriter;
+import net.minecraft.launchwrapper.Launch;
 import net.minecraftforge.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -14,8 +15,10 @@ import org.objectweb.asm.util.TraceClassVisitor;
 import org.spongepowered.asm.util.Annotations;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.function.Predicate;
 
@@ -445,6 +448,8 @@ public class CursedMixinExtensions {
 
         transformCalls(targetClass, tasks.toArray(CallTransformTask[]::new));
 
+        dumpClass(targetClass);
+
         if (DUMP) {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             PrintStream printStream = new PrintStream(byteArrayOutputStream);
@@ -474,6 +479,26 @@ public class CursedMixinExtensions {
                 t.printStackTrace(printStream);
                 System.err.print(byteArrayOutputStream.toByteArray());
             }
+        }
+    }
+
+    /**
+     * Writes the fully post-processed class bytes to &lt;Launch.minecraftHome&gt;/.klass/&lt;class&gt;.class
+     * for every class that passes through postApply. Debug aid for real-machine inspection.
+     */
+    private static void dumpClass(ClassNode classNode) {
+        try {
+            File home = Launch.minecraftHome;
+            if (home == null) {
+                return;
+            }
+            File out = new File(new File(home, ".klass"), classNode.name + ".class");
+            out.getParentFile().mkdirs();
+            ClassWriter writer = new ClassWriter(0);
+            classNode.accept(writer);
+            Files.write(out.toPath(), writer.toByteArray());
+        } catch (Throwable t) {
+            LOGGER.warn("OptiRefine: failed to dump post-apply class {}", classNode.name, t);
         }
     }
 

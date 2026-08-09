@@ -15,6 +15,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockModelRenderer;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.renderer.block.model.FaceBakery;
 import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.color.BlockColors;
 import net.minecraft.crash.CrashReport;
@@ -40,7 +41,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
-import mods.Hileb.optirefine.optifine.OptifineHelper;
 import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureUtil;
@@ -65,6 +65,26 @@ public abstract class MixinBlockModelRenderer {
     private static final BlockRenderLayer[] OVERLAY_LAYERS = new BlockRenderLayer[]{
             BlockRenderLayer.CUTOUT, BlockRenderLayer.CUTOUT_MIPPED, BlockRenderLayer.TRANSLUCENT
     };
+
+    // ===== shader-aware face brightness (OF FaceBakery.getFaceBrightness is public static) =====
+    // [AUDIT-FIXED 2026-08-09] three-way runtime audit: the port used OptifineHelper fixed constants
+    // (0.5/0.8/0.6); OF delegates to FaceBakery.getFaceBrightness which MixinFaceBakery wires to
+    // Shaders.blockLightLevel05/08/06. Vanilla's method is private instance, hence the bridge + instance.
+
+    @Unique
+    private static FaceBakery optiRefine$faceBakery;
+
+    @SuppressWarnings({"unused", "MissingUnique"})
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/block/model/FaceBakery func_178412_b (Lnet/minecraft/util/EnumFacing;)F", deobf = true)
+    private static native float FaceBakery_getFaceBrightness(FaceBakery instance, EnumFacing facing);
+
+    @Unique
+    private static float optiRefine$faceBrightness(EnumFacing facing) {
+        if (optiRefine$faceBakery == null) {
+            optiRefine$faceBakery = new FaceBakery();
+        }
+        return FaceBakery_getFaceBrightness(optiRefine$faceBakery, facing);
+    }
 
     @Inject(method = "<init>", at = @At("RETURN"))
     public void closeForgeLightPipelineAtConstructor(BlockColors p_i46575_1, CallbackInfo ci) {
@@ -264,7 +284,7 @@ public abstract class MixinBlockModelRenderer {
             BufferBuilder_putSprite(buffer, bakedquad.getSprite());
             buffer.putBrightness4(AmbientOcclusionFace_vertexBrightness(aoFace)[0], AmbientOcclusionFace_vertexBrightness(aoFace)[1], AmbientOcclusionFace_vertexBrightness(aoFace)[2], AmbientOcclusionFace_vertexBrightness(aoFace)[3]);
             if (bakedquad.shouldApplyDiffuseLighting()) {
-                float diffuse = OptifineHelper.getFaceBrightness(bakedquad.getFace());
+                float diffuse = optiRefine$faceBrightness(bakedquad.getFace());
                 AmbientOcclusionFace_vertexColorMultiplier(aoFace)[0] *= diffuse;
                 AmbientOcclusionFace_vertexColorMultiplier(aoFace)[1] *= diffuse;
                 AmbientOcclusionFace_vertexColorMultiplier(aoFace)[2] *= diffuse;
@@ -429,7 +449,7 @@ public abstract class MixinBlockModelRenderer {
                 float f1 = (k >> 8 & 0xFF) / 255.0F;
                 float f2 = (k & 0xFF) / 255.0F;
                 if (bakedquad.shouldApplyDiffuseLighting()) {
-                    float diffuse = OptifineHelper.getFaceBrightness(bakedquad.getFace());
+                    float diffuse = optiRefine$faceBrightness(bakedquad.getFace());
                     f *= diffuse;
                     f1 *= diffuse;
                     f2 *= diffuse;
@@ -440,7 +460,7 @@ public abstract class MixinBlockModelRenderer {
                 buffer.putColorMultiplier(f, f1, f2, 2);
                 buffer.putColorMultiplier(f, f1, f2, 1);
             } else if (bakedquad.shouldApplyDiffuseLighting()) {
-                float diffuse = OptifineHelper.getFaceBrightness(bakedquad.getFace());
+                float diffuse = optiRefine$faceBrightness(bakedquad.getFace());
                 buffer.putColorMultiplier(diffuse, diffuse, diffuse, 4);
                 buffer.putColorMultiplier(diffuse, diffuse, diffuse, 3);
                 buffer.putColorMultiplier(diffuse, diffuse, diffuse, 2);

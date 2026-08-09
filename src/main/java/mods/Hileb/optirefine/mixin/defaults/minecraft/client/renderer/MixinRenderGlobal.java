@@ -345,9 +345,32 @@ public abstract class MixinRenderGlobal {
     @Shadow
 // [AUDIT-OK] baseline member isRenderEntityOutlines()Z (SRG func_174985_d)
     protected abstract boolean isRenderEntityOutlines();
+
+    @WrapMethod(method = "isRenderEntityOutlines")
+    private boolean optiRefine$isRenderEntityOutlines(Operation<Boolean> original) {
+// [AUDIT-FIXED 2026-08-09] three-way runtime audit: OF RenderGlobal:290-294 gates on
+// !fastRender && !shaders && !antialiasing (+ framebuffer/shader/player). Vanilla checks only the
+// framebuffer -> with shaders on, glow outlines took the post-process entity_outline branch instead of
+// Shaders.beginEntitiesGlowing inside the renderEntities wrap.
+        if (Config.isFastRender() || Config.isShaders() || Config.isAntialiasing()) {
+            return false;
+        }
+        return this.entityOutlineFramebuffer != null && this.entityOutlineShader != null && this.mc.player != null;
+    }
+
     @Shadow
 // [AUDIT-OK] baseline member preRenderDamagedBlocks()V (SRG func_180443_s)
     protected abstract void preRenderDamagedBlocks();
+
+    @WrapMethod(method = "preRenderDamagedBlocks")
+    private void optiRefine$preRenderDamagedBlocks(Operation<Void> original) {
+// [AUDIT-FIXED 2026-08-09] three-way runtime audit: OF RenderGlobal:2239 switches to ProgramDamagedBlock
+// for the block-damage cracks (and disables depth test); vanilla body has no shader hook.
+        original.call();
+        if (Config.isShaders()) {
+            net.optifine.shaders.ShadersRender.beginBlockDamage();
+        }
+    }
 
     @WrapOperation(method = "renderBlockLayer(Lnet/minecraft/util/BlockRenderLayer;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/ChunkRenderContainer;renderChunkLayer(Lnet/minecraft/util/BlockRenderLayer;)V"))
     // [AUDIT-FIXED] shaders hooks around renderChunkLayer (OF RenderGlobal:1275-1282): pre/postRenderChunkLayer
@@ -365,6 +388,15 @@ public abstract class MixinRenderGlobal {
     @Shadow
 // [AUDIT-OK] baseline member postRenderDamagedBlocks()V (SRG func_174969_t)
     protected abstract void postRenderDamagedBlocks();
+
+    @WrapMethod(method = "postRenderDamagedBlocks")
+    private void optiRefine$postRenderDamagedBlocks(Operation<Void> original) {
+// [AUDIT-FIXED 2026-08-09] OF RenderGlobal:2251: restore ProgramBlock after the cracks.
+        original.call();
+        if (Config.isShaders()) {
+            net.optifine.shaders.ShadersRender.endBlockDamage();
+        }
+    }
 
     /**
      * @author OptiRefine

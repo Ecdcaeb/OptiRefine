@@ -25,6 +25,8 @@ import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.culling.ICamera;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.renderer.texture.TextureMap;
+import net.minecraft.client.renderer.BufferBuilder;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.shader.ShaderGroup;
 import net.minecraft.enchantment.EnchantmentHelper;
@@ -528,9 +530,12 @@ public abstract class MixinEntityRenderer {
      * The reference's {@code cameraZoom} scaling branch is skipped — {@code cameraZoom} is never
      * assigned anywhere in the OptiFine reference, so the branch is dead code (see class javadoc TODO).
      */
-    @Inject(method = "setupCameraTransform", at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/EntityRenderer;farPlaneDistance:F", opcode = Opcodes.PUTFIELD))
+    @Inject(method = "setupCameraTransform", at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/EntityRenderer;farPlaneDistance:F", opcode = Opcodes.PUTFIELD, shift = At.Shift.AFTER))
     private void optiRefine$farPlaneDistance(CallbackInfo ci) {
 // [AUDIT-OK] target setupCameraTransform(FI)V PUTFIELD farPlaneDistance matches baseline (line 668)
+// [AUDIT-FIXED 2026-08-09] three-way runtime audit: shift was BEFORE the PUTFIELD, so the
+// fog-fancy(0.95)/fog-fast(0.83) multipliers hit the PREVIOUS frame's value and the field ended
+// unmultiplied. OF multiplies the freshly stored value; AFTER makes clipDistance/hand far plane match.
         if (Config.isFogFancy()) {
             this.farPlaneDistance *= 0.95F;
         }
@@ -541,6 +546,13 @@ public abstract class MixinEntityRenderer {
         if (this.clipDistance < 173.0F) {
             this.clipDistance = 173.0F;
         }
+    }
+
+    @Redirect(method = "renderWorld", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GlStateManager;alphaFunc(IF)V"))
+    private void optiRefine$renderWorldAlphaFunc(int func, float ref) {
+// [AUDIT-FIXED 2026-08-09] three-way runtime audit: OF renderWorld uses alphaFunc(516, 0.1F); the
+// vanilla 0.5F threshold clips sky/clouds alpha until the renderWorldPass wrapper sets 0.1F before terrain.
+        GlStateManager.alphaFunc(func, 0.1F);
     }
 
     /**
@@ -962,6 +974,24 @@ public abstract class MixinEntityRenderer {
         this.mc.profiler.endStartSection("hand");
         if (this.renderHand && !Shaders.isShadowPass) {
             if (shaders) {
+                // [EXPERIMENT 2026-08-09] aiming at a block (drawSelectionBox runs) makes the
+                // intermittent handheld distortion disappear instantly. Replicate its full state
+                // sequence before renderHand1 so the hand render sees the same state when not aiming.
+                GlStateManager.enableBlend();
+                GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
+                GlStateManager.glLineWidth(2.0F);
+                GlStateManager.disableTexture2D();
+                Shaders.disableTexture2D();
+                GlStateManager.depthMask(false);
+                BufferBuilder refreshBb = Tessellator.getInstance().getBuffer();
+                refreshBb.begin(1, DefaultVertexFormats.POSITION_COLOR);
+                refreshBb.pos(0.0D, 0.0D, 0.0D).color(0, 0, 0, 0).endVertex();
+                refreshBb.pos(0.0D, 0.0D, 0.0D).color(0, 0, 0, 0).endVertex();
+                Tessellator.getInstance().draw();
+                GlStateManager.depthMask(true);
+                GlStateManager.enableTexture2D();
+                Shaders.enableTexture2D();
+                GlStateManager.disableBlend();
                 ShadersRender.renderHand1((net.minecraft.client.renderer.EntityRenderer)(Object) this, partialTicks, pass);
                 Shaders.renderCompositeFinal();
             }

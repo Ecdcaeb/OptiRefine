@@ -1,5 +1,6 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer;
 
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.sugar.Local;
@@ -254,6 +255,19 @@ public abstract class MixinRenderItem {
     // [AUDIT-REVERTED 2026-08-09] applyTransformSide no-op redirect removed: double-transform theory
     // disproven (handheld still distorted with it disabled). cleanroom's applyTransformSide +
     // handleCameraTransforms stays as-is; root cause under investigation (state leak / unclosed GL state).
+    // [RESTORED 2026-08-09] setRenderOffHand restored per three-way runtime audit (mixed vs OF):
+    // OF RenderItem:338/340 sets CustomItems.setRenderOffHand(leftHanded) around renderItem and resets
+    // to false after — offhand-specific custom item model variants (hand==1/2 filtering) otherwise dead.
+
+    @Inject(method = "renderItemModel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/RenderItem;renderItem(Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/renderer/block/model/IBakedModel;)V", shift = At.Shift.BEFORE))
+    private void optiRefine$setRenderOffHand(ItemStack stack, IBakedModel bakedModel, ItemCameraTransforms.TransformType transform, boolean leftHanded, CallbackInfo ci) {
+        CustomItems.setRenderOffHand(leftHanded);
+    }
+
+    @Inject(method = "renderItemModel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/RenderItem;renderItem(Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/renderer/block/model/IBakedModel;)V", shift = At.Shift.AFTER))
+    private void optiRefine$clearRenderOffHand(ItemStack stack, IBakedModel bakedModel, ItemCameraTransforms.TransformType transform, boolean leftHanded, CallbackInfo ci) {
+        CustomItems.setRenderOffHand(false);
+    }
 
     @Inject(method = "renderItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/RenderItem;renderModel(Lnet/minecraft/client/renderer/block/model/IBakedModel;Lnet/minecraft/item/ItemStack;)V", shift = At.Shift.AFTER))
 
@@ -278,6 +292,19 @@ public abstract class MixinRenderItem {
 
         }
 
+    }
+
+    // ===== renderItem: custom enchantment glint (OF RenderItem:165) =====
+    // [RESTORED 2026-08-09] per three-way runtime audit: OF gates renderEffect on
+    // `hasEffect() && (!Config.isCustomItems() || !CustomItems.renderCustomEffect(this, stack, model))`;
+    // CustomItemProperties "effect" textures never rendered before (renderCustomEffect never invoked).
+
+    @ModifyExpressionValue(method = "renderItem(Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/renderer/block/model/IBakedModel;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;hasEffect()Z"))
+    private boolean optiRefine$customEffectGlint(boolean original, @Local(argsOnly = true) ItemStack stack, @Local(argsOnly = true) IBakedModel model) {
+        if (original && Config.isCustomItems()) {
+            return !CustomItems.renderCustomEffect((RenderItem) (Object) this, stack, model);
+        }
+        return original;
     }
 
     // ===== renderEffect: custom glint + shaders =====

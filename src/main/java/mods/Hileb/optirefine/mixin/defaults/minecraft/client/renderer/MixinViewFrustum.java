@@ -49,6 +49,11 @@ public abstract class MixinViewFrustum {
 // [AUDIT-OK] target createRenderChunks (SRG func_178158_a) RenderChunk.setPosition matches baseline; updateVboRegion gate matches OF
         original.call(instance, i, x, y);
         if (Config.isVbo() && Config.isRenderRegions()) {
+            // createRenderChunks runs mid-<init> (before the <init>* RETURN initializer),
+            // so the map may not exist yet on the first construction (render-distance change crash).
+            if (this.optiRefine$mapVboRegions == null) {
+                this.optiRefine$mapVboRegions = new HashMap<>();
+            }
             this.optiRefine$updateVboRegion(instance);
         }
     }

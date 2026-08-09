@@ -5,7 +5,6 @@ import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.optifine.Config;
-import mods.Hileb.optirefine.optifine.OptifineHelper;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.BlockSlab;
@@ -14,6 +13,7 @@ import net.minecraft.block.state.BlockFaceShape;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.renderer.BlockFluidRenderer;
 import net.minecraft.client.renderer.BufferBuilder;
+import net.minecraft.client.renderer.block.model.FaceBakery;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.EnumFacing;
@@ -30,6 +30,25 @@ import org.spongepowered.asm.mixin.*;
 @Mixin(BlockFluidRenderer.class)
 public abstract class MixinBlockFluidRenderer {
 // [AUDIT] 2026-08-03 — see AGENT.md; issues: 0
+
+    // ===== shader-aware face brightness (OF FaceBakery.getFaceBrightness is public static) =====
+    // [AUDIT-FIXED 2026-08-09] three-way runtime audit: the port used OptifineHelper fixed constants;
+    // OF delegates to FaceBakery.getFaceBrightness (Shaders.blockLightLevel05/08/06 via MixinFaceBakery).
+
+    @Unique
+    private static FaceBakery optiRefine$faceBakery;
+
+    @SuppressWarnings({"unused", "MissingUnique"})
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/block/model/FaceBakery func_178412_b (Lnet/minecraft/util/EnumFacing;)F", deobf = true)
+    private static native float FaceBakery_getFaceBrightness(FaceBakery instance, EnumFacing facing);
+
+    @Unique
+    private static float optiRefine$faceBrightness(EnumFacing facing) {
+        if (optiRefine$faceBakery == null) {
+            optiRefine$faceBakery = new FaceBakery();
+        }
+        return FaceBakery_getFaceBrightness(optiRefine$faceBakery, facing);
+    }
 
     @Shadow @Final
 // [AUDIT-OK] baseline member atlasSpritesLava (SRG field_178272_a)
@@ -177,7 +196,7 @@ public abstract class MixinBlockFluidRenderer {
                     int l1 = blockStateIn.getPackedLightmapCoords(blockAccess, blockPosIn.down());
                     int i2 = l1 >> 16 & 65535;
                     int j2 = l1 & 65535;
-                    float faceBrightnessDown = OptifineHelper.getFaceBrightness(EnumFacing.DOWN);
+                    float faceBrightnessDown = optiRefine$faceBrightness(EnumFacing.DOWN);
                     worldRendererIn.pos(d0, d1, d2 + 1.0D).color(colorRed * faceBrightnessDown, colorGreen * faceBrightnessDown, colorBlue * faceBrightnessDown, 1.0F).tex((double) f35, (double) f38).lightmap(i2, j2).endVertex();
                     worldRendererIn.pos(d0, d1, d2).color(colorRed * faceBrightnessDown, colorGreen * faceBrightnessDown, colorBlue * faceBrightnessDown, 1.0F).tex((double) f35, (double) f37).lightmap(i2, j2).endVertex();
                     worldRendererIn.pos(d0 + 1.0D, d1, d2).color(colorRed * faceBrightnessDown, colorGreen * faceBrightnessDown, colorBlue * faceBrightnessDown, 1.0F).tex((double) f36, (double) f37).lightmap(i2, j2).endVertex();
@@ -295,7 +314,7 @@ public abstract class MixinBlockFluidRenderer {
                             int j = blockStateIn.getPackedLightmapCoords(blockAccess, blockpos);
                             int k = j >> 16 & 65535;
                             int l = j & 65535;
-                            float f32 = i1 < 2 ? OptifineHelper.getFaceBrightness(EnumFacing.NORTH) : OptifineHelper.getFaceBrightness(EnumFacing.WEST);
+                            float f32 = i1 < 2 ? optiRefine$faceBrightness(EnumFacing.NORTH) : optiRefine$faceBrightness(EnumFacing.WEST);
                             float f33 = 1.0F * f32 * colorRed;
                             float f34 = 1.0F * f32 * colorGreen;
                             float f35 = 1.0F * f32 * colorBlue;
