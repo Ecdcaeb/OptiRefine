@@ -1,15 +1,19 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer.tileentity;
 
-import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Implements;
+import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.util.ResourceLocation;
 import net.optifine.entity.model.IEntityRenderer;
+import org.spongepowered.asm.mixin.Implements;
+import org.spongepowered.asm.mixin.Interface;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.At;
-@Implements(IEntityRenderer.class)
+// [AUDIT-FIXED 2026-08-14] standard @Implements: IEntityRenderer via prefix mapping; the four
+// @Unique accessors are prefix-stripped on merge so the target class methods match the interface names
+@Implements(@Interface(iface = IEntityRenderer.class, prefix = "optiRefine$"))
 @Mixin(TileEntitySpecialRenderer.class)
 public abstract class MixinTileEntitySpecialRenderer{
 // [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
@@ -23,24 +27,26 @@ public abstract class MixinTileEntitySpecialRenderer{
     private ResourceLocation locationTextureCustom;
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    public Class<?> getEntityClass() {
+    @Unique
+    public Class<?> optiRefine$getEntityClass() {
         return this.tileEntityClass;
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
-    public void setEntityClass(Class<?> tileEntityClass) {
+    public void optiRefine$setEntityClass(Class<?> tileEntityClass) {
         this.tileEntityClass = tileEntityClass;
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    public ResourceLocation getLocationTextureCustom() {
+    @Unique
+    public ResourceLocation optiRefine$getLocationTextureCustom() {
         return this.locationTextureCustom;
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
-    public void setLocationTextureCustom(ResourceLocation locationTextureCustom) {
+    public void optiRefine$setLocationTextureCustom(ResourceLocation locationTextureCustom) {
         this.locationTextureCustom = locationTextureCustom;
     }
 

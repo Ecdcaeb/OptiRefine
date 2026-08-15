@@ -5,11 +5,9 @@ import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
-import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Implements;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.renderer.texture.*;
 import net.minecraft.client.resources.IResourceManager;
-import net.minecraft.client.resources.IResourceManagerReloadListener;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.resource.ISelectiveResourceReloadListener;
 import net.minecraftforge.client.resource.IResourceType;
@@ -26,13 +24,13 @@ import org.spongepowered.asm.mixin.injection.At;
 import java.util.Map;
 import java.util.function.Predicate;
 @SuppressWarnings("deprecation")
-@Implements(
-        value = ISelectiveResourceReloadListener.class,
-        removes = IResourceManagerReloadListener.class
-)
+// [AUDIT-FIXED 2026-08-14] standard @Implements (ISelective extends IResourceManagerReloadListener, so
+// the old removes= semantics is preserved via inheritance); @Unique optiRefine$onResourceManagerReload
+// is the selective implementation (prefix stripped on merge -> target method name matches the interface)
+@Implements(@Interface(iface = ISelectiveResourceReloadListener.class, prefix = "optiRefine$"))
 @Mixin(TextureManager.class)
 // [AUDIT] 2026-08-03 - selective reload listener; issues: 0
-public abstract class MixinTextureManager implements ISelectiveResourceReloadListener {
+public abstract class MixinTextureManager {
     // [AUDIT-OK] OF-added fields boundTexture/boundTextureLocation (@Unique), not in baseline
     private ITextureObject boundTexture;
     @Unique
@@ -117,11 +115,11 @@ public abstract class MixinTextureManager implements ISelectiveResourceReloadLis
     @WrapMethod(method = "onResourceManagerReload(Lnet/minecraft/client/resources/IResourceManager;)V")
     // [AUDIT-FIXED] single-param reload bridges to the selective listener (Forge chain); OF cleanup runs only on TEXTURES reloads
     private void optiRefine$onReloadBridge(IResourceManager rm, Operation<Void> original) {
-        this.onResourceManagerReload(rm, SelectiveReloadStateHandler.INSTANCE.get());
+        this.optiRefine$onResourceManagerReload(rm, SelectiveReloadStateHandler.INSTANCE.get());
     }
 
-    @Override
-    public void onResourceManagerReload(IResourceManager resourceManager, Predicate<IResourceType> predicate) {
+    @Unique
+    public void optiRefine$onResourceManagerReload(IResourceManager resourceManager, Predicate<IResourceType> predicate) {
         if (!predicate.test(VanillaResourceType.TEXTURES)) {
             return;
         }

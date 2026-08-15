@@ -8,7 +8,6 @@ import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalBooleanRef;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessTransformer;
-import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Implements;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.entity.Render;
@@ -17,12 +16,16 @@ import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.ResourceLocation;
 import net.optifine.shaders.Shaders;
 import org.objectweb.asm.Opcodes;
+import org.spongepowered.asm.mixin.Implements;
+import org.spongepowered.asm.mixin.Interface;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-@Implements(net.optifine.entity.model.IEntityRenderer.class)
+// [AUDIT-FIXED 2026-08-14] standard @Implements: IEntityRenderer via prefix mapping; the four
+// @Unique accessors are prefix-stripped on merge so the target class methods match the interface names
+@Implements(@Interface(iface = net.optifine.entity.model.IEntityRenderer.class, prefix = "optiRefine$"))
 @Mixin(Render.class)
 public abstract class MixinRender {
 // [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
@@ -89,25 +92,27 @@ public abstract class MixinRender {
     private static native void GlStateManager_bindCurrentTexture();
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    // [AUDIT-OK] OF-added IEntityRenderer members (OF:334-346)
-    public Class<? extends Entity> getEntityClass() {
+    @Unique
+    // [AUDIT-OK] OF-added IEntityRenderer members (OF:334-346); prefix stripped on merge -> getEntityClass
+    public Class<? extends Entity> optiRefine$getEntityClass() {
         return this.entityClass;
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
-    public void setEntityClass(Class<? extends Entity> entityClass) {
+    public void optiRefine$setEntityClass(Class<? extends Entity> entityClass) {
         this.entityClass = entityClass;
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-    public ResourceLocation getLocationTextureCustom() {
+    @Unique
+    public ResourceLocation optiRefine$getLocationTextureCustom() {
         return this.locationTextureCustom;
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
-    public void setLocationTextureCustom(ResourceLocation locationTextureCustom) {
+    public void optiRefine$setLocationTextureCustom(ResourceLocation locationTextureCustom) {
         this.locationTextureCustom = locationTextureCustom;
     }
 

@@ -11,7 +11,6 @@ import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessTransformer;
-import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Implements;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.gui.FontRenderer;
@@ -41,13 +40,13 @@ import java.util.function.Predicate;
 
 
 @SuppressWarnings("deprecation")
-// [AUDIT-NOTE] @Implements replaces IResourceManagerReloadListener with ISelectiveResourceReloadListener (Forge reload chain); @WrapMethod bridges vanilla method
-@Implements(
-        value = ISelectiveResourceReloadListener.class,
-        removes = net.minecraft.client.resources.IResourceManagerReloadListener.class
-)
+// [AUDIT-NOTE] standard @Implements adds ISelectiveResourceReloadListener (ISelective extends
+// IResourceManagerReloadListener, so the removed-base semantics are preserved via inheritance);
+// @WrapMethod bridges the vanilla single-arg method; @Unique optiRefine$onResourceManagerReload
+// is the selective implementation (prefix-stripped on merge -> target method name matches the interface)
+@Implements(@Interface(iface = ISelectiveResourceReloadListener.class, prefix = "optiRefine$"))
 @Mixin(FontRenderer.class)
-public abstract class MixinFontRenderer implements ISelectiveResourceReloadListener {
+public abstract class MixinFontRenderer {
 // [AUDIT] 2026-08-03 - see AGENT.md; issues: 1
 
 
@@ -198,7 +197,7 @@ public abstract class MixinFontRenderer implements ISelectiveResourceReloadListe
 // [AUDIT-OK] target onResourceManagerReload(IResourceManager)V declared in baseline FontRenderer
     @WrapMethod(method = "onResourceManagerReload(Lnet/minecraft/client/resources/IResourceManager;)V")
     private void optiRefine$onReloadBridge(IResourceManager rm, Operation<Void> original) {
-        this.onResourceManagerReload(rm, SelectiveReloadStateHandler.INSTANCE.get());
+        this.optiRefine$onResourceManagerReload(rm, SelectiveReloadStateHandler.INSTANCE.get());
     }
 
 // [AUDIT-OK] baseline method readGlyphSizes()V declared in FontRenderer
@@ -212,8 +211,10 @@ public abstract class MixinFontRenderer implements ISelectiveResourceReloadListe
     }
 
 // [AUDIT-OK] new ISelectiveResourceReloadListener method (OF semantics: HD font + glyph reload)
-    @Override
-    public void onResourceManagerReload(IResourceManager rm, Predicate<IResourceType> predicate) {
+// [AUDIT-FIXED 2026-08-14] standard @Implements prefix mapping: method merged as onResourceManagerReload
+// (prefix stripped), implements ISelectiveResourceReloadListener
+    @Unique
+    public void optiRefine$onResourceManagerReload(IResourceManager rm, Predicate<IResourceType> predicate) {
         this.readGlyphSizes();
         if (predicate.test(VanillaResourceType.TEXTURES)) {
             this.locationFontTexture = FontUtils.getHdFontLocation(this.locationFontTextureBase);
