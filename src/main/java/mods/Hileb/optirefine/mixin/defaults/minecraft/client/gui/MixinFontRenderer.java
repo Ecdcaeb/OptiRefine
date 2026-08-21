@@ -40,11 +40,9 @@ import java.util.function.Predicate;
 
 
 @SuppressWarnings("deprecation")
-// [AUDIT-NOTE] standard @Implements adds ISelectiveResourceReloadListener (ISelective extends
-// IResourceManagerReloadListener, so the removed-base semantics are preserved via inheritance);
-// @WrapMethod bridges the vanilla single-arg method; @Unique optiRefine$onResourceManagerReload
-// is the selective implementation (prefix-stripped on merge -> target method name matches the interface)
-@Implements(@Interface(iface = ISelectiveResourceReloadListener.class, prefix = "optiRefine$"))
+// [AUDIT-FIXED 2026-08-21] dedicated srrl$ prefix — Mixin 0.8.7 maps EVERY method with the
+// @Implements prefix onto the interface; optiRefine$ injectors must not share it.
+@Implements(@Interface(iface = ISelectiveResourceReloadListener.class, prefix = "srrl$"))
 @Mixin(FontRenderer.class)
 public abstract class MixinFontRenderer {
 // [AUDIT] 2026-08-03 - see AGENT.md; issues: 1
@@ -197,7 +195,7 @@ public abstract class MixinFontRenderer {
 // [AUDIT-OK] target onResourceManagerReload(IResourceManager)V declared in baseline FontRenderer
     @WrapMethod(method = "onResourceManagerReload(Lnet/minecraft/client/resources/IResourceManager;)V")
     private void optiRefine$onReloadBridge(IResourceManager rm, Operation<Void> original) {
-        this.optiRefine$onResourceManagerReload(rm, SelectiveReloadStateHandler.INSTANCE.get());
+        this.srrl$onResourceManagerReload(rm, SelectiveReloadStateHandler.INSTANCE.get());
     }
 
 // [AUDIT-OK] baseline method readGlyphSizes()V declared in FontRenderer
@@ -214,7 +212,7 @@ public abstract class MixinFontRenderer {
 // [AUDIT-FIXED 2026-08-14] standard @Implements prefix mapping: method merged as onResourceManagerReload
 // (prefix stripped), implements ISelectiveResourceReloadListener
     @Unique
-    public void optiRefine$onResourceManagerReload(IResourceManager rm, Predicate<IResourceType> predicate) {
+    public void srrl$onResourceManagerReload(IResourceManager rm, Predicate<IResourceType> predicate) {
         this.readGlyphSizes();
         if (predicate.test(VanillaResourceType.TEXTURES)) {
             this.locationFontTexture = FontUtils.getHdFontLocation(this.locationFontTextureBase);

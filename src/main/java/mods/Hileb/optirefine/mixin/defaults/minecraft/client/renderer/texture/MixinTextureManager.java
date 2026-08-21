@@ -24,10 +24,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import java.util.Map;
 import java.util.function.Predicate;
 @SuppressWarnings("deprecation")
-// [AUDIT-FIXED 2026-08-14] standard @Implements (ISelective extends IResourceManagerReloadListener, so
-// the old removes= semantics is preserved via inheritance); @Unique optiRefine$onResourceManagerReload
-// is the selective implementation (prefix stripped on merge -> target method name matches the interface)
-@Implements(@Interface(iface = ISelectiveResourceReloadListener.class, prefix = "optiRefine$"))
+// [AUDIT-FIXED 2026-08-21] dedicated srrl$ prefix so optiRefine$ injectors are not treated as interface methods
+@Implements(@Interface(iface = ISelectiveResourceReloadListener.class, prefix = "srrl$"))
 @Mixin(TextureManager.class)
 // [AUDIT] 2026-08-03 - selective reload listener; issues: 0
 public abstract class MixinTextureManager {
@@ -115,11 +113,11 @@ public abstract class MixinTextureManager {
     @WrapMethod(method = "onResourceManagerReload(Lnet/minecraft/client/resources/IResourceManager;)V")
     // [AUDIT-FIXED] single-param reload bridges to the selective listener (Forge chain); OF cleanup runs only on TEXTURES reloads
     private void optiRefine$onReloadBridge(IResourceManager rm, Operation<Void> original) {
-        this.optiRefine$onResourceManagerReload(rm, SelectiveReloadStateHandler.INSTANCE.get());
+        this.srrl$onResourceManagerReload(rm, SelectiveReloadStateHandler.INSTANCE.get());
     }
 
     @Unique
-    public void optiRefine$onResourceManagerReload(IResourceManager resourceManager, Predicate<IResourceType> predicate) {
+    public void srrl$onResourceManagerReload(IResourceManager resourceManager, Predicate<IResourceType> predicate) {
         if (!predicate.test(VanillaResourceType.TEXTURES)) {
             return;
         }

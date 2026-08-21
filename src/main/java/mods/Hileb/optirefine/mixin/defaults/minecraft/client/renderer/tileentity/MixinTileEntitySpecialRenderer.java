@@ -11,9 +11,8 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.At;
-// [AUDIT-FIXED 2026-08-14] standard @Implements: IEntityRenderer via prefix mapping; the four
-// @Unique accessors are prefix-stripped on merge so the target class methods match the interface names
-@Implements(@Interface(iface = IEntityRenderer.class, prefix = "optiRefine$"))
+// [AUDIT-FIXED 2026-08-21] dedicated ier$ prefix so optiRefine$ injectors are not treated as IEntityRenderer methods
+@Implements(@Interface(iface = IEntityRenderer.class, prefix = "ier$"))
 @Mixin(TileEntitySpecialRenderer.class)
 public abstract class MixinTileEntitySpecialRenderer{
 // [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
@@ -28,25 +27,25 @@ public abstract class MixinTileEntitySpecialRenderer{
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
-    public Class<?> optiRefine$getEntityClass() {
+    public Class<?> ier$getEntityClass() {
         return this.tileEntityClass;
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
-    public void optiRefine$setEntityClass(Class<?> tileEntityClass) {
+    public void ier$setEntityClass(Class<?> tileEntityClass) {
         this.tileEntityClass = tileEntityClass;
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
-    public ResourceLocation optiRefine$getLocationTextureCustom() {
+    public ResourceLocation ier$getLocationTextureCustom() {
         return this.locationTextureCustom;
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
-    public void optiRefine$setLocationTextureCustom(ResourceLocation locationTextureCustom) {
+    public void ier$setLocationTextureCustom(ResourceLocation locationTextureCustom) {
         this.locationTextureCustom = locationTextureCustom;
     }
 

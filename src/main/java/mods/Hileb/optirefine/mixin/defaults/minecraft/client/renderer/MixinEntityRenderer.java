@@ -55,6 +55,7 @@ import net.optifine.util.TextureUtils;
 import net.optifine.util.TimedEvent;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GLContext;
 import org.lwjgl.util.glu.Project;
 import org.objectweb.asm.Opcodes;
@@ -1413,6 +1414,18 @@ public abstract class MixinEntityRenderer {
         }
     }
 
+    @Inject(method = "resetData", at = @At("HEAD"))
+    // loadWorld(null) calls resetData then LoadingScreenRenderer.draw. Shader VBO attrib arrays
+    // (midTex/tangent/entity) can still be enabled from the last terrain pass; GUI 28-byte draws
+    // then AV in ig9icd64. Mirror ShadersRender.postRenderChunkLayer.
+    private void optiRefine$resetShaderAttribs(CallbackInfo ci) {
+        if (Config.isShaders()) {
+            GL20.glDisableVertexAttribArray(Shaders.midTexCoordAttrib);
+            GL20.glDisableVertexAttribArray(Shaders.tangentAttrib);
+            GL20.glDisableVertexAttribArray(Shaders.entityAttrib);
+            Shaders.useProgram(Shaders.ProgramNone);
+        }
+    }
     @Inject(method = "<init>*", at = @At("RETURN"))
     // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
     private void optiRefine$initFields(CallbackInfo ci) {

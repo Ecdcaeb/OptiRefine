@@ -23,9 +23,10 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-// [AUDIT-FIXED 2026-08-14] standard @Implements: IEntityRenderer via prefix mapping; the four
-// @Unique accessors are prefix-stripped on merge so the target class methods match the interface names
-@Implements(@Interface(iface = net.optifine.entity.model.IEntityRenderer.class, prefix = "optiRefine$"))
+// [AUDIT-FIXED 2026-08-21] @Implements prefix must be unique to the interface methods.
+// Mixin 0.8.7 treats EVERY method starting with the prefix as an interface impl; optiRefine$customTexture
+// (WrapOperation) was renamed to customTexture and crashed apply ("does not exist in IEntityRenderer").
+@Implements(@Interface(iface = net.optifine.entity.model.IEntityRenderer.class, prefix = "ier$"))
 @Mixin(Render.class)
 public abstract class MixinRender {
 // [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
@@ -94,25 +95,25 @@ public abstract class MixinRender {
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     // [AUDIT-OK] OF-added IEntityRenderer members (OF:334-346); prefix stripped on merge -> getEntityClass
-    public Class<? extends Entity> optiRefine$getEntityClass() {
+    public Class<? extends Entity> ier$getEntityClass() {
         return this.entityClass;
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
-    public void optiRefine$setEntityClass(Class<? extends Entity> entityClass) {
+    public void ier$setEntityClass(Class<? extends Entity> entityClass) {
         this.entityClass = entityClass;
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
-    public ResourceLocation optiRefine$getLocationTextureCustom() {
+    public ResourceLocation ier$getLocationTextureCustom() {
         return this.locationTextureCustom;
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
-    public void optiRefine$setLocationTextureCustom(ResourceLocation locationTextureCustom) {
+    public void ier$setLocationTextureCustom(ResourceLocation locationTextureCustom) {
         this.locationTextureCustom = locationTextureCustom;
     }
 
