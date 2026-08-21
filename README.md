@@ -13,7 +13,7 @@ OptiRefine is a mod that utilizes Mixin to patch Optifine, keeping optifine comp
 
 Let's enjoy the great optifine with the shaders
 
-<img width="854" height="480" alt="2026-08-21_14 20 25" src="https://github.com/user-attachments/assets/62d83862-c162-4ea2-bd24-0b74165beec4" />
+<img width="854" height="480" alt="2026-08-09_03 36 39" src="https://github.com/user-attachments/assets/ffab29d1-2a00-443b-9a9d-1206e1504d2e" />
 
 [Go and get Mellow](https://modrinth.com/shader/mellow/versions?g=1.12.2) which i like
 
