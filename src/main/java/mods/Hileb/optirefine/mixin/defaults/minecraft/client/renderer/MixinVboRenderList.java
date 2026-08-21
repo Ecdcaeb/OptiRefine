@@ -1,9 +1,7 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer;
 
-import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.sugar.Local;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.renderer.ChunkRenderContainer;
@@ -18,9 +16,6 @@ import net.optifine.shaders.ShadersRender;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(VboRenderList.class)
 public abstract class MixinVboRenderList extends ChunkRenderContainer {
 // [AUDIT] 2026-08-03 — see AGENT.md; issues: 0
@@ -45,49 +40,37 @@ public abstract class MixinVboRenderList extends ChunkRenderContainer {
 // [AUDIT-OK] OF field RenderChunk.regionZ, not in baseline
     private static native int RenderChunk_regionZ(RenderChunk renderChunk);
 
-    @ModifyExpressionValue(method = "renderChunkLayer", at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/ChunkRenderContainer;initialized:Z"))
-    public boolean shouldRender(boolean original, @Local(argsOnly = true) BlockRenderLayer layer){
-// [AUDIT-OK] target renderChunkLayer (SRG func_178001_a) GETFIELD initialized matches baseline; region loop == OF VboRenderList.renderChunkLayer
-        if (original) {
-            if (Config.isRenderRegions()){
-                int regionX = Integer.MIN_VALUE;
-                int regionZ = Integer.MIN_VALUE;
-                VboRegion lastVboRegion = null;
-
-                for (RenderChunk renderchunk : this.renderChunks) {
-                    VertexBuffer vertexbuffer = renderchunk.getVertexBufferByLayer(layer.ordinal());
-                    VboRegion vboRegion = VertexBuffer_getVboRegion(vertexbuffer);
-                    if (vboRegion != lastVboRegion || regionX != RenderChunk_regionX(renderchunk) || regionZ != RenderChunk_regionZ(renderchunk)) {
-                        if (lastVboRegion != null) {
-                            this.optiRefine$drawRegion(regionX, regionZ, lastVboRegion);
-                        }
-
-                        regionX = RenderChunk_regionX(renderchunk);
-                        regionZ = RenderChunk_regionZ(renderchunk);
-                        lastVboRegion = vboRegion;
-                    }
-
-                    vertexbuffer.drawArrays(7);
-                }
-
-                if (lastVboRegion != null) {
-                    this.optiRefine$drawRegion(regionX, regionZ, lastVboRegion);
-                }
-                return false;
-            }
-            return true;
+    @WrapMethod(method = "renderChunkLayer")
+    private void optiRefine$renderChunkLayer(BlockRenderLayer layer, Operation<Void> original) {
+        if (!this.initialized) {
+            return;
         }
-        return false;
-    }
-
-    @Inject(method = "renderChunkLayer", at = @At("TAIL"))
-    public void afterRender(BlockRenderLayer layer, CallbackInfo ci){
-// [AUDIT-OK] target renderChunkLayer matches baseline; tail (glBindBuffer/resetColor/clear) matches OF
-        if (this.initialized) {
+        if (Config.isRenderRegions()) {
+            int regionX = Integer.MIN_VALUE;
+            int regionZ = Integer.MIN_VALUE;
+            VboRegion lastVboRegion = null;
+            for (RenderChunk renderchunk : this.renderChunks) {
+                VertexBuffer vertexbuffer = renderchunk.getVertexBufferByLayer(layer.ordinal());
+                VboRegion vboRegion = VertexBuffer_getVboRegion(vertexbuffer);
+                if (vboRegion != lastVboRegion || regionX != RenderChunk_regionX(renderchunk) || regionZ != RenderChunk_regionZ(renderchunk)) {
+                    if (lastVboRegion != null) {
+                        this.optiRefine$drawRegion(regionX, regionZ, lastVboRegion);
+                    }
+                    regionX = RenderChunk_regionX(renderchunk);
+                    regionZ = RenderChunk_regionZ(renderchunk);
+                    lastVboRegion = vboRegion;
+                }
+                vertexbuffer.drawArrays(7);
+            }
+            if (lastVboRegion != null) {
+                this.optiRefine$drawRegion(regionX, regionZ, lastVboRegion);
+            }
             OpenGlHelper.glBindBuffer(OpenGlHelper.GL_ARRAY_BUFFER, 0);
             GlStateManager.resetColor();
             this.renderChunks.clear();
+            return;
         }
+        original.call(layer);
     }
 
     @WrapMethod(method = "setupArrayPointers")

@@ -2,6 +2,7 @@ package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer.vertex;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.renderer.vertex.VertexBuffer;
 import net.optifine.render.VboRange;
 import net.optifine.render.VboRegion;
@@ -33,13 +34,12 @@ public abstract class MixinVertexBuffer {
     }
 
     @WrapMethod(method = "drawArrays")
-    // [AUDIT-OK] drawArrays baseline; drawMode override + region branch match OF:37-44
     public void wrapdrawArrays(int mode, Operation<Void> original){
         if (this.drawMode > 0) {
             mode = this.drawMode;
         }
 
-        if (this.vboRegion != null) {
+        if (this.vboRegion != null && Config.isRenderRegions()) {
             this.vboRegion.drawArrays(mode, this.vboRange);
         } else {
             original.call(mode);
