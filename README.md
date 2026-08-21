@@ -5,8 +5,13 @@
 > reports about crashes or errors caused by OptiRefine are welcome. Note: rendering anomalies while shaders
 > are active are expected — don't worry, it is normal.
 
-# OptiRefine
+<img width="683" height="293" alt="a6fade3b-b7ea-4651-a2a5-a69ffbf996b0" src="https://github.com/user-attachments/assets/4ec54838-aa21-4877-a38f-d50d8e11f554" />
+
+---
+
 OptiRefine is a mod that utilizes Mixin to patch Optifine, keeping optifine compatible with cleanroom and reducing its destructiveness.
+
+Let's enjoy the great optifine with the shaders
 
 <img width="854" height="480" alt="2026-08-09_03 36 39" src="https://github.com/user-attachments/assets/ffab29d1-2a00-443b-9a9d-1206e1504d2e" />
 
