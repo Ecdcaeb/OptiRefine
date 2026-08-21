@@ -141,6 +141,7 @@
     "minecraft.client.renderer.MixinContainerLocalRenderInformation",
     "minecraft.client.multiplayer.MixinChunkProviderClient",
     "optifine.MixinShaders",
+    "optifine.MixinVboRegion",
     "minecraft.client.renderer.texture.MixinStitcher"
   ]
 }
