@@ -33,6 +33,7 @@ import net.optifine.CustomColors;
 import net.optifine.CustomItems;
 import net.optifine.shaders.Shaders;
 import net.optifine.shaders.ShadersRender;
+import net.minecraftforge.client.model.pipeline.LightUtil;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -87,33 +88,35 @@ public abstract class MixinRenderItem {
 
     @Inject(method = "<init>", at = @At("RETURN"))
     private void optiRefine$ctorModelManager(TextureManager textureManager, ModelManager modelManager, ItemColors itemColors, CallbackInfo ci) {
-// [AUDIT-OK] target <init>(LTextureManager;LModelManager;LItemColors;)V matches baseline; modelManager assignment matches OF ctor
         this.modelManager = modelManager;
+        net.minecraftforge.common.ForgeModContainer.allowEmissiveItems = false;
     }
 
     @Shadow
-
-// [AUDIT-OK] baseline member renderModel(LIBakedModel;LItemStack;)V (SRG func_191961_a)
     protected abstract void renderModel(IBakedModel modelIn, ItemStack stack);
 
-
-
     @Shadow
-
-// [AUDIT-OK] baseline member renderModel(LIBakedModel;ILItemStack;)V (SRG func_191967_a)
     protected abstract void renderModel(IBakedModel modelIn, int color, ItemStack stack);
 
-
+    @WrapMethod(method = "renderModel(Lnet/minecraft/client/renderer/block/model/IBakedModel;ILnet/minecraft/item/ItemStack;)V")
+    private void optiRefine$renderModelSkipLit(IBakedModel model, int color, ItemStack stack, Operation<Void> original) {
+        if (Config.isShaders() && net.minecraftforge.common.ForgeModContainer.allowEmissiveItems) {
+            boolean saved = net.minecraftforge.common.ForgeModContainer.allowEmissiveItems;
+            net.minecraftforge.common.ForgeModContainer.allowEmissiveItems = false;
+            try {
+                original.call(model, color, stack);
+            } finally {
+                net.minecraftforge.common.ForgeModContainer.allowEmissiveItems = saved;
+            }
+            return;
+        }
+        original.call(model, color, stack);
+    }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-
     @Unique
-
-// [AUDIT-OK] OF-added private helper (OF renderEffect calls 3-arg form), not in baseline
     private void optiRefine$renderModel(IBakedModel modelIn, int color) {
-
         this.renderModel(modelIn, color, ItemStack.EMPTY);
-
     }
 
     // ===== renderQuads: custom colors =====
@@ -167,17 +170,21 @@ public abstract class MixinRenderItem {
                 } else if (BakedQuad_getQuadEmissive(bakedquad) != null) {
                     this.renderModelHasEmissive = true;
                 }
-                if (BufferBuilder_isMultiTexture(renderer)) {
-                    renderer.addVertexData(BakedQuad_getVertexDataSingle(bakedquad));
+                int[] vertexData = BufferBuilder_isMultiTexture(renderer)
+                        ? BakedQuad_getVertexDataSingle(bakedquad)
+                        : bakedquad.getVertexData();
+                if (vertexData.length == renderer.getVertexFormat().getIntegerSize() * 4) {
+                    renderer.addVertexData(vertexData);
+                    BufferBuilder_putSprite(renderer, bakedquad.getSprite());
+                    renderer.putColor4(k);
+                    EnumFacing face = bakedquad.getFace();
+                    if (face != null) {
+                        Vec3i vec = face.getDirectionVec();
+                        renderer.putNormal((float) vec.getX(), (float) vec.getY(), (float) vec.getZ());
+                    }
                 } else {
-                    renderer.addVertexData(bakedquad.getVertexData());
-                }
-                BufferBuilder_putSprite(renderer, bakedquad.getSprite());
-                renderer.putColor4(k);
-                EnumFacing face = bakedquad.getFace();
-                if (face != null) {
-                    Vec3i vec = face.getDirectionVec();
-                    renderer.putNormal((float) vec.getX(), (float) vec.getY(), (float) vec.getZ());
+                    LightUtil.renderQuadColor(renderer, bakedquad, k);
+                    BufferBuilder_putSprite(renderer, bakedquad.getSprite());
                 }
             }
         } else {
