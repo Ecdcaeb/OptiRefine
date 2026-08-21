@@ -57,4 +57,5 @@ public abstract class MixinDefaultVertexFormats {
             SVertexFormat.copy(FORGE_BAKED, Attributes.DEFAULT_BAKED_FORMAT);
         }
     }
+
 }

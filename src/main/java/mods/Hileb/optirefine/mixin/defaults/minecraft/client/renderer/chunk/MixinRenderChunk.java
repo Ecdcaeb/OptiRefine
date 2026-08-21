@@ -34,7 +34,6 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.client.MinecraftForgeClient;
 import net.optifine.CustomBlockLayers;
 import net.optifine.override.ChunkCacheOF;
-import net.optifine.reflect.Reflector;
 import net.optifine.render.AabbFrame;
 import net.optifine.render.RenderEnv;
 import net.optifine.shaders.SVertexBuilder;
@@ -564,7 +563,12 @@ public abstract class MixinRenderChunk {
     private void optiRefine$initFields(CallbackInfo ci) {
         this.blockLayersSingle = new BlockRenderLayer[1];
         this.isMipmaps = Config.isMipmaps();
-        this.fixBlockLayer = !Reflector.BetterFoliageClient.exists();
+        this.fixBlockLayer = true;
+        try {
+            Class.forName("mods.betterfoliage.client.BetterFoliageClient", false, MixinRenderChunk.class.getClassLoader());
+            this.fixBlockLayer = false;
+        } catch (ClassNotFoundException ignored) {
+        }
         this.playerUpdate = false;
         this.renderChunksOfset16 = new RenderChunk[6];
         this.renderChunksOffset16Updated = false;

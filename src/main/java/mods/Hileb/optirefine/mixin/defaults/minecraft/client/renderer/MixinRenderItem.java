@@ -147,7 +147,7 @@ public abstract class MixinRenderItem {
      */
     @WrapMethod(method = "renderQuads")
     private void optiRefine$renderQuads(BufferBuilder renderer, java.util.List<BakedQuad> quads, int color, ItemStack stack, Operation<Void> original) {
-        if (Config.isShaders()) {
+        if (Config.isShaders() && !this.renderItemGui) {
             boolean flag = color == -1 && !stack.isEmpty();
             for (int i = 0; i < quads.size(); ++i) {
                 BakedQuad bakedquad = quads.get(i);
@@ -173,18 +173,39 @@ public abstract class MixinRenderItem {
                 int[] vertexData = BufferBuilder_isMultiTexture(renderer)
                         ? BakedQuad_getVertexDataSingle(bakedquad)
                         : bakedquad.getVertexData();
-                if (vertexData.length == renderer.getVertexFormat().getIntegerSize() * 4) {
-                    renderer.addVertexData(vertexData);
-                    BufferBuilder_putSprite(renderer, bakedquad.getSprite());
-                    renderer.putColor4(k);
-                    EnumFacing face = bakedquad.getFace();
-                    if (face != null) {
-                        Vec3i vec = face.getDirectionVec();
-                        renderer.putNormal((float) vec.getX(), (float) vec.getY(), (float) vec.getZ());
+                int expected = renderer.getVertexFormat().getIntegerSize() * 4;
+                // Stale single: single was cached as 28 before shaders enabled, but buffer now expects 56.
+                // Expand on the fly instead of taking the slow LightUtil path which corrupts midTex/normal.
+                if (vertexData.length != expected) {
+                    if (vertexData.length == 28 && expected == 56) {
+                        int step = 7;
+                        int stepNew = 14;
+                        int[] expanded = new int[56];
+                        for (int v = 0; v < 4; v++) {
+                            System.arraycopy(vertexData, v * step, expanded, v * stepNew, step);
+                        }
+                        vertexData = expanded;
+                    } else if (vertexData.length == 56 && expected == 28) {
+                        int step = 14;
+                        int stepNew = 7;
+                        int[] compacted = new int[28];
+                        for (int v = 0; v < 4; v++) {
+                            System.arraycopy(vertexData, v * step, compacted, v * stepNew, stepNew);
+                        }
+                        vertexData = compacted;
+                    } else {
+                        LightUtil.renderQuadColor(renderer, bakedquad, k);
+                        BufferBuilder_putSprite(renderer, bakedquad.getSprite());
+                        continue;
                     }
-                } else {
-                    LightUtil.renderQuadColor(renderer, bakedquad, k);
-                    BufferBuilder_putSprite(renderer, bakedquad.getSprite());
+                }
+                renderer.addVertexData(vertexData);
+                BufferBuilder_putSprite(renderer, bakedquad.getSprite());
+                renderer.putColor4(k);
+                EnumFacing face = bakedquad.getFace();
+                if (face != null) {
+                    Vec3i vec = face.getDirectionVec();
+                    renderer.putNormal((float) vec.getX(), (float) vec.getY(), (float) vec.getZ());
                 }
             }
         } else {

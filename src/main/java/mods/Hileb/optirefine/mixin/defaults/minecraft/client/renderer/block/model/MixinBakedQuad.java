@@ -166,9 +166,13 @@ public abstract class MixinBakedQuad {
         if (Config.isShaders()) {
             if (this.vertexData.length == 28) {
                 this.vertexData = optiRefine$expandVertexData(this.vertexData);
+                this.vertexDataSingle = null;
+                this.quadBounds = null;
             }
         } else if (this.vertexData.length == 56) {
             this.vertexData = optiRefine$compactVertexData(this.vertexData);
+            this.vertexDataSingle = null;
+            this.quadBounds = null;
         }
     }
 

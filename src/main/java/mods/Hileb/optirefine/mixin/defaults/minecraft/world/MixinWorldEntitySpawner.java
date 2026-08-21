@@ -17,8 +17,8 @@ import net.minecraft.world.WorldServer;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.Chunk;
 import net.optifine.BlockPosM;
-import net.optifine.reflect.Reflector;
-import net.optifine.reflect.ReflectorForge;
+import net.minecraftforge.event.ForgeEventFactory;
+import net.minecraftforge.fml.common.eventhandler.Event;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
@@ -67,7 +67,7 @@ public abstract class MixinWorldEntitySpawner {
      * @reason OF eligible-chunk caching + sample-entity reuse layered on cleanroom's Forge spawn hooks
      */
     @Overwrite
-// [AUDIT-REVIVED] findChunksForSpawning OF override re-enabled; cleanroom Forge hooks preserved via Reflector:
+// [AUDIT-REVIVED] findChunksForSpawning OF override re-enabled; cleanroom Forge hooks called directly:
 // countEntities(EnumCreatureType,true), shuffle, SpawnListEntry.newInstance, ForgeEventFactory.canEntitySpawn/doSpecialSpawn/getMaxSpawnPackSize
     public int findChunksForSpawning(WorldServer worldServerIn, boolean spawnHostileMobs, boolean spawnPeacefulMobs, boolean spawnOnSetTickRate) {
         if (!spawnHostileMobs && !spawnPeacefulMobs) {
@@ -114,15 +114,13 @@ public abstract class MixinWorldEntitySpawner {
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
         for (EnumCreatureType enumcreaturetype : EnumCreatureType.values()) {
             if ((!enumcreaturetype.getPeacefulCreature() || spawnPeacefulMobs) && (enumcreaturetype.getPeacefulCreature() || spawnHostileMobs) && (!enumcreaturetype.getAnimal() || spawnOnSetTickRate)) {
-                int k4 = Reflector.ForgeWorld_countEntities.exists() ? Reflector.callInt(worldServerIn, Reflector.ForgeWorld_countEntities, enumcreaturetype, true) : worldServerIn.countEntities(enumcreaturetype.getCreatureClass());
+                int k4 = worldServerIn.countEntities(enumcreaturetype, true);
                 int l4 = enumcreaturetype.getMaxNumberOfCreature() * this.countChunkPos / MOB_COUNT_DIV;
                 if (k4 <= l4) {
                     Collection<ChunkPos> chunksForSpawning = this.eligibleChunksForSpawning;
-                    if (Reflector.ForgeHooksClient.exists()) {
-                        ArrayList<ChunkPos> shuffled = Lists.newArrayList(chunksForSpawning);
-                        Collections.shuffle(shuffled);
-                        chunksForSpawning = shuffled;
-                    }
+                    ArrayList<ChunkPos> shuffled = Lists.newArrayList(chunksForSpawning);
+                    Collections.shuffle(shuffled);
+                    chunksForSpawning = shuffled;
                     chunkLoop:
                     for (ChunkPos chunkpos1 : chunksForSpawning) {
                         BlockPosM blockpos = getRandomChunkPosition(worldServerIn, chunkpos1.x, chunkpos1.z, blockPosM);
@@ -155,7 +153,7 @@ public abstract class MixinWorldEntitySpawner {
                                 try {
                                     entityliving = this.mapSampleEntitiesByClass.get(biome$spawnlistentry.entityClass);
                                     if (entityliving == null) {
-                                        entityliving = Reflector.ForgeBiomeSpawnListEntry_newInstance.exists() ? (EntityLiving) ((Object) Reflector.call(biome$spawnlistentry, Reflector.ForgeBiomeSpawnListEntry_newInstance, worldServerIn)) : (EntityLiving) ((Object) biome$spawnlistentry.entityClass.getConstructor(World.class).newInstance(worldServerIn));
+                                        entityliving = biome$spawnlistentry.newInstance(worldServerIn);
                                         this.mapSampleEntitiesByClass.put(biome$spawnlistentry.entityClass, entityliving);
                                     }
                                 } catch (Exception exception) {
@@ -163,10 +161,10 @@ public abstract class MixinWorldEntitySpawner {
                                     return j4;
                                 }
                                 entityliving.setLocationAndAngles(f, i3, f1, worldServerIn.rand.nextFloat() * 360.0F, 0.0F);
-                                boolean canSpawn = Reflector.ForgeEventFactory_canEntitySpawn.exists() ? ReflectorForge.canEntitySpawn(entityliving, worldServerIn, f, i3, f1) : entityliving.getCanSpawnHere() && entityliving.isNotColliding();
-                                if (canSpawn) {
+                                Event.Result canSpawn = ForgeEventFactory.canEntitySpawn(entityliving, worldServerIn, f, i3, f1, false);
+                                if (canSpawn == Event.Result.ALLOW || (canSpawn == Event.Result.DEFAULT && entityliving.getCanSpawnHere() && entityliving.isNotColliding())) {
                                     this.mapSampleEntitiesByClass.remove(biome$spawnlistentry.entityClass);
-                                    if (!ReflectorForge.doSpecialSpawn(entityliving, worldServerIn, f, i3, f1)) {
+                                    if (!ForgeEventFactory.doSpecialSpawn(entityliving, worldServerIn, f, i3, f1)) {
                                         ientitylivingdata = entityliving.onInitialSpawn(worldServerIn.getDifficultyForLocation(new BlockPos(entityliving)), ientitylivingdata);
                                     }
                                     if (entityliving.isNotColliding()) {
@@ -175,7 +173,7 @@ public abstract class MixinWorldEntitySpawner {
                                     } else {
                                         entityliving.setDead();
                                     }
-                                    int maxSpawnedInChunk = Reflector.ForgeEventFactory_getMaxSpawnPackSize.exists() ? Reflector.callInt(Reflector.ForgeEventFactory_getMaxSpawnPackSize, entityliving) : entityliving.getMaxSpawnedInChunk();
+                                    int maxSpawnedInChunk = ForgeEventFactory.getMaxSpawnPackSize(entityliving);
                                     if (j2 >= maxSpawnedInChunk) continue chunkLoop;
                                 }
                                 j4 += j2;

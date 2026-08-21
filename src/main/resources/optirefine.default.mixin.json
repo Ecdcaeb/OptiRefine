@@ -40,7 +40,9 @@
     "minecraft.world.chunk.storage.MixinExtendedBlockStorage",
     "minecraft.world.gen.layer.MixinGenLayerZoom",
     "minecraftforge.fml.MixinFMLClientHandler",
-    "optifine.MixinConfig"
+    "optifine.MixinConfig",
+    "optifine.MixinReflector",
+    "optifine.MixinReflectorForge"
   ],
   "server": [],
   "client": [
@@ -53,6 +55,7 @@
     "minecraft.client.gui.MixinGuiOverlayDebug",
     "minecraft.client.gui.MixinGuiScreenWorking",
     "minecraft.client.gui.MixinGuiSlot",
+    "cleanroom.MixinModListScreen$ModListEntry",
     "minecraft.client.gui.MixinGuiVideoSettings",
     "minecraft.client.model.MixinModelPlayer",
     "minecraft.client.multiplayer.MixinWorldClient",
@@ -133,6 +136,7 @@
     "minecraft.client.renderer.texture.MixinTextureUtil",
     "minecraft.client.renderer.MixinItemRenderer",
     "minecraft.client.renderer.MixinGlStateManager",
+    "minecraft.client.renderer.MixinGlStateManager$BooleanState",
     "minecraft.client.renderer.texture.MixinTextureAtlasSprite",
     "minecraft.client.renderer.texture.MixinTextureMap",
     "minecraft.client.renderer.MixinRenderItem",
