@@ -1,4 +1,4 @@
-# OptiRefine — Runtime Alpha Test
+# <img width="56" height="56" alt="image" src="https://github.com/user-attachments/assets/ffd17053-9d3a-49a6-adf7-dc158776ddb4" /> OptiRefine  — Runtime Alpha Test
 
 > **Status: Runtime Alpha Test**. You can download and try it out, but it is **not recommended** for
 > important worlds or servers; crashes or rendering issues may still occur. **Issues are accepted** — bug
@@ -6,6 +6,8 @@
 > are active are expected — don't worry, it is normal.
 
 ---
+
+
 
 OptiRefine is a mod that utilizes Mixin to patch Optifine, keeping optifine compatible with cleanroom and reducing its destructiveness.
 
