@@ -11,13 +11,10 @@
 
 OptiRefine is a mod that utilizes Mixin to patch Optifine, keeping optifine compatible with cleanroom and reducing its destructiveness.
 
-Let's enjoy the great optifine with the shaders
+Let's enjoy the great optifine with the shaders. 
+Go and get [Mellow](https://modrinth.com/shader/mellow/versions?g=1.12.2) which i like
 
 <img width="854" height="480" alt="2026-08-09_03 36 39" src="https://github.com/user-attachments/assets/ffab29d1-2a00-443b-9a9d-1206e1504d2e" />
-
-[Go and get Mellow](https://modrinth.com/shader/mellow/versions?g=1.12.2) which i like
-
-Post incompatible issues of optifine here!
 
 ## Build
 
