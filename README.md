@@ -5,8 +5,6 @@
 > reports about crashes or errors caused by OptiRefine are welcome. Note: rendering anomalies while shaders
 > are active are expected — don't worry, it is normal.
 
-<img width="683" height="293" alt="a6fade3b-b7ea-4651-a2a5-a69ffbf996b0" src="https://github.com/user-attachments/assets/4ec54838-aa21-4877-a38f-d50d8e11f554" />
-
 ---
 
 OptiRefine is a mod that utilizes Mixin to patch Optifine, keeping optifine compatible with cleanroom and reducing its destructiveness.
@@ -25,7 +23,7 @@ The project targets **Java 25**
 ```
 
 Note: mixins are written against the vanilla MCP classes on the compile classpath;
-OptiFine-only members are accessed via `@AccessibleOperation` / `@Shadow` (see FOR_AGENT.md).
+OptiFine-only members are accessed via `@AccessibleOperation`
 
 ## Test Environment
 
@@ -36,15 +34,14 @@ OptiFine-only members are accessed via `@AccessibleOperation` / `@Shadow` (see F
 ## Feats
 
 ### Cleanroom removed Realms
-OptiRefine does not perform any special repairs, which may prove to be universal.
 
-with Fugue
+| Configuration | Image | Note |
+| --- | --- | --- |
+| with Fugue | ![image](https://github.com/user-attachments/assets/9ac12224-b8dd-42f0-ba33-2975854a0fef) | — |
+| with OptiRefine | ![image](https://github.com/user-attachments/assets/2c701e4b-1325-4b61-a5c7-5308e7d34528) | OptiRefine does not perform any special repairs, which may prove to be universal. |
 
-<img width="851" height="477" alt="image" src="https://github.com/user-attachments/assets/9ac12224-b8dd-42f0-ba33-2975854a0fef" />
 
-with OptiRefine
 
-<img width="833" height="507" alt="image" src="https://github.com/user-attachments/assets/2c701e4b-1325-4b61-a5c7-5308e7d34528" />
 
 ## OptiFine Great Again
 
@@ -58,12 +55,13 @@ Make OptiFine great again.
 
 ## Fixed Issue under Cleanroommc/Cleanroom
 
-https://github.com/CleanroomMC/Cleanroom/issues/600
+<details>
+<summary>Issues</summary>
 
-https://github.com/CleanroomMC/Cleanroom/issues/513
+- [Cleanroom #600](https://github.com/CleanroomMC/Cleanroom/issues/600) — `Crashes when used with OptiFine`
+- [Cleanroom #513](https://github.com/CleanroomMC/Cleanroom/issues/513) — `Optifine make the game crash in full screen` 
+- [Cleanroom #359](https://github.com/CleanroomMC/Cleanroom/issues/359) — `Instant crash on nearly vanilla setup (0.3.4)`  
+- [Fugue #123](https://github.com/CleanroomMC/Fugue/issues/123) — `Optifine breaks "Remove Realms Button" patches when Fugue is installed`
+- [Fugue #113](https://github.com/CleanroomMC/Fugue/issues/113) — `[Optifine] Fullscreen Mode doesn't move.`  
 
-https://github.com/CleanroomMC/Cleanroom/issues/359
-
-https://github.com/CleanroomMC/Fugue/issues/123
-
-https://github.com/CleanroomMC/Fugue/issues/113
+</details>
