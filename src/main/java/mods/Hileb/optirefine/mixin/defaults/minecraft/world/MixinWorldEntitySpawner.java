@@ -33,7 +33,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-@Mixin(WorldEntitySpawner.class)
+// Run before default-priority integrations so their injectors can still target the OF-compatible body.
+@Mixin(value = WorldEntitySpawner.class, priority = 900)
 public abstract class MixinWorldEntitySpawner {
 // [AUDIT] 2026-08-03 - see AGENT.md; issues: 1 -> 0 (findChunksForSpawning OF cache re-enabled 2026-08-09)
 

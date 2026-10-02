@@ -55,10 +55,13 @@ public abstract class MixinBufferBuilder {
     private FloatBuffer rawFloatBuffer;
 
     @Inject(method = "growBuffer", at = @At("TAIL"))
-    // [AUDIT-FIXED] vanilla growBuffer leaves rawFloatBuffer READ-ONLY (asReadOnlyBuffer);
-    // OF keeps it writable (asFloatBuffer) - SVertexBuilder.calcNormal writes it under shaders
+    // [AUDIT-FIXED] Rebase the writable float view to byte offset 0. WorldVertexBufferUploader
+    // leaves byteBuffer positioned at the last vertex attribute offset after draw().
     private void optiRefine$restoreWritableFloatBuffer(int p_181670_1_, CallbackInfo ci) {
-        this.rawFloatBuffer = this.byteBuffer.asFloatBuffer();
+        ByteBuffer viewSource = this.byteBuffer.duplicate();
+        viewSource.clear();
+        viewSource.order(this.byteBuffer.order());
+        this.rawFloatBuffer = viewSource.asFloatBuffer();
     }
 
     

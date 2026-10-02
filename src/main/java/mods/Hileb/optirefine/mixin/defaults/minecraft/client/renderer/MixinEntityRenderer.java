@@ -59,7 +59,9 @@ import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GLContext;
 import org.lwjgl.util.glu.Project;
 import org.objectweb.asm.Opcodes;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Mutable;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -134,14 +136,15 @@ public abstract class MixinEntityRenderer {
     @AccessTransformer(name = "field_78516_c", deobf = true, access = org.objectweb.asm.Opcodes.ACC_PUBLIC)
     private ItemRenderer acc_itemRenderer_placeholder;
 
-    // Note: field_78527_v = mouseFilterXAxis, field_78526_w = mouseFilterYAxis (srg_to_stable_39-1.12.tsrg)
-    @AccessTransformer(name = "field_78527_v", deobf = true)
-// [AUDIT-OK] vanilla SRG field_78527_v = mouseFilterXAxis, deobf=true
-    public MouseFilter acc$mouseFilterXAxis;
+    @Mutable
+    @Shadow
+    @Final
+    private MouseFilter mouseFilterXAxis;
 
-    @AccessTransformer(name = "field_78526_w", deobf = true)
-// [AUDIT-OK] vanilla SRG field_78526_w = mouseFilterYAxis, deobf=true
-    public MouseFilter acc$mouseFilterYAxis;
+    @Mutable
+    @Shadow
+    @Final
+    private MouseFilter mouseFilterYAxis;
 
     @AccessTransformer(name = "field_175080_Q", deobf = true)
 // [AUDIT-OK] vanilla SRG field_175080_Q = fogColorRed, deobf=true
@@ -504,8 +507,8 @@ public abstract class MixinEntityRenderer {
         } else if (Config.zoomMode) {
             Config.zoomMode = false;
             this.mc.gameSettings.smoothCamera = Config.zoomSmoothCamera;
-            this.acc$mouseFilterXAxis = new MouseFilter();
-            this.acc$mouseFilterYAxis = new MouseFilter();
+            this.mouseFilterXAxis = new MouseFilter();
+            this.mouseFilterYAxis = new MouseFilter();
             RenderGlobal_displayListEntitiesDirty_set(this.mc.renderGlobal, true);
         }
         if (entity instanceof EntityLivingBase && ((EntityLivingBase) entity).getHealth() <= 0.0F) {
