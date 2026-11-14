@@ -33,6 +33,10 @@ The project targets **Java 25**
 
 Implementation notes, compatibility repairs and validation details are in [Technical notes](docs/technical-notes.md).
 
+Modern backports include compute shaders, image load/store, prepare/shadowcomp stages, newer CEM
+expressions and entity variables, and modern `optifine/` resource directories. Requirements and
+compatibility limits are listed in the technical notes.
+
 ## Feats
 
 ### Cleanroom removed Realms
@@ -49,7 +53,7 @@ Implementation notes, compatibility repairs and validation details are in [Techn
 
 For a decade, OptiFine was the reason Minecraft didn't just run — it *looked*. Shaders, smooth lighting, zoom, dynamic skies: the game you remember is the game OptiFine drew. Then the ecosystem moved on. Cleanroom replaced the old Forge, and OptiFine's blunt bytecode surgery no longer fit in the house it used to own.
 
-OptiRefine is the rebuild — not a patch on a patch, but a faithful re-implementation: 135 mixins restore OptiFine's behavior on Cleanroom the way it should have been done from day one, with the destructive class transformer switched off for good.
+OptiRefine is the rebuild — not a patch on a patch, but a faithful re-implementation: mixins restore OptiFine's behavior on Cleanroom the way it should have been done from day one, with the destructive class transformer switched off for good.
 
 The features are back. The compatibility is back. The look is back.
 
