@@ -22,14 +22,14 @@ public abstract class MixinTessellator {
     private BufferBuilder buffer;
 
     @Inject(method = "draw", at = @At("HEAD"))
-    public void ijdraw(CallbackInfo ci) {
+    public void optiRefine$reportRenderedSprites(CallbackInfo ci) {
 // [AUDIT-OK] target Tessellator.draw()V (SRG func_78381_a) matches baseline
-        if (BufferBuilder_animatedSprites_get(this.buffer) != null) {
-            SmartAnimations.spritesRendered(BufferBuilder_animatedSprites_get(this.buffer));
+        if (optiRefine$getBufferAnimatedSprites(this.buffer) != null) {
+            SmartAnimations.spritesRendered(optiRefine$getBufferAnimatedSprites(this.buffer));
         }
     }
 
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.BufferBuilder animatedSprites Ljava.util.BitSet;")
 // [AUDIT-OK] OF field BufferBuilder.animatedSprites (MixinBufferBuilder @Public provides), not in baseline
-    private static native BitSet BufferBuilder_animatedSprites_get(BufferBuilder buffer);
+    private static native BitSet optiRefine$getBufferAnimatedSprites(BufferBuilder buffer);
 }

@@ -142,121 +142,121 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite setIndexInMap (I)V")
     // [AUDIT-OK] OF member setIndexInMap(I)V, MCP name (not in tsrg)
-    private static native void TextureAtlasSprite_setIndexInMap(TextureAtlasSprite sprite, int indexInMap);
+    private static native void optiRefine$setTextureAtlasSpriteIndexInMap(TextureAtlasSprite sprite, int indexInMap);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite deleteSpriteTexture ()V")
     // [AUDIT-OK] OF member deleteSpriteTexture()V, MCP name (not in tsrg)
-    private static native void TextureAtlasSprite_deleteSpriteTexture(TextureAtlasSprite sprite);
+    private static native void optiRefine$deleteSpriteTexture(TextureAtlasSprite sprite);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite updateIndexInMap (Lnet/optifine/util/CounterInt;)V")
     // [AUDIT-OK] OF member updateIndexInMap(CounterInt)V, MCP name (not in tsrg)
-    private static native void TextureAtlasSprite_updateIndexInMap(TextureAtlasSprite sprite, net.optifine.util.CounterInt counterInt);
+    private static native void optiRefine$updateSpriteIndexInMap(TextureAtlasSprite sprite, net.optifine.util.CounterInt counterInt);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite setAnimationIndex (I)V")
     // [AUDIT-OK] OF member setAnimationIndex(I)V, MCP name (not in tsrg)
-    private static native void TextureAtlasSprite_setAnimationIndex(TextureAtlasSprite sprite, int animationIndex);
+    private static native void optiRefine$setTextureAtlasSpriteAnimationIndex(TextureAtlasSprite sprite, int animationIndex);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite getAnimationIndex ()I")
     // [AUDIT-OK] OF member getAnimationIndex()I, MCP name (not in tsrg)
-    private static native int TextureAtlasSprite_getAnimationIndex(TextureAtlasSprite sprite);
+    private static native int optiRefine$getTextureAtlasSpriteAnimationIndex(TextureAtlasSprite sprite);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite bindSpriteTexture ()V")
     // [AUDIT-OK] OF member bindSpriteTexture()V, MCP name (not in tsrg)
-    private static native void TextureAtlasSprite_bindSpriteTexture(TextureAtlasSprite sprite);
+    private static native void optiRefine$bindSpriteTexture(TextureAtlasSprite sprite);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite isAnimationActive ()Z")
     // [AUDIT-OK] OF member isAnimationActive()Z, MCP name (not in tsrg)
-    private static native boolean TextureAtlasSprite_isAnimationActive(TextureAtlasSprite sprite);
+    private static native boolean optiRefine$isTextureAtlasSpriteAnimationActive(TextureAtlasSprite sprite);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite getFramesTextureData ()Ljava/util/List;")
     // [AUDIT-OK] OF member getFramesTextureData()Ljava/util/List; (vanilla only has getFrameTextureData(int)+static 4-arg), MCP name
-    private static native java.util.List<int[][]> TextureAtlasSprite_getFramesTextureData(TextureAtlasSprite sprite);
+    private static native java.util.List<int[][]> optiRefine$getTextureAtlasSpriteFramesTextureData(TextureAtlasSprite sprite);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite getAnimationMetadata ()Lnet/minecraft/client/resources/data/AnimationMetadataSection;")
     // [AUDIT-OK] OF member getAnimationMetadata(), MCP name (not in tsrg)
-    private static native net.minecraft.client.resources.data.AnimationMetadataSection TextureAtlasSprite_getAnimationMetadata(TextureAtlasSprite sprite);
+    private static native net.minecraft.client.resources.data.AnimationMetadataSection optiRefine$getTextureAtlasSpriteAnimationMetadata(TextureAtlasSprite sprite);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite setAnimationMetadata (Lnet/minecraft/client/resources/data/AnimationMetadataSection;)V")
     // [AUDIT-OK] OF member setAnimationMetadata(AnimationMetadataSection)V, MCP name (not in tsrg)
-    private static native void TextureAtlasSprite_setAnimationMetadata(TextureAtlasSprite sprite, net.minecraft.client.resources.data.AnimationMetadataSection animationMetadata);
+    private static native void optiRefine$setTextureAtlasSpriteAnimationMetadata(TextureAtlasSprite sprite, net.minecraft.client.resources.data.AnimationMetadataSection animationMetadata);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite spriteSingle Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;")
     // [AUDIT-OK] OF field spriteSingle, MCP name (not in tsrg)
-    private static native TextureAtlasSprite TextureAtlasSprite_spriteSingle_get(TextureAtlasSprite sprite);
+    private static native TextureAtlasSprite optiRefine$getTextureAtlasSpriteSpriteSingle(TextureAtlasSprite sprite);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite spriteNormal Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;")
     // [AUDIT-OK] OF field spriteNormal, MCP name (not in tsrg)
-    private static native TextureAtlasSprite TextureAtlasSprite_spriteNormal_get(TextureAtlasSprite sprite);
+    private static native TextureAtlasSprite optiRefine$getTextureAtlasSpriteSpriteNormal(TextureAtlasSprite sprite);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite spriteSpecular Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;")
     // [AUDIT-OK] OF field spriteSpecular, MCP name (not in tsrg)
-    private static native TextureAtlasSprite TextureAtlasSprite_spriteSpecular_get(TextureAtlasSprite sprite);
+    private static native TextureAtlasSprite optiRefine$getTextureAtlasSpriteSpriteSpecular(TextureAtlasSprite sprite);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.PUTFIELD, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite sheetWidth I")
     // [AUDIT-OK] OF field sheetWidth, MCP name (not in tsrg)
-    private static native void TextureAtlasSprite_sheetWidth_set(TextureAtlasSprite sprite, int value);
+    private static native void optiRefine$setTextureAtlasSpriteSheetWidth(TextureAtlasSprite sprite, int value);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.PUTFIELD, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite sheetHeight I")
     // [AUDIT-OK] OF field sheetHeight, MCP name (not in tsrg)
-    private static native void TextureAtlasSprite_sheetHeight_set(TextureAtlasSprite sprite, int value);
+    private static native void optiRefine$setTextureAtlasSpriteSheetHeight(TextureAtlasSprite sprite, int value);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.PUTFIELD, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite mipmapLevels I")
     // [AUDIT-OK] OF field mipmapLevels, MCP name (not in tsrg)
-    private static native void TextureAtlasSprite_mipmapLevels_set(TextureAtlasSprite sprite, int value);
+    private static native void optiRefine$setTextureAtlasSpriteMipmapLevels(TextureAtlasSprite sprite, int value);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.PUTFIELD, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite isEmissive Z")
     // [AUDIT-OK] OF field isEmissive, MCP name (not in tsrg)
-    private static native void TextureAtlasSprite_isEmissive_set(TextureAtlasSprite sprite, boolean value);
+    private static native void optiRefine$setTextureAtlasSpriteIsEmissive(TextureAtlasSprite sprite, boolean value);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.PUTFIELD, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite spriteEmissive Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;")
     // [AUDIT-OK] OF field spriteEmissive, MCP name (not in tsrg)
-    private static native void TextureAtlasSprite_spriteEmissive_set(TextureAtlasSprite sprite, TextureAtlasSprite value);
+    private static native void optiRefine$setTextureAtlasSpriteSpriteEmissive(TextureAtlasSprite sprite, TextureAtlasSprite value);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     // [AUDIT-FIXED] generateMipmaps is private vanilla; cross-class INVOKEVIRTUAL from TextureAtlasSprite needs public
     @AccessTransformer(name = "func_184397_a", deobf = true, access = org.objectweb.asm.Opcodes.ACC_PUBLIC)
-    private boolean acc_generateMipmaps(net.minecraft.client.resources.IResourceManager resourceManager, net.minecraft.client.renderer.texture.TextureAtlasSprite sprite) { return false; }
+    private boolean optiRefine$exposeMipmapGeneration(net.minecraft.client.resources.IResourceManager resourceManager, net.minecraft.client.renderer.texture.TextureAtlasSprite sprite) { return false; }
 
         @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureMap func_184397_a (Lnet/minecraft/client/resources/IResourceManager;Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;)Z", deobf = true)
     // [AUDIT-OK] desc )Z + deobf=true verified 2026-08-05
-    private static native boolean TextureMap_generateMipmaps(net.minecraft.client.renderer.texture.TextureMap textureMap, IResourceManager resourceManager, TextureAtlasSprite sprite);
+    private static native boolean optiRefine$generateTextureMapMipmaps(net.minecraft.client.renderer.texture.TextureMap textureMap, IResourceManager resourceManager, TextureAtlasSprite sprite);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureMap isAbsoluteLocation (Lnet/minecraft/util/ResourceLocation;)Z")
     // [AUDIT-OK] OF member isAbsoluteLocation(ResourceLocation)Z, MCP name (not in tsrg)
-    private static native boolean TextureMap_isAbsoluteLocation(net.minecraft.client.renderer.texture.TextureMap textureMap, ResourceLocation location);
+    private static native boolean optiRefine$isTextureMapAbsoluteLocation(net.minecraft.client.renderer.texture.TextureMap textureMap, ResourceLocation location);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureMap getMultiTexID ()Lnet/optifine/shaders/MultiTexID;")
     // [AUDIT-OK] OF member getMultiTexID()Lnet/optifine/shaders/MultiTexID; (inherited from AbstractTexture), MCP name
-    private static native net.optifine.shaders.MultiTexID TextureMap_getMultiTexID(net.minecraft.client.renderer.texture.TextureMap textureMap);
+    private static native net.optifine.shaders.MultiTexID optiRefine$getTextureMapMultiTexID(net.minecraft.client.renderer.texture.TextureMap textureMap);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.client.renderer.GlStateManager getBoundTexture ()I")
     // [AUDIT-OK] OF member GlStateManager.getBoundTexture()I (OF GlStateManager:797), MCP name (not in tsrg)
-    private static native int GlStateManager_getBoundTexture();
+    private static native int optiRefine$getGlStateManagerBoundTexture();
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.client.renderer.texture.TextureUtil func_94277_a (I)V", deobf = true)
     // [AUDIT-OK] vanilla SRG func_94277_a = TextureUtil.bindTexture(I)V
-    private static native void TextureUtil_bindTexture(int texture);
+    private static native void optiRefine$bindTextureId(int texture);
 
     private int countAnimationsActive;
     @Unique
@@ -274,7 +274,7 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
         int[][] aint1 = new int[this.mipmapLevels + 1][];
         aint1[0] = aint;
         this.missingImage.setFramesTextureData(java.util.Collections.singletonList(aint1));
-        TextureAtlasSprite_setIndexInMap(this.missingImage, this.counterIndexInMap.nextValue());
+        optiRefine$setTextureAtlasSpriteIndexInMap(this.missingImage, this.counterIndexInMap.nextValue());
         ci.cancel();
     }
 
@@ -317,7 +317,7 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
     private void optiRefine$loadTextureAtlas(IResourceManager resourceManager, Operation<Void> original) {
         Config.dbg("Multitexture: " + Config.isMultiTexture());
         for (TextureAtlasSprite sprite : this.mapUploadedSprites.values()) {
-            TextureAtlasSprite_deleteSpriteTexture(sprite);
+            optiRefine$deleteSpriteTexture(sprite);
         }
         ConnectedTextures.updateIcons((TextureMap) (Object) this);
         CustomItems.updateIcons((TextureMap) (Object) this);
@@ -339,7 +339,7 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
             TextureAtlasSprite textureatlassprite = SpriteDependencies.resolveDependencies(arraylist, k1, (TextureMap) (Object) this);
             ResourceLocation resourcelocation = this.getResourceLocation(textureatlassprite);
             IResource iresource = null;
-            TextureAtlasSprite_updateIndexInMap(textureatlassprite, this.counterIndexInMap);
+            optiRefine$updateSpriteIndexInMap(textureatlassprite, this.counterIndexInMap);
             if (textureatlassprite.hasCustomLoader(resourceManager, resourcelocation)) {
                 if (textureatlassprite.load(resourceManager, resourcelocation, loc -> this.mapRegisteredSprites.get(loc.toString()))) {
                     Config.detail("Custom loader (skipped): " + textureatlassprite);
@@ -455,7 +455,7 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
             }
 
             if (textureatlassprite1.hasAnimationMetadata()) {
-                TextureAtlasSprite_setAnimationIndex(textureatlassprite1, this.listAnimatedSprites.size());
+                optiRefine$setTextureAtlasSpriteAnimationIndex(textureatlassprite1, this.listAnimatedSprites.size());
                 this.listAnimatedSprites.add(textureatlassprite1);
             }
         }
@@ -470,25 +470,25 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
             int l3 = stitcher.getCurrentHeight();
 
             for (TextureAtlasSprite textureatlassprite3 : stitcher.getStichSlots()) {
-                TextureAtlasSprite_sheetWidth_set(textureatlassprite3, k3);
-                TextureAtlasSprite_sheetHeight_set(textureatlassprite3, l3);
-                TextureAtlasSprite_mipmapLevels_set(textureatlassprite3, this.mipmapLevels);
-                TextureAtlasSprite textureatlassprite4 = TextureAtlasSprite_spriteSingle_get(textureatlassprite3);
+                optiRefine$setTextureAtlasSpriteSheetWidth(textureatlassprite3, k3);
+                optiRefine$setTextureAtlasSpriteSheetHeight(textureatlassprite3, l3);
+                optiRefine$setTextureAtlasSpriteMipmapLevels(textureatlassprite3, this.mipmapLevels);
+                TextureAtlasSprite textureatlassprite4 = optiRefine$getTextureAtlasSpriteSpriteSingle(textureatlassprite3);
                 if (textureatlassprite4 != null) {
                     if (textureatlassprite4.getIconWidth() <= 0) {
                         textureatlassprite4.setIconWidth(textureatlassprite3.getIconWidth());
                         textureatlassprite4.setIconHeight(textureatlassprite3.getIconHeight());
                         textureatlassprite4.initSprite(textureatlassprite3.getIconWidth(), textureatlassprite3.getIconHeight(), 0, 0, false);
                         textureatlassprite4.clearFramesTextureData();
-                        List<int[][]> list = TextureAtlasSprite_getFramesTextureData(textureatlassprite3);
+                        List<int[][]> list = optiRefine$getTextureAtlasSpriteFramesTextureData(textureatlassprite3);
                         textureatlassprite4.setFramesTextureData(list);
-                        TextureAtlasSprite_setAnimationMetadata(textureatlassprite4, TextureAtlasSprite_getAnimationMetadata(textureatlassprite3));
+                        optiRefine$setTextureAtlasSpriteAnimationMetadata(textureatlassprite4, optiRefine$getTextureAtlasSpriteAnimationMetadata(textureatlassprite3));
                     }
-                    TextureAtlasSprite_sheetWidth_set(textureatlassprite4, k3);
-                    TextureAtlasSprite_sheetHeight_set(textureatlassprite4, l3);
-                    TextureAtlasSprite_mipmapLevels_set(textureatlassprite4, this.mipmapLevels);
-                    TextureAtlasSprite_setAnimationIndex(textureatlassprite4, TextureAtlasSprite_getAnimationIndex(textureatlassprite3));
-                    TextureAtlasSprite_bindSpriteTexture(textureatlassprite3);
+                    optiRefine$setTextureAtlasSpriteSheetWidth(textureatlassprite4, k3);
+                    optiRefine$setTextureAtlasSpriteSheetHeight(textureatlassprite4, l3);
+                    optiRefine$setTextureAtlasSpriteMipmapLevels(textureatlassprite4, this.mipmapLevels);
+                    optiRefine$setTextureAtlasSpriteAnimationIndex(textureatlassprite4, optiRefine$getTextureAtlasSpriteAnimationIndex(textureatlassprite3));
+                    optiRefine$bindSpriteTexture(textureatlassprite3);
                     boolean flag1 = false;
                     boolean flag2 = true;
 
@@ -568,7 +568,7 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
     @SuppressWarnings("unused")
     @mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessTransformer(name = "func_184396_a", access = org.objectweb.asm.Opcodes.ACC_PUBLIC, deobf = true)
     // [AUDIT-OK] SRG name func_184396_a + deobf=true verified 2026-08-05
-    private ResourceLocation acc_getResourceLocation(TextureAtlasSprite sprite) {
+    private ResourceLocation optiRefine$exposeSpriteResourceLocation(TextureAtlasSprite sprite) {
         return null;
     }
 
@@ -586,7 +586,7 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
     @Public
     // [AUDIT-OK] OF-added @Public method completeResourceLocation, not in baseline
     public ResourceLocation completeResourceLocation(ResourceLocation location) {
-        return TextureMap_isAbsoluteLocation((net.minecraft.client.renderer.texture.TextureMap)(Object) this, location)
+        return optiRefine$isTextureMapAbsoluteLocation((net.minecraft.client.renderer.texture.TextureMap)(Object) this, location)
                 ? new ResourceLocation(location.getNamespace(), location.getPath() + ".png")
                 : new ResourceLocation(location.getNamespace(), String.format("%s/%s%s", this.basePath, location.getPath(), ".png"));
     }
@@ -602,19 +602,19 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
     private void optiRefine$updateAnimations(Operation<Void> original) {
         boolean flag = false;
         boolean flag1 = false;
-        TextureUtil_bindTexture(this.getGlTextureId());
+        optiRefine$bindTextureId(this.getGlTextureId());
         int i = 0;
 
         for (TextureAtlasSprite textureatlassprite : this.listAnimatedSprites) {
             if (this.isTerrainAnimationActive(textureatlassprite)) {
                 textureatlassprite.updateAnimation();
-                if (TextureAtlasSprite_isAnimationActive(textureatlassprite)) {
+                if (optiRefine$isTextureAtlasSpriteAnimationActive(textureatlassprite)) {
                     ++i;
                 }
-                if (TextureAtlasSprite_spriteNormal_get(textureatlassprite) != null) {
+                if (optiRefine$getTextureAtlasSpriteSpriteNormal(textureatlassprite) != null) {
                     flag = true;
                 }
-                if (TextureAtlasSprite_spriteSpecular_get(textureatlassprite) != null) {
+                if (optiRefine$getTextureAtlasSpriteSpriteSpecular(textureatlassprite) != null) {
                     flag1 = true;
                 }
             }
@@ -623,53 +623,53 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
         if (Config.isMultiTexture()) {
             for (TextureAtlasSprite textureatlassprite1 : this.listAnimatedSprites) {
                 if (this.isTerrainAnimationActive(textureatlassprite1)) {
-                    TextureAtlasSprite textureatlassprite2 = TextureAtlasSprite_spriteSingle_get(textureatlassprite1);
+                    TextureAtlasSprite textureatlassprite2 = optiRefine$getTextureAtlasSpriteSpriteSingle(textureatlassprite1);
                     if (textureatlassprite2 != null) {
                         if (textureatlassprite1 == TextureUtils.iconClock || textureatlassprite1 == TextureUtils.iconCompass) {
                             textureatlassprite2.frameCounter = textureatlassprite1.frameCounter;
                         }
-                        TextureAtlasSprite_bindSpriteTexture(textureatlassprite1);
+                        optiRefine$bindSpriteTexture(textureatlassprite1);
                         textureatlassprite2.updateAnimation();
-                        if (TextureAtlasSprite_isAnimationActive(textureatlassprite2)) {
+                        if (optiRefine$isTextureAtlasSpriteAnimationActive(textureatlassprite2)) {
                             ++i;
                         }
                     }
                 }
             }
-            TextureUtil_bindTexture(this.getGlTextureId());
+            optiRefine$bindTextureId(this.getGlTextureId());
         }
 
         if (Config.isShaders()) {
             if (flag) {
-                TextureUtil_bindTexture(TextureMap_getMultiTexID((net.minecraft.client.renderer.texture.TextureMap)(Object) this).norm);
+                optiRefine$bindTextureId(optiRefine$getTextureMapMultiTexID((net.minecraft.client.renderer.texture.TextureMap)(Object) this).norm);
                 for (TextureAtlasSprite textureatlassprite3 : this.listAnimatedSprites) {
-                    if (TextureAtlasSprite_spriteNormal_get(textureatlassprite3) != null && this.isTerrainAnimationActive(textureatlassprite3)) {
+                    if (optiRefine$getTextureAtlasSpriteSpriteNormal(textureatlassprite3) != null && this.isTerrainAnimationActive(textureatlassprite3)) {
                         if (textureatlassprite3 == TextureUtils.iconClock || textureatlassprite3 == TextureUtils.iconCompass) {
-                            TextureAtlasSprite_spriteNormal_get(textureatlassprite3).frameCounter = textureatlassprite3.frameCounter;
+                            optiRefine$getTextureAtlasSpriteSpriteNormal(textureatlassprite3).frameCounter = textureatlassprite3.frameCounter;
                         }
-                        TextureAtlasSprite_spriteNormal_get(textureatlassprite3).updateAnimation();
-                        if (TextureAtlasSprite_isAnimationActive(TextureAtlasSprite_spriteNormal_get(textureatlassprite3))) {
+                        optiRefine$getTextureAtlasSpriteSpriteNormal(textureatlassprite3).updateAnimation();
+                        if (optiRefine$isTextureAtlasSpriteAnimationActive(optiRefine$getTextureAtlasSpriteSpriteNormal(textureatlassprite3))) {
                             ++i;
                         }
                     }
                 }
             }
             if (flag1) {
-                TextureUtil_bindTexture(TextureMap_getMultiTexID((net.minecraft.client.renderer.texture.TextureMap)(Object) this).spec);
+                optiRefine$bindTextureId(optiRefine$getTextureMapMultiTexID((net.minecraft.client.renderer.texture.TextureMap)(Object) this).spec);
                 for (TextureAtlasSprite textureatlassprite4 : this.listAnimatedSprites) {
-                    if (TextureAtlasSprite_spriteSpecular_get(textureatlassprite4) != null && this.isTerrainAnimationActive(textureatlassprite4)) {
+                    if (optiRefine$getTextureAtlasSpriteSpriteSpecular(textureatlassprite4) != null && this.isTerrainAnimationActive(textureatlassprite4)) {
                         if (textureatlassprite4 == TextureUtils.iconClock || textureatlassprite4 == TextureUtils.iconCompass) {
-                            TextureAtlasSprite_spriteSpecular_get(textureatlassprite4).frameCounter = textureatlassprite4.frameCounter;
+                            optiRefine$getTextureAtlasSpriteSpriteSpecular(textureatlassprite4).frameCounter = textureatlassprite4.frameCounter;
                         }
-                        TextureAtlasSprite_spriteSpecular_get(textureatlassprite4).updateAnimation();
-                        if (TextureAtlasSprite_isAnimationActive(TextureAtlasSprite_spriteSpecular_get(textureatlassprite4))) {
+                        optiRefine$getTextureAtlasSpriteSpriteSpecular(textureatlassprite4).updateAnimation();
+                        if (optiRefine$isTextureAtlasSpriteAnimationActive(optiRefine$getTextureAtlasSpriteSpriteSpecular(textureatlassprite4))) {
                             ++i;
                         }
                     }
                 }
             }
             if (flag || flag1) {
-                TextureUtil_bindTexture(this.getGlTextureId());
+                optiRefine$bindTextureId(this.getGlTextureId());
             }
         }
 
@@ -708,9 +708,9 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
         }
         TextureAtlasSprite textureatlassprite = this.mapRegisteredSprites.get(location.toString());
         if (textureatlassprite == null) {
-            textureatlassprite = TextureAtlasSprite_makeAtlasSprite(location);
+            textureatlassprite = optiRefine$createAtlasSprite(location);
             this.mapRegisteredSprites.put(location.toString(), textureatlassprite);
-            TextureAtlasSprite_updateIndexInMap(textureatlassprite, this.counterIndexInMap);
+            optiRefine$updateSpriteIndexInMap(textureatlassprite, this.counterIndexInMap);
             if (Config.isEmissiveTextures()) {
                 this.checkEmissive(location, textureatlassprite);
             }
@@ -723,7 +723,7 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
     // [AUDIT-FIXED] 2026-08-05 crash: SRG runtime uses the raw desc name (deobf remaps only on MCP
     // runtime), so the vanilla member must be written as its SRG name func_176604_a (= makeAtlasSprite,
     // tsrg:12970). The MCP name caused NoSuchMethodError at startup.
-    private static native TextureAtlasSprite TextureAtlasSprite_makeAtlasSprite(ResourceLocation location);
+    private static native TextureAtlasSprite optiRefine$createAtlasSprite(ResourceLocation location);
 
     // ===== new methods =====
 
@@ -852,7 +852,7 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
     @Public
     // [AUDIT-OK] OF-added @Public method isTextureBound, not in baseline
     public boolean isTextureBound() {
-        int i = GlStateManager_getBoundTexture();
+        int i = optiRefine$getGlStateManagerBoundTexture();
         int j = this.getGlTextureId();
         return i == j;
     }
@@ -926,8 +926,8 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
                 ResourceLocation resourcelocation1 = this.completeResourceLocation(resourcelocation);
                 if (Config.hasResource(resourcelocation1)) {
                     TextureAtlasSprite textureatlassprite = this.registerSprite(resourcelocation);
-                    TextureAtlasSprite_isEmissive_set(textureatlassprite, true);
-                    TextureAtlasSprite_spriteEmissive_set(sprite, textureatlassprite);
+                    optiRefine$setTextureAtlasSpriteIsEmissive(textureatlassprite, true);
+                    optiRefine$setTextureAtlasSpriteSpriteEmissive(sprite, textureatlassprite);
                 }
             }
         }
@@ -948,7 +948,7 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
 
     @Inject(method = "<init>*", at = @At("RETURN"))
     // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
-    private void optiRefine$initFields(CallbackInfo ci) {
+    private void optiRefine$initializeTextureAtlasState(CallbackInfo ci) {
         this.iconGrid = null;
         this.iconGridSize = -1;
         this.iconGridCountX = -1;

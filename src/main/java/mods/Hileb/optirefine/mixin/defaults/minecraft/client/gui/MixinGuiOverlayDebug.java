@@ -54,13 +54,13 @@ public abstract class MixinGuiOverlayDebug extends Gui {
     @AccessibleOperation.Reference(TextureMap.class)
 // [AUDIT-OK] OF-added member (not in tsrg): MCP name getCountAnimationsActive correct
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureMap getCountAnimationsActive ()I")
-    private native static int _acc_TextureMap_getCountAnimationsActive_(TextureMap instance);
+    private native static int optiRefine$getActiveTextureAnimationCount(TextureMap textureMap);
 
     @SuppressWarnings("unused")
     @Unique
 // [AUDIT-OK] OF-added member (not in tsrg): MCP name getCountAnimations correct
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureMap getCountAnimations ()I")
-    private native static int _acc_TextureMap_getCountAnimations_(TextureMap instance);
+    private native static int optiRefine$getTextureAnimationCount(TextureMap textureMap);
 
     @SuppressWarnings("unused")
     @Unique
@@ -73,7 +73,7 @@ public abstract class MixinGuiOverlayDebug extends Gui {
 
 // [AUDIT-OK] target call() (List<String>) matches baseline; instance handler, List return type matches
     @WrapMethod(method = "call")
-    public List<String> injectCall(Operation<List<String>> original){
+    public List<String> optiRefine$addPerformanceAndAnimationDebugInfo(Operation<List<String>> original){
         //noinspection StringEquality
         if (Minecraft.getMinecraft().debug != this.debugOF) {
             StringBuilder sb = new StringBuilder(Minecraft.getMinecraft().debug);
@@ -115,11 +115,11 @@ public abstract class MixinGuiOverlayDebug extends Gui {
         TextureMap tm = Config.getTextureMap();
         sbx.append(", A: ");
         if (SmartAnimations.isActive()) {
-            if (tm != null) sbx.append(_acc_TextureMap_getCountAnimationsActive_(tm) + TextureAnimations.getCountAnimationsActive());
+            if (tm != null) sbx.append(optiRefine$getActiveTextureAnimationCount(tm) + TextureAnimations.getCountAnimationsActive());
             sbx.append("/");
         }
 
-        if (tm != null) sbx.append(_acc_TextureMap_getCountAnimations_(tm) + TextureAnimations.getCountAnimations());
+        if (tm != null) sbx.append(optiRefine$getTextureAnimationCount(tm) + TextureAnimations.getCountAnimations());
         String ofInfo = sbx.toString();
 
         // [AUDIT-FIXED] .toList() is immutable; Forge's GuiOverlayDebugForge.getLeft adds rows to the returned list -> UnsupportedOperationException
@@ -128,7 +128,7 @@ public abstract class MixinGuiOverlayDebug extends Gui {
 
     // Cache only our base rows; Forge receives its own mutable list on every call.
     @WrapMethod(method = "getDebugInfoRight")
-    public List<String> injectGetDebugInfoRight(Operation<List<String>> original) {
+    public List<String> optiRefine$cacheSystemMemoryDebugInfo(Operation<List<String>> original) {
         List<String> list = this.debugInfoRight;
         if (list == null || System.currentTimeMillis() > this.updateInfoRightTimeMs) {
             list = new java.util.ArrayList<>(original.call());
@@ -146,7 +146,7 @@ public abstract class MixinGuiOverlayDebug extends Gui {
 
     @Inject(method = "<init>*", at = @At("RETURN"))
     // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
-    private void optiRefine$initFields(CallbackInfo ci) {
+    private void optiRefine$initializeDebugInfoCache(CallbackInfo ci) {
         this.debugOF = null;
         this.debugInfoLeft = null;
         this.debugInfoRight = null;

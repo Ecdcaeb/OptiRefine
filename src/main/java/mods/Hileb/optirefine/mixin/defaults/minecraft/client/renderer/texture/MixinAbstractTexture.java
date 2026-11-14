@@ -29,7 +29,7 @@ public abstract class MixinAbstractTexture {
 
     @Inject(method = "deleteGlTexture", at = @At("HEAD"))
     // [AUDIT-OK] target deleteGlTexture()V matches baseline; HEAD inject replicates OF ShadersTex.deleteTextures
-    public void ideleteGlTexture(CallbackInfo ci){
+    public void optiRefine$deleteShaderTextures(CallbackInfo ci){
         ShadersTex.deleteTextures((AbstractTexture)(Object)this, this.glTextureId);
     }
 
@@ -39,7 +39,7 @@ public abstract class MixinAbstractTexture {
 
     @Inject(method = "setBlurMipmapDirect", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GlStateManager;glTexParameteri(III)V", ordinal = 0))
     // [AUDIT-OK] target setBlurMipmapDirect(ZZ)V matches baseline; OF adds GlStateManager.bindTexture before params
-    public void bindTextureBefore(boolean p_174937_1_, boolean p_174937_2_, CallbackInfo ci){
+    public void optiRefine$bindBeforeTextureParameters(boolean blur, boolean mipmap, CallbackInfo ci){
         GlStateManager.bindTexture(this.getGlTextureId());
     }
 

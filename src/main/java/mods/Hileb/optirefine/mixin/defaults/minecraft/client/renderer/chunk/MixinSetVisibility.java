@@ -21,9 +21,9 @@ public abstract class MixinSetVisibility {
      */
     @Overwrite
     // [AUDIT-OK] @Overwrite (name-collision route, AGENT.md §4) — long-bitset semantics identical to OF SetVisibility; setManyVisible/toString still function via the overwritten methods
-    public void setVisible(EnumFacing facing, EnumFacing facing2, boolean p_178619_3_) {
-        this.optiRefine$setBit(facing.ordinal() + facing2.ordinal() * COUNT_FACES, p_178619_3_);
-        this.optiRefine$setBit(facing2.ordinal() + facing.ordinal() * COUNT_FACES, p_178619_3_);
+    public void setVisible(EnumFacing facing, EnumFacing facing2, boolean visible) {
+        this.optiRefine$setBit(facing.ordinal() + facing2.ordinal() * COUNT_FACES, visible);
+        this.optiRefine$setBit(facing2.ordinal() + facing.ordinal() * COUNT_FACES, visible);
     }
 
     /**
@@ -51,25 +51,25 @@ public abstract class MixinSetVisibility {
     }
 
     @Unique
-    private boolean optiRefine$getBit(int i) {
-        return (this.optiRefine$bits & 1L << i) != 0L;
+    private boolean optiRefine$getBit(int bitIndex) {
+        return (this.optiRefine$bits & 1L << bitIndex) != 0L;
     }
 
-    private void optiRefine$setBit(int i, boolean on) {
+    private void optiRefine$setBit(int bitIndex, boolean on) {
         if (on) {
-            this.optiRefine$setBit(i);
+            this.optiRefine$setBit(bitIndex);
         } else {
-            this.optiRefine$clearBit(i);
+            this.optiRefine$clearBit(bitIndex);
         }
     }
 
     @Unique
-    private void optiRefine$setBit(int i) {
-        this.optiRefine$bits |= 1L << i;
+    private void optiRefine$setBit(int bitIndex) {
+        this.optiRefine$bits |= 1L << bitIndex;
     }
 
     @Unique
-    private void optiRefine$clearBit(int i) {
-        this.optiRefine$bits &= ~(1L << i);
+    private void optiRefine$clearBit(int bitIndex) {
+        this.optiRefine$bits &= ~(1L << bitIndex);
     }
 }

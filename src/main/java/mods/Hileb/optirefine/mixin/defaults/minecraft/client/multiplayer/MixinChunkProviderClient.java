@@ -14,5 +14,5 @@ public abstract class MixinChunkProviderClient {
     @SuppressWarnings({"unused", "MissingUnique"})
     @Unique
     @AccessTransformer(name = "field_73236_b", deobf = true, access = Opcodes.ACC_PUBLIC)
-    private Long2ObjectMap<Chunk> acc_loadedChunks;
+    private Long2ObjectMap<Chunk> optiRefine$loadedChunksAccess;
 }

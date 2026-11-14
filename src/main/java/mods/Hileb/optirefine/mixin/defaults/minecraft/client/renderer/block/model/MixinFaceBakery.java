@@ -26,13 +26,13 @@ public abstract class MixinFaceBakery {
 // [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
 
     @AccessTransformer(access = Opcodes.ACC_PUBLIC, name = "func_178412_b", deobf = true)
-    public float optirefine$acc_getFaceBrightness(EnumFacing facing) { return 0.0F; }
+    public float optiRefine$exposeFaceBrightness(EnumFacing facing) { return 0.0F; }
 
     @WrapOperation(method = "fillVertexData([IILnet/minecraft/util/EnumFacing;Lnet/minecraft/client/renderer/block/model/BlockFaceUV;[FLnet/minecraft/client/renderer/texture/TextureAtlasSprite;Lnet/minecraftforge/common/model/ITransformation;Lnet/minecraft/client/renderer/block/model/BlockPartRotation;Z)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/block/model/FaceBakery;storeVertexData([IIILorg/lwjgl/util/vector/Vector3f;ILnet/minecraft/client/renderer/texture/TextureAtlasSprite;Lnet/minecraft/client/renderer/block/model/BlockFaceUV;)V"))
     // [AUDIT-OK] fillVertexData 9-arg ITransformation desc matches cleanroom patch (FaceBakery.java.patch); storeVertexData desc baseline; snapVertexPosition matches OF:178
-    public void snapVertexPosition(FaceBakery instance, int[] faceData, int storeIndex, int vertexIndex, Vector3f position, int shadeColor, TextureAtlasSprite sprite, BlockFaceUV faceUV, Operation<Void> original, @Local(ordinal = 0) Vector3f vector3f){
-        BlockModelUtils.snapVertexPosition(vector3f);
-        original.call(instance, faceData, storeIndex, vertexIndex, position, shadeColor, sprite, faceUV);
+    public void optiRefine$snapVertexPosition(FaceBakery faceBakery, int[] faceData, int storeIndex, int vertexIndex, Vector3f position, int shadeColor, TextureAtlasSprite sprite, BlockFaceUV faceUV, Operation<Void> original, @Local(ordinal = 0) Vector3f vertexPosition){
+        BlockModelUtils.snapVertexPosition(vertexPosition);
+        original.call(faceBakery, faceData, storeIndex, vertexIndex, position, shadeColor, sprite, faceUV);
     }
 
     // Keep the base quad compact until ForgeHooksClient.fillNormal has processed its
@@ -40,21 +40,21 @@ public abstract class MixinFaceBakery {
 
     @ModifyConstant(method = "getFaceBrightness", constant = @Constant(floatValue = 0.5F))
     // [AUDIT-OK] getFaceBrightness baseline; 0.5/0.8/0.6 -> Shaders.blockLightLevel05/08/06 match OF:125/134/141
-    public float wideShaderSize05_getFaceBrightness(float constant){
+    public float optiRefine$shaderDownFaceBrightness(float constant){
         if (Config.isShaders()) {
             return Shaders.blockLightLevel05;
         } else return constant;
     }
 
     @ModifyConstant(method = "getFaceBrightness", constant = @Constant(floatValue = 0.8F))
-    public float wideShaderSize08_getFaceBrightness(float constant){
+    public float optiRefine$shaderNorthSouthFaceBrightness(float constant){
         if (Config.isShaders()) {
             return Shaders.blockLightLevel08;
         } else return constant;
     }
 
     @ModifyConstant(method = "getFaceBrightness", constant = @Constant(floatValue = 0.6F))
-    public float wideShaderSize06_getFaceBrightness(float constant){
+    public float optiRefine$shaderEastWestFaceBrightness(float constant){
         if (Config.isShaders()) {
             return Shaders.blockLightLevel06;
         } else return constant;

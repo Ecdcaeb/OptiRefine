@@ -36,7 +36,7 @@ public abstract class MixinTextureManager {
 
     @WrapMethod(method = "bindTexture")
     // [AUDIT-OK] target bindTexture(ResourceLocation)V matches baseline; RandomEntities/CustomGuis rewrite matches OF bindTexture
-    public void beforeBindTexture(ResourceLocation resource, Operation<Void> original){
+    public void optiRefine$resolveCustomTextureLocation(ResourceLocation resource, Operation<Void> original){
         if (Config.isRandomEntities()) {
             resource = RandomEntities.getTextureLocation(resource);
         }
@@ -49,21 +49,21 @@ public abstract class MixinTextureManager {
 
     @WrapOperation(method = "bindTexture", at = @At(value = "INVOKE", target = "Ljava/util/Map;get(Ljava/lang/Object;)Ljava/lang/Object;"))
     // [AUDIT-OK] target bindTexture; emissive substitution on Map.get matches OF (null-safe like OF)
-    public Object processTexture(Map<ResourceLocation, ITextureObject> instance, Object o, Operation<ITextureObject> original){
-        ITextureObject iTextureObject = original.call(instance, o);
+    public Object optiRefine$resolveEmissiveTexture(Map<ResourceLocation, ITextureObject> textures, Object textureLocation, Operation<ITextureObject> original){
+        ITextureObject iTextureObject = original.call(textures, textureLocation);
         if (EmissiveTextures.isActive()) {
-            iTextureObject = EmissiveTextures.getEmissiveTexture(iTextureObject, instance);
+            iTextureObject = EmissiveTextures.getEmissiveTexture(iTextureObject, textures);
         }
         return iTextureObject;
     }
 
     @WrapOperation(method = "bindTexture", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/texture/TextureUtil;bindTexture(I)V"))
     // [AUDIT-OK] target bindTexture; shaders bind + boundTexture/boundTextureLocation tracking matches OF
-    public void modifyBindTexture(int p_94277_0_, Operation<Void> original, @Local(ordinal = 0) ITextureObject iTextureObject, @Local(argsOnly = true) ResourceLocation resource){
+    public void optiRefine$bindShaderTexture(int textureId, Operation<Void> original, @Local(ordinal = 0) ITextureObject iTextureObject, @Local(argsOnly = true) ResourceLocation resource){
         if (Config.isShaders()) {
             ShadersTex.bindTexture(iTextureObject);
         } else {
-            original.call(p_94277_0_);
+            original.call(textureId);
         }
 
         this.boundTexture = iTextureObject;
@@ -72,7 +72,7 @@ public abstract class MixinTextureManager {
 
     @WrapMethod(method = "getDynamicTextureLocation")
     // [AUDIT-OK] target getDynamicTextureLocation(String,DynamicTexture) matches baseline; logo -> Config.getMojangLogoTexture like OF
-    public ResourceLocation mojangLogo(String name, DynamicTexture texture, Operation<ResourceLocation> original){
+    public ResourceLocation optiRefine$replaceMojangLogoTexture(String name, DynamicTexture texture, Operation<ResourceLocation> original){
         if ("logo".equals(name)) {
             texture = Config.getMojangLogoTexture(texture);
         }
@@ -112,8 +112,8 @@ public abstract class MixinTextureManager {
 
     @WrapMethod(method = "onResourceManagerReload(Lnet/minecraft/client/resources/IResourceManager;)V")
     // [AUDIT-FIXED] single-param reload bridges to the selective listener (Forge chain); OF cleanup runs only on TEXTURES reloads
-    private void optiRefine$onReloadBridge(IResourceManager rm, Operation<Void> original) {
-        this.srrl$onResourceManagerReload(rm, SelectiveReloadStateHandler.INSTANCE.get());
+    private void optiRefine$onReloadBridge(IResourceManager resourceManager, Operation<Void> original) {
+        this.srrl$onResourceManagerReload(resourceManager, SelectiveReloadStateHandler.INSTANCE.get());
     }
 
     @Unique

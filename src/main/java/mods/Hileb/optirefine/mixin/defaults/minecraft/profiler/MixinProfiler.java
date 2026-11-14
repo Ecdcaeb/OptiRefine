@@ -55,7 +55,7 @@ public abstract class MixinProfiler {
 
     @Inject(method = "clearProfiling", at = @At("RETURN"))
 // [AUDIT-OK] clearProfiling RETURN refresh (localEnabled = globalEnabled) matches OF clearProfiling tail
-    public void injectClearProfiling(CallbackInfo ci){
+    public void optiRefine$refreshProfilingEnabled(CallbackInfo ci){
         this.profilerLocalEnabled = this.profilerGlobalEnabled;
     }
 
@@ -63,7 +63,7 @@ public abstract class MixinProfiler {
     // [AUDIT-FIXED] three-way audit (P25): OF gates the vanilla body on profilerLocalEnabled (OF:64-75);
     // converted from @Inject HEAD so the body can be gated while Lagometer/fastRender side effects run
     // unconditionally (mirroring endSection/func_194340_a which are already gated).
-    public void injectStartSection(String name, Operation<Void> original){
+    public void optiRefine$startEnabledSection(String name, Operation<Void> original){
         if (Lagometer.isActive()) {
             int hashName = name.hashCode();
             if (hashName == HASH_SCHEDULED_EXECUTABLES && name.equals("scheduledExecutables")) {
@@ -79,9 +79,9 @@ public abstract class MixinProfiler {
         if (Config.isFastRender()) {
             int hashName = name.hashCode();
             if (hashName == HASH_RENDER && name.equals("render")) {
-                _set_GlStateManager_clearEnabled(false);
+                optiRefine$setClearEnabled(false);
             } else if (hashName == HASH_DISPLAY && name.equals("display")) {
-                _set_GlStateManager_clearEnabled(true);
+                optiRefine$setClearEnabled(true);
             }
         }
 
@@ -93,15 +93,15 @@ public abstract class MixinProfiler {
 
     @WrapMethod(method = "func_194340_a")
 // [AUDIT-OK] startSection(Supplier) wrap matches OF (func_194340_a not in tsrg - same name both runtimes); localEnabled gate matches OF
-    public void inject_func_194340_a(Supplier<String> p_194340_1_, Operation<Void> original){
+    public void optiRefine$startEnabledSuppliedSection(Supplier<String> sectionNameSupplier, Operation<Void> original){
         if (this.profilerLocalEnabled) {
-            original.call(p_194340_1_);
+            original.call(sectionNameSupplier);
         }
     }
 
     @WrapMethod(method = "endSection")
 // [AUDIT-FIXED] gate on profilerLocalEnabled like startSection/func_194340_a (OF semantics)
-    public void injectEndSection(Operation<Void> original){
+    public void optiRefine$endEnabledSection(Operation<Void> original){
         if (this.profilerLocalEnabled) original.call();
     }
 
@@ -114,17 +114,17 @@ public abstract class MixinProfiler {
 
     @WrapMethod(method = "endStartSection")
 // [AUDIT-OK] endStartSection wrap matches OF (localEnabled gate)
-    public void injectEndStartSection(String p_76318_1_, Operation<Void> original){
+    public void optiRefine$switchEnabledSection(String sectionName, Operation<Void> original){
         if (this.profilerLocalEnabled) {
-            original.call(p_76318_1_);
+            original.call(sectionName);
         }
     }
 
     @WrapMethod(method = "func_194339_b")
 // [AUDIT-OK] endStartSection(Supplier) wrap matches OF (localEnabled gate)
-    public void inject_func_194339_b(Supplier<String> p_194339_1_, Operation<Void> original) {
+    public void optiRefine$switchEnabledSuppliedSection(Supplier<String> sectionNameSupplier, Operation<Void> original) {
         if (this.profilerLocalEnabled) {
-            original.call(p_194339_1_);
+            original.call(sectionNameSupplier);
         }
     }
 
@@ -132,13 +132,13 @@ public abstract class MixinProfiler {
     @Unique
     @AccessibleOperation(opcode = Opcodes.PUTSTATIC, desc = "net/minecraft/client/renderer/GlStateManager clearEnabled Z")
 // [AUDIT-OK] OF member GlStateManager.clearEnabled (in OF, not in baseline; provided by MixinGlStateManager), MCP name OK
-    private static void _set_GlStateManager_clearEnabled(boolean val){
+    private static void optiRefine$setClearEnabled(boolean enabled){
         throw new AbstractMethodError();
     }
 
     @Inject(method = "<init>*", at = @At("RETURN"))
     // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
-    private void optiRefine$initFields(CallbackInfo ci) {
+    private void optiRefine$initializeProfilerFlags(CallbackInfo ci) {
         this.profilerGlobalEnabled = true;
         this.profilerLocalEnabled = this.profilerGlobalEnabled;
     }

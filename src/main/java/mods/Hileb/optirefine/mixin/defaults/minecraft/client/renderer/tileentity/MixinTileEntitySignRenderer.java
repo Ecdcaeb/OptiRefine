@@ -26,10 +26,10 @@ public abstract class MixinTileEntitySignRenderer {
 
     @Redirect(method = "render(Lnet/minecraft/tileentity/TileEntitySign;DDDFIF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/FontRenderer;drawString(Ljava/lang/String;III)I"))
     // [AUDIT-OK] both drawString INVOKEs redirected; getSignTextColor matches OF:78
-    public int injectdrawStringColor(FontRenderer instance, String p_78276_1_, int p_78276_2_, int p_78276_3_, int p_78276_4_){
+    public int optiRefine$drawCustomSignTextColor(FontRenderer fontRenderer, String text, int x, int y, int color){
         if (Config.isCustomColors()) {
-            return instance.drawString(p_78276_1_, p_78276_2_, p_78276_3_, CustomColors.getSignTextColor(p_78276_4_));
-        } else return instance.drawString(p_78276_1_, p_78276_2_, p_78276_3_, p_78276_4_);
+            return fontRenderer.drawString(text, x, y, CustomColors.getSignTextColor(color));
+        } else return fontRenderer.drawString(text, x, y, color);
     }
 
 
@@ -37,8 +37,8 @@ public abstract class MixinTileEntitySignRenderer {
     @Expression("destroyStage < 0")
     @ModifyExpressionValue(method = "render(Lnet/minecraft/tileentity/TileEntitySign;DDDFIF)V", at = @At("MIXINEXTRAS:EXPRESSION"))
     // destroyStage is the only int argument; the tile entity is captured from arguments too.
-    public boolean disableTextRendering(boolean o, @Local(argsOnly = true) TileEntitySign entity){
-        return o && isRenderText(entity);
+    public boolean optiRefine$cullDistantSignText(boolean original, @Local(argsOnly = true) TileEntitySign sign){
+        return original && isRenderText(sign);
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")

@@ -14,6 +14,6 @@ public abstract class MixinContainerLocalRenderInformation {
     @SuppressWarnings({"unused", "MissingUnique"})
     @Unique
     @AccessTransformer(name = "<init>", access = Opcodes.ACC_PUBLIC)
-    public void acc_ctor(RenderGlobal renderGlobal, RenderChunk renderChunk, EnumFacing facing, int counter) {
+    public void optiRefine$exposeRenderInfoConstructor(RenderGlobal renderGlobal, RenderChunk renderChunk, EnumFacing facing, int counter) {
     }
 }

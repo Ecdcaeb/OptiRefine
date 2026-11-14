@@ -11,9 +11,9 @@ public abstract class MixinAbstractResourcePack {
 
     @AccessTransformer(name = "field_110597_b", deobf = true)
     // [AUDIT-OK] vanilla SRG field_110597_b = resourcePackFile; @AccessTransformer public, no initializer (assignment only in mixin ctor, never injected into target <init>), deobf=true (per contract)
-    public final File acc__resourcePackFile;
+    public final File optiRefine$resourcePackFileAccess;
 
-    protected MixinAbstractResourcePack( File acc__resourcePackFile) {
-        this.acc__resourcePackFile = acc__resourcePackFile;
+    protected MixinAbstractResourcePack( File resourcePackFile) {
+        this.optiRefine$resourcePackFileAccess = resourcePackFile;
     }
 }

@@ -26,14 +26,14 @@ public abstract class MixinGuiDownloadTerrain extends GuiScreen {
 
 // [AUDIT-OK] target drawScreen matches baseline; drawBackground(I)V invoke (inherited GuiScreen) matches; replicates OF
     @WrapOperation(method = "drawScreen", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiDownloadTerrain;drawBackground(I)V"))
-    public void injectDrawScreen(GuiDownloadTerrain instance, int i, Operation<Void> original) {
+    public void optiRefine$drawCustomLoadingBackground(GuiDownloadTerrain screen, int backgroundTint, Operation<Void> original) {
         if (optiRefine$customLoadingScreen != null) {
             optiRefine$customLoadingScreen.drawBackground(this.width, this.height);
-        } else original.call(instance, i);
+        } else original.call(screen, backgroundTint);
     }
 
     @Inject(method = "<init>*", at = @At("RETURN"))
-    private void optiRefine$initFields(CallbackInfo ci) {
+    private void optiRefine$initializeCustomLoadingScreen(CallbackInfo ci) {
         this.optiRefine$customLoadingScreen = CustomLoadingScreens.getCustomLoadingScreen();
     }
 }

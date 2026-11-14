@@ -91,16 +91,16 @@ public abstract class MixinRenderChunk {
 
     @Inject(method = "<init>", at = @At("RETURN"))
     private void optiRefine$initRenderInfo(CallbackInfo ci) {
-        this.renderInfo_RenderGlobal_ContainerLocalRenderInformation = new_RenderGlobal_ContainerLocalRenderInformation(AccessibleOperation.Construction.construction(), this.renderGlobal, (RenderChunk)(Object)this, null, 0);
+        this.renderInfo_RenderGlobal_ContainerLocalRenderInformation = optiRefine$createLocalRenderInformation(AccessibleOperation.Construction.construction(), this.renderGlobal, (RenderChunk)(Object)this, null, 0);
     }
 
     @AccessibleOperation(opcode = Opcodes.NEW, desc = "net.minecraft.client.renderer.RenderGlobal$ContainerLocalRenderInformation (Lnet/minecraft/client/renderer/RenderGlobal;Lnet/minecraft/client/renderer/chunk/RenderChunk;Lnet/minecraft/util/EnumFacing;I)V")
-    private static native Object new_RenderGlobal_ContainerLocalRenderInformation(AccessibleOperation.Construction construction, RenderGlobal renderGlobal, RenderChunk p_i46248_2, @Nullable EnumFacing p_i46248_3, int p_i46248_4);
+    private static native Object optiRefine$createLocalRenderInformation(AccessibleOperation.Construction construction, RenderGlobal renderGlobal, RenderChunk renderChunk, @Nullable EnumFacing facing, int counter);
 
 
     @Redirect(method = "setPosition", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/EnumFacing;values()[Lnet/minecraft/util/EnumFacing;"))
     // [AUDIT-OK] setPosition values() INVOKE unique; VALUES matches OF:121
-    public EnumFacing[] setPosition$EnumValues(){
+    public EnumFacing[] optiRefine$getCachedFacings(){
         return EnumFacing.VALUES;
     }
 
@@ -109,11 +109,11 @@ public abstract class MixinRenderChunk {
     public abstract BlockPos getBlockPosOffset16(EnumFacing facing);
 
     @AccessibleOperation(opcode = Opcodes.PUTFIELD, desc = "net.minecraft.client.renderer.chunk.RenderChunk renderChunkNeighboursUpated Z")
-    private static native void RenderChunk_renderChunkNeighboursUpated_set(RenderChunk renderChunk, boolean val);
+    private static native void optiRefine$setRenderChunkNeighboursUpdated(RenderChunk renderChunk, boolean updated);
 
     @WrapOperation(method = "setPosition", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/chunk/RenderChunk;initModelviewMatrix()V"))
     // [AUDIT-OK] initModelviewMatrix INVOKE unique in setPosition; region/neighbour/chunk/boundingBoxParent resets match OF:119-139
-    public void beforeInitModelviewMatrix(RenderChunk instance, Operation<Void> original, @Local(argsOnly = true, ordinal = 0) int x, @Local(argsOnly = true, ordinal = 2) int z){
+    public void optiRefine$resetRegionAndNeighbourState(RenderChunk renderChunk, Operation<Void> original, @Local(argsOnly = true, ordinal = 0) int x, @Local(argsOnly = true, ordinal = 2) int z){
         int bits = 8;
         this.regionX = x >> bits << bits;
         this.regionZ = z >> bits << bits;
@@ -122,13 +122,13 @@ public abstract class MixinRenderChunk {
 
         for (RenderChunk neighbour : this.renderChunkNeighbours) {
             if (neighbour != null) {
-                RenderChunk_renderChunkNeighboursUpated_set(neighbour, false);
+                optiRefine$setRenderChunkNeighboursUpdated(neighbour, false);
             }
         }
 
         this.chunk = null;
         this.boundingBoxParent = null;
-        original.call(instance);
+        original.call(renderChunk);
     }
 
     @Shadow
@@ -140,7 +140,7 @@ public abstract class MixinRenderChunk {
 
     @WrapMethod(method = "resortTransparency")
     // [AUDIT-OK] baseline (deobf:112); body matches OF:143-152
-    public void resortTransparency(float x, float y, float z, ChunkCompileTaskGenerator generator, Operation<Void> original) {
+    public void optiRefine$resortTransparency(float x, float y, float z, ChunkCompileTaskGenerator generator, Operation<Void> original) {
         CompiledChunk compiledchunk = generator.getCompiledChunk();
         if (compiledchunk.getState() != null && !compiledchunk.isLayerEmpty(BlockRenderLayer.TRANSLUCENT)) {
             BufferBuilder bufferTranslucent = generator.getRegionRenderCacheBuilder().getWorldRendererByLayer(BlockRenderLayer.TRANSLUCENT);
@@ -152,19 +152,19 @@ public abstract class MixinRenderChunk {
 
     @Redirect(method = "rebuildChunk", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/BlockRenderLayer;values()[Lnet/minecraft/util/BlockRenderLayer;"))
     // [AUDIT-OK] BlockRenderLayer.values() in rebuildChunk (2 sites incl. cleanroom canRenderInLayer loop) -> ENUM_WORLD_BLOCK_LAYERS, matches OF:204
-    public BlockRenderLayer[] rebuildChunk$BlockRenderLayer$values(){
+    public BlockRenderLayer[] optiRefine$getCachedBlockLayers(){
         return ENUM_WORLD_BLOCK_LAYERS;
     }
 
     @WrapOperation(method = "rebuildChunk", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/RegionRenderCacheBuilder;getWorldRendererByLayerId(I)Lnet/minecraft/client/renderer/BufferBuilder;"))
     // [AUDIT-OK] getWorldRendererByLayerId INVOKE; getRenderEnv + setRegionRenderCacheBuilder match OF:225-227
-    public BufferBuilder processPreBlockRender(RegionRenderCacheBuilder instance, int id, Operation<BufferBuilder> original, @Local IBlockState iblockstate, @Local BlockPos.MutableBlockPos blockpos$mutableblockpos, @Local(argsOnly = true) ChunkCompileTaskGenerator generator,
+    public BufferBuilder optiRefine$prepareBlockRenderEnvironment(RegionRenderCacheBuilder cacheBuilder, int layerId, Operation<BufferBuilder> original, @Local IBlockState state, @Local BlockPos.MutableBlockPos pos, @Local(argsOnly = true) ChunkCompileTaskGenerator generator,
                                                @Share(namespace = "optifine", value = "renderEnv")LocalRef<RenderEnv> renderEnvLocalRef, @Local BlockRenderLayer blockRenderLayer){
-        BufferBuilder bufferBuilder = original.call(instance, id);
+        BufferBuilder bufferBuilder = original.call(cacheBuilder, layerId);
         // [AUDIT-FIXED] three-way audit (P9): OF:227 setBlockLayer(fixed layer) before renderBlock;
         // drawnIcons/multi-texture key off it.
-        BufferBuilder_setBlockLayer(bufferBuilder, this.optiRefine$fixBlockLayer(iblockstate, blockRenderLayer));
-        RenderEnv renderEnv = BufferBuilder_getRenderEnv(bufferBuilder, iblockstate, blockpos$mutableblockpos);
+        optiRefine$setBufferBlockLayer(bufferBuilder, this.optiRefine$fixBlockLayer(state, blockRenderLayer));
+        RenderEnv renderEnv = optiRefine$getBufferRenderEnv(bufferBuilder, state, pos);
         renderEnv.setRegionRenderCacheBuilder(generator.getRegionRenderCacheBuilder());
         renderEnvLocalRef.set(renderEnv);
         return bufferBuilder;
@@ -172,77 +172,77 @@ public abstract class MixinRenderChunk {
 
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/BufferBuilder setBlockLayer (Lnet.minecraft.util.BlockRenderLayer;)V")
-    private static native void BufferBuilder_setBlockLayer(BufferBuilder builder, BlockRenderLayer blockLayer);
+    private static native void optiRefine$setBufferBlockLayer(BufferBuilder builder, BlockRenderLayer blockLayer);
 
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/BufferBuilder getRenderEnv (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/math/BlockPos;)Lnet/optifine/render/RenderEnv;")
-    private static native RenderEnv BufferBuilder_getRenderEnv(BufferBuilder builder, IBlockState blockStateIn, BlockPos blockPosIn);
+    private static native RenderEnv optiRefine$getBufferRenderEnv(BufferBuilder builder, IBlockState blockStateIn, BlockPos blockPosIn);
 
     @WrapOperation(method = "rebuildChunk", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/BlockRendererDispatcher;renderBlock(Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/client/renderer/BufferBuilder;)Z"))
     // [AUDIT-OK] renderBlock INVOKE; overlays post-render matches OF:231-236
-    public boolean rebuildChunk$renderBlock(BlockRendererDispatcher instance, IBlockState enumblockrendertype, BlockPos crashreport, IBlockAccess crashreportcategory, BufferBuilder throwable, Operation<Boolean> original, @Share(namespace = "optifine", value = "renderEnv")LocalRef<RenderEnv> renderEnvLocalRef, @Local BlockRenderLayer blockRenderLayer, @Local boolean[] aboolean, @Local(argsOnly = true) ChunkCompileTaskGenerator generator, @Local CompiledChunk compiledchunk){
-        boolean b = original.call(instance, enumblockrendertype, crashreport, crashreportcategory, throwable);
+    public boolean optiRefine$renderBlockOverlays(BlockRendererDispatcher blockRenderer, IBlockState state, BlockPos pos, IBlockAccess world, BufferBuilder buffer, Operation<Boolean> original, @Share(namespace = "optifine", value = "renderEnv")LocalRef<RenderEnv> renderEnvLocalRef, @Local BlockRenderLayer blockRenderLayer, @Local boolean[] renderedLayers, @Local(argsOnly = true) ChunkCompileTaskGenerator generator, @Local CompiledChunk compiledChunk){
+        boolean b = original.call(blockRenderer, state, pos, world, buffer);
         // [AUDIT-FIXED] three-way audit (2026-08-05): OF:235 aboolean[fixed ordinal] |= b (var43 = fixBlockLayer(...).ordinal(), OF:223-224);
         // unfixed ordinal mis-indexes layersUsed when fixBlockLayer remaps (mipmaps/CustomBlockLayers)
         // -> RenderGlobal.isLayerEmpty skips populated layer, block invisible.
-        int layerIndex = this.optiRefine$fixBlockLayer(enumblockrendertype, blockRenderLayer).ordinal();
-        aboolean[layerIndex] |= b;
+        int layerIndex = this.optiRefine$fixBlockLayer(state, blockRenderLayer).ordinal();
+        renderedLayers[layerIndex] |= b;
         RenderEnv renderEnv = renderEnvLocalRef.get();
         if (renderEnv != null && renderEnv.isOverlaysRendered()) {
-            this.optiRefine$postRenderOverlays(generator.getRegionRenderCacheBuilder(), compiledchunk, aboolean);
+            this.optiRefine$postRenderOverlays(generator.getRegionRenderCacheBuilder(), compiledChunk, renderedLayers);
             renderEnv.setOverlaysRendered(false);
         }
         // The caller has already loaded the old flag for its |= expression.
         // Preserve overlays added above when that pending array store completes.
-        return aboolean[layerIndex];
+        return renderedLayers[layerIndex];
     }
 
     @WrapOperation(method = "rebuildChunk", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/chunk/RenderChunk;postRenderBlocks(Lnet/minecraft/util/BlockRenderLayer;FFFLnet/minecraft/client/renderer/BufferBuilder;Lnet/minecraft/client/renderer/chunk/CompiledChunk;)V"))
     // [AUDIT-OK] postRenderBlocks INVOKE; calcNormalChunkLayer + animatedSprites clone match OF:253-261
-    public void wrappostRenderBlocks(RenderChunk instance, BlockRenderLayer layer, float x, float y, float z, BufferBuilder bufferBuilderIn, CompiledChunk compiledChunkIn, Operation<Void> original, @Local(argsOnly = true) ChunkCompileTaskGenerator generator){
+    public void optiRefine$finishLayerNormalsAndAnimations(RenderChunk renderChunk, BlockRenderLayer layer, float x, float y, float z, BufferBuilder bufferBuilderIn, CompiledChunk compiledChunkIn, Operation<Void> original, @Local(argsOnly = true) ChunkCompileTaskGenerator generator){
         if (Config.isShaders()) {
             SVertexBuilder.calcNormalChunkLayer(generator.getRegionRenderCacheBuilder().getWorldRendererByLayer(layer));
         }
 
         BufferBuilder bufferBuilder = generator.getRegionRenderCacheBuilder().getWorldRendererByLayer(layer);
-        original.call(instance, layer, x, y, z, bufferBuilder, compiledChunkIn);
-        if (BufferBuilder_animatedSprites_get(bufferBuilder) != null) {
-            CompiledChunk_setAnimatedSprites(compiledChunkIn, layer, (BitSet)BufferBuilder_animatedSprites_get(bufferBuilder).clone());
+        original.call(renderChunk, layer, x, y, z, bufferBuilder, compiledChunkIn);
+        if (optiRefine$getBufferAnimatedSprites(bufferBuilder) != null) {
+            optiRefine$setCompiledChunkAnimatedSprites(compiledChunkIn, layer, (BitSet)optiRefine$getBufferAnimatedSprites(bufferBuilder).clone());
         }
     }
 
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.BufferBuilder animatedSprites Ljava.util.BitSet;")
-    private static native BitSet BufferBuilder_animatedSprites_get(BufferBuilder builder);
+    private static native BitSet optiRefine$getBufferAnimatedSprites(BufferBuilder builder);
 
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.chunk.CompiledChunk setAnimatedSprites (Lnet.minecraft.util.BlockRenderLayer;Ljava.util.BitSet;)V")
-    private static native void CompiledChunk_setAnimatedSprites(CompiledChunk compiledChunk, BlockRenderLayer layer, BitSet animatedSprites);
+    private static native void optiRefine$setCompiledChunkAnimatedSprites(CompiledChunk compiledChunk, BlockRenderLayer layer, BitSet animatedSprites);
 
     @WrapOperation(method = "rebuildChunk", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/BlockRenderLayer;ordinal()I", ordinal = 0))
     // [AUDIT-FIXED] three-way audit (P9): OF applies fixBlockLayer right after layer selection (OF:223),
     // before ordinal/getWorldRendererByLayerId; main-loop ordinal() is the first ordinal() in rebuildChunk.
-    public int rebuildChunk$fixBlockLayerOrdinal(BlockRenderLayer layer, Operation<Integer> original, @Local IBlockState iblockstate) {
-        return this.optiRefine$fixBlockLayer(iblockstate, layer).ordinal();
+    public int optiRefine$getEffectiveLayerOrdinal(BlockRenderLayer layer, Operation<Integer> original, @Local IBlockState state) {
+        return this.optiRefine$fixBlockLayer(state, layer).ordinal();
     }
 
     @WrapOperation(method = "rebuildChunk", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/chunk/CompiledChunk;isLayerStarted(Lnet/minecraft/util/BlockRenderLayer;)Z", ordinal = 0))
     // [AUDIT-FIXED] three-way audit (P9): main-loop isLayerStarted must see the FIXED layer (OF:233-236).
-    public boolean rebuildChunk$fixBlockLayerIsStarted(CompiledChunk instance, BlockRenderLayer layer, Operation<Boolean> original, @Local IBlockState iblockstate) {
-        return original.call(instance, this.optiRefine$fixBlockLayer(iblockstate, layer));
+    public boolean optiRefine$isEffectiveLayerStarted(CompiledChunk compiledChunk, BlockRenderLayer layer, Operation<Boolean> original, @Local IBlockState state) {
+        return original.call(compiledChunk, this.optiRefine$fixBlockLayer(state, layer));
     }
 
     @WrapOperation(method = "rebuildChunk", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/chunk/CompiledChunk;setLayerStarted(Lnet/minecraft/util/BlockRenderLayer;)V"))
     // [AUDIT-FIXED] three-way audit (P9): setLayerStarted with the fixed layer (OF:234).
-    public void rebuildChunk$fixBlockLayerSetStarted(CompiledChunk instance, BlockRenderLayer layer, Operation<Void> original, @Local IBlockState iblockstate) {
-        original.call(instance, this.optiRefine$fixBlockLayer(iblockstate, layer));
+    public void optiRefine$markEffectiveLayerStarted(CompiledChunk compiledChunk, BlockRenderLayer layer, Operation<Void> original, @Local IBlockState state) {
+        original.call(compiledChunk, this.optiRefine$fixBlockLayer(state, layer));
     }
 
     @WrapOperation(method = "rebuildChunk", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/chunk/CompiledChunk;isLayerStarted(Lnet/minecraft/util/BlockRenderLayer;)Z", ordinal = 1))
     // [AUDIT-OK] isLayerStarted ordinal 1 (post-loop); null-reset matches OF:264
-    public boolean ifisNotLayerStartedWeReloadAnimi(CompiledChunk instance, BlockRenderLayer layer, Operation<Boolean> original){
-        if (original.call(instance, layer)) {
+    public boolean optiRefine$clearUnstartedLayerAnimations(CompiledChunk compiledChunk, BlockRenderLayer layer, Operation<Boolean> original){
+        if (original.call(compiledChunk, layer)) {
             return true;
         } else {
-            CompiledChunk_setAnimatedSprites(instance, layer, null);
+            optiRefine$setCompiledChunkAnimatedSprites(compiledChunk, layer, null);
             return false;
         }
     }
@@ -250,20 +250,20 @@ public abstract class MixinRenderChunk {
 
     @WrapMethod(method = "rebuildWorldView")
     // [AUDIT-OK] rebuildWorldView baseline (deobf:278); OF stubs it out (OF:320) — empty wrap equivalent
-    private void $rebuildWorldView(Operation<Void> original) {
+    private void optiRefine$skipWorldViewRebuild(Operation<Void> original) {
     }
 
     @WrapOperation(method = "preRenderBlocks", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/BufferBuilder;setTranslation(DDD)V"))
     // [AUDIT-OK] setTranslation wrap with region offsets matches OF preRenderBlocks
-    private void preRenderBlocks$setTranslationRegion(BufferBuilder instance, double x, double y, double z, Operation<Void> original, @Local(argsOnly = true) BlockPos pos){
+    private void optiRefine$translateToRenderRegion(BufferBuilder buffer, double x, double y, double z, Operation<Void> original, @Local(argsOnly = true) BlockPos pos){
         if (Config.isRenderRegions()) {
             int bits = 8;
             int dx = this.regionX;
             int dy = pos.getY() >> bits << bits;
             int dz =  this.regionZ;
-            original.call(instance, (double)-dx, (double)-dy, (double)-dz);
+            original.call(buffer, (double)-dx, (double)-dy, (double)-dz);
         } else {
-            original.call(instance, x, y, z);
+            original.call(buffer, x, y, z);
         }
     }
 
@@ -271,7 +271,7 @@ public abstract class MixinRenderChunk {
     // [AUDIT-FIXED] three-way audit (P9): moved from needsUpdate() TAIL to setNeedsUpdate TAIL —
     // OF sets playerUpdate inside setNeedsUpdate (OF:431-440); needsUpdate() is polled every frame
     // so the old hook raised false positives for all chunks during player-update ticks.
-    public void postNeedsUpdate(boolean needsImmediateUpdate, CallbackInfo ci){
+    public void optiRefine$markPlayerUpdate(boolean needsImmediateUpdate, CallbackInfo ci){
         if (this.isWorldPlayerUpdate()) {
             this.playerUpdate = true;
         }
@@ -279,7 +279,7 @@ public abstract class MixinRenderChunk {
 
     @Inject(method = "clearNeedsUpdate", at = @At("TAIL"))
     // [AUDIT-OK] clearNeedsUpdate baseline; playerUpdate=false matches OF:445
-    public void post$clearNeedsUpdate(CallbackInfo ci){
+    public void optiRefine$clearPlayerUpdate(CallbackInfo ci){
         this.playerUpdate = false;
     }
 
@@ -288,14 +288,14 @@ public abstract class MixinRenderChunk {
     private boolean isWorldPlayerUpdate() {
         if (this.world instanceof WorldClient worldClient) {
             // [AUDIT-OK] WorldClient.isPlayerUpdate is OF-added (OF WorldClient:490) — MCP name, no deobf correct; provider in MixinWorldClient
-            return WorldClient_isPlayerUpdate(worldClient);
+            return optiRefine$isWorldClientPlayerUpdate(worldClient);
         } else {
             return false;
         }
     }
 
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.multiplayer.WorldClient isPlayerUpdate ()Z")
-    private static native boolean WorldClient_isPlayerUpdate(WorldClient world);
+    private static native boolean optiRefine$isWorldClientPlayerUpdate(WorldClient world);
 
     // [AUDIT-OK] OF-added member (OF RenderChunk)
     public boolean isPlayerUpdate() {
@@ -344,12 +344,12 @@ public abstract class MixinRenderChunk {
     }
 
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.BufferBuilder isDrawing ()Z")
-    private static native boolean BufferBuilder_isDrawing(BufferBuilder builder);
+    private static native boolean optiRefine$isBufferDrawing(BufferBuilder builder);
 
     @Unique
     private void optiRefine$postRenderOverlay(BlockRenderLayer layer, RegionRenderCacheBuilder regionRenderCacheBuilder, CompiledChunk compiledchunk, boolean[] layerFlags) {
         BufferBuilder bufferOverlay = regionRenderCacheBuilder.getWorldRendererByLayer(layer);
-        if (BufferBuilder_isDrawing(bufferOverlay)) {
+        if (optiRefine$isBufferDrawing(bufferOverlay)) {
             compiledchunk.setLayerStarted(layer);
             layerFlags[layer.ordinal()] = true;
         }
@@ -363,7 +363,7 @@ public abstract class MixinRenderChunk {
     //@Deprecated worldView
     @Redirect(method = "rebuildChunk", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/ChunkCache;isEmpty()Z"))
     // [AUDIT-OK] ChunkCacheOF swap + renderStart/renderFinish match OF rebuildChunk:292-310
-    public boolean ifWorldViewEmpty(ChunkCache instance, @Local(ordinal = 0) BlockPos pos, @Share(namespace = "optifine", value = "chunkCacheOF") LocalRef<IBlockAccess> chunkCacheOF){
+    public boolean optiRefine$startChunkCacheRender(ChunkCache chunkCache, @Local(ordinal = 0) BlockPos pos, @Share(namespace = "optifine", value = "chunkCacheOF") LocalRef<IBlockAccess> chunkCacheOF){
         if (this.optiRefine$isChunkRegionEmpty(pos)) {
             return true;
         } else {
@@ -375,28 +375,28 @@ public abstract class MixinRenderChunk {
     }
 
     @Redirect(method = "rebuildChunk", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/ChunkCache;getBlockState(Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/block/state/IBlockState;"))
-    public IBlockState worldView$getBlockState(ChunkCache instance, BlockPos i, @Share(namespace = "optifine", value = "chunkCacheOF") LocalRef<IBlockAccess> chunkCacheOF){
-        return chunkCacheOF.get().getBlockState(i);
+    public IBlockState optiRefine$getCachedBlockState(ChunkCache chunkCache, BlockPos pos, @Share(namespace = "optifine", value = "chunkCacheOF") LocalRef<IBlockAccess> chunkCacheOF){
+        return chunkCacheOF.get().getBlockState(pos);
     }
 
     @Redirect(method = "rebuildChunk", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/ChunkCache;getTileEntity(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/world/chunk/Chunk$EnumCreateEntityType;)Lnet/minecraft/tileentity/TileEntity;"))
-    public TileEntity worldView$getTileEntity(ChunkCache instance, BlockPos pos, Chunk.EnumCreateEntityType createType, @Share(namespace = "optifine", value = "chunkCacheOF") LocalRef<IBlockAccess> chunkCacheOF){
+    public TileEntity optiRefine$getCachedTileEntity(ChunkCache chunkCache, BlockPos pos, Chunk.EnumCreateEntityType createType, @Share(namespace = "optifine", value = "chunkCacheOF") LocalRef<IBlockAccess> chunkCacheOF){
         return ((ChunkCacheOF)chunkCacheOF.get()).getTileEntity(pos, createType);
     }
 
     @WrapOperation(method = "rebuildChunk", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/BlockRendererDispatcher;renderBlock(Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/client/renderer/BufferBuilder;)Z"))
-    public boolean useOFCacheForRender(BlockRendererDispatcher instance, IBlockState enumblockrendertype, BlockPos crashreport, IBlockAccess crashreportcategory, BufferBuilder throwable, Operation<Boolean> original, @Share(namespace = "optifine", value = "chunkCacheOF") LocalRef<IBlockAccess> chunkCacheOF){
-        return original.call(instance, enumblockrendertype, crashreport, chunkCacheOF.get(), throwable);
+    public boolean optiRefine$renderBlockWithChunkCache(BlockRendererDispatcher blockRenderer, IBlockState state, BlockPos pos, IBlockAccess world, BufferBuilder buffer, Operation<Boolean> original, @Share(namespace = "optifine", value = "chunkCacheOF") LocalRef<IBlockAccess> chunkCacheOF){
+        return original.call(blockRenderer, state, pos, chunkCacheOF.get(), buffer);
     }
 
     @WrapOperation(method = "rebuildChunk", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/chunk/CompiledChunk;setVisibility(Lnet/minecraft/client/renderer/chunk/SetVisibility;)V"))
-    public void renderFinished(CompiledChunk instance, SetVisibility visibility, Operation<Void> original, @Share(namespace = "optifine", value = "chunkCacheOF") LocalRef<IBlockAccess> chunkCacheOF){
+    public void optiRefine$finishChunkCacheRender(CompiledChunk compiledChunk, SetVisibility visibility, Operation<Void> original, @Share(namespace = "optifine", value = "chunkCacheOF") LocalRef<IBlockAccess> chunkCacheOF){
         // [AUDIT-FIXED] empty chunk regions never set chunkCacheOF (OF only calls renderFinish in the non-empty branch); null-guard
         IBlockAccess chunkCacheOFValue = chunkCacheOF.get();
         if (chunkCacheOFValue != null) {
             ((ChunkCacheOF)chunkCacheOFValue).renderFinish();
         }
-        original.call(instance, visibility);
+        original.call(compiledChunk, visibility);
     }
 
     private ChunkCacheOF optiRefine$makeChunkCacheOF(BlockPos posIn) {
@@ -421,7 +421,7 @@ public abstract class MixinRenderChunk {
 
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.ViewFrustum func_178161_a (Lnet.minecraft.util.math.BlockPos;)Lnet.minecraft.client.renderer.chunk.RenderChunk;", deobf = true)
     // [AUDIT-OK] SRG func_178161_a (=ViewFrustum.getRenderChunk, tsrg) + deobf=true double-matching (2026-08-05 verified)
-    private static native RenderChunk ViewFrustum_getRenderChunk(ViewFrustum viewFrustum, BlockPos b);
+    private static native RenderChunk optiRefine$getViewFrustumRenderChunk(ViewFrustum viewFrustum, BlockPos pos);
     @SuppressWarnings("AddedMixinMembersNamePattern")
     // [AUDIT-OK] OF-added member (OF:534); matches OF:534-544
     public RenderChunk getRenderChunkOffset16(ViewFrustum viewFrustum, EnumFacing facing) {
@@ -429,7 +429,7 @@ public abstract class MixinRenderChunk {
             for (int i = 0; i < EnumFacing.VALUES.length; i++) {
                 EnumFacing ef = EnumFacing.VALUES[i];
                 BlockPos posOffset16 = this.getBlockPosOffset16(ef);
-                this.renderChunksOfset16[i] = ViewFrustum_getRenderChunk(viewFrustum, posOffset16);
+                this.renderChunksOfset16[i] = optiRefine$getViewFrustumRenderChunk(viewFrustum, posOffset16);
             }
 
             this.renderChunksOffset16Updated = true;
@@ -533,10 +533,10 @@ public abstract class MixinRenderChunk {
 
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.RenderGlobal getRenderChunk (Lnet.minecraft.util.math.BlockPos;)Lnet.minecraft.client.renderer.chunk.RenderChunk;")
     // [AUDIT-OK] provider MixinRenderGlobal.optiRefine$getRenderChunk exists (2026-08-05 verified)
-    private static native RenderChunk RenderGrobal_getRenderChunk(RenderGlobal renderGlobal, BlockPos blockPos);
+    private static native RenderChunk optiRefine$getRenderGlobalRenderChunk(RenderGlobal renderGlobal, BlockPos blockPos);
 
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.chunk.RenderChunk getBoundingBoxParent ()Lnet.optifine.render.AabbFrame;")
-    private static native AabbFrame RenderChunk_getBoundingBoxParent(RenderChunk renderChunk);
+    private static native AabbFrame optiRefine$getRenderChunkBoundingBoxParent(RenderChunk renderChunk);
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
@@ -552,7 +552,7 @@ public abstract class MixinRenderChunk {
             int yp = y >> bits << bits;
             int zp = z >> bits << bits;
             if (xp != x || yp != y || zp != z) {
-                AabbFrame bbp = RenderChunk_getBoundingBoxParent(RenderGrobal_getRenderChunk(this.renderGlobal, new BlockPos(xp, yp, zp)));
+                AabbFrame bbp = optiRefine$getRenderChunkBoundingBoxParent(optiRefine$getRenderGlobalRenderChunk(this.renderGlobal, new BlockPos(xp, yp, zp)));
                 if (bbp != null && bbp.minX == xp && bbp.minY == yp && bbp.minZ == zp) {
                     this.boundingBoxParent = bbp;
                 }
@@ -570,7 +570,7 @@ public abstract class MixinRenderChunk {
 
     @Inject(method = "<init>*", at = @At("RETURN"))
     // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
-    private void optiRefine$initFields(CallbackInfo ci) {
+    private void optiRefine$initializeChunkRenderState(CallbackInfo ci) {
         this.blockLayersSingle = new BlockRenderLayer[1];
         this.isMipmaps = Config.isMipmaps();
         this.fixBlockLayer = true;

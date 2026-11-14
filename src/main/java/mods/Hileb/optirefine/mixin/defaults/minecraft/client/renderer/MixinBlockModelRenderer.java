@@ -76,18 +76,18 @@ public abstract class MixinBlockModelRenderer {
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/block/model/FaceBakery func_178412_b (Lnet/minecraft/util/EnumFacing;)F", deobf = true)
-    private static native float FaceBakery_getFaceBrightness(FaceBakery instance, EnumFacing facing);
+    private static native float optiRefine$getFaceBakeryFaceBrightness(FaceBakery faceBakery, EnumFacing facing);
 
     @Unique
     private static float optiRefine$faceBrightness(EnumFacing facing) {
         if (optiRefine$faceBakery == null) {
             optiRefine$faceBakery = new FaceBakery();
         }
-        return FaceBakery_getFaceBrightness(optiRefine$faceBakery, facing);
+        return optiRefine$getFaceBakeryFaceBrightness(optiRefine$faceBakery, facing);
     }
 
     @Inject(method = "<init>", at = @At("RETURN"))
-    public void closeForgeLightPipelineAtConstructor(BlockColors p_i46575_1, CallbackInfo ci) {
+    public void optiRefine$disableForgeLightPipeline(BlockColors blockColors, CallbackInfo ci) {
 // [AUDIT-OK] target <init>(Lnet/minecraft/client/renderer/color/BlockColors;)V; disables Forge light pipeline per OF
         ForgeModContainer.forgeLightPipelineEnabled = false;
     }
@@ -99,7 +99,7 @@ public abstract class MixinBlockModelRenderer {
     @Shadow public abstract boolean renderModelSmooth(IBlockAccess worldIn, IBakedModel modelIn, IBlockState stateIn, BlockPos posIn, BufferBuilder buffer, boolean checkSides, long rand);
 
     @WrapMethod(method = "renderModel(Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/client/renderer/block/model/IBakedModel;Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/client/renderer/BufferBuilder;ZJ)Z")
-    public boolean renderModel(IBlockAccess worldIn, IBakedModel modelIn, IBlockState stateIn, BlockPos posIn, BufferBuilder buffer, boolean checkSides, long rand, Operation<Boolean> original) {
+    public boolean optiRefine$renderModel(IBlockAccess worldIn, IBakedModel modelIn, IBlockState stateIn, BlockPos posIn, BufferBuilder buffer, boolean checkSides, long rand, Operation<Boolean> original) {
 // [AUDIT-OK] target renderModel(LIBlockAccess;LIBakedModel;LIBlockState;LBlockPos;LBufferBuilder;ZJ)Z (SRG func_187493_a) matches baseline
         boolean flag = Minecraft.isAmbientOcclusionEnabled() && stateIn.getLightValue(worldIn, posIn) == 0 && modelIn.isAmbientOcclusion(stateIn);
         boolean entityPushed = false;
@@ -112,7 +112,7 @@ public abstract class MixinBlockModelRenderer {
             if (!Config.isAlternateBlocks()) {
                 rand = 0L;
             }
-            RenderEnv renderEnv = BufferBuilder_getRenderEnv(buffer, stateIn, posIn);
+            RenderEnv renderEnv = optiRefine$getBufferRenderEnv(buffer, stateIn, posIn);
             modelIn = BlockModelCustomizer.getRenderModel(modelIn, stateIn, renderEnv);
             boolean rendered = flag
                     ? this.renderModelSmooth(worldIn, modelIn, stateIn, posIn, buffer, checkSides, rand)
@@ -137,69 +137,69 @@ public abstract class MixinBlockModelRenderer {
 
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/BufferBuilder getRenderEnv (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/math/BlockPos;)Lnet/optifine/render/RenderEnv;", deobf = true)
 // [AUDIT-OK] OF member BufferBuilder.getRenderEnv (MixinBufferBuilder @Unique provides); deobf=true no-op for OF names
-    private static RenderEnv BufferBuilder_getRenderEnv(BufferBuilder builder, IBlockState blockStateIn, BlockPos blockPosIn) {
+    private static RenderEnv optiRefine$getBufferRenderEnv(BufferBuilder builder, IBlockState blockStateIn, BlockPos blockPosIn) {
         throw new AbstractMethodError();
     }
 
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/BufferBuilder getBlockLayer ()Lnet.minecraft.util.BlockRenderLayer;", deobf = true)
 // [AUDIT-OK] OF member BufferBuilder.getBlockLayer; deobf=true no-op
-    private static BlockRenderLayer BufferBuilder_getBlockLayer(BufferBuilder builder) {
+    private static BlockRenderLayer optiRefine$getBufferBlockLayer(BufferBuilder builder) {
         throw new AbstractMethodError();
     }
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite isEmissive Z", deobf = true)
 // [AUDIT-OK] OF field TextureAtlasSprite.isEmissive, not in baseline (MixinTextureAtlasSprite @Public)
-    private static native boolean TextureAtlasSprite_isEmissive_get(TextureAtlasSprite sprite);
+    private static native boolean optiRefine$isSpriteEmissive(TextureAtlasSprite sprite);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/block/model/BakedQuad getVertexDataSingle ()[I", deobf = true)
 // [AUDIT-OK] OF member BakedQuad.getVertexDataSingle, not in baseline (MixinBakedQuad provides)
-    private static native int[] BakedQuad_getVertexDataSingle(BakedQuad quad);
+    private static native int[] optiRefine$getBakedQuadVertexDataSingle(BakedQuad quad);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/block/model/BakedQuad getQuadEmissive ()Lnet/minecraft/client/renderer/block/model/BakedQuad;", deobf = true)
 // [AUDIT-OK] OF member BakedQuad.getQuadEmissive, not in baseline
-    private static native BakedQuad BakedQuad_getQuadEmissive(BakedQuad quad);
+    private static native BakedQuad optiRefine$getEmissiveQuad(BakedQuad quad);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/BufferBuilder getXOffset ()D", deobf = true)
 // [AUDIT-OK] OF member BufferBuilder.getXOffset (MixinBufferBuilder @Unique)
-    private static native double BufferBuilder_getXOffset(BufferBuilder buffer);
+    private static native double optiRefine$getBufferXOffset(BufferBuilder buffer);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/BufferBuilder isDrawing ()Z", deobf = true)
 // [AUDIT-OK] OF member BufferBuilder.isDrawing
-    private static native boolean BufferBuilder_isDrawing(BufferBuilder buffer);
+    private static native boolean optiRefine$isBufferDrawing(BufferBuilder buffer);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/BufferBuilder getYOffset ()D", deobf = true)
 // [AUDIT-OK] OF member BufferBuilder.getYOffset
-    private static native double BufferBuilder_getYOffset(BufferBuilder buffer);
+    private static native double optiRefine$getBufferYOffset(BufferBuilder buffer);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/BufferBuilder getZOffset ()D", deobf = true)
 // [AUDIT-OK] OF member BufferBuilder.getZOffset
-    private static native double BufferBuilder_getZOffset(BufferBuilder buffer);
+    private static native double optiRefine$getBufferZOffset(BufferBuilder buffer);
 
     @Inject(method = "renderModelSmooth", at = @At("HEAD"))
-    public void initRenderModelSmooth(IBlockAccess worldIn, IBakedModel modelIn, IBlockState stateIn, BlockPos posIn, BufferBuilder buffer, boolean checkSides, long rand, CallbackInfoReturnable<Boolean> cir,
+    public void optiRefine$initSmoothRenderEnvironment(IBlockAccess worldIn, IBakedModel modelIn, IBlockState stateIn, BlockPos posIn, BufferBuilder buffer, boolean checkSides, long rand, CallbackInfoReturnable<Boolean> cir,
 // [AUDIT-OK] target renderModelSmooth matches baseline (non-void -> CallbackInfoReturnable)
                                       @Share(namespace = "optirefine", value = "renderEnv") LocalRef<RenderEnv> envLocalRef,
                                       @Share(namespace = "optirefine", value = "layer") LocalRef<BlockRenderLayer> layerLocalRef
     ) {
 
-        envLocalRef.set(BufferBuilder_getRenderEnv(buffer, stateIn, posIn));
-        layerLocalRef.set(BufferBuilder_getBlockLayer(buffer));
+        envLocalRef.set(optiRefine$getBufferRenderEnv(buffer, stateIn, posIn));
+        layerLocalRef.set(optiRefine$getBufferBlockLayer(buffer));
     }
 
     @Redirect(method = "renderModelSmooth", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/BlockModelRenderer;renderQuadsSmooth(Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/client/renderer/BufferBuilder;Ljava/util/List;[FLjava/util/BitSet;Lnet/minecraft/client/renderer/BlockModelRenderer$AmbientOcclusionFace;)V"))
-    public void makeCustomQuadsRenderModelSmooth(BlockModelRenderer instance, IBlockAccess k, IBlockState f, BlockPos f1, BufferBuilder f2, List<BakedQuad> bakedquad, float[] j, BitSet bitSet, BlockModelRenderer.AmbientOcclusionFace blockAccessIn,
+    public void optiRefine$renderCustomSmoothQuads(BlockModelRenderer renderer, IBlockAccess world, IBlockState state, BlockPos pos, BufferBuilder buffer, List<BakedQuad> quads, float[] quadBounds, BitSet boundsFlags, BlockModelRenderer.AmbientOcclusionFace ambientOcclusionFace,
                                                  @Share(namespace = "optirefine", value = "renderEnv") LocalRef<RenderEnv> envLocalRef,
                                                  @Share(namespace = "optirefine", value = "layer") LocalRef<BlockRenderLayer> layerLocalRef,
                                                  @Share(namespace = "optirefine", value = "facing") LocalRef<EnumFacing> facingLocalRef, @Local(argsOnly = true) long rand) {
-        bakedquad = BlockModelCustomizer.getRenderQuads(bakedquad, k, f, f1, facingLocalRef.get(), layerLocalRef.get(), rand, envLocalRef.get());
-        this.renderQuadsSmooth(k, f, f1, f2, bakedquad, envLocalRef.get());
+        quads = BlockModelCustomizer.getRenderQuads(quads, world, state, pos, facingLocalRef.get(), layerLocalRef.get(), rand, envLocalRef.get());
+        this.renderQuadsSmooth(world, state, pos, buffer, quads, envLocalRef.get());
     }
 
     @WrapOperation(method = {"renderModelSmooth", "renderModelFlat"}, at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/block/model/IBakedModel;getQuads(Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/EnumFacing;J)Ljava/util/List;"))
@@ -210,57 +210,57 @@ public abstract class MixinBlockModelRenderer {
     }
 
     @Inject(method = "renderModelFlat", at = @At("HEAD"))
-    public void initRenderModelFlat(IBlockAccess worldIn, IBakedModel modelIn, IBlockState stateIn, BlockPos posIn, BufferBuilder buffer, boolean checkSides, long rand, CallbackInfoReturnable<Boolean> cir,
+    public void optiRefine$initFlatRenderEnvironment(IBlockAccess worldIn, IBakedModel modelIn, IBlockState stateIn, BlockPos posIn, BufferBuilder buffer, boolean checkSides, long rand, CallbackInfoReturnable<Boolean> cir,
 // [AUDIT-OK] target renderModelFlat matches baseline
                                     @Share(namespace = "optirefine", value = "renderEnv") LocalRef<RenderEnv> envLocalRef,
                                     @Share(namespace = "optirefine", value = "layer") LocalRef<BlockRenderLayer> layerLocalRef
     ) {
 
-        envLocalRef.set(BufferBuilder_getRenderEnv(buffer, stateIn, posIn));
-        layerLocalRef.set(BufferBuilder_getBlockLayer(buffer));
+        envLocalRef.set(optiRefine$getBufferRenderEnv(buffer, stateIn, posIn));
+        layerLocalRef.set(optiRefine$getBufferBlockLayer(buffer));
     }
 
     @Redirect(method = "renderModelFlat", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/BlockModelRenderer;renderQuadsFlat(Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/math/BlockPos;IZLnet/minecraft/client/renderer/BufferBuilder;Ljava/util/List;Ljava/util/BitSet;)V"))
-    public void makeCustomQuadsRenderModelFlat(BlockModelRenderer instance, IBlockAccess diffuse, IBlockState k, BlockPos f, int f1, boolean f2, BufferBuilder
-            builder, List<BakedQuad> bakedquad, BitSet j, @Share(namespace = "optirefine", value = "renderEnv") LocalRef<RenderEnv> envLocalRef, @Share(namespace = "optirefine", value = "layer") LocalRef<BlockRenderLayer> layerLocalRef, @Share(namespace = "optirefine", value = "facing") LocalRef<EnumFacing> facingLocalRef, @Local(argsOnly = true) long rand) {
-        bakedquad = BlockModelCustomizer.getRenderQuads(bakedquad, diffuse, k, f, facingLocalRef.get(), layerLocalRef.get(), rand, envLocalRef.get());
-        this.renderQuadsFlat(diffuse, k, f, f1, f2, builder, bakedquad, envLocalRef.get());
+    public void optiRefine$renderCustomFlatQuads(BlockModelRenderer renderer, IBlockAccess world, IBlockState state, BlockPos pos, int brightness, boolean ownBrightness, BufferBuilder
+            builder, List<BakedQuad> quads, BitSet boundsFlags, @Share(namespace = "optirefine", value = "renderEnv") LocalRef<RenderEnv> envLocalRef, @Share(namespace = "optirefine", value = "layer") LocalRef<BlockRenderLayer> layerLocalRef, @Share(namespace = "optirefine", value = "facing") LocalRef<EnumFacing> facingLocalRef, @Local(argsOnly = true) long rand) {
+        quads = BlockModelCustomizer.getRenderQuads(quads, world, state, pos, facingLocalRef.get(), layerLocalRef.get(), rand, envLocalRef.get());
+        this.renderQuadsFlat(world, state, pos, brightness, ownBrightness, builder, quads, envLocalRef.get());
     }
 
     
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/BufferBuilder isMultiTexture ()Z")
 // [AUDIT-OK] OF member BufferBuilder.isMultiTexture
-    private static native boolean BufferBuilder_isMultiTexture(BufferBuilder builder);
+    private static native boolean optiRefine$isBufferMultiTexture(BufferBuilder builder);
 
     
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, deobf = true, desc = "net/minecraft/client/renderer/BufferBuilder putColorMultiplierRgba (FFFFI)V")
 // [AUDIT-OK] OF member BufferBuilder.putColorMultiplierRgba(5-arg)
-    private static native void BufferBuilder_putColorMultiplierRgba(BufferBuilder builder, float red, float green, float blue, float alpha, int vertexIndex);
+    private static native void optiRefine$putBufferColorMultiplierRgba(BufferBuilder builder, float red, float green, float blue, float alpha, int vertexIndex);
 
     
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, deobf = true, desc = "net/minecraft/client/renderer/BufferBuilder putSprite (Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;)V")
 // [AUDIT-OK] OF member BufferBuilder.putSprite
-    private static native void BufferBuilder_putSprite(BufferBuilder builder, TextureAtlasSprite sprite);
+    private static native void optiRefine$putBufferSprite(BufferBuilder builder, TextureAtlasSprite sprite);
 
     
     @AccessibleOperation(opcode = Opcodes.GETFIELD, deobf = true, desc = "net.minecraft.client.renderer.BlockModelRenderer$AmbientOcclusionFace field_178206_b [F")
 // [AUDIT-OK] vanilla SRG field_178206_b = vertexColorMultiplier, deobf=true
-    private static native float[] AmbientOcclusionFace_vertexColorMultiplier(Object instance);
+    private static native float[] optiRefine$getAmbientOcclusionVertexColorMultiplier(Object ambientOcclusionFace);
 
     
     @AccessibleOperation(opcode = Opcodes.GETFIELD, deobf = true, desc = "net.minecraft.client.renderer.BlockModelRenderer$AmbientOcclusionFace field_178207_c [I")
 // [AUDIT-OK] vanilla SRG field_178207_c = vertexBrightness, deobf=true
-    private static native int[] AmbientOcclusionFace_vertexBrightness(Object instance);
+    private static native int[] optiRefine$getAmbientOcclusionVertexBrightness(Object ambientOcclusionFace);
 
     
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, deobf = true, desc = "net.minecraft.client.renderer.BlockModelRenderer$AmbientOcclusionFace setMaxBlockLight ()V")
 // [AUDIT-OK] OF member AmbientOcclusionFace.setMaxBlockLight (MixinBlockModelRender$AmbientOcclusionFace @Unique)
-    private static native void AmbientOcclusionFace_setMaxBlockLight(Object instance);
+    private static native void optiRefine$setAmbientOcclusionMaxBlockLight(Object ambientOcclusionFace);
 
     
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, deobf = true, desc = "net.minecraft.client.renderer.BlockModelRenderer$AmbientOcclusionFace func_187491_a (Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;[FLjava/util/BitSet;)V")
 // [AUDIT-OK] vanilla SRG func_187491_a = updateVertexBrightness, deobf=true
-    private static native void AmbientOcclusionFace_updateVertexBrightness(Object instance, IBlockAccess worldIn, IBlockState state, BlockPos centerPos, EnumFacing direction, float[] faceShape, BitSet shapeState);
+    private static native void optiRefine$updateAmbientOcclusionVertexBrightness(Object ambientOcclusionFace, IBlockAccess worldIn, IBlockState state, BlockPos centerPos, EnumFacing direction, float[] faceShape, BitSet shapeState);
 
 
     @Shadow @Final
@@ -281,23 +281,23 @@ public abstract class MixinBlockModelRenderer {
         for (int j = list.size(); i < j; i++) {
             BakedQuad bakedquad = list.get(i);
             this.fillQuadBounds(stateIn, bakedquad.getVertexData(), bakedquad.getFace(), quadBounds, bitSet);
-            AmbientOcclusionFace_updateVertexBrightness(aoFace, blockAccessIn, stateIn, posIn, bakedquad.getFace(), quadBounds, bitSet);
-            if (TextureAtlasSprite_isEmissive_get(bakedquad.getSprite())) {
-                AmbientOcclusionFace_setMaxBlockLight(aoFace);
+            optiRefine$updateAmbientOcclusionVertexBrightness(aoFace, blockAccessIn, stateIn, posIn, bakedquad.getFace(), quadBounds, bitSet);
+            if (optiRefine$isSpriteEmissive(bakedquad.getSprite())) {
+                optiRefine$setAmbientOcclusionMaxBlockLight(aoFace);
             }
-            if (BufferBuilder_isMultiTexture(buffer)) {
-                buffer.addVertexData(BakedQuad_getVertexDataSingle(bakedquad));
+            if (optiRefine$isBufferMultiTexture(buffer)) {
+                buffer.addVertexData(optiRefine$getBakedQuadVertexDataSingle(bakedquad));
             } else {
                 buffer.addVertexData(bakedquad.getVertexData());
             }
-            BufferBuilder_putSprite(buffer, bakedquad.getSprite());
-            buffer.putBrightness4(AmbientOcclusionFace_vertexBrightness(aoFace)[0], AmbientOcclusionFace_vertexBrightness(aoFace)[1], AmbientOcclusionFace_vertexBrightness(aoFace)[2], AmbientOcclusionFace_vertexBrightness(aoFace)[3]);
+            optiRefine$putBufferSprite(buffer, bakedquad.getSprite());
+            buffer.putBrightness4(optiRefine$getAmbientOcclusionVertexBrightness(aoFace)[0], optiRefine$getAmbientOcclusionVertexBrightness(aoFace)[1], optiRefine$getAmbientOcclusionVertexBrightness(aoFace)[2], optiRefine$getAmbientOcclusionVertexBrightness(aoFace)[3]);
             if (bakedquad.shouldApplyDiffuseLighting()) {
                 float diffuse = optiRefine$faceBrightness(bakedquad.getFace());
-                AmbientOcclusionFace_vertexColorMultiplier(aoFace)[0] *= diffuse;
-                AmbientOcclusionFace_vertexColorMultiplier(aoFace)[1] *= diffuse;
-                AmbientOcclusionFace_vertexColorMultiplier(aoFace)[2] *= diffuse;
-                AmbientOcclusionFace_vertexColorMultiplier(aoFace)[3] *= diffuse;
+                optiRefine$getAmbientOcclusionVertexColorMultiplier(aoFace)[0] *= diffuse;
+                optiRefine$getAmbientOcclusionVertexColorMultiplier(aoFace)[1] *= diffuse;
+                optiRefine$getAmbientOcclusionVertexColorMultiplier(aoFace)[2] *= diffuse;
+                optiRefine$getAmbientOcclusionVertexColorMultiplier(aoFace)[3] *= diffuse;
             }
             int colorMultiplier = CustomColors.getColorMultiplier(bakedquad, stateIn, blockAccessIn, posIn, renderEnv);
             if (bakedquad.hasTintIndex() || colorMultiplier != -1) {
@@ -312,26 +312,26 @@ public abstract class MixinBlockModelRenderer {
                 float f1 = (k >> 8 & 0xFF) / 255.0F;
                 float f2 = (k & 0xFF) / 255.0F;
                 if (separateAoLightValue) {
-                    BufferBuilder_putColorMultiplierRgba(buffer, f, f1, f2, AmbientOcclusionFace_vertexColorMultiplier(aoFace)[0], 4);
-                    BufferBuilder_putColorMultiplierRgba(buffer, f, f1, f2, AmbientOcclusionFace_vertexColorMultiplier(aoFace)[1], 3);
-                    BufferBuilder_putColorMultiplierRgba(buffer, f, f1, f2, AmbientOcclusionFace_vertexColorMultiplier(aoFace)[2], 2);
-                    BufferBuilder_putColorMultiplierRgba(buffer, f, f1, f2, AmbientOcclusionFace_vertexColorMultiplier(aoFace)[3], 1);
+                    optiRefine$putBufferColorMultiplierRgba(buffer, f, f1, f2, optiRefine$getAmbientOcclusionVertexColorMultiplier(aoFace)[0], 4);
+                    optiRefine$putBufferColorMultiplierRgba(buffer, f, f1, f2, optiRefine$getAmbientOcclusionVertexColorMultiplier(aoFace)[1], 3);
+                    optiRefine$putBufferColorMultiplierRgba(buffer, f, f1, f2, optiRefine$getAmbientOcclusionVertexColorMultiplier(aoFace)[2], 2);
+                    optiRefine$putBufferColorMultiplierRgba(buffer, f, f1, f2, optiRefine$getAmbientOcclusionVertexColorMultiplier(aoFace)[3], 1);
                 } else {
-                    buffer.putColorMultiplier(AmbientOcclusionFace_vertexColorMultiplier(aoFace)[0] * f, AmbientOcclusionFace_vertexColorMultiplier(aoFace)[0] * f1, AmbientOcclusionFace_vertexColorMultiplier(aoFace)[0] * f2, 4);
-                    buffer.putColorMultiplier(AmbientOcclusionFace_vertexColorMultiplier(aoFace)[1] * f, AmbientOcclusionFace_vertexColorMultiplier(aoFace)[1] * f1, AmbientOcclusionFace_vertexColorMultiplier(aoFace)[1] * f2, 3);
-                    buffer.putColorMultiplier(AmbientOcclusionFace_vertexColorMultiplier(aoFace)[2] * f, AmbientOcclusionFace_vertexColorMultiplier(aoFace)[2] * f1, AmbientOcclusionFace_vertexColorMultiplier(aoFace)[2] * f2, 2);
-                    buffer.putColorMultiplier(AmbientOcclusionFace_vertexColorMultiplier(aoFace)[3] * f, AmbientOcclusionFace_vertexColorMultiplier(aoFace)[3] * f1, AmbientOcclusionFace_vertexColorMultiplier(aoFace)[3] * f2, 1);
+                    buffer.putColorMultiplier(optiRefine$getAmbientOcclusionVertexColorMultiplier(aoFace)[0] * f, optiRefine$getAmbientOcclusionVertexColorMultiplier(aoFace)[0] * f1, optiRefine$getAmbientOcclusionVertexColorMultiplier(aoFace)[0] * f2, 4);
+                    buffer.putColorMultiplier(optiRefine$getAmbientOcclusionVertexColorMultiplier(aoFace)[1] * f, optiRefine$getAmbientOcclusionVertexColorMultiplier(aoFace)[1] * f1, optiRefine$getAmbientOcclusionVertexColorMultiplier(aoFace)[1] * f2, 3);
+                    buffer.putColorMultiplier(optiRefine$getAmbientOcclusionVertexColorMultiplier(aoFace)[2] * f, optiRefine$getAmbientOcclusionVertexColorMultiplier(aoFace)[2] * f1, optiRefine$getAmbientOcclusionVertexColorMultiplier(aoFace)[2] * f2, 2);
+                    buffer.putColorMultiplier(optiRefine$getAmbientOcclusionVertexColorMultiplier(aoFace)[3] * f, optiRefine$getAmbientOcclusionVertexColorMultiplier(aoFace)[3] * f1, optiRefine$getAmbientOcclusionVertexColorMultiplier(aoFace)[3] * f2, 1);
                 }
             } else if (separateAoLightValue) {
-                BufferBuilder_putColorMultiplierRgba(buffer, 1.0F, 1.0F, 1.0F, AmbientOcclusionFace_vertexColorMultiplier(aoFace)[0], 4);
-                BufferBuilder_putColorMultiplierRgba(buffer, 1.0F, 1.0F, 1.0F, AmbientOcclusionFace_vertexColorMultiplier(aoFace)[1], 3);
-                BufferBuilder_putColorMultiplierRgba(buffer, 1.0F, 1.0F, 1.0F, AmbientOcclusionFace_vertexColorMultiplier(aoFace)[2], 2);
-                BufferBuilder_putColorMultiplierRgba(buffer, 1.0F, 1.0F, 1.0F, AmbientOcclusionFace_vertexColorMultiplier(aoFace)[3], 1);
+                optiRefine$putBufferColorMultiplierRgba(buffer, 1.0F, 1.0F, 1.0F, optiRefine$getAmbientOcclusionVertexColorMultiplier(aoFace)[0], 4);
+                optiRefine$putBufferColorMultiplierRgba(buffer, 1.0F, 1.0F, 1.0F, optiRefine$getAmbientOcclusionVertexColorMultiplier(aoFace)[1], 3);
+                optiRefine$putBufferColorMultiplierRgba(buffer, 1.0F, 1.0F, 1.0F, optiRefine$getAmbientOcclusionVertexColorMultiplier(aoFace)[2], 2);
+                optiRefine$putBufferColorMultiplierRgba(buffer, 1.0F, 1.0F, 1.0F, optiRefine$getAmbientOcclusionVertexColorMultiplier(aoFace)[3], 1);
             } else {
-                buffer.putColorMultiplier(AmbientOcclusionFace_vertexColorMultiplier(aoFace)[0], AmbientOcclusionFace_vertexColorMultiplier(aoFace)[0], AmbientOcclusionFace_vertexColorMultiplier(aoFace)[0], 4);
-                buffer.putColorMultiplier(AmbientOcclusionFace_vertexColorMultiplier(aoFace)[1], AmbientOcclusionFace_vertexColorMultiplier(aoFace)[1], AmbientOcclusionFace_vertexColorMultiplier(aoFace)[1], 3);
-                buffer.putColorMultiplier(AmbientOcclusionFace_vertexColorMultiplier(aoFace)[2], AmbientOcclusionFace_vertexColorMultiplier(aoFace)[2], AmbientOcclusionFace_vertexColorMultiplier(aoFace)[2], 2);
-                buffer.putColorMultiplier(AmbientOcclusionFace_vertexColorMultiplier(aoFace)[3], AmbientOcclusionFace_vertexColorMultiplier(aoFace)[3], AmbientOcclusionFace_vertexColorMultiplier(aoFace)[3], 1);
+                buffer.putColorMultiplier(optiRefine$getAmbientOcclusionVertexColorMultiplier(aoFace)[0], optiRefine$getAmbientOcclusionVertexColorMultiplier(aoFace)[0], optiRefine$getAmbientOcclusionVertexColorMultiplier(aoFace)[0], 4);
+                buffer.putColorMultiplier(optiRefine$getAmbientOcclusionVertexColorMultiplier(aoFace)[1], optiRefine$getAmbientOcclusionVertexColorMultiplier(aoFace)[1], optiRefine$getAmbientOcclusionVertexColorMultiplier(aoFace)[1], 3);
+                buffer.putColorMultiplier(optiRefine$getAmbientOcclusionVertexColorMultiplier(aoFace)[2], optiRefine$getAmbientOcclusionVertexColorMultiplier(aoFace)[2], optiRefine$getAmbientOcclusionVertexColorMultiplier(aoFace)[2], 2);
+                buffer.putColorMultiplier(optiRefine$getAmbientOcclusionVertexColorMultiplier(aoFace)[3], optiRefine$getAmbientOcclusionVertexColorMultiplier(aoFace)[3], optiRefine$getAmbientOcclusionVertexColorMultiplier(aoFace)[3], 1);
             }
             buffer.putPosition(d0, d1, d2);
         }
@@ -431,16 +431,16 @@ public abstract class MixinBlockModelRenderer {
                 brightnessIn = stateIn.getPackedLightmapCoords(blockAccessIn, blockpos);
             }
 
-            int quadBrightness = TextureAtlasSprite_isEmissive_get(bakedquad.getSprite())
+            int quadBrightness = optiRefine$isSpriteEmissive(bakedquad.getSprite())
                     ? brightnessIn | 240 : brightnessIn;
 
-            if (BufferBuilder_isMultiTexture(buffer)) {
-                buffer.addVertexData(BakedQuad_getVertexDataSingle(bakedquad));
+            if (optiRefine$isBufferMultiTexture(buffer)) {
+                buffer.addVertexData(optiRefine$getBakedQuadVertexDataSingle(bakedquad));
             } else {
                 buffer.addVertexData(bakedquad.getVertexData());
             }
 
-            BufferBuilder_putSprite(buffer, bakedquad.getSprite());
+            optiRefine$putBufferSprite(buffer, bakedquad.getSprite());
             buffer.putBrightness4(quadBrightness, quadBrightness, quadBrightness, quadBrightness);
             int colorMultiplier = CustomColors.getColorMultiplier(bakedquad, stateIn, blockAccessIn, posIn, renderEnv);
             if (bakedquad.hasTintIndex() || colorMultiplier != -1) {
@@ -513,17 +513,17 @@ public abstract class MixinBlockModelRenderer {
                     RegionRenderCacheBuilder rrcb = renderEnv.getRegionRenderCacheBuilder();
                     if (rrcb != null) {
                         BufferBuilder overlayBuffer = rrcb.getWorldRendererByLayer(layer);
-                        if (!BufferBuilder_isDrawing(overlayBuffer)) {
+                        if (!optiRefine$isBufferDrawing(overlayBuffer)) {
                             overlayBuffer.begin(7, DefaultVertexFormats.BLOCK);
-                            overlayBuffer.setTranslation(BufferBuilder_getXOffset(buffer), BufferBuilder_getYOffset(buffer), BufferBuilder_getZOffset(buffer));
+                            overlayBuffer.setTranslation(optiRefine$getBufferXOffset(buffer), optiRefine$getBufferYOffset(buffer), optiRefine$getBufferZOffset(buffer));
                         }
 
                         for (int q = 0; q < listQuadsOverlay.size(); q++) {
                             BakedQuad quad = listQuadsOverlay.getQuad(q);
                             List<BakedQuad> listQuadSingle = listQuadsOverlay.getListQuadsSingle(quad);
                             IBlockState quadBlockState = listQuadsOverlay.getBlockState(q);
-                            if (BakedQuad_getQuadEmissive(quad) != null) {
-                                listQuadsOverlay.addQuad(BakedQuad_getQuadEmissive(quad), quadBlockState);
+                            if (optiRefine$getEmissiveQuad(quad) != null) {
+                                listQuadsOverlay.addQuad(optiRefine$getEmissiveQuad(quad), quadBlockState);
                             }
 
                             renderEnv.reset(quadBlockState, posIn);

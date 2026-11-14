@@ -27,7 +27,7 @@ public abstract class MixinCrashReport {
 
     @Inject(method = "getCompleteReport", at = @At("HEAD"))
 // [AUDIT-OK] HEAD reported-guard + CrashReporter.onCrashReport matches OF getCompleteReport head; CIR correct for non-void target
-    public void injectGetCompleteReport(CallbackInfoReturnable<String> cir){
+    public void optiRefine$notifyCrashReporter(CallbackInfoReturnable<String> cir){
         if (!this.reported) {
             this.reported = true;
             CrashReporter.onCrashReport((CrashReport)(Object)this, this.systemDetailsCategory);
@@ -37,7 +37,7 @@ public abstract class MixinCrashReport {
 
     @Inject(method = "<init>*", at = @At("RETURN"))
     // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
-    private void optiRefine$initFields(CallbackInfo ci) {
+    private void optiRefine$initializeCrashNotificationState(CallbackInfo ci) {
         this.reported = false;
     }
 }

@@ -27,7 +27,7 @@ public abstract class MixinChunkRenderContainer {
     private BitSet animatedSpritesCached;
 
     @Inject(method = "initialize", at = @At("RETURN"))
-    public void logicOfinit(double viewEntityXIn, double viewEntityYIn, double viewEntityZIn, CallbackInfo ci){
+    public void optiRefine$resetRenderedAnimations(double viewEntityXIn, double viewEntityYIn, double viewEntityZIn, CallbackInfo ci){
 // [AUDIT-FIXED] per-frame like OF initialize() (was <init>, ran once) -> SmartAnimations reporting/clear every frame
         if (SmartAnimations.isActive()) {
             if (this.animatedSpritesRendered != null) {
@@ -44,10 +44,10 @@ public abstract class MixinChunkRenderContainer {
     }
 
     @Inject(method = "addRenderChunk", at = @At("RETURN"))
-    public void afterAddRenderChunk(RenderChunk renderChunkIn, BlockRenderLayer layer, CallbackInfo ci){
+    public void optiRefine$collectChunkAnimations(RenderChunk renderChunkIn, BlockRenderLayer layer, CallbackInfo ci){
 // [AUDIT-OK] target addRenderChunk(Lnet/minecraft/client/renderer/chunk/RenderChunk;Lnet/minecraft/util/BlockRenderLayer;)V (SRG func_178002_a) matches baseline; OR logic matches OF
         if (this.animatedSpritesRendered != null) {
-            BitSet animatedSprites = CompiledChunk_getAnimatedSprites(renderChunkIn.compiledChunk, layer);
+            BitSet animatedSprites = optiRefine$getCompiledChunkAnimatedSprites(renderChunkIn.compiledChunk, layer);
             if (animatedSprites != null) {
                 this.animatedSpritesRendered.or(animatedSprites);
             }
@@ -57,11 +57,11 @@ public abstract class MixinChunkRenderContainer {
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.chunk.CompiledChunk getAnimatedSprites (Lnet.minecraft.util.BlockRenderLayer;)Ljava.util.BitSet;")
 // [AUDIT-OK] OF member CompiledChunk.getAnimatedSprites, not in baseline (MixinCompiledChunk @Unique provides); dot-desc converted by processor
-    private native static BitSet CompiledChunk_getAnimatedSprites(CompiledChunk instance, BlockRenderLayer arg0) ;
+    private native static BitSet optiRefine$getCompiledChunkAnimatedSprites(CompiledChunk compiledChunk, BlockRenderLayer layer) ;
 
     @Inject(method = "<init>*", at = @At("RETURN"))
     // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
-    private void optiRefine$initFields(CallbackInfo ci) {
+    private void optiRefine$initializeAnimatedSpriteCache(CallbackInfo ci) {
         this.animatedSpritesCached = new BitSet();
     }
 }

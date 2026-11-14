@@ -28,9 +28,9 @@ public abstract class MixinLayeredColorMaskTexture {
 
     @WrapOperation(method = "loadTexture", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/texture/TextureUtil;uploadTextureImage(ILjava/awt/image/BufferedImage;)I"))
     // [AUDIT-OK] target loadTexture(IResourceManager)V matches baseline; wrap of uploadTextureImage INVOKE mirrors OF shaders branch
-    public int onImageLoad(int textureId, BufferedImage texture, Operation<Integer> original, @Local(argsOnly = true) IResourceManager resourceManager ){
+    public int optiRefine$uploadShaderLayeredColorMask(int textureId, BufferedImage texture, Operation<Integer> original, @Local(argsOnly = true) IResourceManager resourceManager ){
         if (Config.isShaders()) {
-            return ShadersTex.loadSimpleTexture(textureId, texture, false, false, resourceManager, this.textureLocation, this.getMultiTexID());
+            return ShadersTex.loadSimpleTexture(textureId, texture, false, false, resourceManager, this.textureLocation, this.optiRefine$getMultiTextureId());
         } else {
             return original.call(textureId, texture);
         }
@@ -39,5 +39,5 @@ public abstract class MixinLayeredColorMaskTexture {
     @SuppressWarnings({"MissingUnique", "AddedMixinMembersNamePattern"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.AbstractTexture getMultiTexID ()Lnet.optifine.shaders.MultiTexID;")
     // [AUDIT-OK] OF member AbstractTexture.getMultiTexID(), MCP name
-    public native MultiTexID getMultiTexID();
+    public native MultiTexID optiRefine$getMultiTextureId();
 }

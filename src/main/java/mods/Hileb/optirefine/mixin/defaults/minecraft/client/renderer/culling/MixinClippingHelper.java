@@ -25,26 +25,26 @@ public abstract class MixinClippingHelper {
 
     @WrapMethod(method = "isBoxInFrustum")
     // [AUDIT-OK] isBoxInFrustum baseline; disabled guard matches OF:14-15
-    public boolean optional_isBoxInFrustum(double d, double e, double f, double g, double h, double i, Operation<Boolean> original){
+    public boolean optiRefine$testBoxWhenClippingEnabled(double minX, double minY, double minZ, double maxX, double maxY, double maxZ, Operation<Boolean> original){
         if (disabled) {
             return true;
-        } else  return original.call(d, e, f, g, h, i);
+        } else  return original.call(minX, minY, minZ, maxX, maxY, maxZ);
     }
 
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Unique
     // [AUDIT-OK] OF-added member — body identical to OF:47-91
-    public boolean isBoxInFrustumFully(double var1, double var3, double var5, double var7, double var9, double var11) {
+    public boolean isBoxInFrustumFully(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
         if (this.disabled) {
             return true;
         } else {
-            float var13 = (float)var1;
-            float var14 = (float)var3;
-            float var15 = (float)var5;
-            float var16 = (float)var7;
-            float var17 = (float)var9;
-            float var18 = (float)var11;
+            float var13 = (float)minX;
+            float var14 = (float)minY;
+            float var15 = (float)minZ;
+            float var16 = (float)maxX;
+            float var17 = (float)maxY;
+            float var18 = (float)maxZ;
 
             for (int var19 = 0; var19 < 6; var19++) {
                 float[] var20 = this.frustum[var19];
@@ -81,7 +81,7 @@ public abstract class MixinClippingHelper {
 
     @Inject(method = "<init>*", at = @At("RETURN"))
     // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
-    private void optiRefine$initFields(CallbackInfo ci) {
+    private void optiRefine$initializeCullingState(CallbackInfo ci) {
         this.disabled = false;
     }
 }

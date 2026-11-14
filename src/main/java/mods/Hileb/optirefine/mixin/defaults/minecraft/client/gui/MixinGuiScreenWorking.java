@@ -31,22 +31,22 @@ public abstract class MixinGuiScreenWorking extends GuiScreen {
 
 // [AUDIT-OK] target drawScreen(III)V matches baseline; drawDefaultBackground invoke (inherited GuiScreen) matches; replicates OF custom-loading bg
     @WrapOperation(method = "drawScreen", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiScreenWorking;drawDefaultBackground()V"))
-    public void injectDrawScreen(GuiScreenWorking instance, Operation<Void> original){
+    public void optiRefine$drawCustomLoadingBackground(GuiScreenWorking screen, Operation<Void> original){
         if (this.optiRefine$customLoadingScreen != null && this.mc.world == null) {
             this.optiRefine$customLoadingScreen.drawBackground(this.width, this.height);
         } else {
-            original.call(instance);
+            original.call(screen);
         }
     }
 
 // [AUDIT-OK] two drawCenteredString invokes in baseline drawScreen; both gated on progress>0 matching OF drawScreen
     @WrapWithCondition(method = "drawScreen", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiScreenWorking;drawCenteredString(Lnet/minecraft/client/gui/FontRenderer;Ljava/lang/String;III)V"))
-    public boolean drawCenteredStringOnlyWhenProgressPositive(GuiScreenWorking instance, FontRenderer fontRenderer, String s, int i1, int i2, int i3){
+    public boolean optiRefine$shouldDrawProgressText(GuiScreenWorking screen, FontRenderer fontRenderer, String text, int x, int y, int color){
         return this.progress > 0;
     }
 
     @Inject(method = "<init>*", at = @At("RETURN"))
-    private void optiRefine$initFields(CallbackInfo ci) {
+    private void optiRefine$initializeCustomLoadingScreen(CallbackInfo ci) {
         this.optiRefine$customLoadingScreen = CustomLoadingScreens.getCustomLoadingScreen();
     }
 }

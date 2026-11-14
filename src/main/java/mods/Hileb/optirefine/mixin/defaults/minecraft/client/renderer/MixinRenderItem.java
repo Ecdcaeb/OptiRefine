@@ -80,7 +80,7 @@ public abstract class MixinRenderItem {
     private ModelManager modelManager;
 
     @Inject(method = "<init>", at = @At("RETURN"))
-    private void optiRefine$ctorModelManager(TextureManager textureManager, ModelManager modelManager, ItemColors itemColors, CallbackInfo ci) {
+    private void optiRefine$storeModelManager(TextureManager textureManager, ModelManager modelManager, ItemColors itemColors, CallbackInfo ci) {
         this.modelManager = modelManager;
     }
 
@@ -90,11 +90,11 @@ public abstract class MixinRenderItem {
 
     @WrapMethod(method = "renderModel(Lnet/minecraft/client/renderer/block/model/IBakedModel;ILnet/minecraft/item/ItemStack;)V")
     private void optiRefine$renderModelSkipLit(IBakedModel model, int color, ItemStack stack, Operation<Void> original) {
-        boolean multiTexture = Config.isMultiTexture() && TextureMap_isTextureBound(Config.getMinecraft().getTextureMapBlocks());
+        boolean multiTexture = Config.isMultiTexture() && optiRefine$isAtlasTextureBound(Config.getMinecraft().getTextureMapBlocks());
         BufferBuilder buffer = multiTexture ? net.minecraft.client.renderer.Tessellator.getInstance().getBuffer() : null;
         boolean allowEmissiveItems = net.minecraftforge.common.ForgeModContainer.allowEmissiveItems;
         if (multiTexture) {
-            BufferBuilder_setBlockLayer(buffer, BlockRenderLayer.SOLID);
+            optiRefine$setBufferBlockLayer(buffer, BlockRenderLayer.SOLID);
         }
         if (Config.isShaders() || multiTexture) {
             net.minecraftforge.common.ForgeModContainer.allowEmissiveItems = false;
@@ -104,28 +104,28 @@ public abstract class MixinRenderItem {
         } finally {
             net.minecraftforge.common.ForgeModContainer.allowEmissiveItems = allowEmissiveItems;
             if (multiTexture) {
-                BufferBuilder_setBlockLayer(buffer, null);
-                GlStateManager_bindCurrentTexture();
+                optiRefine$setBufferBlockLayer(buffer, null);
+                optiRefine$bindGlStateCurrentTexture();
             }
         }
     }
 
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureMap isTextureBound ()Z")
-    private static native boolean TextureMap_isTextureBound(TextureMap textureMap);
+    private static native boolean optiRefine$isAtlasTextureBound(TextureMap textureMap);
 
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.BufferBuilder setBlockLayer (Lnet.minecraft.util.BlockRenderLayer;)V")
-    private static native void BufferBuilder_setBlockLayer(BufferBuilder buffer, BlockRenderLayer layer);
+    private static native void optiRefine$setBufferBlockLayer(BufferBuilder buffer, BlockRenderLayer layer);
 
     @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.client.renderer.GlStateManager bindCurrentTexture ()V")
-    private static native void GlStateManager_bindCurrentTexture();
+    private static native void optiRefine$bindGlStateCurrentTexture();
 
 
     // ===== renderQuads: custom colors =====
 
     @Redirect(method = "renderQuads", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/color/ItemColors;colorMultiplier(Lnet/minecraft/item/ItemStack;I)I"))
-    private int optiRefine$colorMultiplier(net.minecraft.client.renderer.color.ItemColors instance, ItemStack stack, int tintIndex) {
+    private int optiRefine$colorMultiplier(net.minecraft.client.renderer.color.ItemColors itemColors, ItemStack stack, int tintIndex) {
 // [AUDIT-OK] target renderQuads (SRG func_191970_a) ItemColors.colorMultiplier matches baseline; CustomColors hook matches OF
-        int color = instance.colorMultiplier(stack, tintIndex);
+        int color = itemColors.colorMultiplier(stack, tintIndex);
         if (Config.isCustomColors()) {
             color = CustomColors.getColorFromItemStack(stack, tintIndex, color);
         }
@@ -136,7 +136,7 @@ public abstract class MixinRenderItem {
     // Keep Forge's quad pipeline for custom formats and handle emissive textures on every render path.
     @WrapOperation(method = "renderQuads", at = @At(value = "INVOKE", target = "Lnet/minecraftforge/client/model/pipeline/LightUtil;renderQuadColor(Lnet/minecraft/client/renderer/BufferBuilder;Lnet/minecraft/client/renderer/block/model/BakedQuad;I)V", remap = false))
     private void optiRefine$renderQuad(BufferBuilder renderer, BakedQuad quad, int color, Operation<Void> original) {
-        BakedQuad emissive = BakedQuad_getQuadEmissive(quad);
+        BakedQuad emissive = optiRefine$getEmissiveQuad(quad);
         if (this.renderModelEmissive) {
             if (emissive == null) {
                 return;
@@ -146,15 +146,15 @@ public abstract class MixinRenderItem {
             this.renderModelHasEmissive = true;
         }
 
-        boolean multiTexture = BufferBuilder_isMultiTexture(renderer);
+        boolean multiTexture = optiRefine$isBufferMultiTexture(renderer);
         if (Config.isShaders() || multiTexture) {
-            int[] vertexData = multiTexture ? BakedQuad_getVertexDataSingle(quad) : quad.getVertexData();
+            int[] vertexData = multiTexture ? optiRefine$getBakedQuadVertexDataSingle(quad) : quad.getVertexData();
             if (vertexData.length == renderer.getVertexFormat().getIntegerSize() * 4
                     && (quad.getFormat().equals(renderer.getVertexFormat())
                     || vertexData.length == 56 && quad.getFormat().getColorOffset() == 12
                     && quad.getFormat().getUvOffsetById(0) == 16 && quad.getFormat().getNormalOffset() == 24)) {
                 renderer.addVertexData(vertexData);
-                BufferBuilder_putSprite(renderer, quad.getSprite());
+                optiRefine$putBufferSprite(renderer, quad.getSprite());
                 net.minecraftforge.client.ForgeHooksClient.putQuadColor(renderer, quad, color);
                 EnumFacing face = quad.getFace();
                 if (face != null) {
@@ -165,28 +165,28 @@ public abstract class MixinRenderItem {
             }
         }
         original.call(renderer, quad, color);
-        BufferBuilder_putSprite(renderer, quad.getSprite());
+        optiRefine$putBufferSprite(renderer, quad.getSprite());
     }
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.BufferBuilder isMultiTexture ()Z")
 // [AUDIT-OK] OF member BufferBuilder.isMultiTexture (MixinBufferBuilder @Unique public)
-    private static native boolean BufferBuilder_isMultiTexture(BufferBuilder builder);
+    private static native boolean optiRefine$isBufferMultiTexture(BufferBuilder builder);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/BufferBuilder putSprite (Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;)V")
 // [AUDIT-OK] OF member BufferBuilder.putSprite (MixinBufferBuilder @Unique public)
-    private static native void BufferBuilder_putSprite(BufferBuilder builder, net.minecraft.client.renderer.texture.TextureAtlasSprite sprite);
+    private static native void optiRefine$putBufferSprite(BufferBuilder builder, net.minecraft.client.renderer.texture.TextureAtlasSprite sprite);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.block.model.BakedQuad getVertexDataSingle ()[I")
 // [AUDIT-OK] OF member BakedQuad.getVertexDataSingle (MixinBakedQuad @Public)
-    private static native int[] BakedQuad_getVertexDataSingle(BakedQuad quad);
+    private static native int[] optiRefine$getBakedQuadVertexDataSingle(BakedQuad quad);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/block/model/BakedQuad getQuadEmissive ()Lnet/minecraft/client/renderer/block/model/BakedQuad;")
 // [AUDIT-OK] OF member BakedQuad.getQuadEmissive (MixinBakedQuad @Public)
-    private static native BakedQuad BakedQuad_getQuadEmissive(BakedQuad quad);
+    private static native BakedQuad optiRefine$getEmissiveQuad(BakedQuad quad);
 
     // ===== getItemModelWithOverrides: custom item models =====
 
@@ -214,11 +214,11 @@ public abstract class MixinRenderItem {
     // ===== renderItemModelIntoGUI: renderItemGui flag (OF RenderItem:359/383) =====
 
     @WrapOperation(method = "renderItemModelIntoGUI", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/RenderItem;renderItem(Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/renderer/block/model/IBakedModel;)V"))
-    private void optiRefine$renderItemGui(RenderItem instance, ItemStack stack, IBakedModel model, Operation<Void> original) {
+    private void optiRefine$renderItemGui(RenderItem itemRenderer, ItemStack stack, IBakedModel model, Operation<Void> original) {
         boolean renderItemGui = this.renderItemGui;
         this.renderItemGui = true;
         try {
-            original.call(instance, stack, model);
+            original.call(itemRenderer, stack, model);
         } finally {
             this.renderItemGui = renderItemGui;
         }
@@ -227,14 +227,14 @@ public abstract class MixinRenderItem {
     // ===== renderItem: custom item model re-apply + emissive reset (OF RenderItem:148-152) =====
 
     @WrapOperation(method = "renderItem(Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/renderer/block/model/IBakedModel;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/RenderItem;renderModel(Lnet/minecraft/client/renderer/block/model/IBakedModel;Lnet/minecraft/item/ItemStack;)V"))
-    private void optiRefine$renderModelCustomItems(RenderItem instance, IBakedModel modelIn, ItemStack stack, Operation<Void> original, @Local(argsOnly = true) LocalRef<IBakedModel> model) {
+    private void optiRefine$renderModelCustomItems(RenderItem itemRenderer, IBakedModel modelIn, ItemStack stack, Operation<Void> original, @Local(argsOnly = true) LocalRef<IBakedModel> model) {
         if (Config.isCustomItems()) {
             modelIn = CustomItems.getCustomItemModel(stack, modelIn, this.modelLocation, false);
         }
         this.modelLocation = null;
         this.renderModelHasEmissive = false;
         model.set(modelIn);
-        original.call(instance, modelIn, stack);
+        original.call(itemRenderer, modelIn, stack);
     }
 
     // ===== renderItemModel(4-arg) =====
@@ -246,11 +246,11 @@ public abstract class MixinRenderItem {
     // to false after — offhand-specific custom item model variants (hand==1/2 filtering) otherwise dead.
 
     @WrapOperation(method = "renderItemModel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/RenderItem;renderItem(Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/renderer/block/model/IBakedModel;)V"))
-    private void optiRefine$renderOffHand(RenderItem instance, ItemStack stack, IBakedModel model, Operation<Void> original,
+    private void optiRefine$renderOffHand(RenderItem itemRenderer, ItemStack stack, IBakedModel model, Operation<Void> original,
                                         @Local(argsOnly = true) boolean leftHanded) {
         CustomItems.setRenderOffHand(leftHanded);
         try {
-            original.call(instance, stack, model);
+            original.call(itemRenderer, stack, model);
         } finally {
             CustomItems.setRenderOffHand(false);
         }

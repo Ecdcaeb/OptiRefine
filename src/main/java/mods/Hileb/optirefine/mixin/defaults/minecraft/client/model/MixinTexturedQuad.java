@@ -15,7 +15,7 @@ public abstract class MixinTexturedQuad {
 
 // [AUDIT-OK] target draw(Lnet/minecraft/client/renderer/BufferBuilder;F)V matches baseline; GETSTATIC OLDMODEL_POSITION_TEX_NORMAL present; static-field redirect, no-arg handler OK
     @Redirect(method = "draw", at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/vertex/DefaultVertexFormats;OLDMODEL_POSITION_TEX_NORMAL:Lnet/minecraft/client/renderer/vertex/VertexFormat;"))
-    public VertexFormat useCustomFormatIfShadersOpened(){
+    public VertexFormat optiRefine$selectShaderVertexFormat(){
         if (Config.isShaders()) {
             return SVertexFormat.defVertexFormatTextured;
         } else {

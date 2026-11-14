@@ -36,22 +36,22 @@ public abstract class MixinTileEntityRendererDispatcher {
     }
 
     @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.optifine.EmissiveTextures optiRefine$isRendering ()Z")
-    private static native boolean EmissiveTextures_isRendering();
+    private static native boolean optiRefine$isEmissiveTexturesRendering();
 
     @WrapOperation(method = "render(Lnet/minecraft/tileentity/TileEntity;FI)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/tileentity/TileEntityRendererDispatcher;render(Lnet/minecraft/tileentity/TileEntity;DDDFIF)V"))
     // [AUDIT-OK] 3-arg render -> 7-arg render INVOKE unique (deobf:116-129); emissive begin/end wrap matches OF:136-148
-    public void render$(TileEntityRendererDispatcher instance, TileEntity v0, double v1, double v2, double v3, float v4, int v5, float v6, Operation<Void> original){
-        if (!EmissiveTextures.isActive() || EmissiveTextures_isRendering()) {
-            original.call(instance, v0, v1, v2, v3, v4, v5, v6);
+    public void optiRefine$renderEmissiveTileEntity(TileEntityRendererDispatcher dispatcher, TileEntity tileEntity, double x, double y, double z, float partialTicks, int destroyStage, float alpha, Operation<Void> original){
+        if (!EmissiveTextures.isActive() || optiRefine$isEmissiveTexturesRendering()) {
+            original.call(dispatcher, tileEntity, x, y, z, partialTicks, destroyStage, alpha);
             return;
         }
         EmissiveTextures.beginRender();
         try {
-            original.call(instance, v0, v1, v2, v3, v4, v5, v6);
+            original.call(dispatcher, tileEntity, x, y, z, partialTicks, destroyStage, alpha);
             if (EmissiveTextures.hasEmissive()) {
                 EmissiveTextures.beginRenderEmissive();
                 try {
-                    original.call(instance, v0, v1, v2, v3, v4, v5, v6);
+                    original.call(dispatcher, tileEntity, x, y, z, partialTicks, destroyStage, alpha);
                 } finally {
                     EmissiveTextures.endRenderEmissive();
                 }

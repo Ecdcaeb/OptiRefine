@@ -16,14 +16,14 @@ public abstract class MixinLoadingScreenRenderer {
     // The vanilla background vertices are already queued here; discard and finish
     // that batch before the custom screen starts its own Tessellator batch.
     @WrapOperation(method = "setLoadingProgress", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/Tessellator;draw()V", ordinal = 0))
-    public void injectDrawCustomBackground(Tessellator instance, Operation<Void> original, @Local ScaledResolution scaledResolution) {
-        CustomLoadingScreen scr = CustomLoadingScreens.getCustomLoadingScreen();
-        if (scr != null) {
-            instance.getBuffer().finishDrawing();
-            instance.getBuffer().reset();
-            scr.drawBackground(scaledResolution.getScaledWidth(), scaledResolution.getScaledHeight());
+    public void optiRefine$drawCustomLoadingBackground(Tessellator tessellator, Operation<Void> original, @Local ScaledResolution scaledResolution) {
+        CustomLoadingScreen loadingScreen = CustomLoadingScreens.getCustomLoadingScreen();
+        if (loadingScreen != null) {
+            tessellator.getBuffer().finishDrawing();
+            tessellator.getBuffer().reset();
+            loadingScreen.drawBackground(scaledResolution.getScaledWidth(), scaledResolution.getScaledHeight());
         } else {
-            original.call(instance);
+            original.call(tessellator);
         }
     }
 }

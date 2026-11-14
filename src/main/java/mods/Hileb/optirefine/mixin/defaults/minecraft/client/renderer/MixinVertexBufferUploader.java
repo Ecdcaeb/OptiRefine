@@ -26,12 +26,12 @@ public abstract class MixinVertexBufferUploader {
     // modeTriangles via the reset TAIL hook, so subsequent draws read the quad-layout buffer again.
     public void optiRefine$draw(BufferBuilder vertexBufferIn, Operation<Void> original) {
         if (vertexBufferIn.getDrawMode() == 7 && Config.isQuadsToTriangles()) {
-            BufferBuilder_quadsToTriangles(vertexBufferIn);
+            optiRefine$convertBufferQuadsToTriangles(vertexBufferIn);
         }
         // Every upload replaces the previous primitive layout, including after a setting change.
-        VertexBuffer_setDrawMode(vertexBuffer, vertexBufferIn.getDrawMode());
+        optiRefine$setVertexBufferDrawMode(vertexBuffer, vertexBufferIn.getDrawMode());
         try {
-            VertexBuffer_bufferData(vertexBuffer, vertexBufferIn.getByteBuffer());
+            optiRefine$uploadVertexBufferData(vertexBuffer, vertexBufferIn.getByteBuffer());
         } finally {
             vertexBufferIn.reset();
         }
@@ -40,18 +40,18 @@ public abstract class MixinVertexBufferUploader {
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.BufferBuilder quadsToTriangles ()V")
 // [AUDIT-OK] OF member BufferBuilder.quadsToTriangles (MixinBufferBuilder @Unique), not in baseline
-    private static native void BufferBuilder_quadsToTriangles(BufferBuilder builder) ;
+    private static native void optiRefine$convertBufferQuadsToTriangles(BufferBuilder builder) ;
 
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.vertex.VertexBuffer setDrawMode (I)V")
 // [AUDIT-OK] OF member VertexBuffer.setDrawMode (MixinVertexBuffer @Unique public), not in baseline
-    private static native void VertexBuffer_setDrawMode(VertexBuffer builder, int arg1) ;
+    private static native void optiRefine$setVertexBufferDrawMode(VertexBuffer builder, int drawMode) ;
 
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.vertex.VertexBuffer func_181722_a (Ljava.nio.ByteBuffer;)V", deobf = true)
 // [AUDIT-FIXED] 2026-08-05: SRG runtime uses the raw desc name -> vanilla member must be SRG
 // func_181722_a (= bufferData, tsrg:13267); MCP name would NoSuchMethodError on every VBO upload.
 // Goes through MixinVertexBuffer vboRegion wrap.
-    private static native void VertexBuffer_bufferData(VertexBuffer builder, java.nio.ByteBuffer data) ;
+    private static native void optiRefine$uploadVertexBufferData(VertexBuffer builder, java.nio.ByteBuffer data) ;
 
 }

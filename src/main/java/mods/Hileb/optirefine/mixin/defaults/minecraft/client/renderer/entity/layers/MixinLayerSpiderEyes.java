@@ -21,19 +21,19 @@ public abstract class MixinLayerSpiderEyes {
 
     @WrapOperation(method = "doRenderLayer(Lnet/minecraft/entity/monster/EntitySpider;FFFFFFF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/ModelBase;render(Lnet/minecraft/entity/Entity;FFFFFF)V"))
     // [AUDIT-OK] ModelBase.render INVOKE unique; begin/endSpiderEyes + renderOverlayEyes=true/false match OF:33-44
-    public void wrap_render(ModelBase instance, Entity entityIn, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, float scale, Operation<Void> original){
+    public void optiRefine$renderShaderAwareSpiderEyes(ModelBase model, Entity entityIn, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, float scale, Operation<Void> original){
         boolean shaders = Config.isShaders();
         net.optifine.shaders.Program oldProgram = shaders ? Shaders.activeProgram : null;
         RenderGlobal renderGlobal = Config.getRenderGlobal();
-        boolean overlayEyes = RenderGlobal_renderOverlayEyes_get(renderGlobal);
+        boolean overlayEyes = optiRefine$getRenderGlobalRenderOverlayEyes(renderGlobal);
         if (shaders) {
             Shaders.beginSpiderEyes();
         }
-        RenderGlobal_renderOverlayEyes_set(renderGlobal, true);
+        optiRefine$setRenderGlobalRenderOverlayEyes(renderGlobal, true);
         try {
-            original.call(instance, entityIn, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scale);
+            original.call(model, entityIn, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scale);
         } finally {
-            RenderGlobal_renderOverlayEyes_set(renderGlobal, overlayEyes);
+            optiRefine$setRenderGlobalRenderOverlayEyes(renderGlobal, overlayEyes);
             if (shaders) {
                 Shaders.endSpiderEyes();
                 net.minecraft.client.renderer.GlStateManager.alphaFunc(516, 0.1F);
@@ -44,10 +44,10 @@ public abstract class MixinLayerSpiderEyes {
 
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.PUTFIELD, desc = "net.minecraft.client.renderer.RenderGlobal renderOverlayEyes Z")
-    private static native void RenderGlobal_renderOverlayEyes_set(RenderGlobal renderGlobal, boolean val);
+    private static native void optiRefine$setRenderGlobalRenderOverlayEyes(RenderGlobal renderGlobal, boolean val);
 
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.RenderGlobal renderOverlayEyes Z")
-    private static native boolean RenderGlobal_renderOverlayEyes_get(RenderGlobal renderGlobal);
+    private static native boolean optiRefine$getRenderGlobalRenderOverlayEyes(RenderGlobal renderGlobal);
 
     @Inject(method = "doRenderLayer(Lnet/minecraft/entity/monster/EntitySpider;FFFFFFF)V", at = @At("RETURN"))
     private void optiRefine$restoreDepthMask(CallbackInfo ci) {

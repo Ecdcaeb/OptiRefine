@@ -25,7 +25,7 @@ public abstract class MixinGameRulesValues {
 
     // Avoid parsing boolean literals while preserving the baseline integer representation.
     @Inject(method = "setValue", at = @At("HEAD"), cancellable = true)
-    public void __setValue(String value, CallbackInfo ci){
+    public void optiRefine$parseBooleanLiteral(String value, CallbackInfo ci){
         this.valueString = value;
         if (value != null) {
             if ("false".equals(value)) {

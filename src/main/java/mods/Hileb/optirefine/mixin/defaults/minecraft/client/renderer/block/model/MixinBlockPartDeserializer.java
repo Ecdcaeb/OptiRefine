@@ -13,7 +13,7 @@ public class MixinBlockPartDeserializer {
 // [AUDIT] 2026-08-03 - see AGENT.md; issues: 1
     @WrapMethod(method = "parseAngle")
     // [AUDIT-FIXED] restore +/-45/22.5 validation present in both OF and vanilla
-    public float breakAngleLimit(JsonObject object, Operation<Float> original){
+    public float optiRefine$parseValidatedAngle(JsonObject object, Operation<Float> original){
         float f = JsonUtils.getFloat(object, "angle");
         if (f != 0.0F && MathHelper.abs(f) != 45.0F && MathHelper.abs(f) != 22.5F) {
             throw new JsonParseException("Invalid rotation " + f + " found, only -45/-22.5/0/22.5/45 allowed");

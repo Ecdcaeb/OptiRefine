@@ -22,11 +22,11 @@ public abstract class MixinGuiMainMenu extends GuiScreen {
 
 // [AUDIT-OK] target drawPanorama(IIF)V matches baseline; single int-64 constant (loop bound)
     @ModifyConstant(method = "drawPanorama", constant = @Constant(intValue = 64))
-    public int injectDrawPanorama(int value) {
-        CustomPanoramaProperties cpp = CustomPanorama.getCustomPanoramaProperties();
-        if (cpp != null) {
-            return cpp.getBlur1();
-        } else return value;
+    public int optiRefine$getPanoramaBlurSamples(int defaultSamples) {
+        CustomPanoramaProperties properties = CustomPanorama.getCustomPanoramaProperties();
+        if (properties != null) {
+            return properties.getBlur1();
+        } else return defaultSamples;
     }
 
 // [AUDIT-OK] baseline static final member TITLE_PANORAMA_PATHS declared in GuiMainMenu (deobf:66)
@@ -36,10 +36,10 @@ public abstract class MixinGuiMainMenu extends GuiScreen {
 
 // [AUDIT-OK] OF drawPanorama: var14 = var8.getPanoramaLocations() replaces TITLE_PANORAMA_PATHS (single GETSTATIC read, deobf:385)
     @Redirect(method = "drawPanorama", at = @At(value = "FIELD", target = "Lnet/minecraft/client/gui/GuiMainMenu;TITLE_PANORAMA_PATHS:[Lnet/minecraft/util/ResourceLocation;"))
-    public ResourceLocation[] injectPanoramaLocations() {
-        CustomPanoramaProperties cpp = CustomPanorama.getCustomPanoramaProperties();
-        if (cpp != null) {
-            return cpp.getPanoramaLocations();
+    public ResourceLocation[] optiRefine$getPanoramaTextures() {
+        CustomPanoramaProperties properties = CustomPanorama.getCustomPanoramaProperties();
+        if (properties != null) {
+            return properties.getPanoramaLocations();
         } else {
             return TITLE_PANORAMA_PATHS;
         }
@@ -48,11 +48,11 @@ public abstract class MixinGuiMainMenu extends GuiScreen {
 // [AUDIT-OK] target rotateAndBlurSkybox()V matches baseline
 // [AUDIT-NOTE] two int-3 constants (int i=3; and j<3;) both replaced with blur2; i unused so result == OF blur2 loop count
     @ModifyConstant(method = "rotateAndBlurSkybox", constant = @Constant(intValue = 3))
-    public int injectRotateAndBlurSkybox(int value){
-        CustomPanoramaProperties cpp = CustomPanorama.getCustomPanoramaProperties();
-        if (cpp != null) {
-            return cpp.getBlur2();
-        } else return value;
+    public int optiRefine$getSkyboxBlurPasses(int defaultPasses){
+        CustomPanoramaProperties properties = CustomPanorama.getCustomPanoramaProperties();
+        if (properties != null) {
+            return properties.getBlur2();
+        } else return defaultPasses;
     }
 
 // [AUDIT-OK] baseline member rotateAndBlurSkybox exists in target class
@@ -61,21 +61,21 @@ public abstract class MixinGuiMainMenu extends GuiScreen {
 
 // [AUDIT-OK] baseline member drawPanorama exists in target class
     @Shadow
-    protected abstract void drawPanorama(int p, int p1, float p2);
+    protected abstract void drawPanorama(int mouseX, int mouseY, float partialTicks);
 
 // [AUDIT-OK] baseline member drawScreen exists in target class
-    @Shadow public abstract void drawScreen(int p_73863_1_, int p_73863_2_, float p_73863_3_);
+    @Shadow public abstract void drawScreen(int mouseX, int mouseY, float partialTicks);
 
 // [AUDIT-FIXED] target renderSkybox(IIF)V matches baseline; handler params match; replicates OF renderSkybox (total passes = 1 + 2*blur3)
     @WrapMethod(method = "renderSkybox")
-    public void injectRenderSkybox(int mouseX, int mouseY, float partialTicks, Operation<Void> original){
-        CustomPanoramaProperties cpp = CustomPanorama.getCustomPanoramaProperties();
-        if (cpp != null) {
+    public void optiRefine$renderCustomPanoramaSkybox(int mouseX, int mouseY, float partialTicks, Operation<Void> original){
+        CustomPanoramaProperties properties = CustomPanorama.getCustomPanoramaProperties();
+        if (properties != null) {
             this.mc.getFramebuffer().unbindFramebuffer();
             GlStateManager.viewport(0, 0, 256, 256);
             this.drawPanorama(mouseX, mouseY, partialTicks);
             this.rotateAndBlurSkybox();
-            for (int i = 0; i < cpp.getBlur3(); i++) {
+            for (int i = 0; i < properties.getBlur3(); i++) {
                 this.rotateAndBlurSkybox();
                 this.rotateAndBlurSkybox();
             }
@@ -99,15 +99,15 @@ public abstract class MixinGuiMainMenu extends GuiScreen {
 
 // [AUDIT-OK] target drawScreen matches baseline; two drawGradientRect invokes present; handler distinguishes by start color
     @Redirect(method = "drawScreen", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiMainMenu;drawGradientRect(IIIIII)V"))
-    public void redirectDrawGradientRect1(GuiMainMenu instance, int i1, int i2, int i3, int i4, int i5, int i6){
-        CustomPanoramaProperties cpp = CustomPanorama.getCustomPanoramaProperties();
-        if (cpp != null) {
-            if (i5 == -2130706433) {
-                this.drawGradientRect(i1, i2, i3, i4, cpp.getOverlay1Top(), cpp.getOverlay1Bottom());
-            } else if (i5 == 0) {
-                this.drawGradientRect(i1, i2, i3, i4, cpp.getOverlay2Top(), cpp.getOverlay2Bottom());
-            } else this.drawGradientRect(i1, i2, i3, i4, i5, i6);
-        } else this.drawGradientRect(i1, i2, i3, i4, i5, i6);
+    public void optiRefine$drawCustomPanoramaOverlay(GuiMainMenu screen, int left, int top, int right, int bottom, int topColor, int bottomColor){
+        CustomPanoramaProperties properties = CustomPanorama.getCustomPanoramaProperties();
+        if (properties != null) {
+            if (topColor == -2130706433) {
+                this.drawGradientRect(left, top, right, bottom, properties.getOverlay1Top(), properties.getOverlay1Bottom());
+            } else if (topColor == 0) {
+                this.drawGradientRect(left, top, right, bottom, properties.getOverlay2Top(), properties.getOverlay2Bottom());
+            } else this.drawGradientRect(left, top, right, bottom, topColor, bottomColor);
+        } else this.drawGradientRect(left, top, right, bottom, topColor, bottomColor);
     }
 
 }

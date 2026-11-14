@@ -42,12 +42,12 @@ public abstract class MixinRender {
     @SuppressWarnings("unused")
     @AccessTransformer(name = "field_76989_e", deobf = true, access = org.objectweb.asm.Opcodes.ACC_PUBLIC)
     // [AUDIT-OK] AT shadowSize: vanilla protected (deobf:33) -> public, matches OF:32
-    public float acc_shadowSize;
+    public float optiRefine$shadowSizeAccess;
 
     @WrapOperation(method = "bindEntityTexture", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/Render;getEntityTexture(Lnet/minecraft/entity/Entity;)Lnet/minecraft/util/ResourceLocation;"))
     // [AUDIT-OK] bindEntityTexture/getEntityTexture baseline; locationTextureCustom override matches OF:91-96
-    private ResourceLocation optiRefine$customTexture(Render instance, Entity entity, Operation<ResourceLocation> original) {
-        return this.locationTextureCustom != null ? this.locationTextureCustom : original.call(instance, entity);
+    private ResourceLocation optiRefine$customTexture(Render renderer, Entity entity, Operation<ResourceLocation> original) {
+        return this.locationTextureCustom != null ? this.locationTextureCustom : original.call(renderer, entity);
     }
 
     @WrapMethod(method = "renderEntityOnFire")
@@ -57,37 +57,37 @@ public abstract class MixinRender {
             return;
         }
         BufferBuilder builder = Tessellator.getInstance().getBuffer();
-        BufferBuilder_setBlockLayer(builder, BlockRenderLayer.SOLID);
+        optiRefine$setBufferBuilderBlockLayer(builder, BlockRenderLayer.SOLID);
         try {
             original.call(entity, x, y, z, partialTicks);
         } finally {
-            BufferBuilder_setBlockLayer(builder, null);
-            GlStateManager_bindCurrentTexture();
+            optiRefine$setBufferBuilderBlockLayer(builder, null);
+            optiRefine$bindCurrentTexture();
         }
     }
 
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.BufferBuilder setBlockLayer (Lnet.minecraft.util.BlockRenderLayer;)V")
-    private static native void BufferBuilder_setBlockLayer(BufferBuilder builder, BlockRenderLayer layer);
+    private static native void optiRefine$setBufferBuilderBlockLayer(BufferBuilder builder, BlockRenderLayer layer);
 
 
     @Inject(method = "renderEntityOnFire", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/Render;bindTexture(Lnet/minecraft/util/ResourceLocation;)V"))
     // [AUDIT-FIXED] 2026-08-05: OF:138 sets the per-iteration fire sprite before the quads
     // (multi-texture mode); missing -> fire quads carry a stale sprite. @Local ordinal=2 = the
     // loop-local sprite (textureatlassprite2), third TextureAtlasSprite local in the method.
-    public void setFireSprite_renderEntityOnFire(Entity entity, double x, double y, double z, float partialTicks, CallbackInfo ci, @Local(ordinal = 2) net.minecraft.client.renderer.texture.TextureAtlasSprite sprite, @Local(ordinal = 0) BufferBuilder builder){
+    public void optiRefine$setFireSprite(Entity entity, double x, double y, double z, float partialTicks, CallbackInfo ci, @Local(ordinal = 2) net.minecraft.client.renderer.texture.TextureAtlasSprite sprite, @Local(ordinal = 0) BufferBuilder builder){
         if (Config.isMultiTexture()) {
-            BufferBuilder_setSprite(builder, sprite);
+            optiRefine$setBufferBuilderSprite(builder, sprite);
         }
     }
 
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.BufferBuilder setSprite (Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;)V")
-    private static native void BufferBuilder_setSprite(BufferBuilder builder, net.minecraft.client.renderer.texture.TextureAtlasSprite sprite);
+    private static native void optiRefine$setBufferBuilderSprite(BufferBuilder builder, net.minecraft.client.renderer.texture.TextureAtlasSprite sprite);
 
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.client.renderer.GlStateManager bindCurrentTexture ()V")
-    private static native void GlStateManager_bindCurrentTexture();
+    private static native void optiRefine$bindCurrentTexture();
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
@@ -116,7 +116,7 @@ public abstract class MixinRender {
 
     @WrapMethod(method = "renderShadow")
     // [AUDIT-OK] renderShadow baseline; shouldSkipDefaultShadow guard matches OF:172
-    public void is_renderShadow(Entity entityIn, double x, double y, double z, float shadowAlpha, float partialTicks, Operation<Void> original){
+    public void optiRefine$renderShaderAwareShadow(Entity entityIn, double x, double y, double z, float shadowAlpha, float partialTicks, Operation<Void> original){
         if (!Config.isShaders() || !Shaders.shouldSkipDefaultShadow) {
             original.call(entityIn, x, y, z, shadowAlpha, partialTicks);
         }
@@ -125,7 +125,7 @@ public abstract class MixinRender {
 
     @Inject(method = "<init>*", at = @At("RETURN"))
     // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
-    private void optiRefine$initFields(CallbackInfo ci) {
+    private void optiRefine$initializeCustomTextureState(CallbackInfo ci) {
         this.locationTextureCustom = null;
     }
 }

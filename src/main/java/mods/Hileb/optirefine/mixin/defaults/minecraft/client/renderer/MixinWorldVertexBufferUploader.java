@@ -23,14 +23,14 @@ import java.nio.ByteBuffer;
 @Mixin(WorldVertexBufferUploader.class)
 public abstract class MixinWorldVertexBufferUploader {
     @Inject(method = "draw", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/BufferBuilder;getVertexFormat()Lnet/minecraft/client/renderer/vertex/VertexFormat;"))
-    public void beforeDraw(BufferBuilder vertexBufferIn, CallbackInfo ci){
+    public void optiRefine$prepareTriangleBuffer(BufferBuilder vertexBufferIn, CallbackInfo ci){
         if (vertexBufferIn.getDrawMode() == 7 && Config.isQuadsToTriangles()) {
-            BufferBuilder_quadsToTriangles(vertexBufferIn);
+            optiRefine$convertBufferQuadsToTriangles(vertexBufferIn);
         }
     }
 
     @WrapOperation(method = "draw", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GlStateManager;glDrawArrays(III)V"))
-    public void openShader(int mode, int first, int count, Operation<Void> original, @Local(argsOnly = true) BufferBuilder vertexBufferIn) {
+    public void optiRefine$drawWithShaderAttributes(int mode, int first, int count, Operation<Void> original, @Local(argsOnly = true) BufferBuilder vertexBufferIn) {
         boolean shaders = Config.isShaders();
         boolean shaderFormat = shaders && vertexBufferIn.getVertexFormat().getSize() == 56;
         try {
@@ -51,8 +51,8 @@ public abstract class MixinWorldVertexBufferUploader {
                 // GUI formats cannot address attributes left over from a shader VBO draw.
                 optiRefine$disableShaderArrays();
             }
-            if (BufferBuilder_isMultiTexture(vertexBufferIn)) {
-                BufferBuilder_drawMultiTexture(vertexBufferIn);
+            if (optiRefine$isBufferMultiTexture(vertexBufferIn)) {
+                optiRefine$drawBufferMultiTexture(vertexBufferIn);
             } else {
                 original.call(mode, first, count);
             }
@@ -73,15 +73,15 @@ public abstract class MixinWorldVertexBufferUploader {
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.BufferBuilder quadsToTriangles ()V")
 // [AUDIT-OK] OF member BufferBuilder.quadsToTriangles
-    private static native void BufferBuilder_quadsToTriangles(BufferBuilder builder) ;
+    private static native void optiRefine$convertBufferQuadsToTriangles(BufferBuilder builder) ;
 
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.BufferBuilder isMultiTexture ()Z")
 // [AUDIT-OK] OF member BufferBuilder.isMultiTexture
-    private static native boolean BufferBuilder_isMultiTexture(BufferBuilder builder) ;
+    private static native boolean optiRefine$isBufferMultiTexture(BufferBuilder builder) ;
 
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.BufferBuilder drawMultiTexture ()V")
 // [AUDIT-OK] OF member BufferBuilder.drawMultiTexture
-    private static native void BufferBuilder_drawMultiTexture(BufferBuilder builder) ;
+    private static native void optiRefine$drawBufferMultiTexture(BufferBuilder builder) ;
 }

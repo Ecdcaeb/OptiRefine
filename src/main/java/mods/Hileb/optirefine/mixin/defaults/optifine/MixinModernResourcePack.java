@@ -22,7 +22,7 @@ public abstract class MixinModernResourcePack {
     protected abstract boolean hasResourceName(String name);
 
     @Inject(method = "getInputStream", at = @At("HEAD"), cancellable = true)
-    private void optirefine$modernInputStream(ResourceLocation location, CallbackInfoReturnable<InputStream> cir) throws IOException {
+    private void optiRefine$modernInputStream(ResourceLocation location, CallbackInfoReturnable<InputStream> cir) throws IOException {
         ModernResourcePaths.PackPaths paths = ModernResourcePaths.forLocation(location);
         if (paths != null) {
             if (hasResourceName(paths.modern())) {
@@ -37,7 +37,7 @@ public abstract class MixinModernResourcePack {
     }
 
     @Inject(method = "resourceExists", at = @At("HEAD"), cancellable = true)
-    private void optirefine$modernResourceExists(ResourceLocation location, CallbackInfoReturnable<Boolean> cir) {
+    private void optiRefine$modernResourceExists(ResourceLocation location, CallbackInfoReturnable<Boolean> cir) {
         ModernResourcePaths.PackPaths paths = ModernResourcePaths.forLocation(location);
         if (paths != null) {
             cir.setReturnValue(hasResourceName(paths.modern()) || hasResourceName(paths.legacy()));

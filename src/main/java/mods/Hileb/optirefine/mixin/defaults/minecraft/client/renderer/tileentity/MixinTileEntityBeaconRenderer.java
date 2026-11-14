@@ -18,7 +18,7 @@ public abstract class MixinTileEntityBeaconRenderer {
 
     @WrapMethod(method = "renderBeacon")
     // [AUDIT-OK] renderBeacon baseline; textureScale/empty guards + begin/endBeacon match OF:21-43
-    public void _renderBeacon(double x, double y, double z, double partialTicks, double textureScale, List<TileEntityBeacon.BeamSegment> beamSegments, double totalWorldTime, Operation<Void> original) {
+    public void optiRefine$renderShaderAwareBeacon(double x, double y, double z, double partialTicks, double textureScale, List<TileEntityBeacon.BeamSegment> beamSegments, double totalWorldTime, Operation<Void> original) {
         if (!(textureScale <= 0.0) && !beamSegments.isEmpty()) {
             boolean shaders = Config.isShaders();
             if (shaders) {
@@ -39,8 +39,8 @@ public abstract class MixinTileEntityBeaconRenderer {
     // [AUDIT-FIXED] three-way audit (P18): OF only overrides the middle depthMask(false) call (OF:108-110);
     // without ordinal the override hit all three (start true / mid false / end true), wrongly disabling
     // depth writes on the first/last passes when beaconBeamDepth=false.
-    private static void depthMask(boolean flagIn, Operation<Void> original){
-        original.call(flagIn);
+    private static void optiRefine$applyBeaconBeamDepth(boolean writeDepth, Operation<Void> original){
+        original.call(writeDepth);
         if (Config.isShaders()) {
             GlStateManager.depthMask(Shaders.isBeaconBeamDepth());
         }

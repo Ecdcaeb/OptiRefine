@@ -88,11 +88,11 @@ public abstract class MixinGameSettingsOption {
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.PUTFIELD, desc = "net.minecraft.client.settings.GameSettings$Options field_148271_N F", deobf = true)
     // [AUDIT-OK] vanilla SRG field_148271_N = valueMin, deobf=true (per contract)
-    private static native void Options_valueMin_set(GameSettings.Options options, float value);
+    private static native void optiRefine$setOptionMinimum(GameSettings.Options options, float value);
 
 
     @Inject(method = "<clinit>", at = @At("TAIL"))
-    private static void optiRefine$initOptionValues(CallbackInfo ci) {
+    private static void optiRefine$registerCustomOptions(CallbackInfo ci) {
         // Register only after vanilla has assigned $VALUES. The helper class reads
         // these constants after this initializer completes, in either load order.
         Class<?>[] args = {String.class, boolean.class, boolean.class};
@@ -169,6 +169,6 @@ public abstract class MixinGameSettingsOption {
         RENDER_REGIONS = EnumHelper.addEnum(GameSettings.Options.class, "RENDER_REGIONS", args, "of.options.RENDER_REGIONS", false, false);
         SHOW_GL_ERRORS = EnumHelper.addEnum(GameSettings.Options.class, "SHOW_GL_ERRORS", args, "of.options.SHOW_GL_ERRORS", false, false);
         SMART_ANIMATIONS = EnumHelper.addEnum(GameSettings.Options.class, "SMART_ANIMATIONS", args, "of.options.SMART_ANIMATIONS", false, false);
-        Options_valueMin_set(GameSettings.Options.FRAMERATE_LIMIT, 0.0F);
+        optiRefine$setOptionMinimum(GameSettings.Options.FRAMERATE_LIMIT, 0.0F);
     }
 }

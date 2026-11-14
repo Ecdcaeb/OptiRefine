@@ -14,7 +14,7 @@ public abstract class MixinTileEntityEndPortalRenderer {
 
     @WrapMethod(method = "render(Lnet/minecraft/tileentity/TileEntityEndPortal;DDDFIF)V")
     // [AUDIT-OK] render(TileEntityEndPortal;DDDFIF) baseline; ShadersRender.renderEndPortal guard matches OF:25-26
-    public void renderShader(TileEntityEndPortal te, double x, double y, double z, float partialTicks, int destroyStage, float alpha, Operation<Void> original){
+    public void optiRefine$renderShaderEndPortal(TileEntityEndPortal te, double x, double y, double z, float partialTicks, int destroyStage, float alpha, Operation<Void> original){
         if (!Config.isShaders() || !ShadersRender.renderEndPortal(te, x, y, z, partialTicks, destroyStage, this.getOffset())) {
             original.call(te, x, y, z, partialTicks, destroyStage, alpha);
         }

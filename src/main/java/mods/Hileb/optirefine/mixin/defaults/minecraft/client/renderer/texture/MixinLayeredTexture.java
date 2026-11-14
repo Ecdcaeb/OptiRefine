@@ -30,7 +30,7 @@ public abstract class MixinLayeredTexture {
 
     @Inject(method = "<init>", at = @At("RETURN"))
     // [AUDIT-OK] target <init>([Ljava/lang/String;)V matches baseline; RETURN inject replicates OF ctor textureLocation init
-    public void init(String[] textureNames, CallbackInfo ci){
+    public void optiRefine$initializeTextureLocation(String[] textureNames, CallbackInfo ci){
         if (textureNames.length > 0 && textureNames[0] != null) {
             this.textureLocation = new ResourceLocation(textureNames[0]);
         }
@@ -38,9 +38,9 @@ public abstract class MixinLayeredTexture {
 
     @WrapOperation(method = "loadTexture", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/texture/TextureUtil;uploadTextureImage(ILjava/awt/image/BufferedImage;)I"))
     // [AUDIT-OK] target loadTexture(IResourceManager)V matches baseline; wrap of uploadTextureImage INVOKE mirrors OF shaders branch
-    public int onImageLoad(int textureId, BufferedImage texture, Operation<Integer> original, @Local(argsOnly = true)IResourceManager resourceManager ){
+    public int optiRefine$uploadShaderLayeredTexture(int textureId, BufferedImage texture, Operation<Integer> original, @Local(argsOnly = true)IResourceManager resourceManager ){
         if (Config.isShaders()) {
-            return ShadersTex.loadSimpleTexture(textureId, texture, false, false, resourceManager, this.textureLocation, this.getMultiTexID());
+            return ShadersTex.loadSimpleTexture(textureId, texture, false, false, resourceManager, this.textureLocation, this.optiRefine$getMultiTextureId());
         } else {
             return original.call(textureId, texture);
         }
@@ -49,5 +49,5 @@ public abstract class MixinLayeredTexture {
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.AbstractTexture getMultiTexID ()Lnet.optifine.shaders.MultiTexID;")
     // [AUDIT-OK] OF member AbstractTexture.getMultiTexID(), MCP name
-    public native MultiTexID getMultiTexID();
+    public native MultiTexID optiRefine$getMultiTextureId();
 }

@@ -182,21 +182,21 @@ public abstract class MixinModelRenderer {
     @SuppressWarnings({"unused", "BooleanMethodIsAlwaysInverted"})
 // [AUDIT-OK] OF-added member (not in tsrg): MCP name renderOverlayDamaged correct
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net/minecraft/client/renderer/RenderGlobal renderOverlayDamaged Z")
-    private native static boolean _acc_RenderGlobal_renderOverlayDamaged_(RenderGlobal global);
+    private native static boolean optiRefine$isDamageOverlay(RenderGlobal global);
 
     @SuppressWarnings("unused")
     @Unique
 // [AUDIT-OK] OF-added member (not in tsrg): MCP name renderOverlayEyes correct
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net/minecraft/client/renderer/RenderGlobal renderOverlayEyes Z")
-    private static native boolean _acc_RenderGlobal_renderOverlayEyes_(RenderGlobal global);
+    private static native boolean optiRefine$isEyesOverlay(RenderGlobal global);
 
 // [AUDIT-OK] OF-added member (not in tsrg): MCP name getBoundTexture correct
     @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net/minecraft/client/renderer/GlStateManager getBoundTexture ()I")
-    private native static int _acc_GlStateManager_getBoundTexture_();
+    private native static int optiRefine$getBoundTexture();
 
 // [AUDIT-OK] target render(F)V matches baseline; instance handler; replicates OF render
     @WrapMethod(method = "render")
-    public void injectPreRender(float scale, Operation<Void> original) {
+    public void optiRefine$renderCustomModel(float scale, Operation<Void> original) {
         if (this.isHidden || !this.showModel) {
             return;
         }
@@ -204,11 +204,11 @@ public abstract class MixinModelRenderer {
         if (!this.compiled) {
             this.compileDisplayList(scale);
         }
-        boolean customTexture = this.textureLocation != null && !_acc_RenderGlobal_renderOverlayDamaged_(this.renderGlobal);
-        if (customTexture && _acc_RenderGlobal_renderOverlayEyes_(this.renderGlobal)) {
+        boolean customTexture = this.textureLocation != null && !optiRefine$isDamageOverlay(this.renderGlobal);
+        if (customTexture && optiRefine$isEyesOverlay(this.renderGlobal)) {
             return;
         }
-        int previousTexture = customTexture ? _acc_GlStateManager_getBoundTexture_() : 0;
+        int previousTexture = customTexture ? optiRefine$getBoundTexture() : 0;
         try {
             if (customTexture) {
                 Config.getTextureManager().bindTexture(this.textureLocation);
@@ -279,7 +279,7 @@ public abstract class MixinModelRenderer {
 
 // [AUDIT-OK] target renderWithRotation(F)V matches baseline; instance handler; replicates OF
     @WrapMethod(method = "renderWithRotation")
-    public void injectPreRenderWithRotation(float scale, Operation<Void> original) {
+    public void optiRefine$renderCustomModelWithRotation(float scale, Operation<Void> original) {
         if (this.isHidden || !this.showModel) {
             return;
         }
@@ -287,11 +287,11 @@ public abstract class MixinModelRenderer {
         if (!this.compiled) {
             this.compileDisplayList(scale);
         }
-        boolean customTexture = this.textureLocation != null && !_acc_RenderGlobal_renderOverlayDamaged_(this.renderGlobal);
-        if (customTexture && _acc_RenderGlobal_renderOverlayEyes_(this.renderGlobal)) {
+        boolean customTexture = this.textureLocation != null && !optiRefine$isDamageOverlay(this.renderGlobal);
+        if (customTexture && optiRefine$isEyesOverlay(this.renderGlobal)) {
             return;
         }
-        int previousTexture = customTexture ? _acc_GlStateManager_getBoundTexture_() : 0;
+        int previousTexture = customTexture ? optiRefine$getBoundTexture() : 0;
         try {
             if (customTexture) {
                 Config.getTextureManager().bindTexture(this.textureLocation);
@@ -332,7 +332,7 @@ public abstract class MixinModelRenderer {
 
 // [AUDIT-OK] target postRender(F)V matches baseline
     @Inject(method = "postRender", at = @At("HEAD"))
-    public void injectPrePostRender(float p_78785_1_, CallbackInfo ci){
+    public void optiRefine$resetDisplayListBeforePostRender(float scale, CallbackInfo ci){
         if (!this.isHidden && this.showModel) {
             this.checkResetDisplayList();
         }
@@ -340,13 +340,13 @@ public abstract class MixinModelRenderer {
 
 // [AUDIT-OK] target compileDisplayList(F)V matches baseline; generateDisplayLists(I)I invoke present; handler params match
     @WrapOperation(method = "compileDisplayList", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GLAllocation;generateDisplayLists(I)I"))
-    private int makeDisplayListGenerationLazy(int range, Operation<Integer> original){
+    private int optiRefine$reuseDisplayList(int range, Operation<Integer> original){
         return this.displayList == 0 ? original.call(range) : this.displayList;
     }
 
 // [AUDIT-OK] glEndList()V invoke present in baseline compileDisplayList; sprites render before endList like OF
     @WrapOperation(method = "compileDisplayList", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GlStateManager;glEndList()V"))
-    private void renderSpriteListForCompileDisplayList(Operation<Void> original, @Local(argsOnly = true) float scale) {
+    private void optiRefine$compileModelSprites(Operation<Void> original, @Local(argsOnly = true) float scale) {
         try {
             for (ModelSprite sprite : this.spriteList) {
                 sprite.render(Tessellator.getInstance(), scale);
@@ -419,18 +419,18 @@ public abstract class MixinModelRenderer {
     @Unique
 // [AUDIT-OK] NEW resolves to mixin-added @NewConstructor ModelBox(int[][] faceUvs,...) matching OF ctor; no vanilla ctor collision
     @AccessibleOperation(opcode = Opcodes.NEW, desc = "net/minecraft/client/model/ModelBox (Lnet/minecraft/client/model/ModelRenderer;[[IFFFFFFFZ)V")
-    private native static ModelBox _new_ModelBox(AccessibleOperation.Construction construction, ModelRenderer renderer, int[][] faceUvs, float x, float y, float z, float dx, float dy, float dz, float delta, boolean mirror);
+    private native static ModelBox optiRefine$createModelBox(AccessibleOperation.Construction construction, ModelRenderer renderer, int[][] faceUvs, float x, float y, float z, float dx, float dy, float dz, float delta, boolean mirror);
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
 // [AUDIT-OK] OF-added API (OF addBox(int[][],...)), not in baseline; @Public for OF-jar access
     @Public
     public void addBox(int[][] faceUvs, float x, float y, float z, float dx, float dy, float dz, float delta) {
-        this.cubeList.add(_new_ModelBox(AccessibleOperation.Construction.construction(), _cast_this(), faceUvs, x, y, z, dx, dy, dz, delta, this.mirror));
+        this.cubeList.add(optiRefine$createModelBox(AccessibleOperation.Construction.construction(), optiRefine$castModelRenderer(), faceUvs, x, y, z, dx, dy, dz, delta, this.mirror));
     }
 
 // [AUDIT-OK] cast helper (no member lookup)
     @AccessibleOperation
-    public ModelRenderer _cast_this(){
+    public ModelRenderer optiRefine$castModelRenderer(){
         throw new AbstractMethodError();
     }
 
@@ -438,7 +438,7 @@ public abstract class MixinModelRenderer {
     @Unique
 // [AUDIT-OK] OF-added member (not in tsrg): MCP name getId correct; resolves to mixin-added @Public getId
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "getId ()Ljava/lang/String;")
-    private static String _acc_ModelRenderer_getId(ModelRenderer renderer){
+    private static String optiRefine$getModelRendererId(ModelRenderer renderer){
         throw new AbstractMethodError();
     }
 
@@ -449,7 +449,7 @@ public abstract class MixinModelRenderer {
         if (name != null) {
             if (this.childModels != null) {
                 for (ModelRenderer child : this.childModels) {
-                    if (name.equals(_acc_ModelRenderer_getId(child))) {
+                    if (name.equals(optiRefine$getModelRendererId(child))) {
                         return child;
                     }
                 }
@@ -463,7 +463,7 @@ public abstract class MixinModelRenderer {
     @Unique
 // [AUDIT-OK] OF-added member (not in tsrg): MCP name getChildDeep correct; resolves to mixin-added @Public getChildDeep
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "getChildDeep (Ljava/lang/String;)Lnet/minecraft/client/model/ModelRenderer;")
-    private static native ModelRenderer _acc_ModelRenderer_getChildDeep(ModelRenderer renderer, String a);
+    private static native ModelRenderer optiRefine$getModelRendererChildDeep(ModelRenderer renderer, String name);
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
 // [AUDIT-OK] OF-added API, not in baseline
@@ -478,7 +478,7 @@ public abstract class MixinModelRenderer {
             } else {
                 if (this.childModels != null) {
                     for (ModelRenderer child : this.childModels) {
-                        ModelRenderer mr = _acc_ModelRenderer_getChildDeep(child, name);
+                        ModelRenderer mr = optiRefine$getModelRendererChildDeep(child, name);
                         if (mr != null) {
                             return mr;
                         }
@@ -505,7 +505,7 @@ public abstract class MixinModelRenderer {
 
     @Inject(method = "<init>*", at = @At("RETURN"))
     // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
-    private void optiRefine$initFields(CallbackInfo ci) {
+    private void optiRefine$initializeModelRenderState(CallbackInfo ci) {
         this.spriteList = new ArrayList<>();
         this.mirrorV = false;
         this.scaleX = 1.0F;

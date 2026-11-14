@@ -53,7 +53,7 @@ public abstract class MixinAbstractClientPlayer {
 
 // [AUDIT-OK] target ctor (Lnet/minecraft/world/World;Lcom/mojang/authlib/GameProfile;)V matches baseline
     @Inject(method = "<init>", at = @At("RETURN"))
-    public void injectInit(World worldIn, GameProfile playerProfile, CallbackInfo ci){
+    public void optiRefine$initializeCustomPlayerAppearance(World world, GameProfile playerProfile, CallbackInfo ci){
         this.nameClear = playerProfile.getName();
         if (this.nameClear != null && !this.nameClear.isEmpty()) {
             this.nameClear = StringUtils.stripControlCodes(this.nameClear);
@@ -66,7 +66,7 @@ public abstract class MixinAbstractClientPlayer {
 
 // [AUDIT-OK] target getLocationCape()Lnet/minecraft/util/ResourceLocation; declared in baseline; instance handler
     @WrapMethod(method = "getLocationCape")
-    public ResourceLocation injectGetLocationCape(Operation<ResourceLocation> original){
+    public ResourceLocation optiRefine$resolveCustomCapeTexture(Operation<ResourceLocation> original){
         if (!Config.isShowCapes()) {
             return null;
         } else {

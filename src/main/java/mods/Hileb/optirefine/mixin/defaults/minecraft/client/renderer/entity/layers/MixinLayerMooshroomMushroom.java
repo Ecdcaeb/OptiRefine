@@ -49,7 +49,7 @@ public abstract class MixinLayerMooshroomMushroom {
 
     @Inject(method = "<init>", at = @At("RETURN"))
     // [AUDIT-OK] target <init>(RenderMooshroom) baseline; model + addBox construction matches OF ctor
-    public void init(RenderMooshroom p_i46114_1, CallbackInfo ci){
+    public void optiRefine$initializeMushroomModel(RenderMooshroom renderer, CallbackInfo ci){
         this.modelRendererMushroom = new ModelRenderer(this.mooshroomRenderer.getMainModel());
         this.modelRendererMushroom.setTextureSize(16, 16);
         this.modelRendererMushroom.rotationPointX = -6.0F;
@@ -57,18 +57,18 @@ public abstract class MixinLayerMooshroomMushroom {
         this.modelRendererMushroom.rotateAngleY = (float) Math.PI / 4.0F;
         int[][] faceUvs = new int[][]{null, null, {16, 16, 0, 0}, {16, 16, 0, 0}, null, null};
         // [AUDIT-OK] addBox(int[][],7xfloat) is an OF overload (OF ModelRenderer:346, not in tsrg) — MCP name + deobf=false correct; provided by MixinModelRenderer:283
-        ModelRenderer_addBox(this.modelRendererMushroom, faceUvs, 0.0F, 0.0F, 10.0F, 20.0F, 16.0F, 0.0F, 0.0F);
+        optiRefine$addModelBox(this.modelRendererMushroom, faceUvs, 0.0F, 0.0F, 10.0F, 20.0F, 16.0F, 0.0F, 0.0F);
         int[][] faceUvs2 = new int[][]{null, null, null, null, {16, 16, 0, 0}, {16, 16, 0, 0}};
-        ModelRenderer_addBox(this.modelRendererMushroom, faceUvs2, 10.0F, 0.0F, 0.0F, 0.0F, 16.0F, 20.0F, 0.0F);
+        optiRefine$addModelBox(this.modelRendererMushroom, faceUvs2, 10.0F, 0.0F, 0.0F, 0.0F, 16.0F, 20.0F, 0.0F);
     }
 
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.model.ModelRenderer addBox ([[IFFFFFFF)V", deobf = false)
-    private static native void ModelRenderer_addBox(ModelRenderer modelRendererMushroom, int[][] faceUvs, float x, float y, float z, float dx, float dy, float dz, float delta);
+    private static native void optiRefine$addModelBox(ModelRenderer modelRendererMushroom, int[][] faceUvs, float x, float y, float z, float dx, float dy, float dz, float delta);
 
     @Redirect(method = "doRenderLayer(Lnet/minecraft/entity/passive/EntityMooshroom;FFFFFFF)V", at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/texture/TextureMap;LOCATION_BLOCKS_TEXTURE:Lnet/minecraft/util/ResourceLocation;"))
     // [AUDIT-OK] LOCATION_BLOCKS_TEXTURE GETSTATIC unique; texture branch matches OF:34-38
-    public ResourceLocation texture(){
+    public ResourceLocation optiRefine$selectMushroomTexture(){
         if (hasTextureMushroom) {
             return (LOCATION_MUSHROOM_RED);
         } else {
@@ -78,11 +78,11 @@ public abstract class MixinLayerMooshroomMushroom {
 
     @WrapOperation(method = "doRenderLayer(Lnet/minecraft/entity/passive/EntityMooshroom;FFFFFFF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/BlockRendererDispatcher;renderBlockBrightness(Lnet/minecraft/block/state/IBlockState;F)V"))
     // [AUDIT-OK] renderBlockBrightness INVOKE wrap; model-vs-block branch matches OF:47-52
-    public void renderBlockBrightness(BlockRendererDispatcher instance, IBlockState blockState, float state, Operation<Void> original){
+    public void optiRefine$renderMushroomModel(BlockRendererDispatcher blockRenderer, IBlockState blockState, float brightness, Operation<Void> original){
         if (hasTextureMushroom) {
             this.modelRendererMushroom.render(0.0625F);
         } else {
-            original.call(instance, blockState, state);
+            original.call(blockRenderer, blockState, brightness);
         }
     }
 }

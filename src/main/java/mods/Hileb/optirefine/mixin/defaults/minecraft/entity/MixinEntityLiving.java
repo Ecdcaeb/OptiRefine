@@ -31,13 +31,13 @@ public abstract class MixinEntityLiving extends EntityLivingBase {
     private String teamUuidString;
 
     @SuppressWarnings("unused")
-    public MixinEntityLiving(World p_i1594_1_) {
-        super(p_i1594_1_);
+    public MixinEntityLiving(World world) {
+        super(world);
     }
 
     @WrapMethod(method = "onUpdate")
 // [AUDIT-OK] onUpdate wrap matches OF (skip -> onUpdateMinimal, else full vanilla body incl. super.onUpdate())
-    public void injectOnUpdate(Operation<Void> original){
+    public void optiRefine$skipDistantEntityUpdates(Operation<Void> original){
         if (Config.isSmoothWorld() && this.canSkipUpdate()) {
             this.onUpdateMinimal();
         } else {
@@ -76,7 +76,7 @@ public abstract class MixinEntityLiving extends EntityLivingBase {
 // [AUDIT-OK] matches OF onUpdateMinimal (idleTime++, EntityMob brightness >0.5F -> idleTime+=2, despawnEntity)
     private void onUpdateMinimal() {
         ++this.idleTime;
-        if (_cast_EntityLiving() instanceof EntityMob && this.getBrightness() > 0.5f) {
+        if (optiRefine$asLivingEntity() instanceof EntityMob && this.getBrightness() > 0.5f) {
             this.idleTime += 2;
         }
         this.despawnEntity();
@@ -89,7 +89,7 @@ public abstract class MixinEntityLiving extends EntityLivingBase {
     @Override
 // [AUDIT-OK] OF-added override (target EntityLiving does not declare getTeam - inherited from Entity - so plain merge applies), body matches OF uuid-caching
     public Team getTeam() {
-        UUID uuid = _cast_EntityLiving().getUniqueID();
+        UUID uuid = optiRefine$asLivingEntity().getUniqueID();
         if (this.teamUuid != uuid) {
             this.teamUuid = uuid;
             this.teamUuidString = String.valueOf(uuid);
@@ -101,13 +101,13 @@ public abstract class MixinEntityLiving extends EntityLivingBase {
     @Unique
     @AccessibleOperation
 // [AUDIT-OK] NOP AccessibleOperation = self-cast idiom (call removed by processor, receiver "this" stays on stack); works because mixin instance IS the EntityLiving
-    private EntityLiving _cast_EntityLiving() {throw new AbstractMethodError();}
+    private EntityLiving optiRefine$asLivingEntity() {throw new AbstractMethodError();}
 
 
 
     @Inject(method = "<init>*", at = @At("RETURN"))
     // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
-    private void optiRefine$initFields(CallbackInfo ci) {
+    private void optiRefine$initializeTeamIdentityCache(CallbackInfo ci) {
         this.teamUuid = null;
         this.teamUuidString = null;
     }

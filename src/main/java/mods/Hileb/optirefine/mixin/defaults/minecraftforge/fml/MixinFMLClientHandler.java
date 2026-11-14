@@ -18,7 +18,7 @@ public abstract class MixinFMLClientHandler {
 
     @ModifyReturnValue(method = "getAdditionalBrandingInformation", at = @At("RETURN"))
     // [AUDIT-FIXED] keep the F3 branding line short: name only, no version (full version already in the mod list)
-    public List<String> modifyOptifineBrand(List<String> original){
+    public List<String> optiRefine$appendOptiRefineBranding(List<String> original){
         if (original.isEmpty()) return original;
         List<String> branding = new ArrayList<>(original);
         branding.replaceAll(s -> {

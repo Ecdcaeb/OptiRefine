@@ -19,17 +19,17 @@ public abstract class MixinGuiCustomizeSkin extends GuiScreen {
 
 // [AUDIT-OK] target initGui() matches baseline; @Local int i captured at TAIL (single live int); adds OF cape button 210
     @Inject(method = "initGui", at = @At(value = "TAIL"))
-    public void injectInitGui(CallbackInfo ci, @Local LocalIntRef lvt_1_1_){
-        GuiButtonOF of = new GuiButtonOF(210, this.width / 2 - 100, this.height / 6 + 24 * (lvt_1_1_.get() >> 1), I18n.format("of.options.skinCustomisation.ofCape"));
-        lvt_1_1_.set(lvt_1_1_.get() + 2);
-        GuiButton done = this.buttonList.getLast();
-        this.buttonList.add(this.buttonList.size() -1, of);
-        done.y = this.height / 6 + 24 * (lvt_1_1_.get() >> 1);
+    public void optiRefine$addCapeEditorButton(CallbackInfo ci, @Local LocalIntRef buttonIndex){
+        GuiButtonOF capeButton = new GuiButtonOF(210, this.width / 2 - 100, this.height / 6 + 24 * (buttonIndex.get() >> 1), I18n.format("of.options.skinCustomisation.ofCape"));
+        buttonIndex.set(buttonIndex.get() + 2);
+        GuiButton doneButton = this.buttonList.getLast();
+        this.buttonList.add(this.buttonList.size() -1, capeButton);
+        doneButton.y = this.height / 6 + 24 * (buttonIndex.get() >> 1);
     }
 
 // [AUDIT-OK] target actionPerformed(GuiButton) matches baseline; matches OF button 210 handling
     @Inject(method = "actionPerformed", at = @At("HEAD"))
-    public void injectActionPerformed(GuiButton button, CallbackInfo ci){
+    public void optiRefine$openCapeEditor(GuiButton button, CallbackInfo ci){
         if (button.enabled) {
             if (button.id == 210) {
                 this.mc.displayGuiScreen(new GuiScreenCapeOF(this));

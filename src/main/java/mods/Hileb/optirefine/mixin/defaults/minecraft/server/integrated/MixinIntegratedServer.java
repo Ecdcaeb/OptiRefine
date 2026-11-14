@@ -61,36 +61,36 @@ public abstract class MixinIntegratedServer extends MinecraftServer {
     @Shadow public abstract void tick();
 
     @SuppressWarnings("unused")
-    public MixinIntegratedServer(File p_i47054_1_, Proxy p_i47054_2_, DataFixer p_i47054_3_, YggdrasilAuthenticationService p_i47054_4_, MinecraftSessionService p_i47054_5_, GameProfileRepository p_i47054_6_, PlayerProfileCache p_i47054_7_) {
-        super(p_i47054_1_, p_i47054_2_, p_i47054_3_, p_i47054_4_, p_i47054_5_, p_i47054_6_, p_i47054_7_);
+    public MixinIntegratedServer(File anvilFile, Proxy proxy, DataFixer dataFixer, YggdrasilAuthenticationService authService, MinecraftSessionService sessionService, GameProfileRepository profileRepository, PlayerProfileCache profileCache) {
+        super(anvilFile, proxy, dataFixer, authService, sessionService, profileRepository, profileCache);
     }
 
     @SuppressWarnings("unused")
     @AccessibleOperation(opcode = Opcodes.PUTSTATIC, desc = "net.minecraft.network.PacketThreadUtil lastDimensionId I")
 // [AUDIT-OK] OF member PacketThreadUtil.lastDimensionId (in OF PacketThreadUtil, not in baseline; provided by MixinPacketThreadUtil), MCP name OK
-    private static native void _set_PacketThreadUtil_lastDimensionId_(int dim);
+    private static native void optiRefine$setLastDimensionId(int dimensionId);
 
     @Inject(method = "<init>", at = @At("RETURN"))
 // [AUDIT-OK] <init> RETURN matches OF ctor (Dimension NBT -> lastDimensionId + loadingScreen progress -1)
-    public void injectInit(Minecraft clientIn, String folderNameIn, String worldNameIn, WorldSettings worldSettingsIn, YggdrasilAuthenticationService authServiceIn, MinecraftSessionService sessionServiceIn, GameProfileRepository profileRepoIn, PlayerProfileCache profileCacheIn, CallbackInfo ci){
+    public void optiRefine$restorePlayerDimension(Minecraft clientIn, String folderNameIn, String worldNameIn, WorldSettings worldSettingsIn, YggdrasilAuthenticationService authServiceIn, MinecraftSessionService sessionServiceIn, GameProfileRepository profileRepoIn, PlayerProfileCache profileCacheIn, CallbackInfo ci){
         NBTTagCompound nbt;
         ISaveHandler isavehandler = this.getActiveAnvilConverter().getSaveLoader(folderNameIn, false);
         WorldInfo worldinfo = isavehandler.loadWorldInfo();
         if (worldinfo != null && (nbt = worldinfo.getPlayerNBTTagCompound()) != null && nbt.hasKey("Dimension")) {
-            _set_PacketThreadUtil_lastDimensionId_(nbt.getInteger("Dimension"));
+            optiRefine$setLastDimensionId(nbt.getInteger("Dimension"));
             this.mc.loadingScreen.setLoadingProgress(-1);
         }
     }
 
     @Inject(method = "tick", at = @At("HEAD"))
 // [AUDIT-OK] tick HEAD onTick() matches OF tick start
-    public void injectTick(CallbackInfo ci) {
+    public void optiRefine$applyWorldSettings(CallbackInfo ci) {
         this.onTick();
     }
 
     @Inject(method = "setDifficultyForAllWorlds", at = @At("TAIL"))
 // [AUDIT-FIXED] OF:332-337 after super.setDifficultyForAllWorlds syncs the client world's difficulty (mc @Shadow already present)
-    public void injectSetDifficultyForAllWorlds(EnumDifficulty difficulty, CallbackInfo ci) {
+    public void optiRefine$syncClientDifficulty(EnumDifficulty difficulty, CallbackInfo ci) {
         if (this.mc.world != null) {
             this.mc.world.getWorldInfo().setDifficulty(difficulty);
         }
@@ -99,16 +99,16 @@ public abstract class MixinIntegratedServer extends MinecraftServer {
     @SuppressWarnings("unused")
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.settings.GameSettings ofAutoSaveTicks I")
 // [AUDIT-OK] OF member GameSettings.ofAutoSaveTicks (in OF GameSettings, not in baseline; provided by MixinGameSettings), MCP name OK
-    private static int _acc_GameSettings_ofAutoSaveTicks_(GameSettings settings) {
+    private static int optiRefine$getAutosaveInterval(GameSettings settings) {
         throw new AbstractMethodError();
     }
 
     @Inject(method = "saveAllWorlds", at = @At("HEAD"), cancellable = true)
 // [AUDIT-OK] cancellable HEAD matches OF saveAllWorlds (silent autosave throttled by ticksSaveLast + ofAutoSaveTicks, else super)
-    public void injectSaveAllWorlds(boolean isSilent, CallbackInfo ci) {
+    public void optiRefine$throttleSilentAutosaves(boolean isSilent, CallbackInfo ci) {
         if (isSilent) {
             int ticks = this.getTickCounter();
-            if (ticks < (this.ticksSaveLast + _acc_GameSettings_ofAutoSaveTicks_(this.mc.gameSettings))) {
+            if (ticks < (this.ticksSaveLast + optiRefine$getAutosaveInterval(this.mc.gameSettings))) {
                 ci.cancel();
                 return;
             }
@@ -208,7 +208,7 @@ public abstract class MixinIntegratedServer extends MinecraftServer {
 
     @Inject(method = "<init>*", at = @At("RETURN"))
     // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
-    private void optiRefine$initFields(CallbackInfo ci) {
+    private void optiRefine$initializeServerUpdateState(CallbackInfo ci) {
         this.ticksSaveLast = 0L;
         this.difficultyUpdateWorld = null;
         this.difficultyUpdatePos = null;

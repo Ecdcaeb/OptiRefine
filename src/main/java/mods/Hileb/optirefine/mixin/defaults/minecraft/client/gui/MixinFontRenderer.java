@@ -173,9 +173,9 @@ public abstract class MixinFontRenderer {
 
 // [AUDIT-FIXED] CTOR_HEAD(unsafe) runs before mixin-added field initializers: charWidthFloat null-guarded now; fill redundant with readFontTextureHead
     @Inject(method = "<init>", at = @At(value = "CTOR_HEAD", unsafe = true))
-    private void optiRefine$ctorHead(GameSettings gs, ResourceLocation base, TextureManager tm, boolean unicode, CallbackInfo ci) {
-        this.gameSettings = gs;
-        this.locationFontTextureBase = base;
+    private void optiRefine$initializeFontConfiguration(GameSettings settings, ResourceLocation baseTexture, TextureManager textureManager, boolean unicodeEnabled, CallbackInfo ci) {
+        this.gameSettings = settings;
+        this.locationFontTextureBase = baseTexture;
         // CTOR_HEAD runs before mixin-added field initializers; charWidthFloat may still be null
         if (this.charWidthFloat != null) {
             Arrays.fill(this.charWidthFloat, -1.0F);
@@ -187,16 +187,16 @@ public abstract class MixinFontRenderer {
             method = "<init>",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/FontRenderer;bindTexture(Lnet/minecraft/util/ResourceLocation;)V")
     )
-    private void optiRefine$ctorBindHd(FontRenderer self, ResourceLocation ignored, Operation<Void> original) {
+    private void optiRefine$bindHighResolutionFontTexture(FontRenderer fontRenderer, ResourceLocation vanillaFontTexture, Operation<Void> original) {
         this.locationFontTexture = FontUtils.getHdFontLocation(this.locationFontTextureBase);
-        original.call(self, this.locationFontTexture);
+        original.call(fontRenderer, this.locationFontTexture);
     }
 
 
 // [AUDIT-OK] target onResourceManagerReload(IResourceManager)V declared in baseline FontRenderer
     @WrapMethod(method = "onResourceManagerReload(Lnet/minecraft/client/resources/IResourceManager;)V")
-    private void optiRefine$onReloadBridge(IResourceManager rm, Operation<Void> original) {
-        this.srrl$onResourceManagerReload(rm, SelectiveReloadStateHandler.INSTANCE.get());
+    private void optiRefine$reloadFontResourcesSelectively(IResourceManager resourceManager, Operation<Void> original) {
+        this.srrl$onResourceManagerReload(resourceManager, SelectiveReloadStateHandler.INSTANCE.get());
     }
 
 // [AUDIT-OK] baseline method readGlyphSizes()V declared in FontRenderer
@@ -213,9 +213,9 @@ public abstract class MixinFontRenderer {
 // [AUDIT-FIXED 2026-08-14] standard @Implements prefix mapping: method merged as onResourceManagerReload
 // (prefix stripped), implements ISelectiveResourceReloadListener
     @Unique
-    public void srrl$onResourceManagerReload(IResourceManager rm, Predicate<IResourceType> predicate) {
+    public void srrl$onResourceManagerReload(IResourceManager resourceManager, Predicate<IResourceType> resourceTypes) {
         this.readGlyphSizes();
-        if (predicate.test(VanillaResourceType.TEXTURES)) {
+        if (resourceTypes.test(VanillaResourceType.TEXTURES)) {
             this.locationFontTexture = FontUtils.getHdFontLocation(this.locationFontTextureBase);
             Arrays.fill(UNICODE_PAGE_LOCATIONS, null);
             this.readFontTexture();
@@ -224,13 +224,13 @@ public abstract class MixinFontRenderer {
 
 // [AUDIT-OK] target readFontTexture()V matches baseline
     @Inject(method = "readFontTexture", at = @At("HEAD"))
-    private void optiRefine$readFontTextureHead(
+    private void optiRefine$initializeCustomGlyphWidths(
             CallbackInfo ci,
-            @Share(namespace = "optirefine", value = "props") LocalRef<Properties> propsRef
+            @Share(namespace = "optirefine", value = "props") LocalRef<Properties> fontPropertiesRef
     ) {
-        Properties props = FontUtils.readFontProperties(this.locationFontTexture);
-        this.blend = FontUtils.readBoolean(props, "blend", false);
-        propsRef.set(props);
+        Properties fontProperties = FontUtils.readFontProperties(this.locationFontTexture);
+        this.blend = FontUtils.readBoolean(fontProperties, "blend", false);
+        fontPropertiesRef.set(fontProperties);
 
         Arrays.fill(this.charWidth, -1);
         Arrays.fill(this.charWidthFloat, -1.0F);
@@ -238,9 +238,9 @@ public abstract class MixinFontRenderer {
 
 // [AUDIT-OK] target readFontTexture()V matches baseline
     @Inject(method = "readFontTexture", at = @At("TAIL"))
-    private void optiRefine$readFontTextureTail(
+    private void optiRefine$fillMissingCustomGlyphWidths(
             CallbackInfo ci,
-            @Share(namespace = "optirefine", value = "props") LocalRef<Properties> propsRef
+            @Share(namespace = "optirefine", value = "props") LocalRef<Properties> fontPropertiesRef
     ) {
         for (int i = 0; i < this.charWidthFloat.length; i++) {
             if (this.charWidthFloat[i] < 0.0F) {
@@ -254,40 +254,40 @@ public abstract class MixinFontRenderer {
             method = "readFontTexture",
             at = @At(value = "INVOKE", target = "Ljava/awt/image/BufferedImage;getRGB(IIII[III)[I")
     )
-    private int[] optiRefine$readFontTextureComputeWidths(
-            BufferedImage img,
-            int x, int y, int w, int h,
-            int[] pixels, int offset, int scansize,
+    private int[] optiRefine$measureHighResolutionGlyphWidths(
+            BufferedImage fontImage,
+            int x, int y, int width, int height,
+            int[] pixels, int offset, int scanStride,
             Operation<int[]> original,
-            @Share(namespace = "optirefine", value = "props") LocalRef<Properties> propsRef
+            @Share(namespace = "optirefine", value = "props") LocalRef<Properties> fontPropertiesRef
     ) {
-        int imgW = w;
-        int imgH = h;
+        int imageWidth = width;
+        int imageHeight = height;
 
-        int charW = imgW / 16;
-        int charH = imgH / 16;
+        int glyphCellWidth = imageWidth / 16;
+        int glyphCellHeight = imageHeight / 16;
 
-        float kx = imgW / 128.0F;
-        float boldScale = Config.limit(kx, 1.0F, 2.0F);
+        float fontScale = imageWidth / 128.0F;
+        float boldScale = Config.limit(fontScale, 1.0F, 2.0F);
         this.offsetBold = 1.0F / boldScale;
 
-        float cfgOffsetBold = FontUtils.readFloat(propsRef.get(), "offsetBold", -1.0F);
-        if (cfgOffsetBold >= 0.0F) this.offsetBold = cfgOffsetBold;
+        float configuredBoldOffset = FontUtils.readFloat(fontPropertiesRef.get(), "offsetBold", -1.0F);
+        if (configuredBoldOffset >= 0.0F) this.offsetBold = configuredBoldOffset;
 
         // read pixels
-        pixels = original.call(img, 0, 0, imgW, imgH, pixels, 0, imgW);
+        pixels = original.call(fontImage, 0, 0, imageWidth, imageHeight, pixels, 0, imageWidth);
 
         for (int k = 0; k < 256; k++) {
             int cx = k % 16;
             int cy = k / 16;
 
             int px;
-            for (px = charW - 1; px >= 0; px--) {
-                int xx = cx * charW + px;
+            for (px = glyphCellWidth - 1; px >= 0; px--) {
+                int xx = cx * glyphCellWidth + px;
                 boolean emptyCol = true;
 
-                for (int py = 0; py < charH; py++) {
-                    int row = (cy * charH + py) * imgW;
+                for (int py = 0; py < glyphCellHeight; py++) {
+                    int row = (cy * glyphCellHeight + py) * imageWidth;
                     int col = pixels[xx + row];
                     int a = (col >>> 24) & 0xFF;
                     if (a > 16) { // OF threshold
@@ -299,13 +299,13 @@ public abstract class MixinFontRenderer {
             }
 
             if (k == 32) {
-                px = (charW <= 8) ? (int) (2.0F * kx) : (int) (1.5F * kx);
+                px = (glyphCellWidth <= 8) ? (int) (2.0F * fontScale) : (int) (1.5F * fontScale);
             }
 
-            this.charWidthFloat[k] = (px + 1) / kx + 1.0F;
+            this.charWidthFloat[k] = (px + 1) / fontScale + 1.0F;
         }
 
-        FontUtils.readCustomCharWidths(propsRef.get(), this.charWidthFloat);
+        FontUtils.readCustomCharWidths(fontPropertiesRef.get(), this.charWidthFloat);
 
         for (int i = 0; i < this.charWidth.length; i++) {
             this.charWidth[i] = Math.round(this.charWidthFloat[i]);
@@ -331,9 +331,9 @@ public abstract class MixinFontRenderer {
             method = "getUnicodePageLocation",
             at = @At(value = "NEW", target = "(Ljava/lang/String;)Lnet/minecraft/util/ResourceLocation;")
     )
-    private ResourceLocation optiRefine$unicodePageHd(String path, Operation<ResourceLocation> original) {
-        ResourceLocation rl = original.call(path);
-        return FontUtils.getHdFontLocation(rl);
+    private ResourceLocation optiRefine$resolveHighResolutionUnicodePage(String path, Operation<ResourceLocation> original) {
+        ResourceLocation pageTexture = original.call(path);
+        return FontUtils.getHdFontLocation(pageTexture);
     }
 
 
@@ -341,25 +341,25 @@ public abstract class MixinFontRenderer {
 // [AUDIT-OK] expression matches baseline renderStringAtPos colorCode read
     @Expression("this.colorCode[?]")
     @WrapOperation(method = "renderStringAtPos", at = @At("MIXINEXTRAS:EXPRESSION"))
-    private int optiRefine$colorCodeHook(int[] array, int idx, Operation<Integer> original) {
-        int v = original.call(array, idx);
+    private int optiRefine$applyCustomTextColor(int[] palette, int colorIndex, Operation<Integer> original) {
+        int textColor = original.call(palette, colorIndex);
         if (Config.isCustomColors()) {
-            v = CustomColors.getTextColor(idx, v);
+            textColor = CustomColors.getTextColor(colorIndex, textColor);
         }
-        return v;
+        return textColor;
     }
 
 // [AUDIT-OK] OF renderStringAtPos: float var10 = var5 != -1 && !unicodeFlag ? offsetBold : 0.5F replaces
 // vanilla f1 = unicodeFlag ? 0.5F : 1.0F (shadow offset). First float-1.0F constant = the ternary else branch.
     @ModifyConstant(method = "renderStringAtPos", constant = @Constant(floatValue = 1.0F, ordinal = 0))
-    private float optiRefine$shadowOffset(float constant, @Local(index = 5) int glyphIndex) {
+    private float optiRefine$getGlyphShadowOffset(float constant, @Local(index = 5) int glyphIndex) {
         return glyphIndex != -1 && !this.unicodeFlag ? this.offsetBold : 0.5F;
     }
 
 // [AUDIT-OK] OF bold advance: var8 += var10 (same offsetBold formula) replaces vanilla ++f.
 // Second float-1.0F constant = the ++f bold advance.
     @ModifyConstant(method = "renderStringAtPos", constant = @Constant(floatValue = 1.0F, ordinal = 1))
-    private float optiRefine$boldAdvance(float constant, @Local(index = 5) int glyphIndex) {
+    private float optiRefine$getBoldGlyphAdvance(float constant, @Local(index = 5) int glyphIndex) {
         return glyphIndex != -1 && !this.unicodeFlag ? this.offsetBold : 0.5F;
     }
 
@@ -367,13 +367,13 @@ public abstract class MixinFontRenderer {
 // [AUDIT-OK] expression matches baseline renderDefaultChar "(float)l - 0.01F"
     @Expression("? = @((float)? - 0.01)")
     @ModifyExpressionValue(method = "renderDefaultChar", at = @At("MIXINEXTRAS:EXPRESSION"))
-    private float optiRefine$renderDefaultCharUseFloat(float original, @Local(argsOnly = true) int ch) {
-        return this.charWidthFloat[ch] - 0.01F;
+    private float optiRefine$getDefaultGlyphRenderWidth(float original, @Local(argsOnly = true) int glyphIndex) {
+        return this.charWidthFloat[glyphIndex] - 0.01F;
     }
 
     @ModifyReturnValue(method = "renderDefaultChar", at = @At("RETURN"))
-    private float optiRefine$renderDefaultCharWidth(float original, int ch, boolean italic) {
-        return this.charWidthFloat[ch];
+    private float optiRefine$getDefaultGlyphAdvance(float original, int glyphIndex, boolean italic) {
+        return this.charWidthFloat[glyphIndex];
     }
 
 // [AUDIT-OK] OF-added member (not in tsrg): MCP name setBlendState correct
@@ -386,7 +386,7 @@ public abstract class MixinFontRenderer {
 
 // [AUDIT-OK] target drawString(Ljava/lang/String;FFIZ)I declared in baseline
     @WrapMethod(method = "drawString(Ljava/lang/String;FFIZ)I")
-    private int optiRefine$drawStringBlend(String text, float x, float y, int color, boolean dropShadow, Operation<Integer> original) {
+    private int optiRefine$drawStringWithFontBlend(String text, float x, float y, int color, boolean dropShadow, Operation<Integer> original) {
         if (!this.blend) return original.call(text, x, y, color, dropShadow);
 
         optiRefine$getBlendState(this.oldBlendState);
@@ -402,16 +402,16 @@ public abstract class MixinFontRenderer {
 
 // [AUDIT-OK] target drawSplitString(Ljava/lang/String;IIII)V declared in baseline
     @WrapMethod(method = "drawSplitString")
-    private void optiRefine$drawSplitStringBlend(String str, int x, int y, int wrapWidth, int textColor, Operation<Void> original) {
+    private void optiRefine$drawSplitStringWithFontBlend(String text, int x, int y, int wrapWidth, int textColor, Operation<Void> original) {
         if (!this.blend) {
-            original.call(str, x, y, wrapWidth, textColor);
+            original.call(text, x, y, wrapWidth, textColor);
             return;
         }
         optiRefine$getBlendState(this.oldBlendState);
         GlStateManager.enableBlend();
         GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
         try {
-            original.call(str, x, y, wrapWidth, textColor);
+            original.call(text, x, y, wrapWidth, textColor);
         } finally {
             optiRefine$setBlendState(this.oldBlendState);
         }
@@ -422,13 +422,13 @@ public abstract class MixinFontRenderer {
             method = "wrapFormattedStringToWidth",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/FontRenderer;sizeStringToWidth(Ljava/lang/String;I)I")
     )
-    private int optiRefine$wrapWidthFast(FontRenderer self, String s, int width, Operation<Integer> original) {
-        int size = original.call(self, s, width);
-        int firstGlyph = 0;
-        while (firstGlyph + 1 < s.length() && s.charAt(firstGlyph) == '§') {
-            firstGlyph += 2;
+    private int optiRefine$ensureWrappingConsumesVisibleGlyph(FontRenderer fontRenderer, String text, int wrapWidth, Operation<Integer> original) {
+        int fittedLength = original.call(fontRenderer, text, wrapWidth);
+        int firstVisibleGlyphIndex = 0;
+        while (firstVisibleGlyphIndex + 1 < text.length() && text.charAt(firstVisibleGlyphIndex) == '§') {
+            firstVisibleGlyphIndex += 2;
         }
-        return Math.max(size, Math.min(s.length(), firstGlyph + 1));
+        return Math.max(fittedLength, Math.min(text.length(), firstVisibleGlyphIndex + 1));
     }
 
 // [AUDIT-OK] OF-added helper, not in baseline
@@ -530,15 +530,15 @@ public abstract class MixinFontRenderer {
 
 // [AUDIT-OK] target sizeStringToWidth(Ljava/lang/String;I)I declared in baseline
     @WrapMethod(method = "sizeStringToWidth")
-    private int optiRefine$sizeStringToWidth(String str, int wrapWidth, Operation<Integer> original) {
-        int len = str.length();
+    private int optiRefine$sizeStringToWidth(String text, int wrapWidth, Operation<Integer> original) {
+        int len = text.length();
         float w = 0.0F;
         int i = 0;
         int lastSpace = -1;
         boolean bold = false;
 
         for (; i < len; ++i) {
-            char c = str.charAt(i);
+            char c = text.charAt(i);
 
             switch (c) {
                 case '\n':
@@ -552,7 +552,7 @@ public abstract class MixinFontRenderer {
                 case '§':
                     if (i < len - 1) {
                         ++i;
-                        char f = str.charAt(i);
+                        char f = text.charAt(i);
                         if (f == 'l' || f == 'L') {
                             bold = true;
                         } else if (f == 'r' || f == 'R'
@@ -596,27 +596,27 @@ public abstract class MixinFontRenderer {
     // Forge extracted the glyph advance into doDraw; preserve its render hook.
     @Expression("(float)((int)?)")
     @ModifyExpressionValue(method = "doDraw", at = @At("MIXINEXTRAS:EXPRESSION"))
-    private float optiRefine$renderStringAtPosFloatStep(float truncated, @Local(argsOnly = true) float f) {
-        return f;
+    private float optiRefine$preserveFractionalGlyphAdvance(float truncatedAdvance, @Local(argsOnly = true) float glyphAdvance) {
+        return glyphAdvance;
     }
 
 // [AUDIT-OK] target getColorCode(C)I declared in baseline
     @WrapMethod(method = "getColorCode")
     private int optiRefine$getColorCode(char character, Operation<Integer> original) {
-        int idx = "0123456789abcdef".indexOf(character);
-        if (idx >= 0 && idx < this.colorCode.length) {
-            int v = this.colorCode[idx];
+        int colorIndex = "0123456789abcdef".indexOf(character);
+        if (colorIndex >= 0 && colorIndex < this.colorCode.length) {
+            int textColor = this.colorCode[colorIndex];
             if (Config.isCustomColors()) {
-                v = CustomColors.getTextColor(idx, v);
+                textColor = CustomColors.getTextColor(colorIndex, textColor);
             }
-            return v;
+            return textColor;
         }
         return 16777215;
     }
 
     @Inject(method = "<init>*", at = @At("RETURN"))
     // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
-    private void optiRefine$initFields(CallbackInfo ci) {
+    private void optiRefine$initializeFontRenderState(CallbackInfo ci) {
         this.offsetBold = 1.0F;
         this.charWidthFloat = new float[256];
         this.blend = false;

@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(value = TextureUtils.class, remap = false)
 public abstract class MixinModernResourceReferences {
     @Inject(method = "fixResourcePath", at = @At("RETURN"), cancellable = true, remap = false)
-    private static void optirefine$modernAbsoluteReference(String path, String basePath, CallbackInfoReturnable<String> cir) {
+    private static void optiRefine$modernAbsoluteReference(String path, String basePath, CallbackInfoReturnable<String> cir) {
         String resolved = cir.getReturnValue();
         String canonical = ModernResourcePaths.normalizeReference(resolved, basePath);
         if (canonical != resolved) {

@@ -15,6 +15,24 @@ The packaged `mods.Hileb.optirefine.optifine.Config` type is a compile facade. M
 redirects its uses to OptiFine's default-package `Config`; ordinary helper classes need an explicit
 transformer target before using that facade.
 
+Mixin-owned handlers and internal helpers use `optiRefine$` followed by an action and its purpose,
+such as `optiRefine$drawExperienceTextWithCustomColor`. Constructor aliases, explicit-descriptor
+access bridges and access-control markers follow the same convention; access-only fields end in
+`Access`. Native members, exported OptiFine APIs and interface implementations retain their bound
+names. Soft-interface prefixes such as `srrl$` remain separate so Mixin does not mistake ordinary
+handlers for interface methods. Parameter names describe their role; annotation target names and
+descriptors continue to identify the original runtime members.
+
+The naming refactor is checked against the compiled baseline: 153 mixin classes, 1,286 methods
+and 732 fields retain identical instructions, constants, annotation targets and bound/exported
+contracts after normalizing renamed identifiers. The comparison covers 508 method-symbol and
+22 field-symbol renames; its report is `build/reports/mixin-naming/bytecode.txt`.
+
+The renamed build also passes real-client startup, debug text, normal/Fast Render, zoom release,
+internal shaders on/off, video/skin settings and world exit. Controlled render failures check
+matrix/lightmap/model context restoration, texture bindings, sprite ordering and display-list
+cleanup. Results and captures are in `build/reports/mixin-naming/`.
+
 ## Runtime validation
 
 Baseline: **Minecraft 1.12.2**, **Java 25.0.5**, **Cleanroom 0.5.17-alpha** and **OptiFine HD U G5**.

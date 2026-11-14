@@ -21,11 +21,11 @@ public class MixinModelPlayer {
 
 // [AUDIT-OK] target setRotationAngles(FFFFFFFLnet/minecraft/entity/Entity;)V matches baseline; only bipedCape rotationPointY writes in method
     @WrapOperation(method = "setRotationAngles", at = @At(value = "FIELD", target = "Lnet/minecraft/client/model/ModelRenderer;rotationPointY:F", opcode = Opcodes.PUTFIELD))
-    public void removeThebipedCape_rotationPointYSet(ModelRenderer instance, float value, Operation<Void> original){
-        if (instance == this.bipedCape) {
+    public void optiRefine$preserveCapeRotationPointY(ModelRenderer modelPart, float value, Operation<Void> original){
+        if (modelPart == this.bipedCape) {
             return;
         }
-        original.call(instance, value);
+        original.call(modelPart, value);
     }
 
 }

@@ -52,7 +52,7 @@ public abstract class MixinTileEntitySpecialRenderer{
 
     @Inject(method = "<init>*", at = @At("RETURN"))
     // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
-    private void optiRefine$initFields(CallbackInfo ci) {
+    private void optiRefine$initializeCustomTextureState(CallbackInfo ci) {
         this.locationTextureCustom = null;
     }
 }

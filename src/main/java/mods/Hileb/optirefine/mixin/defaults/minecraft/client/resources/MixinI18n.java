@@ -22,10 +22,10 @@ public abstract class MixinI18n {
     @Public
     // [AUDIT-OK] OF-added static method getLocaleProperties (private static + @Public per mixin rule); matches OF I18n.getLocaleProperties
     private static Map<String, String> getLocaleProperties() {
-        return _acc_Locale_properties(i18nLocale);
+        return optiRefine$getLocaleProperties(i18nLocale);
     }
 
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.resources.Locale field_135032_a Ljava.util.Map;", deobf = true)
     // [AUDIT-OK] vanilla SRG field_135032_a = Locale.properties, deobf=true (per contract)
-    private static native Map<String, String> _acc_Locale_properties(Locale locale);
+    private static native Map<String, String> optiRefine$getLocaleProperties(Locale locale);
 }

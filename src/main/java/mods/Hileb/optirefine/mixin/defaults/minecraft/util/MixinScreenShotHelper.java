@@ -21,7 +21,7 @@ public abstract class MixinScreenShotHelper {
 
     @WrapOperation(method = "saveScreenshot(Ljava/io/File;Ljava/lang/String;IILnet/minecraft/client/shader/Framebuffer;)Lnet/minecraft/util/text/ITextComponent;", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/ScreenShotHelper;createScreenshot(IILnet/minecraft/client/shader/Framebuffer;)Ljava/awt/image/BufferedImage;"))
     // Restore the display and matrix stack even when rendering or pixel capture fails.
-    private static BufferedImage beforecreateScreenshot(int width, int height, Framebuffer framebufferIn, Operation<BufferedImage> original){
+    private static BufferedImage optiRefine$captureScaledScreenshot(int width, int height, Framebuffer framebufferIn, Operation<BufferedImage> original){
         Minecraft mc = Minecraft.getMinecraft();
         int guiScaleOld = Config.getGameSettings().guiScale;
         ScaledResolution sr = new ScaledResolution(mc);

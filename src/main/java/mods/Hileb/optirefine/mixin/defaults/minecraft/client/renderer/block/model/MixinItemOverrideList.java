@@ -34,7 +34,7 @@ public abstract class MixinItemOverrideList {
 
     @Inject(method = "<init>(Ljava/util/List;)V", at = @At("RETURN"))
     // [AUDIT-OK] target <init>(Ljava/util/List;)V baseline; cache creation matches OF:28-29
-    public void init(List<ItemOverride> overrides, CallbackInfo ci){
+    public void optiRefine$initOverrideCache(List<ItemOverride> overrides, CallbackInfo ci){
         if (this.overrides.size() > 65) {
             this.itemOverrideCache = ItemOverrideCache.make(this.overrides);
         }
@@ -42,7 +42,7 @@ public abstract class MixinItemOverrideList {
 
     @WrapMethod(method = "applyOverride")
     // [AUDIT-OK] target applyOverride(ItemStack,World,EntityLivingBase) baseline (deobf:32); cache logic mirrors OF:34-55
-    public ResourceLocation applyCache(ItemStack stack, World worldIn, EntityLivingBase entityIn, Operation<ResourceLocation> original){
+    public ResourceLocation optiRefine$applyCachedOverride(ItemStack stack, World worldIn, EntityLivingBase entityIn, Operation<ResourceLocation> original){
         if (!this.overrides.isEmpty()) {
             if (this.itemOverrideCache != null) {
                 ResourceLocation locationCached = this.itemOverrideCache.getModelLocation(stack, worldIn, entityIn);

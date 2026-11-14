@@ -27,16 +27,16 @@ public abstract class MixinLayerArmorBase {
 
     @WrapOperation(method = "renderArmorLayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/layers/LayerArmorBase;getArmorResource(Lnet/minecraft/entity/Entity;Lnet/minecraft/item/ItemStack;Lnet/minecraft/inventory/EntityEquipmentSlot;Ljava/lang/String;)Lnet/minecraft/util/ResourceLocation;"))
     // [AUDIT-OK] 4-arg getArmorResource(Entity,ItemStack,EntityEquipmentSlot,String) added by cleanroom patch (LayerArmorBase.java.patch); bindCustomArmorTexture->null->skip-bind matches OF:65-67/81-82
-    public ResourceLocation getResources(LayerArmorBase instance, Entity entity, ItemStack stack, EntityEquipmentSlot slot, String type, Operation<ResourceLocation> original){
+    public ResourceLocation optiRefine$bindCustomArmorTexture(LayerArmorBase armorLayer, Entity entity, ItemStack stack, EntityEquipmentSlot slot, String type, Operation<ResourceLocation> original){
         if (!Config.isCustomItems() || !CustomItems.bindCustomArmorTexture(stack, slot, type)) {
-            return original.call(instance, entity, stack, slot, type);
+            return original.call(armorLayer, entity, stack, slot, type);
         }
         return null;
     }
 
     @WrapWithCondition(method = "renderArmorLayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/RenderLivingBase;bindTexture(Lnet/minecraft/util/ResourceLocation;)V"))
     // [AUDIT-OK] bindTexture skip-when-null complements the null-returning getArmorResource wrap (OF pattern)
-    public boolean replace_renderer_bindTexture_this_getArmorResource(RenderLivingBase instance, ResourceLocation location) {
+    public boolean optiRefine$bindAvailableArmorTexture(RenderLivingBase renderer, ResourceLocation location) {
         return location != null;
     }
 

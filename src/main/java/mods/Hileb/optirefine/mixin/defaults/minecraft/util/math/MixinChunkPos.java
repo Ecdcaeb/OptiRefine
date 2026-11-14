@@ -19,7 +19,7 @@ public abstract class MixinChunkPos {
 
     @WrapMethod(method = "hashCode", remap = false)
 // [AUDIT-OK] hashCode caching matches OF intent (0 sentinel); note: cached VALUE differs from OF (OF uses 1664525*x+... formula, mixin caches vanilla hash) - contract-valid
-    public int injectHashCode(Operation<Integer> original){
+    public int optiRefine$cacheHashCode(Operation<Integer> original){
         if (cachedHashCode != 0) {
             return cachedHashCode;
         } else {
@@ -29,7 +29,7 @@ public abstract class MixinChunkPos {
 
     @Inject(method = "<init>*", at = @At("RETURN"))
     // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
-    private void optiRefine$initFields(CallbackInfo ci) {
+    private void optiRefine$initializeCachedHashCode(CallbackInfo ci) {
         this.cachedHashCode = 0;
     }
 }

@@ -77,7 +77,7 @@ public abstract class MixinItemRenderer {
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.BufferBuilder setSprite (Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;)V")
 // [AUDIT-OK] OF member BufferBuilder.setSprite
-    private static native void BufferBuilder_setSprite(BufferBuilder bufferBuilder, TextureAtlasSprite sprite);
+    private static native void optiRefine$setBufferSprite(BufferBuilder bufferBuilder, TextureAtlasSprite sprite);
 
     /**
      * OptiFine: {@code if (flag && (!Config.isShaders() || !Shaders.renderItemKeepDepthMask))}.
@@ -108,10 +108,10 @@ public abstract class MixinItemRenderer {
      * OptiFine: {@code if (!Config.isShaders() || !Shaders.isSkipRenderHand(var4))} wraps the whole method.
      */
     @WrapMethod(method = "renderItemInFirstPerson(Lnet/minecraft/client/entity/AbstractClientPlayer;FFLnet/minecraft/util/EnumHand;FLnet/minecraft/item/ItemStack;F)V")
-    private void optiRefine$renderItemInFirstPerson(AbstractClientPlayer player, float p2, float p3, EnumHand hand, float p5, ItemStack stack, float p7, Operation<Void> original) {
+    private void optiRefine$renderItemInFirstPerson(AbstractClientPlayer player, float partialTicks, float pitch, EnumHand hand, float swingProgress, ItemStack stack, float equippedProgress, Operation<Void> original) {
 // [AUDIT-OK] target renderItemInFirstPerson(LAbstractClientPlayer;FFLEnumHand;FLItemStack;F)V (SRG func_187457_a) matches baseline
         if (!Config.isShaders() || !Shaders.isSkipRenderHand(hand)) {
-            original.call(player, p2, p3, hand, p5, stack, p7);
+            original.call(player, partialTicks, pitch, hand, swingProgress, stack, equippedProgress);
         }
     }
 
@@ -132,7 +132,7 @@ public abstract class MixinItemRenderer {
     @Inject(method = "renderFireInFirstPerson", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/BufferBuilder;begin(ILnet/minecraft/client/renderer/vertex/VertexFormat;)V", ordinal = 0, shift = At.Shift.AFTER))
     private void optiRefine$setFireSprite(CallbackInfo ci, @Local(ordinal = 0) BufferBuilder bufferBuilder, @Local(ordinal = 0) TextureAtlasSprite sprite) {
 // [AUDIT-OK] target renderFireInFirstPerson()V (SRG func_78442_d) begin() ordinal 0 matches baseline (line 564); sprite local assigned before begin (line 551) so @Local valid
-        BufferBuilder_setSprite(bufferBuilder, sprite);
+        optiRefine$setBufferSprite(bufferBuilder, sprite);
     }
 
     /**

@@ -12,7 +12,7 @@ public abstract class MixinRenderLiving {
 // [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
     @WrapMethod(method = "renderLeash")
     // [AUDIT-OK] target renderLeash baseline; shader/shadow-pass guard matches OF renderLeash
-    public void blockRenderLeashForConfig(EntityLiving entityLivingIn, double x, double y, double z, float entityYaw, float partialTicks, Operation<Void> original){
+    public void optiRefine$renderShaderAwareLeash(EntityLiving entityLivingIn, double x, double y, double z, float entityYaw, float partialTicks, Operation<Void> original){
         if (Config.isShaders() && Shaders.isShadowPass) {
             return;
         }

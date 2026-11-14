@@ -126,7 +126,7 @@ public abstract class MixinWorldEntitySpawner {
 
     @Inject(method = "<init>*", at = @At("RETURN"))
     // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
-    private void optiRefine$initFields(CallbackInfo ci) {
+    private void optiRefine$initializeEntitySpawnCaches(CallbackInfo ci) {
         this.optiRefine$sampleEntities = new HashMap<>();
         this.optiRefine$randomChunkPosition = new BlockPosM(0, 0, 0);
     }

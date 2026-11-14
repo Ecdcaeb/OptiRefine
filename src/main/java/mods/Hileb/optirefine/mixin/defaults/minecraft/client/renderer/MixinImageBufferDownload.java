@@ -24,7 +24,7 @@ public abstract class MixinImageBufferDownload {
     private int imageHeight;
 
     @Redirect(method = "parseUserSkin", at = @At(value = "NEW", target = "(III)Ljava/awt/image/BufferedImage;"))
-    public BufferedImage beforeBufferedImage(int nBits, int bOffs, int cs, @Local(argsOnly = true) BufferedImage image, @Share(namespace = "optirefine", value = "k") LocalIntRef intRef){
+    public BufferedImage optiRefine$createScaledSkinImage(int width, int height, int imageType, @Local(argsOnly = true) BufferedImage image, @Share(namespace = "optirefine", value = "k") LocalIntRef skinScale){
 // [AUDIT-OK] target parseUserSkin(Ljava/awt/image/BufferedImage;)L...; (SRG func_78432_a) matches baseline; replicates OF upscale loop + sets k
         int srcWidth = image.getWidth();
         int srcHeight = image.getHeight();
@@ -34,98 +34,98 @@ public abstract class MixinImageBufferDownload {
             this.imageWidth *= 2;
             this.imageHeight *= 2;
         }
-        intRef.set(k);
+        skinScale.set(k);
         return new BufferedImage(this.imageWidth, this.imageHeight, 2);
     }
 
     @ModifyConstant(method = "parseUserSkin", constant = @Constant(intValue = 32))
-    public int const32(int constant,  @Share(namespace = "optirefine", value = "k") LocalIntRef kRef){
+    public int optiRefine$scaleSkinHalfSize(int constant,  @Share(namespace = "optirefine", value = "k") LocalIntRef skinScale){
 // [AUDIT-OK] kRef guard: constants before NEW (imageWidth/imageHeight=64) unscaled; post-NEW constants scaled by k — matches OF (all 32/64 in drawImage/fillRect/setAreaOpaque/height==32 scaled)
-        return kRef.get() > 0 ? constant * kRef.get() : constant;
+        return skinScale.get() > 0 ? constant * skinScale.get() : constant;
     }
 
     @ModifyConstant(method = "parseUserSkin", constant = @Constant(intValue = 64))
-    public int const64(int constant,  @Share(namespace = "optirefine", value = "k") LocalIntRef kRef){
+    public int optiRefine$scaleSkinBaseSize(int constant,  @Share(namespace = "optirefine", value = "k") LocalIntRef skinScale){
 // [AUDIT-OK] const64 applies to BIPUSH 64 occurrences; imageWidth=64/imageHeight=64 run before kRef set (0) so unscaled — matches OF
-        return kRef.get() > 0 ? constant * kRef.get() : constant;
+        return skinScale.get() > 0 ? constant * skinScale.get() : constant;
     }
 
     @ModifyConstant(method = "parseUserSkin", constant = @Constant(intValue = 20))
-    public int const20(int constant,  @Share(namespace = "optirefine", value = "k") LocalIntRef kRef){
+    public int optiRefine$scaleSkinCoordinate20(int constant,  @Share(namespace = "optirefine", value = "k") LocalIntRef skinScale){
 // [AUDIT-OK] scales drawImage bounds by k — matches OF
-        return kRef.get() > 0 ? constant * kRef.get() : constant;
+        return skinScale.get() > 0 ? constant * skinScale.get() : constant;
     }
 
     @ModifyConstant(method = "parseUserSkin", constant = @Constant(intValue = 24))
-    public int const24(int constant,  @Share(namespace = "optirefine", value = "k") LocalIntRef kRef){
+    public int optiRefine$scaleSkinCoordinate24(int constant,  @Share(namespace = "optirefine", value = "k") LocalIntRef skinScale){
 // [AUDIT-OK] scales drawImage bounds by k — matches OF
-        return kRef.get() > 0 ? constant * kRef.get() : constant;
+        return skinScale.get() > 0 ? constant * skinScale.get() : constant;
     }
 
     @ModifyConstant(method = "parseUserSkin", constant = @Constant(intValue = 28))
-    public int const28(int constant,  @Share(namespace = "optirefine", value = "k") LocalIntRef kRef){
+    public int optiRefine$scaleSkinCoordinate28(int constant,  @Share(namespace = "optirefine", value = "k") LocalIntRef skinScale){
 // [AUDIT-OK] scales drawImage bounds by k — matches OF
-        return kRef.get() > 0 ? constant * kRef.get() : constant;
+        return skinScale.get() > 0 ? constant * skinScale.get() : constant;
     }
 
     @ModifyConstant(method = "parseUserSkin", constant = @Constant(intValue = 40))
-    public int const40(int constant,  @Share(namespace = "optirefine", value = "k") LocalIntRef kRef){
+    public int optiRefine$scaleSkinCoordinate40(int constant,  @Share(namespace = "optirefine", value = "k") LocalIntRef skinScale){
 // [AUDIT-OK] scales drawImage bounds by k — matches OF
-        return kRef.get() > 0 ? constant * kRef.get() : constant;
+        return skinScale.get() > 0 ? constant * skinScale.get() : constant;
     }
 
     @ModifyConstant(method = "parseUserSkin", constant = @Constant(intValue = 44))
-    public int const44(int constant,  @Share(namespace = "optirefine", value = "k") LocalIntRef kRef){
+    public int optiRefine$scaleSkinCoordinate44(int constant,  @Share(namespace = "optirefine", value = "k") LocalIntRef skinScale){
 // [AUDIT-OK] scales drawImage bounds by k — matches OF
-        return kRef.get() > 0 ? constant * kRef.get() : constant;
+        return skinScale.get() > 0 ? constant * skinScale.get() : constant;
     }
 
     @ModifyConstant(method = "parseUserSkin", constant = @Constant(intValue = 48))
-    public int const48(int constant,  @Share(namespace = "optirefine", value = "k") LocalIntRef kRef){
+    public int optiRefine$scaleSkinCoordinate48(int constant,  @Share(namespace = "optirefine", value = "k") LocalIntRef skinScale){
 // [AUDIT-OK] scales drawImage bounds by k — matches OF
-        return kRef.get() > 0 ? constant * kRef.get() : constant;
+        return skinScale.get() > 0 ? constant * skinScale.get() : constant;
     }
 
     @ModifyConstant(method = "parseUserSkin", constant = @Constant(intValue = 52))
-    public int const52(int constant,  @Share(namespace = "optirefine", value = "k") LocalIntRef kRef){
+    public int optiRefine$scaleSkinCoordinate52(int constant,  @Share(namespace = "optirefine", value = "k") LocalIntRef skinScale){
 // [AUDIT-OK] scales drawImage bounds by k — matches OF
-        return kRef.get() > 0 ? constant * kRef.get() : constant;
+        return skinScale.get() > 0 ? constant * skinScale.get() : constant;
     }
 
     @ModifyConstant(method = "parseUserSkin", constant = @Constant(intValue = 16))
-    public int const16(int constant,  @Share(namespace = "optirefine", value = "k") LocalIntRef kRef){
+    public int optiRefine$scaleSkinCoordinate16(int constant,  @Share(namespace = "optirefine", value = "k") LocalIntRef skinScale){
 // [AUDIT-OK] scales drawImage/setAreaOpaque bounds by k — matches OF
-        return kRef.get() > 0 ? constant * kRef.get() : constant;
+        return skinScale.get() > 0 ? constant * skinScale.get() : constant;
     }
 
     @ModifyConstant(method = "parseUserSkin", constant = @Constant(intValue = 36))
-    public int const36(int constant,  @Share(namespace = "optirefine", value = "k") LocalIntRef kRef){
+    public int optiRefine$scaleSkinCoordinate36(int constant,  @Share(namespace = "optirefine", value = "k") LocalIntRef skinScale){
 // [AUDIT-OK] scales drawImage bounds by k — matches OF
-        return kRef.get() > 0 ? constant * kRef.get() : constant;
+        return skinScale.get() > 0 ? constant * skinScale.get() : constant;
     }
 
     @ModifyConstant(method = "parseUserSkin", constant = @Constant(intValue = 4))
-    public int const4(int constant,  @Share(namespace = "optirefine", value = "k") LocalIntRef kRef){
+    public int optiRefine$scaleSkinCoordinate4(int constant,  @Share(namespace = "optirefine", value = "k") LocalIntRef skinScale){
 // [AUDIT-OK] scales drawImage bounds by k — matches OF
-        return kRef.get() > 0 ? constant * kRef.get() : constant;
+        return skinScale.get() > 0 ? constant * skinScale.get() : constant;
     }
 
     @ModifyConstant(method = "parseUserSkin", constant = @Constant(intValue = 8))
-    public int const8(int constant,  @Share(namespace = "optirefine", value = "k") LocalIntRef kRef){
+    public int optiRefine$scaleSkinCoordinate8(int constant,  @Share(namespace = "optirefine", value = "k") LocalIntRef skinScale){
 // [AUDIT-OK] scales drawImage bounds by k — matches OF
-        return kRef.get() > 0 ? constant * kRef.get() : constant;
+        return skinScale.get() > 0 ? constant * skinScale.get() : constant;
     }
 
     @ModifyConstant(method = "parseUserSkin", constant = @Constant(intValue = 12))
-    public int const12(int constant,  @Share(namespace = "optirefine", value = "k") LocalIntRef kRef){
+    public int optiRefine$scaleSkinCoordinate12(int constant,  @Share(namespace = "optirefine", value = "k") LocalIntRef skinScale){
 // [AUDIT-OK] scales drawImage bounds by k — matches OF
-        return kRef.get() > 0 ? constant * kRef.get() : constant;
+        return skinScale.get() > 0 ? constant * skinScale.get() : constant;
     }
 
     @ModifyConstant(method = "parseUserSkin", constant = @Constant(intValue = 56))
-    public int const56(int constant,  @Share(namespace = "optirefine", value = "k") LocalIntRef kRef){
+    public int optiRefine$scaleSkinCoordinate56(int constant,  @Share(namespace = "optirefine", value = "k") LocalIntRef skinScale){
 // [AUDIT-FIXED] 2026-08-05: OF:49 last drawImage source rect uses 56*k; without it HD skins
 // (k>1) get an invalid mirrored head-side source rect (sx1>sx2).
-        return kRef.get() > 0 ? constant * kRef.get() : constant;
+        return skinScale.get() > 0 ? constant * skinScale.get() : constant;
     }
 }

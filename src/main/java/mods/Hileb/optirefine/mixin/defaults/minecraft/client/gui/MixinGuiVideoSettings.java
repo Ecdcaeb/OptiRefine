@@ -66,7 +66,7 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
 
 // [AUDIT-OK] target initGui() matches baseline; HEAD cancel replicates OF buildVideoSettingsButtons
     @Inject(method = "initGui", at = @At("HEAD"), cancellable = true)
-    private void optiRefine$initGui(CallbackInfo ci) {
+    private void optiRefine$buildVideoOptionButtons(CallbackInfo ci) {
         this.screenTitle = I18n.format("options.videoTitle");
         this.buttonList.clear();
 
@@ -113,23 +113,23 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
 
 // [AUDIT-OK] target actionPerformed(GuiButton) matches baseline; HEAD cancel replicates OF actionPerformed(button,1) dispatch
     @Inject(method = "actionPerformed", at = @At("HEAD"), cancellable = true)
-    private void optiRefine$actionPerformed(GuiButton button, CallbackInfo ci) {
+    private void optiRefine$handleVideoOptionClick(GuiButton button, CallbackInfo ci) {
         if (button == null || !button.enabled) {
             ci.cancel();
             return;
         }
 
-        optiRefine$actionPerformedImpl(button, 1);
+        optiRefine$dispatchVideoOptionAction(button, 1);
         ci.cancel();
     }
 
 // [AUDIT-OK] OF-added helper, not in baseline
-    private void optiRefine$actionPerformedImpl(GuiButton button, int val) {
+    private void optiRefine$dispatchVideoOptionAction(GuiButton button, int optionStep) {
         int guiScaleBefore = this.guiGameSettings.guiScale;
 
         // Option buttons: ids < 200
         if (button.id < 200 && button instanceof GuiOptionButton) {
-            this.guiGameSettings.setOptionValue(((GuiOptionButton) button).getOption(), val);
+            this.guiGameSettings.setOptionValue(((GuiOptionButton) button).getOption(), optionStep);
             button.displayString = this.guiGameSettings.getKeyBinding(GameSettings.Options.byOrdinal(button.id));
         }
 
@@ -200,12 +200,12 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
     @SuppressWarnings("AddedMixinMembersNamePattern")
     protected void actionPerformedRightClick(GuiButton button) {
         if (button != null && button.id == GameSettings.Options.GUI_SCALE.ordinal()) {
-            optiRefine$actionPerformedImpl(button, -1);
+            optiRefine$dispatchVideoOptionAction(button, -1);
         }
     }
 
     @Inject(method = "drawScreen", at = @At("HEAD"), cancellable = true)
-    private void optiRefine$drawScreen(int mouseX, int mouseY, float partialTicks, CallbackInfo ci) {
+    private void optiRefine$drawVideoSettingsWithTooltips(int mouseX, int mouseY, float partialTicks, CallbackInfo ci) {
         this.drawDefaultBackground();
         this.drawCenteredString(this.fontRenderer, this.screenTitle, this.width / 2, 15, 0xFFFFFF);
 
@@ -223,18 +223,18 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
     @SuppressWarnings("AddedMixinMembersNamePattern")
 // [AUDIT-OK] OF-added API; private static + @Public matches OF getButtonWidth
     @Public
-    private static int getButtonWidth(GuiButton btn) { return btn.width; }
+    private static int getButtonWidth(GuiButton button) { return button.width; }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
 // [AUDIT-OK] OF-added API; private static + @Public matches OF getButtonHeight
     @Public
-    private static int getButtonHeight(GuiButton btn) { return btn.height; }
+    private static int getButtonHeight(GuiButton button) { return button.height; }
 
 // [AUDIT-OK] vanilla SRG name func_73733_a = GuiScreen.drawGradientRect, deobf=true
     @Unique
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL,
             desc = "net.minecraft.client.gui.GuiScreen func_73733_a (IIIIII)V", deobf = true)
-    private static void _acc_GuiScreen_draw(GuiScreen guiScreen,
+    private static void optiRefine$drawScreenGradient(GuiScreen guiScreen,
                                             int left, int top, int right, int bottom,
                                             int startColor, int endColor) {
         throw new AbstractMethodError();
@@ -246,19 +246,19 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
     private static void drawGradientRect(GuiScreen guiScreen,
                                          int left, int top, int right, int bottom,
                                          int startColor, int endColor) {
-        _acc_GuiScreen_draw(guiScreen, left, top, right, bottom, startColor, endColor);
+        optiRefine$drawScreenGradient(guiScreen, left, top, right, bottom, startColor, endColor);
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
 // [AUDIT-OK] OF-added API; private static + @Public matches OF getGuiChatText
     @Public
     private static String getGuiChatText(GuiChat guiChat) {
-        return _acc_GuiChatAccessor_getInputField(guiChat).getText();
+        return optiRefine$getChatInputField(guiChat).getText();
     }
 
     @SuppressWarnings({"unused", "MissingUnique"})
 // [AUDIT-OK] vanilla SRG name field_146415_a = GuiChat.inputField (protected; same-package access OK), deobf=true
     @AccessibleOperation(opcode = Opcodes.GETFIELD,
             desc = "net.minecraft.client.gui.GuiChat field_146415_a Lnet.minecraft.client.gui.GuiTextField;", deobf = true)
-    private static native GuiTextField _acc_GuiChatAccessor_getInputField(GuiChat guiChat);
+    private static native GuiTextField optiRefine$getChatInputField(GuiChat guiChat);
 }

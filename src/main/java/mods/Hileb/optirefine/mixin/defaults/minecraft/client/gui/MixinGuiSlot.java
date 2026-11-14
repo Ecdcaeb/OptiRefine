@@ -44,22 +44,22 @@ public abstract class MixinGuiSlot{
 
 // [AUDIT-OK] baseline method drawSlot(IIIIIIF)V declared abstract in GuiSlot
     @Shadow
-    protected abstract void drawSlot(int i1, int i2, int i3, int i4, int i5, int i6, float v);
+    protected abstract void drawSlot(int slotIndex, int x, int y, int slotHeight, int mouseX, int mouseY, float partialTicks);
 
     
 // [AUDIT-OK] target drawSelectionBox(IIIIF)V matches baseline; drawSlot invoke matches; handler params match
 // [AUDIT-OK] culling guard replicates OF GuiSlot (instanceof GuiResourcePackList skip)
     @WrapOperation(method = "drawSelectionBox", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiSlot;drawSlot(IIIIIIF)V"))
-    public void injectDrawSelectionBox(GuiSlot instance, int i1, int i2, int i3, int i4, int i5, int i6, float v, Operation<Void> original){
-        if (!_is_GuiResourcePackList() || i3 >= this.top - this.slotHeight && i3 <= this.bottom) {
-            original.call(instance, i1, i2, i3, i4, i5, i6, v);
+    public void optiRefine$drawResourcePackSlotIfVisible(GuiSlot list, int slotIndex, int x, int y, int slotHeight, int mouseX, int mouseY, float partialTicks, Operation<Void> original){
+        if (!optiRefine$isResourcePackList() || y >= this.top - this.slotHeight && y <= this.bottom) {
+            original.call(list, slotIndex, x, y, slotHeight, mouseX, mouseY, partialTicks);
         }
     }
 
 // [AUDIT-OK] INSTANCEOF helper, no member lookup needed
     @Unique
     @AccessibleOperation(opcode = Opcodes.INSTANCEOF, desc = "net.minecraft.client.gui.GuiResourcePackList")
-    public boolean _is_GuiResourcePackList(){
+    public boolean optiRefine$isResourcePackList(){
         throw new AbstractMethodError();
     }
 }

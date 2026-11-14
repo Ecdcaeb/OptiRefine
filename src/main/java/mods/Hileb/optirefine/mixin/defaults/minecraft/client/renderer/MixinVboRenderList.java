@@ -30,15 +30,15 @@ public abstract class MixinVboRenderList extends ChunkRenderContainer {
 
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.vertex.VertexBuffer getVboRegion ()Lnet.optifine.render.VboRegion;")
 // [AUDIT-OK] OF member VertexBuffer.getVboRegion (MixinVertexBuffer @Unique public), not in baseline
-    private static native VboRegion VertexBuffer_getVboRegion(VertexBuffer vertexBuffer);
+    private static native VboRegion optiRefine$getVertexBufferVboRegion(VertexBuffer vertexBuffer);
 
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.chunk.RenderChunk regionX I")
 // [AUDIT-OK] OF field RenderChunk.regionX, not in baseline
-    private static native int RenderChunk_regionX(RenderChunk renderChunk);
+    private static native int optiRefine$getRenderChunkRegionX(RenderChunk renderChunk);
 
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.chunk.RenderChunk regionZ I")
 // [AUDIT-OK] OF field RenderChunk.regionZ, not in baseline
-    private static native int RenderChunk_regionZ(RenderChunk renderChunk);
+    private static native int optiRefine$getRenderChunkRegionZ(RenderChunk renderChunk);
 
     @WrapMethod(method = "renderChunkLayer")
     private void optiRefine$renderChunkLayer(BlockRenderLayer layer, Operation<Void> original) {
@@ -51,13 +51,13 @@ public abstract class MixinVboRenderList extends ChunkRenderContainer {
             VboRegion lastVboRegion = null;
             for (RenderChunk renderchunk : this.renderChunks) {
                 VertexBuffer vertexbuffer = renderchunk.getVertexBufferByLayer(layer.ordinal());
-                VboRegion vboRegion = VertexBuffer_getVboRegion(vertexbuffer);
-                if (vboRegion != lastVboRegion || regionX != RenderChunk_regionX(renderchunk) || regionZ != RenderChunk_regionZ(renderchunk)) {
+                VboRegion vboRegion = optiRefine$getVertexBufferVboRegion(vertexbuffer);
+                if (vboRegion != lastVboRegion || regionX != optiRefine$getRenderChunkRegionX(renderchunk) || regionZ != optiRefine$getRenderChunkRegionZ(renderchunk)) {
                     if (lastVboRegion != null) {
                         this.optiRefine$drawRegion(regionX, regionZ, lastVboRegion);
                     }
-                    regionX = RenderChunk_regionX(renderchunk);
-                    regionZ = RenderChunk_regionZ(renderchunk);
+                    regionX = optiRefine$getRenderChunkRegionX(renderchunk);
+                    regionZ = optiRefine$getRenderChunkRegionZ(renderchunk);
                     lastVboRegion = vboRegion;
                 }
                 vertexbuffer.drawArrays(7);
@@ -74,7 +74,7 @@ public abstract class MixinVboRenderList extends ChunkRenderContainer {
     }
 
     @WrapMethod(method = "setupArrayPointers")
-    public void setupArrayPointersForShaders(Operation<Void> original){
+    public void optiRefine$setupShaderArrayPointers(Operation<Void> original){
 // [AUDIT-OK] target setupArrayPointers()V (SRG func_178010_a) matches baseline; shaders branch matches OF
         if (Config.isShaders()) {
             ShadersRender.setupArrayPointersVbo();

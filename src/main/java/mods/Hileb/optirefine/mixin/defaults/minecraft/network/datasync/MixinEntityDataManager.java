@@ -27,7 +27,7 @@ public abstract class MixinEntityDataManager {
 
     @Inject(method = "<init>*", at = @At("RETURN"))
     // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
-    private void optiRefine$initFields(CallbackInfo ci) {
+    private void optiRefine$initializeSpawnContext(CallbackInfo ci) {
         this.spawnBiome = Biomes.PLAINS;
         this.spawnPosition = BlockPos.ORIGIN;
     }

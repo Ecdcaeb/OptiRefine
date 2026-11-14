@@ -91,7 +91,7 @@ public abstract class MixinMathHelper {
 
     @WrapMethod(method = "sin")
 // [AUDIT-OK] sin fast path matches OF (SIN_TABLE_FAST[(int)(v*radToIndex)&0xFFF], else vanilla path)
-    private static float sin(float value, Operation<Float> original) {
+    private static float optiRefine$useFastSine(float value, Operation<Float> original) {
         if (fastMath) {
             return SIN_TABLE_FAST[(int)(value * radToIndex) & 0xFFF];
         }
@@ -100,7 +100,7 @@ public abstract class MixinMathHelper {
 
     @WrapMethod(method = "cos")
 // [AUDIT-OK] cos fast path matches OF (SIN_TABLE_FAST[(int)(v*radToIndex+1024f)&0xFFF], else vanilla path)
-    private static float cos(float value, Operation<Float> original) {
+    private static float optiRefine$useFastCosine(float value, Operation<Float> original) {
         if (fastMath) {
             return SIN_TABLE_FAST[(int)(value * radToIndex + 1024.0f) & 0xFFF];
         }
@@ -109,7 +109,7 @@ public abstract class MixinMathHelper {
 
     @Inject(method = "<clinit>", at = @At("HEAD"))
 // [AUDIT-OK] <clinit> HEAD fill of SIN_TABLE_FAST matches OF <clinit> (static handler for static target)
-    private static void inject_static(CallbackInfo ci){
+    private static void optiRefine$initializeFastSineTable(CallbackInfo ci){
         SIN_TABLE_FAST = new float[4096];
         for (int s = 0; s < SIN_TABLE_FAST.length; ++s) {
             SIN_TABLE_FAST[s] = MathUtils.roundToFloat(Math.sin((double)s * Math.PI * 2.0 / 4096.0));

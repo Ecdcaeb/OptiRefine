@@ -33,18 +33,18 @@ public abstract class MixinBufferBuilderState {
 
     @SuppressWarnings({"unused", "MissingUnique", "AddedMixinMembersNamePattern"})
     @NewConstructor
-    public void State(BufferBuilder bufferBuilder, int[] buffer, VertexFormat format, TextureAtlasSprite[] quadSprites) {
+    public void optiRefine$initializeVertexStateWithSprites(BufferBuilder bufferBuilder, int[] buffer, VertexFormat format, TextureAtlasSprite[] quadSprites) {
 // [AUDIT-OK] OF-added ctor State(LBufferBuilder;[ILVertexFormat;[LTextureAtlasSprite;)V matching OF:874;
 // State is a NON-STATIC inner class (forge:582), the JVM ctor desc includes the outer this$0 as the
 // first parameter, which this BufferBuilder arg provides (verified 2026-08-05)
-        _Object();
+        optiRefine$invokeObjectConstructor();
         this.stateRawBuffer = buffer;
         this.stateVertexFormat = format;
         this.stateQuadSprites = quadSprites;
     }
 
     @ShadowSuperConstructor
-    public void _Object(){}
+    public void optiRefine$invokeObjectConstructor(){}
 
 
 }

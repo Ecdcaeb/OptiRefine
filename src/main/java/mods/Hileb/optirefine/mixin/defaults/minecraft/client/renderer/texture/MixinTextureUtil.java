@@ -51,12 +51,12 @@ public abstract class MixinTextureUtil {
     @SuppressWarnings("unused")
     @AccessTransformer(name = "func_110997_a", access = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, deobf = true)
     // [AUDIT-FIXED] 2026-08-05: SRG name + deobf=true (was MCP name -> silent no-op at SRG runtime)
-    private static native void acc_setTextureClamped(boolean flag);
+    private static native void optiRefine$exposeTextureClamping(boolean clamped);
 
     @SuppressWarnings("unused")
     @AccessTransformer(name = "func_147954_b", access = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, deobf = true)
     // [AUDIT-FIXED] 2026-08-05: SRG name + deobf=true (was MCP name -> silent no-op at SRG runtime)
-    private static native void acc_setTextureBlurMipmap(boolean blur, boolean mipmap);
+    private static native void optiRefine$exposeTextureFiltering(boolean blur, boolean mipmap);
 
     @Shadow
     // [AUDIT-OK] baseline member setTextureBlurred (func_147951_b) exists in TextureUtil

@@ -24,18 +24,18 @@ public abstract class MixinParticleItemPickup {
     private Entity item;
 
     @WrapMethod(method = "renderParticle")
-    private void optiRefine$renderParticle(BufferBuilder buffer, Entity entityIn, float partialTicks,
+    private void optiRefine$renderPickupWithShaderEntityContext(BufferBuilder buffer, Entity camera, float partialTicks,
                                           float rotationX, float rotationZ, float rotationYZ,
                                           float rotationXY, float rotationXZ, Operation<Void> original) {
         if (!Config.isShaders()) {
-            original.call(buffer, entityIn, partialTicks, rotationX, rotationZ, rotationYZ, rotationXY, rotationXZ);
+            original.call(buffer, camera, partialTicks, rotationX, rotationZ, rotationYZ, rotationXY, rotationXZ);
             return;
         }
         Program oldProgram = Shaders.activeProgram;
-        Entity oldEntity = RenderGlobal_renderedEntity_get(Config.getRenderGlobal());
+        Entity oldEntity = optiRefine$getRenderedEntity(Config.getRenderGlobal());
         Shaders.nextEntity(this.item);
         try {
-            original.call(buffer, entityIn, partialTicks, rotationX, rotationZ, rotationYZ, rotationXY, rotationXZ);
+            original.call(buffer, camera, partialTicks, rotationX, rotationZ, rotationYZ, rotationXY, rotationXZ);
         } finally {
             Shaders.setEntityId(oldEntity);
             Shaders.useProgram(oldProgram);
@@ -43,6 +43,6 @@ public abstract class MixinParticleItemPickup {
     }
 
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.RenderGlobal renderedEntity Lnet.minecraft.entity.Entity;")
-    private static native Entity RenderGlobal_renderedEntity_get(RenderGlobal renderGlobal);
+    private static native Entity optiRefine$getRenderedEntity(RenderGlobal renderGlobal);
 
 }

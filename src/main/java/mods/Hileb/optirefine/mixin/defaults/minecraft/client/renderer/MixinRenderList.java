@@ -39,14 +39,14 @@ public abstract class MixinRenderList extends ChunkRenderContainer {
 
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.chunk.RenderChunk regionX I")
 // [AUDIT-OK] OF field RenderChunk.regionX (MixinRenderChunk @Unique public), not in baseline
-    private static native int RenderChunk_regionX(RenderChunk r);
+    private static native int optiRefine$getRenderChunkRegionX(RenderChunk renderChunk);
 
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.chunk.RenderChunk regionZ I")
 // [AUDIT-OK] OF field RenderChunk.regionZ, not in baseline
-    private static native int RenderChunk_regionZ(RenderChunk r);
+    private static native int optiRefine$getRenderChunkRegionZ(RenderChunk renderChunk);
 
     @WrapMethod(method = "renderChunkLayer")
-    private void addElseForRender(BlockRenderLayer layer, Operation<Void> original){
+    private void optiRefine$renderChunkLayer(BlockRenderLayer layer, Operation<Void> original){
 // [AUDIT-OK] target renderChunkLayer(Lnet/minecraft/util/BlockRenderLayer;)V (SRG func_178001_a) matches baseline; body == OF RenderList.renderChunkLayer (region + multiTexture bindCurrentTexture)
         if (this.initialized) {
             if (!Config.isRenderRegions()) {
@@ -62,12 +62,12 @@ public abstract class MixinRenderList extends ChunkRenderContainer {
                 int var3 = Integer.MIN_VALUE;
                 for (RenderChunk var5 : this.renderChunks) {
                     ListedRenderChunk var6 = (ListedRenderChunk)var5;
-                    if (var2 != RenderChunk_regionX(var5) || var3 != RenderChunk_regionZ(var5)) {
+                    if (var2 != optiRefine$getRenderChunkRegionX(var5) || var3 != optiRefine$getRenderChunkRegionZ(var5)) {
                         if (this.bufferLists.position() > 0) {
                             this.optiRefine$drawRegion(var2, var3, this.bufferLists);
                         }
-                        var2 = RenderChunk_regionX(var5);
-                        var3 = RenderChunk_regionZ(var5);
+                        var2 = optiRefine$getRenderChunkRegionX(var5);
+                        var3 = optiRefine$getRenderChunkRegionZ(var5);
                     }
                     if (this.bufferLists.position() >= this.bufferLists.capacity()) {
                         IntBuffer var7 = GLAllocation.createDirectIntBuffer(this.bufferLists.capacity() * 2);
@@ -82,7 +82,7 @@ public abstract class MixinRenderList extends ChunkRenderContainer {
                 }
             } if (Config.isMultiTexture()) {
 // [AUDIT-OK] OF member GlStateManager.bindCurrentTexture (MixinGlStateManager @Public), not in baseline
-                GlStateManager_bindCurrentTexture();
+                optiRefine$bindGlStateCurrentTexture();
             }
 
 
@@ -92,47 +92,47 @@ public abstract class MixinRenderList extends ChunkRenderContainer {
     }
 
     @Override
-    public void initialize(double var1, double var3, double var5) {
+    public void initialize(double viewEntityX, double viewEntityY, double viewEntityZ) {
 // [AUDIT-OK] overrides inherited ChunkRenderContainer.initialize (SRG func_178004_a), matches OF; super call valid
-        this.optiRefine$viewEntityX = var1;
-        this.optiRefine$viewEntityY = var3;
-        this.optiRefine$viewEntityZ = var5;
-        super.initialize(var1, var3, var5);
+        this.optiRefine$viewEntityX = viewEntityX;
+        this.optiRefine$viewEntityY = viewEntityY;
+        this.optiRefine$viewEntityZ = viewEntityZ;
+        super.initialize(viewEntityX, viewEntityY, viewEntityZ);
     }
 
     @Unique
 // [AUDIT-OK] OF-added method (OF: private drawRegion), not in baseline
-    private void optiRefine$drawRegion(int var1, int var2, IntBuffer var3) {
+    private void optiRefine$drawRegion(int regionX, int regionZ, IntBuffer displayLists) {
         GlStateManager.pushMatrix();
-        this.preRenderRegion(var1, 0, var2);
-        ((Buffer)var3).flip();
-        GlStateManager_callLists(var3);
-        ((Buffer)var3).clear();
+        this.preRenderRegion(regionX, 0, regionZ);
+        ((Buffer)displayLists).flip();
+        optiRefine$callGlStateLists(displayLists);
+        ((Buffer)displayLists).clear();
         GlStateManager.popMatrix();
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
 // [AUDIT-OK] OF-added method (OF: public preRenderRegion), not in baseline
-    public void preRenderRegion(int var1, int var2, int var3) {
-        GlStateManager.translate((float)(var1 - this.optiRefine$viewEntityX), (float)(var2 - this.optiRefine$viewEntityY), (float)(var3 - this.optiRefine$viewEntityZ));
+    public void preRenderRegion(int regionX, int regionY, int regionZ) {
+        GlStateManager.translate((float)(regionX - this.optiRefine$viewEntityX), (float)(regionY - this.optiRefine$viewEntityY), (float)(regionZ - this.optiRefine$viewEntityZ));
     }
 
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation.Reference(GlStateManager.class)
     @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.client.renderer.GlStateManager bindCurrentTexture ()V")
-    private static native void GlStateManager_bindCurrentTexture();
+    private static native void optiRefine$bindGlStateCurrentTexture();
 
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation.Reference(GlStateManager.class)
     @AccessibleOperation.Reference(IntBuffer.class)
     @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.client.renderer.GlStateManager callLists (Ljava.nio.IntBuffer;)V")
 // [AUDIT-OK] OF member GlStateManager.callLists (MixinGlStateManager @Public), not in baseline
-    private static native void GlStateManager_callLists(IntBuffer intBuffer);
+    private static native void optiRefine$callGlStateLists(IntBuffer intBuffer);
 
     @Inject(method = "<init>*", at = @At("RETURN"))
     // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
-    private void optiRefine$initFields(CallbackInfo ci) {
+    private void optiRefine$initializeRenderListBuffer(CallbackInfo ci) {
         this.bufferLists = GLAllocation.createDirectIntBuffer(16);
     }
 }

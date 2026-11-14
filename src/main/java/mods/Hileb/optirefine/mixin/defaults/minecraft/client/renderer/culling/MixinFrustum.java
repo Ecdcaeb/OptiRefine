@@ -26,10 +26,10 @@ public abstract class MixinFrustum {
     // [AUDIT-OK] OF-added member (OF Frustum:33); delegate with x/y/z offset matches OF:34
     public boolean isBoxInFrustumFully(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
         // [AUDIT-OK] ClippingHelper.isBoxInFrustumFully is OF-added (not in tsrg) — MCP name, no deobf correct; provided by MixinClippingHelper
-        return ClippingHelper_isBoxInFrustumFully(clippingHelper, minX - this.x, minY - this.y, minZ - this.z, maxX - this.x, maxY - this.y, maxZ - this.z);
+        return optiRefine$isClippingHelperBoxInFrustumFully(clippingHelper, minX - this.x, minY - this.y, minZ - this.z, maxX - this.x, maxY - this.y, maxZ - this.z);
     }
 
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.culling.ClippingHelper isBoxInFrustumFully (DDDDDD)Z")
-    private static native boolean ClippingHelper_isBoxInFrustumFully(ClippingHelper helper, double a0, double a1, double a2, double a3, double a4, double a5) ;
+    private static native boolean optiRefine$isClippingHelperBoxInFrustumFully(ClippingHelper helper, double minX, double minY, double minZ, double maxX, double maxY, double maxZ) ;
 }

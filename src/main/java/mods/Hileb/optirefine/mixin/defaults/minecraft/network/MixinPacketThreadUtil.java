@@ -29,8 +29,8 @@ public abstract class MixinPacketThreadUtil {
 
     @WrapOperation(method = "checkThreadAndEnqueue", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/IThreadListener;isCallingFromMinecraftThread()Z"))
 // [AUDIT-OK] on-thread preProcess matches OF checkThreadAndEnqueue else-branch (static target -> static handler)
-    private static boolean injectCheckThreadAndEnqueue(IThreadListener instance, Operation<Boolean> original, @Local(argsOnly = true) Packet<?> packet) {
-        boolean value = original.call(instance);
+    private static boolean optiRefine$preprocessPacketOnClientThread(IThreadListener threadListener, Operation<Boolean> original, @Local(argsOnly = true) Packet<?> packet) {
+        boolean value = original.call(threadListener);
         if (value) {
             clientPreProcessPacket(packet);
             return true;
@@ -39,8 +39,8 @@ public abstract class MixinPacketThreadUtil {
 
     @WrapOperation(method = "checkThreadAndEnqueue", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/IThreadListener;addScheduledTask(Ljava/lang/Runnable;)Lcom/google/common/util/concurrent/ListenableFuture;"))
 // [AUDIT-OK] scheduled-task preProcess+processPacket order matches OF runnable
-    private static ListenableFuture<Object> injectCheckThreadAndEnqueue(IThreadListener instance, Runnable runnable, Operation<ListenableFuture<Object>> original, @Local(argsOnly = true) Packet<?> packet) {
-        return original.call(instance, (Runnable) () -> {
+    private static ListenableFuture<Object> optiRefine$preprocessScheduledPacket(IThreadListener threadListener, Runnable runnable, Operation<ListenableFuture<Object>> original, @Local(argsOnly = true) Packet<?> packet) {
+        return original.call(threadListener, (Runnable) () -> {
             clientPreProcessPacket(packet);
             runnable.run();
         });
@@ -51,7 +51,7 @@ public abstract class MixinPacketThreadUtil {
 // [AUDIT-OK] matches OF clientPreProcessPacket (lastDimensionId tracking; OF declares it protected, public here is harmless)
     private static void clientPreProcessPacket(Packet<?> packetIn) {
         if (packetIn instanceof SPacketPlayerPosLook) {
-            _acc_RenderGlobal_onPlayerPositionSet(Config.getRenderGlobal());
+            optiRefine$notifyPlayerPositionSet(Config.getRenderGlobal());
         }
         if (packetIn instanceof SPacketRespawn respawn) {
             lastDimensionId = respawn.getDimensionID();
@@ -66,5 +66,5 @@ public abstract class MixinPacketThreadUtil {
     @Unique
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.RenderGlobal onPlayerPositionSet ()V")
 // [AUDIT-OK] provider MixinRenderGlobal.onPlayerPositionSet exists (2026-08-05 verified: @Unique @Public + firstWorldLoad backing)
-    private static void _acc_RenderGlobal_onPlayerPositionSet(RenderGlobal renderGlobal){}
+    private static void optiRefine$notifyPlayerPositionSet(RenderGlobal renderGlobal){}
 }

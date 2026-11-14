@@ -23,13 +23,13 @@ public abstract class MixinConfig {
 
     @Inject(method = "checkInitialized", at = @At(value = "INVOKE", target = "LConfig;checkOpenGlCaps()V", remap = false), remap = false)
 // [AUDIT-OK] injects into checkInitialized at the checkOpenGlCaps()V call (OF Config flow); remap=false OK. needs-verification: checkInitialized/checkOpenGlCaps not in patch trees (net.optifine absent)
-    private static void ensureGamesettingSetup(CallbackInfo ci){
+    private static void optiRefine$initializeGameSettings(CallbackInfo ci){
         gameSettings = Minecraft.getMinecraft().gameSettings;
     }
 
     @WrapMethod(method = "getGlVersionLwjgl")
 // [AUDIT-OK] wraps OF Config.getGlVersionLwjgl, adds OpenGL 4.6/4.5 detection via lwjglx GL.getCapabilities(). needs-verification: GL capabilities must be initialized before first call, else NPE
-    private static GlVersion getGlVersionLwjgl$Updated(Operation<GlVersion> original){
+    private static GlVersion optiRefine$detectModernGlVersion(Operation<GlVersion> original){
         if (GL.getCapabilities().OpenGL46) {
             return new GlVersion(4, 6);
         } else if (GL.getCapabilities().OpenGL45) {

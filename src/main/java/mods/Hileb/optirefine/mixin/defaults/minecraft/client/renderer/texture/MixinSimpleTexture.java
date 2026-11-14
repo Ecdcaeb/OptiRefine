@@ -36,10 +36,10 @@ public abstract class MixinSimpleTexture {
 
     @WrapOperation(method = "loadTexture", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/texture/TextureUtil;uploadTextureImageAllocate(ILjava/awt/image/BufferedImage;ZZ)I"))
     // [AUDIT-OK] target loadTexture(IResourceManager)V matches baseline; wrap of uploadTextureImageAllocate INVOKE mirrors OF shaders/emissive branch
-    public int _uploadTextureImageAllocate(int textureId, BufferedImage texture, boolean blur, boolean clamp, Operation<Integer> original, @Local(argsOnly = true)IResourceManager resourceManager){
+    public int optiRefine$uploadShaderAndEmissiveTexture(int textureId, BufferedImage texture, boolean blur, boolean clamp, Operation<Integer> original, @Local(argsOnly = true)IResourceManager resourceManager){
         int uploadedTexture;
         if (Config.isShaders()) {
-            uploadedTexture = ShadersTex.loadSimpleTexture(textureId, texture, blur, clamp, resourceManager, this.textureLocation, this.getMultiTexID());
+            uploadedTexture = ShadersTex.loadSimpleTexture(textureId, texture, blur, clamp, resourceManager, this.textureLocation, this.optiRefine$getMultiTextureId());
         } else {
             uploadedTexture = original.call(textureId, texture, blur, clamp);
         }
@@ -53,5 +53,5 @@ public abstract class MixinSimpleTexture {
     @SuppressWarnings({"MissingUnique", "AddedMixinMembersNamePattern"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.AbstractTexture getMultiTexID ()Lnet.optifine.shaders.MultiTexID;")
     // Shader-backed implementation supplied by MixinAbstractTexture.
-    public native MultiTexID getMultiTexID();
+    public native MultiTexID optiRefine$getMultiTextureId();
 }

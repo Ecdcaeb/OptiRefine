@@ -61,14 +61,14 @@ public abstract class MixinModelBox {
 
 // [AUDIT-OK] @ShadowSuper("<init>") rewrites to INVOKESPECIAL Object.<init> (cursed lib)
     @ShadowSuper("<init>")
-    public void _Object(){}
+    public void optiRefine$invokeObjectConstructor(){}
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern", "MissingUnique"})
 // [AUDIT-OK] @NewConstructor adds ctor (ModelRenderer,int[][],7xF,Z) matching OF ModelBox ctor; no collision with baseline ctors
     @NewConstructor
     @Public
-    public void _ModelBox(ModelRenderer renderer, int[][] faceUvs, float x, float y, float z, float dx, float dy, float dz, float delta, boolean mirror) {
-        _Object();
+    public void optiRefine$initializePerFaceUvModelBox(ModelRenderer renderer, int[][] faceUvs, float x, float y, float z, float dx, float dy, float dz, float delta, boolean mirror) {
+        optiRefine$invokeObjectConstructor();
         this.posX1 = x;
         this.posY1 = y;
         this.posZ1 = z;
@@ -152,9 +152,9 @@ public abstract class MixinModelBox {
 
 // [AUDIT-OK] target render(Lnet/minecraft/client/renderer/BufferBuilder;F)V matches baseline; TexturedQuad.draw invokes present; nullable-guard replicates OF
     @WrapOperation(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/TexturedQuad;draw(Lnet/minecraft/client/renderer/BufferBuilder;F)V"))
-    public void makeRenderNullable(TexturedQuad instance, BufferBuilder i, float v, Operation<Void> original){
-        if (instance != null) {
-            original.call(instance, i, v);
+    public void optiRefine$renderNonNullQuad(TexturedQuad quad, BufferBuilder buffer, float scale, Operation<Void> original){
+        if (quad != null) {
+            original.call(quad, buffer, scale);
         }
     }
 

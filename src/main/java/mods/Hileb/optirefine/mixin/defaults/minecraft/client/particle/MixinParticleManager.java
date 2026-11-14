@@ -33,7 +33,7 @@ public abstract class MixinParticleManager {
 
 // [AUDIT-OK] target addEffect(Lnet/minecraft/client/particle/Particle;)V matches baseline; queue.add invoke present; handler params match
     @WrapWithCondition(method = "addEffect", at = @At(value = "INVOKE", target = "Ljava/util/Queue;add(Ljava/lang/Object;)Z"))
-    public boolean injectAddEffect(Queue<?> instance, Object effect) {
+    public boolean optiRefine$shouldQueueFireworkParticle(Queue<?> pendingParticles, Object effect) {
         return !(effect instanceof ParticleFirework.Spark) || Config.isFireworkParticles();
     }
 
@@ -45,16 +45,16 @@ public abstract class MixinParticleManager {
 // (ActiveRenderInfo.getBlockStateAtEntityViewpoint(...).getMaterial() == Material.WATER)
 // and gates the render call with "if (var9 || !(var16 instanceof ParticleSuspend))"; vanilla has no flag.
     @Inject(method = "renderParticles", at = @At("HEAD"))
-    public void optiRefine$computeCameraInWater(Entity entityIn, float partialTicks, CallbackInfo ci,
+    public void optiRefine$computeCameraInWater(Entity camera, float partialTicks, CallbackInfo ci,
                                                 @Share(namespace = "optirefine", value = "cameraInWater") LocalBooleanRef cameraInWater) {
-        cameraInWater.set(ActiveRenderInfo.getBlockStateAtEntityViewpoint(this.world, entityIn, partialTicks).getMaterial() == Material.WATER);
+        cameraInWater.set(ActiveRenderInfo.getBlockStateAtEntityViewpoint(this.world, camera, partialTicks).getMaterial() == Material.WATER);
     }
 
     @WrapOperation(method = "renderParticles", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/particle/Particle;renderParticle(Lnet/minecraft/client/renderer/BufferBuilder;Lnet/minecraft/entity/Entity;FFFFFF)V"))
-    public void optiRefine$skipSuspendOutOfWater(Particle particle, BufferBuilder bufferbuilder, Entity entityIn, float partialTicks, float f1, float f2, float f3, float f4, float f5, Operation<Void> original,
+    public void optiRefine$renderSuspendedParticlesInWater(Particle particle, BufferBuilder buffer, Entity camera, float partialTicks, float rotationX, float rotationZ, float rotationYZ, float rotationXY, float rotationXZ, Operation<Void> original,
                                               @Share(namespace = "optirefine", value = "cameraInWater") LocalBooleanRef cameraInWater) {
         if (cameraInWater.get() || !(particle instanceof ParticleSuspend)) {
-            original.call(particle, bufferbuilder, entityIn, partialTicks, f1, f2, f3, f4, f5);
+            original.call(particle, buffer, camera, partialTicks, rotationX, rotationZ, rotationYZ, rotationXY, rotationXZ);
         }
     }
 
@@ -64,7 +64,7 @@ public abstract class MixinParticleManager {
 
 // [AUDIT-OK] target tickParticleList(Ljava/util/Queue;)V declared in baseline; handler params match
     @WrapMethod(method = "tickParticleList")
-    private void tickParticleList(Queue<Particle> particlesToTick, Operation<Void> original) {
+    private void optiRefine$tickParticlesWithinTimeBudget(Queue<Particle> particlesToTick, Operation<Void> original) {
         if (!particlesToTick.isEmpty()) {
             long timeStartMs = System.currentTimeMillis();
             int countLeft = particlesToTick.size();
@@ -97,9 +97,9 @@ public abstract class MixinParticleManager {
 
 // [AUDIT-OK] target updateEffects()V matches baseline; fxLayers ArrayDeque.add invoke present; handler params match
     @WrapOperation(method = "updateEffects", at = @At(value = "INVOKE", target = "Ljava/util/ArrayDeque;add(Ljava/lang/Object;)Z"))
-    public boolean fixLayers(ArrayDeque<Object> fxLayersJK, Object particle, Operation<Boolean> original){
-        if (!(particle instanceof Barrier) || !this.reuseBarrierParticle((Particle) particle, Caster.cast(fxLayersJK))) {
-            return original.call(fxLayersJK, particle);
+    public boolean optiRefine$reuseBarrierBeforeQueueingParticle(ArrayDeque<Object> layerParticles, Object particle, Operation<Boolean> original){
+        if (!(particle instanceof Barrier) || !this.optiRefine$reuseBarrierParticle((Particle) particle, Caster.cast(layerParticles))) {
+            return original.call(layerParticles, particle);
         }
 
         return false;
@@ -108,10 +108,10 @@ public abstract class MixinParticleManager {
     @SuppressWarnings("AddedMixinMembersNamePattern")
 // [AUDIT-OK] OF-added helper, not in baseline
     @Unique
-    private boolean reuseBarrierParticle(Particle entityfx, ArrayDeque<Particle> deque) {
-        for (Particle efx : deque) {
-            if (efx instanceof Barrier && entityfx.prevPosX == efx.prevPosX && entityfx.prevPosY == efx.prevPosY && entityfx.prevPosZ == efx.prevPosZ) {
-                efx.particleAge = 0;
+    private boolean optiRefine$reuseBarrierParticle(Particle particle, ArrayDeque<Particle> layerParticles) {
+        for (Particle existingParticle : layerParticles) {
+            if (existingParticle instanceof Barrier && particle.prevPosX == existingParticle.prevPosX && particle.prevPosY == existingParticle.prevPosY && particle.prevPosZ == existingParticle.prevPosZ) {
+                existingParticle.particleAge = 0;
                 return true;
             }
         }

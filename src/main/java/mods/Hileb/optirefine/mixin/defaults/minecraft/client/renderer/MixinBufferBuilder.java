@@ -46,13 +46,13 @@ public abstract class MixinBufferBuilder {
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessTransformer(name = "field_178999_b", deobf = true)
 // [AUDIT-OK] vanilla SRG field_178999_b = rawIntBuffer, deobf=true
-    public IntBuffer acc_rawIntBuffer;
+    public IntBuffer optiRefine$rawIntBufferAccess;
 
     
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessTransformer(name = "field_179000_c", deobf = true)
 // [AUDIT-OK] vanilla SRG field_179000_c = rawFloatBuffer, deobf=true
-    public FloatBuffer acc_rawFloatBuffer;
+    public FloatBuffer optiRefine$rawFloatBufferAccess;
 
     @Redirect(method = "growBuffer", at = @At(value = "INVOKE", target = "Ljava/nio/FloatBuffer;asReadOnlyBuffer()Ljava/nio/FloatBuffer;", remap = false))
     // Keep the writable view created after growth rewinds the new buffer to byte offset 0.
@@ -65,13 +65,13 @@ public abstract class MixinBufferBuilder {
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessTransformer(name = "field_178997_d", deobf = true)
 // [AUDIT-OK] vanilla SRG field_178997_d = vertexCount, deobf=true
-    public int acc_vertexCount;
+    public int optiRefine$vertexCountAccess;
 
     
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessTransformer(name = "field_179006_k", deobf = true)
 // [AUDIT-OK] vanilla SRG field_179006_k = drawMode, deobf=true
-    public int acc_drawMode;
+    public int optiRefine$drawModeAccess;
 
 
 
@@ -124,7 +124,7 @@ public abstract class MixinBufferBuilder {
     private ByteBuffer byteBufferTriangles;
 
     @Inject(method = "<init>", at = @At("RETURN"))
-    public void injectConstructor(int p_i46275_1_, CallbackInfo ci){
+    public void optiRefine$initShaderVertexBuilder(int bufferSize, CallbackInfo ci){
 // [AUDIT-OK] target BufferBuilder.<init>(I)V matches baseline; SVertexBuilder.initVertexBuilder matches OF ctor
         SVertexBuilder.initVertexBuilder((BufferBuilder)(Object)this);
     }
@@ -171,36 +171,36 @@ public abstract class MixinBufferBuilder {
     // stateQuadSprites via a PUTFIELD bridge — same OF semantics, no cursed ctor codegen.
     public BufferBuilder.State optiRefine$getVertexState(Operation<BufferBuilder.State> original) {
         BufferBuilder.State state = original.call();
-        BufferBuilder$State_stateQuadSprites_set(state, this.quadSprites == null ? null : Arrays.copyOf(this.quadSprites, this.vertexCount / 4));
+        optiRefine$setVertexStateQuadSprites(state, this.quadSprites == null ? null : Arrays.copyOf(this.quadSprites, this.vertexCount / 4));
         return state;
     }
 
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.PUTFIELD, desc = "net.minecraft.client.renderer.BufferBuilder$State stateQuadSprites [Lnet.minecraft.client.renderer.texture.TextureAtlasSprite;")
 // [AUDIT-OK] stateQuadSprites is @Public (cursed postApply widens) — cross-class PUTFIELD legal
-    private native static void BufferBuilder$State_stateQuadSprites_set(BufferBuilder.State ins, TextureAtlasSprite[] sprites);
+    private native static void optiRefine$setVertexStateQuadSprites(BufferBuilder.State state, TextureAtlasSprite[] sprites);
 
     
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessTransformer(name = "func_181664_j", deobf = true, access = Opcodes.ACC_PUBLIC)
 // [AUDIT-OK] vanilla SRG func_181664_j = getBufferSize, deobf=true (OF: public)
-    private static native int acc_getBufferSize();
+    private static native int optiRefine$exposeBufferSize();
 
     
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessTransformer(name = "func_181665_a", deobf = true, access = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC)
 // [AUDIT-OK] vanilla SRG func_181665_a = getDistanceSq, deobf=true (OF keeps private; ACC_PUBLIC extra visibility harmless)
-    private static native float acc_getDistanceSq(FloatBuffer p_181665_0_, float p_181665_1_, float p_181665_2_, float p_181665_3_, int p_181665_4_, int p_181665_5_);
+    private static native float optiRefine$exposeVertexDistanceCalculation(FloatBuffer vertexData, float cameraX, float cameraY, float cameraZ, int vertexStride, int vertexOffset);
 
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.BufferBuilder$State stateQuadSprites [Lnet.minecraft.client.renderer.texture.TextureAtlasSprite;")
 // [AUDIT-OK] stateQuadSprites is @Public (cursed postApply widens) — cross-class GETFIELD legal, verified 2026-08-05
-    private native static TextureAtlasSprite[] BufferBuilder$State_stateQuadSprites_get(BufferBuilder.State ins) ;
+    private native static TextureAtlasSprite[] optiRefine$getVertexStateQuadSprites(BufferBuilder.State state) ;
 
     @Inject(method = "setVertexState", at = @At("TAIL"))
-    public void cacheVertexState(BufferBuilder.State state, CallbackInfo ci){
+    public void optiRefine$restoreQuadSprites(BufferBuilder.State state, CallbackInfo ci){
 // [AUDIT-OK] target setVertexState(Lnet/minecraft/client/renderer/BufferBuilder$State;)V matches baseline
-        if (BufferBuilder$State_stateQuadSprites_get(state) != null) {
+        if (optiRefine$getVertexStateQuadSprites(state) != null) {
             if (this.quadSprites == null) {
                 this.quadSprites = this.quadSpritesPrev;
             }
@@ -209,7 +209,7 @@ public abstract class MixinBufferBuilder {
                 this.quadSprites = new TextureAtlasSprite[this.getBufferQuadSize()];
             }
 
-            TextureAtlasSprite[] src = BufferBuilder$State_stateQuadSprites_get(state);
+            TextureAtlasSprite[] src = optiRefine$getVertexStateQuadSprites(state);
             System.arraycopy(src, 0, this.quadSprites, 0, src.length);
         } else {
             if (this.quadSprites != null) {
@@ -221,7 +221,7 @@ public abstract class MixinBufferBuilder {
     }
 
     @Inject(method = "reset", at = @At("TAIL"))
-    public void afterRest(CallbackInfo ci){
+    public void optiRefine$resetSpriteAndTriangleState(CallbackInfo ci){
 // [AUDIT-OK] target reset()V matches baseline
         this.quadSprite = null;
         if (SmartAnimations.isActive()) {
@@ -238,7 +238,7 @@ public abstract class MixinBufferBuilder {
     }
 
     @Inject(method = "begin", at = @At("RETURN"))
-    public void afterBegin(int p_181668_1_, VertexFormat p_181668_2_, CallbackInfo ci){
+    public void optiRefine$prepareVertexFormatAndSprites(int drawMode, VertexFormat format, CallbackInfo ci){
 // [AUDIT-OK] target begin(ILnet/minecraft/client/renderer/vertex/VertexFormat;)V matches baseline
         if (Config.isShaders()) {
             SVertexBuilder.endSetVertexFormat((BufferBuilder) (Object)this);
@@ -266,27 +266,27 @@ public abstract class MixinBufferBuilder {
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite toSingleU (F)F")
 // [AUDIT-OK] OF member toSingleU(F)F, not in baseline (MixinTextureAtlasSprite provides)
-    private static native float TextureAtlasSprite_toSingleU(TextureAtlasSprite textureAtlasSprite, float arg1);
+    private static native float optiRefine$toSpriteSingleU(TextureAtlasSprite textureAtlasSprite, float u);
 
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite toSingleV (F)F")
 // [AUDIT-OK] OF member toSingleV(F)F, not in baseline
-    private static native float TextureAtlasSprite_toSingleV(TextureAtlasSprite textureAtlasSprite, float arg1);
+    private static native float optiRefine$toSpriteSingleV(TextureAtlasSprite textureAtlasSprite, float v);
 
 
     @WrapMethod(method = "tex")
-    public BufferBuilder beforeTex(double u, double v, Operation<BufferBuilder> original){
+    public BufferBuilder optiRefine$mapSpriteTextureCoordinates(double u, double v, Operation<BufferBuilder> original){
 // [AUDIT-OK] target tex(DD)Lnet/minecraft/client/renderer/BufferBuilder; matches baseline (OF tex body)
         if (this.quadSprite != null && this.quadSprites != null) {
-            u = TextureAtlasSprite_toSingleU(this.quadSprite, (float) u);
-            v = TextureAtlasSprite_toSingleV(this.quadSprite, (float) v);
+            u = optiRefine$toSpriteSingleU(this.quadSprite, (float) u);
+            v = optiRefine$toSpriteSingleV(this.quadSprite, (float) v);
             this.quadSprites[this.vertexCount / 4] = this.quadSprite;
         }
         return original.call(u, v);
     }
 
     @Inject(method = "addVertexData", at = @At("HEAD"))
-    public void beforeAddVertexData(int[] vertexData, CallbackInfo ci){
+    public void optiRefine$beginShaderVertexData(int[] vertexData, CallbackInfo ci){
 // [AUDIT-OK] target addVertexData([I)V matches baseline
         if (Config.isShaders()) {
             SVertexBuilder.beginAddVertexData((BufferBuilder)(Object) this, vertexData);
@@ -294,7 +294,7 @@ public abstract class MixinBufferBuilder {
     }
 
     @Inject(method = "addVertexData", at = @At("RETURN"))
-    public void afterAddVertexData(int[] vertexData, CallbackInfo ci){
+    public void optiRefine$finishShaderVertexData(int[] vertexData, CallbackInfo ci){
 // [AUDIT-OK] target addVertexData([I)V matches baseline
         if (Config.isShaders()) {
             SVertexBuilder.endAddVertexData((BufferBuilder)(Object)this);
@@ -310,7 +310,7 @@ public abstract class MixinBufferBuilder {
     private int vertexFormatIndex;
 
     @Inject(method = "endVertex", at = @At("RETURN"))
-    public void inject_endVertex(CallbackInfo ci) {
+    public void optiRefine$finishShaderVertex(CallbackInfo ci) {
 // [AUDIT-OK] target endVertex()V matches baseline (OF resets format index)
         this.vertexFormatIndex = 0;
         this.vertexFormatElement = this.vertexFormat.getElement(this.vertexFormatIndex);
@@ -320,7 +320,7 @@ public abstract class MixinBufferBuilder {
     }
 
     @Inject(method = "pos", at = @At("HEAD"))
-    public void beforePos(double p_181662_1_, double p_181662_3_, double p_181662_5_, CallbackInfoReturnable<BufferBuilder> cir){
+    public void optiRefine$beginShaderVertex(double x, double y, double z, CallbackInfoReturnable<BufferBuilder> cir){
 // [AUDIT-OK] target pos(DDD)Lnet/minecraft/client/renderer/BufferBuilder; matches baseline
         if (Config.isShaders()) {
             SVertexBuilder.beginAddVertex((BufferBuilder)(Object)this);
@@ -328,7 +328,7 @@ public abstract class MixinBufferBuilder {
     }
 
     @ModifyReturnValue(method = "getByteBuffer", at = @At("RETURN"))
-    public ByteBuffer returnGetByteBuffer(ByteBuffer original){
+    public ByteBuffer optiRefine$selectTriangleBuffer(ByteBuffer original){
 // [AUDIT-OK] target getByteBuffer()Ljava/nio/ByteBuffer; matches baseline
         return this.modeTriangles ? this.byteBufferTriangles : original;
     }
@@ -340,7 +340,7 @@ public abstract class MixinBufferBuilder {
     }
 
     @ModifyReturnValue(method = "getDrawMode", at = @At("RETURN"))
-    public int returnGetDrawMode(int original){
+    public int optiRefine$selectTriangleDrawMode(int original){
 // [AUDIT-OK] target getDrawMode()I matches baseline (OF: modeTriangles -> 4)
         return this.modeTriangles ? 4 : original;
     }
@@ -357,14 +357,14 @@ public abstract class MixinBufferBuilder {
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite getAnimationIndex ()I")
 // [AUDIT-OK] OF member getAnimationIndex()I, not in baseline
-    private static native int TextureAtlasSprite_getAnimationIndex(TextureAtlasSprite textureAtlasSprite);
+    private static native int optiRefine$getSpriteAnimationIndex(TextureAtlasSprite textureAtlasSprite);
 
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
 // [AUDIT-OK] OF-added method, not in baseline
     public void putSprite(TextureAtlasSprite sprite) {
-        if (this.animatedSprites != null && sprite != null && TextureAtlasSprite_getAnimationIndex(sprite) >= 0) {
-            this.animatedSprites.set(TextureAtlasSprite_getAnimationIndex(sprite));
+        if (this.animatedSprites != null && sprite != null && optiRefine$getSpriteAnimationIndex(sprite) >= 0) {
+            this.animatedSprites.set(optiRefine$getSpriteAnimationIndex(sprite));
         }
 
         if (this.quadSprites != null) {
@@ -377,8 +377,8 @@ public abstract class MixinBufferBuilder {
     @Unique
 // [AUDIT-OK] OF-added method, not in baseline
     public void setSprite(TextureAtlasSprite sprite) {
-        if (this.animatedSprites != null && sprite != null && TextureAtlasSprite_getAnimationIndex(sprite) >= 0) {
-            this.animatedSprites.set(TextureAtlasSprite_getAnimationIndex(sprite));
+        if (this.animatedSprites != null && sprite != null && optiRefine$getSpriteAnimationIndex(sprite) >= 0) {
+            this.animatedSprites.set(optiRefine$getSpriteAnimationIndex(sprite));
         }
 
         if (this.quadSprites != null) {
@@ -395,12 +395,12 @@ public abstract class MixinBufferBuilder {
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureMap getCountRegisteredSprites ()I")
 // [AUDIT-OK] OF member getCountRegisteredSprites()I, not in baseline (MixinTextureMap provides)
-    private static native int TextureMap_getCountRegisteredSprites(TextureMap textureMap) ;
+    private static native int optiRefine$getTextureMapCountRegisteredSprites(TextureMap textureMap) ;
 
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite getIndexInMap ()I")
 // [AUDIT-OK] OF member getIndexInMap()I, not in baseline
-    private static native int TextureAtlasSprite_getIndexInMap(TextureAtlasSprite textureAtlasSprite);
+    private static native int optiRefine$getSpriteIndexInMap(TextureAtlasSprite textureAtlasSprite);
 
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
@@ -410,9 +410,9 @@ public abstract class MixinBufferBuilder {
         if (this.quadSprites == null) {
             return;
         }
-        int previousTexture = GlStateManager_getBoundTexture();
+        int previousTexture = optiRefine$getGlStateBoundTexture();
         try {
-            int maxTextureIndex = TextureMap_getCountRegisteredSprites(Config.getMinecraft().getTextureMapBlocks());
+            int maxTextureIndex = optiRefine$getTextureMapCountRegisteredSprites(Config.getMinecraft().getTextureMapBlocks());
             if (this.drawnIcons.length <= maxTextureIndex) {
                 this.drawnIcons = new boolean[maxTextureIndex + 1];
             }
@@ -424,7 +424,7 @@ public abstract class MixinBufferBuilder {
             for (int i = 0; i < countQuads; i++) {
                 TextureAtlasSprite icon = this.quadSprites[i];
                 if (icon != null) {
-                    int iconIndex = TextureAtlasSprite_getIndexInMap(icon);
+                    int iconIndex = optiRefine$getSpriteIndexInMap(icon);
                     if (!this.drawnIcons[iconIndex]) {
                         if (icon == TextureUtils.iconGrassSideOverlay) {
                             if (grassOverlayIndex < 0) {
@@ -451,17 +451,17 @@ public abstract class MixinBufferBuilder {
 
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.client.renderer.GlStateManager getBoundTexture ()I")
-    private static native int GlStateManager_getBoundTexture();
+    private static native int optiRefine$getGlStateBoundTexture();
 
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite glSpriteTextureId I")
 // [AUDIT-OK] OF field glSpriteTextureId, not in baseline (MixinTextureAtlasSprite @Public)
-    private static native int TextureAtlasSprite_glSpriteTextureId_get(TextureAtlasSprite textureAtlasSprite);
+    private static native int optiRefine$getSpriteTextureId(TextureAtlasSprite textureAtlasSprite);
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
 // [AUDIT-OK] OF-added method, not in baseline
     private int drawForIcon(TextureAtlasSprite sprite, int startQuadPos) {
-        GlStateManager.bindTexture(TextureAtlasSprite_glSpriteTextureId_get(sprite));
+        GlStateManager.bindTexture(optiRefine$getSpriteTextureId(sprite));
         int firstRegionEnd = -1;
         int lastPos = -1;
         int countQuads = this.vertexCount / 4;
@@ -704,7 +704,7 @@ public abstract class MixinBufferBuilder {
 
     @Inject(method = "<init>*", at = @At("RETURN"))
     // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
-    private void optiRefine$initFields(CallbackInfo ci) {
+    private void optiRefine$initializeVertexBufferState(CallbackInfo ci) {
         this.blockLayer = null;
         this.drawnIcons = new boolean[256];
         this.quadSprites = null;

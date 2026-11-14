@@ -53,24 +53,24 @@ public abstract class MixinGuiIngame {
 
 // [AUDIT-OK] target renderExpBar(Lnet/minecraft/client/gui/ScaledResolution;I)V matches baseline; drawString(String,III)I invokes present; handler params match
     @WrapOperation(method = "renderExpBar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/FontRenderer;drawString(Ljava/lang/String;III)I"))
-    public int redirectDrawString(FontRenderer instance, String text, int x, int y, int color, Operation<Integer> original){
+    public int optiRefine$drawExperienceTextWithCustomColor(FontRenderer fontRenderer, String text, int x, int y, int color, Operation<Integer> original){
         if (color == 0) {
-            return original.call(instance, text, x, y, color);
+            return original.call(fontRenderer, text, x, y, color);
         } else {
-            int col = color;
+            int textColor = color;
             if (Config.isCustomColors()) {
-                 col = CustomColors.getExpBarTextColor(color);
+                 textColor = CustomColors.getExpBarTextColor(color);
             }
-            return original.call(instance, text, x, y, col);
+            return original.call(fontRenderer, text, x, y, textColor);
         }
     }
 
 // [AUDIT-OK] target renderVignette(F,Lnet/minecraft/client/gui/ScaledResolution;)V matches baseline; replicates OF call-site guard
     @WrapMethod(method = "renderVignette")
-    public void injectRenderVignette(float p_180480_1_, ScaledResolution p_180480_2_, Operation<Void> original){
+    public void optiRefine$renderConfiguredVignette(float brightness, ScaledResolution scaledResolution, Operation<Void> original){
         if (!Config.isVignetteEnabled()) {
             GlStateManager.enableDepth();
             GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
-        } else original.call(p_180480_1_, p_180480_2_);
+        } else original.call(brightness, scaledResolution);
     }
 }

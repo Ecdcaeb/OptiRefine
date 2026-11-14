@@ -35,12 +35,12 @@ public abstract class MixinBlockModelRender$AmbientOcclusionFace {
 
 
     @ShadowSuper("<init>")
-    public void _Object() {}
+    public void optiRefine$invokeObjectConstructor() {}
 
     @NewConstructor
-    public void AmbientOcclusionFace() {
+    public void optiRefine$initializeAmbientOcclusionFace() {
 // [AUDIT-FIXED] super() + explicit allocation: cursed-generated <init>()V does not run @Inject(<init>*) handlers
-        _Object();
+        optiRefine$invokeObjectConstructor();
         // [AUDIT-FIXED] cursed-generated <init>()V lacks vanilla field initializers; replicate them
         this.vertexBrightness = new int[4];
         this.vertexColorMultiplier = new float[4];
@@ -51,11 +51,11 @@ public abstract class MixinBlockModelRender$AmbientOcclusionFace {
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.client.renderer.BlockModelRenderer fixAoLightValue (F)F")
-    private static native float BlockModelRenderer_fixAoLightValue(float value);
+    private static native float optiRefine$fixBlockModelAoLightValue(float value);
 
     @Redirect(method = "updateVertexBrightness", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/state/IBlockState;getAmbientOcclusionLightValue()F"))
     public float optiRefine$fixAoLightValue(IBlockState state) {
-        return BlockModelRenderer_fixAoLightValue(state.getAmbientOcclusionLightValue());
+        return optiRefine$fixBlockModelAoLightValue(state.getAmbientOcclusionLightValue());
     }
 
     @Unique

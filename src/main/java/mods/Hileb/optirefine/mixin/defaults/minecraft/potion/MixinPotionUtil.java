@@ -20,19 +20,19 @@ public abstract class MixinPotionUtil {
 
     @WrapOperation(method = "getPotionColorFromEffectList", at = @At(value = "INVOKE", target = "Lnet/minecraft/potion/Potion;getLiquidColor()I"))
 // [AUDIT-OK] getLiquidColor custom-color wrap matches OF PotionUtils (CustomColors.getPotionColor per effect)
-    private static int injectGetPotionColorFromEffectList(Potion instance, Operation<Integer> original){
-        int k = original.call(instance);
+    private static int optiRefine$applyCustomPotionColor(Potion potion, Operation<Integer> original){
+        int k = original.call(potion);
         if (Config.isCustomColors()) {
-            return CustomColors.getPotionColor(instance, k);
+            return CustomColors.getPotionColor(potion, k);
         }
         return k;
     }
 
     @WrapMethod(method = "getPotionColorFromEffectList")
 // [AUDIT-OK] empty-list branch matches OF (3694022 / CustomColors.getPotionColor(null, 3694022))
-    private static int wrapGetPotionColorFromEffectList(Collection<PotionEffect> p_185181_0_, Operation<Integer> original){
-        if (p_185181_0_.isEmpty()) {
+    private static int optiRefine$colorEmptyPotionEffects(Collection<PotionEffect> effects, Operation<Integer> original){
+        if (effects.isEmpty()) {
             return Config.isCustomColors() ? CustomColors.getPotionColor(null, 3694022) : 3694022;
-        } else return original.call(p_185181_0_);
+        } else return original.call(effects);
     }
 }

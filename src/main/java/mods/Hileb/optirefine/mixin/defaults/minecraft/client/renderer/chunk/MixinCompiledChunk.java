@@ -23,7 +23,7 @@ public abstract class MixinCompiledChunk {
     private BitSet[] optiRefine$animatedSprites;
 
     @Inject(method = "<init>*", at = @At("RETURN"))
-    private void optiRefine$initFields(CallbackInfo ci) {
+    private void optiRefine$initializeAnimatedSpriteLayers(CallbackInfo ci) {
         this.optiRefine$animatedSprites = new BitSet[BlockRenderLayer.values().length];
     }
 

@@ -63,10 +63,10 @@ public abstract class MixinThreadDownloadImageData extends SimpleTexture{
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @AccessibleOperation(opcode = Opcodes.INVOKEINTERFACE, desc = "net.minecraft.client.renderer.texture.ITextureObject getMultiTexID ()Lnet.optifine.shaders.MultiTexID;", itf = true)
 // [AUDIT-OK] OF member ITextureObject.getMultiTexID (MixinITextureObject/MixinAbstractTexture provide), not in baseline
-    private native static MultiTexID getMultiTexID(ITextureObject iTextureObject);
+    private native static MultiTexID optiRefine$getTextureMultiTexId(ITextureObject iTextureObject);
 
     @WrapOperation(method = "checkTextureUploaded", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/texture/TextureUtil;uploadTextureImage(ILjava/awt/image/BufferedImage;)I"))
-    public int blockTextureUploadForConfig(int textureId, BufferedImage texture, Operation<Integer> original){
+    public int optiRefine$uploadTextureWithShaders(int textureId, BufferedImage texture, Operation<Integer> original){
 // [AUDIT-OK] target checkTextureUploaded()V (SRG func_147640_e) TextureUtil.uploadTextureImage matches baseline; shaders branch matches OF
 // [AUDIT-FIXED] 2026-08-05: textureUploaded=true set here, BEFORE any upload — OF:52-53 sets it as the
 // first statement inside the guard (re-entry from ShadersTex.getMultiTexID -> loadTexture ->
@@ -75,14 +75,14 @@ public abstract class MixinThreadDownloadImageData extends SimpleTexture{
 // skins/capes never reached GL.
         this.textureUploaded = true;
         if (Config.isShaders()) {
-            return ShadersTex.loadSimpleTexture(textureId, texture, false, false, Config.getResourceManager(), this.textureLocation, getMultiTexID((ThreadDownloadImageData)(Object)this));
+            return ShadersTex.loadSimpleTexture(textureId, texture, false, false, Config.getResourceManager(), this.textureLocation, optiRefine$getTextureMultiTexId((ThreadDownloadImageData)(Object)this));
         } else {
             return TextureUtil.uploadTextureImage(textureId, texture);
         }
     }
 
     @Inject(method = "setBufferedImage", at = @At("TAIL"))
-    public void afterImageSetted(BufferedImage bufferedImageIn, CallbackInfo ci){
+    public void optiRefine$updateImageFound(BufferedImage bufferedImageIn, CallbackInfo ci){
 // [AUDIT-OK] target setBufferedImage(Ljava/awt/image/BufferedImage;)V (SRG func_147641_a) matches baseline
         this.imageFound = this.bufferedImage != null;
     }
@@ -258,7 +258,7 @@ public abstract class MixinThreadDownloadImageData extends SimpleTexture{
 
     @Inject(method = "<init>*", at = @At("RETURN"))
     // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
-    private void optiRefine$initFields(CallbackInfo ci) {
+    private void optiRefine$initializeImageDownloadState(CallbackInfo ci) {
         this.imageFound = null;
         this.pipeline = false;
     }

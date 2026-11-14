@@ -19,7 +19,7 @@ public abstract class MixinVisGraph {
 
     @Redirect(method = "floodFill", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/EnumFacing;values()[Lnet/minecraft/util/EnumFacing;"))
     // [AUDIT-OK] floodFill EnumFacing.values() INVOKE unique (deobf:83); VALUES swap matches OF:63
-    public EnumFacing[] redirectEnumFacing_values(){
+    public EnumFacing[] optiRefine$getCachedFacings(){
         return EnumFacing.VALUES;
     }
 

@@ -22,7 +22,7 @@ public abstract class MixinRenderXPOrb {
     @Expression("@(? / 2.0)")
     @ModifyExpressionValue(method = "doRender(Lnet/minecraft/entity/item/EntityXPOrb;DDDFF)V", at = @At("MIXINEXTRAS:EXPRESSION"))
     // [AUDIT-OK] doRender(EntityXPOrb;DDDFF)V baseline; '(xpColor+partialTicks)/2.0F' expression unique; getXpOrbTimer matches OF:44-46
-    public float customXPColor(float original, @Share(namespace = "optirefine", value = "color")LocalFloatRef color){
+    public float optiRefine$adjustXpOrbColorTimer(float original, @Share(namespace = "optirefine", value = "color")LocalFloatRef color){
         if (Config.isCustomColors()) {
             color.set(CustomColors.getXpOrbTimer(original));
             return color.get();
@@ -34,7 +34,7 @@ public abstract class MixinRenderXPOrb {
 
     @Inject(method = "doRender(Lnet/minecraft/entity/item/EntityXPOrb;DDDFF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/BufferBuilder;begin(ILnet/minecraft/client/renderer/vertex/VertexFormat;)V"))
     // [AUDIT-OK] BufferBuilder.begin INVOKE unique; getXpOrbColor r/g/b split matches OF:63-72
-    public void hookBeforeDraw(EntityXPOrb entity, double x, double y, double z, float entityYaw, float partialTicks, CallbackInfo ci,
+    public void optiRefine$captureCustomXpOrbColor(EntityXPOrb entity, double x, double y, double z, float entityYaw, float partialTicks, CallbackInfo ci,
                                @Share(namespace = "optirefine", value = "r") LocalIntRef r,
                                @Share(namespace = "optirefine", value = "g") LocalIntRef g,
                                @Share(namespace = "optirefine", value = "b") LocalIntRef b,
@@ -61,12 +61,12 @@ public abstract class MixinRenderXPOrb {
 
     @Redirect(method = "doRender(Lnet/minecraft/entity/item/EntityXPOrb;DDDFF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/BufferBuilder;color(IIII)Lnet/minecraft/client/renderer/BufferBuilder;"))
     // [AUDIT-OK] color(IIII) int overload is what vanilla doRender uses (deobf); custom override matches OF:73-76
-    public BufferBuilder setColor(BufferBuilder instance, int red, int green, int blue, int alpha,
+    public BufferBuilder optiRefine$applyCustomXpOrbColor(BufferBuilder buffer, int red, int green, int blue, int alpha,
                                   @Share(namespace = "optirefine", value = "r") LocalIntRef r,
                                   @Share(namespace = "optirefine", value = "g") LocalIntRef g,
                                   @Share(namespace = "optirefine", value = "b") LocalIntRef b
     ){
-        return instance.color(r.get() < 0 ? red : r.get(), g.get() < 0 ? green : g.get(), b.get() < 0 ? blue : b.get(), alpha);
+        return buffer.color(r.get() < 0 ? red : r.get(), g.get() < 0 ? green : g.get(), b.get() < 0 ? blue : b.get(), alpha);
     }
 
 

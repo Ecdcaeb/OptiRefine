@@ -106,7 +106,7 @@ public abstract class MixinGlStateManager {
     private static native void tryBlendFuncSeparate(int srcFactor, int dstFactor, int srcFactorAlpha, int dstFactorAlpha);    @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.GlStateManager$BooleanState optiRefine$isEnabled ()Z")
     // Read through a remapped shadow in BooleanState instead of a raw SRG field instruction.
-    private static native boolean BooleanState_currentState_get(GlStateManager.BooleanState instance);
+    private static native boolean optiRefine$isBooleanStateEnabled(GlStateManager.BooleanState instance);
 
     // ===== alpha lock =====
 
@@ -412,7 +412,7 @@ public abstract class MixinGlStateManager {
     @Public
 // [AUDIT-OK] OF-added static method, not in baseline
     private static boolean isFogEnabled() {
-        return BooleanState_currentState_get(fogState.fog);
+        return optiRefine$isBooleanStateEnabled(fogState.fog);
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
@@ -449,7 +449,7 @@ public abstract class MixinGlStateManager {
         if (alphaLock.isLocked()) {
             state.setState(alphaLockState);
         } else {
-            state.setState(BooleanState_currentState_get(alphaState.alphaTest), alphaState.func, alphaState.ref);
+            state.setState(optiRefine$isBooleanStateEnabled(alphaState.alphaTest), alphaState.func, alphaState.ref);
         }
     }
 
@@ -492,7 +492,7 @@ public abstract class MixinGlStateManager {
         if (blendLock.isLocked()) {
             state.setState(blendLockState);
         } else {
-            state.setState(BooleanState_currentState_get(blendState.blend), blendState.srcFactor, blendState.dstFactor, blendState.srcFactorAlpha, blendState.dstFactorAlpha);
+            state.setState(optiRefine$isBooleanStateEnabled(blendState.blend), blendState.srcFactor, blendState.dstFactor, blendState.srcFactorAlpha, blendState.dstFactorAlpha);
         }
     }
 

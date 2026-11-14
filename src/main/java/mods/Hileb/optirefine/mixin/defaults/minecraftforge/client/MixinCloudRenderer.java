@@ -43,7 +43,7 @@ public abstract class MixinCloudRenderer {
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.settings.GameSettings ofCloudsHeight F")
 // [AUDIT-OK] OF member ofCloudsHeight, not in baseline (MixinGameSettings provides); local bridge per cross-mixin rule
-    private static native float GameSettings_ofCloudsHeight_get(net.minecraft.client.settings.GameSettings gameSettings);
+    private static native float optiRefine$getCloudHeightOffset(net.minecraft.client.settings.GameSettings gameSettings);
 
     @WrapMethod(method = "render")
     private boolean optiRefine$render(int cloudTicks, float partialTicks, Operation<Boolean> original) {
@@ -71,6 +71,6 @@ public abstract class MixinCloudRenderer {
 
     @ModifyExpressionValue(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/WorldProvider;getCloudHeight()F"))
     private float optiRefine$cloudHeight(float original) {
-        return original + GameSettings_ofCloudsHeight_get(Config.getGameSettings()) * 128.0F;
+        return original + optiRefine$getCloudHeightOffset(Config.getGameSettings()) * 128.0F;
     }
 }

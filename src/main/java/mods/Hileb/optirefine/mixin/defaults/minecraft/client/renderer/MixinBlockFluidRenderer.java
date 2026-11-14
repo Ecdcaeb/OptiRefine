@@ -40,14 +40,14 @@ public abstract class MixinBlockFluidRenderer {
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/block/model/FaceBakery func_178412_b (Lnet/minecraft/util/EnumFacing;)F", deobf = true)
-    private static native float FaceBakery_getFaceBrightness(FaceBakery instance, EnumFacing facing);
+    private static native float optiRefine$getFaceBakeryFaceBrightness(FaceBakery faceBakery, EnumFacing facing);
 
     @Unique
     private static float optiRefine$faceBrightness(EnumFacing facing) {
         if (optiRefine$faceBakery == null) {
             optiRefine$faceBakery = new FaceBakery();
         }
-        return FaceBakery_getFaceBrightness(optiRefine$faceBakery, facing);
+        return optiRefine$getFaceBakeryFaceBrightness(optiRefine$faceBakery, facing);
     }
 
     @Shadow @Final
@@ -70,7 +70,7 @@ public abstract class MixinBlockFluidRenderer {
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/BufferBuilder getRenderEnv (Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/math/BlockPos;)Lnet/optifine/render/RenderEnv;", deobf = true)
 // [AUDIT-OK] OF member BufferBuilder.getRenderEnv; deobf=true no-op for OF name
-    private static RenderEnv BufferBuilder_getRenderEnv(BufferBuilder builder, IBlockState blockStateIn, BlockPos blockPosIn){
+    private static RenderEnv optiRefine$getBufferRenderEnv(BufferBuilder builder, IBlockState blockStateIn, BlockPos blockPosIn){
         throw new AbstractMethodError();
     }
 
@@ -78,7 +78,7 @@ public abstract class MixinBlockFluidRenderer {
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net/minecraft/client/renderer/BufferBuilder setSprite (Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;)V")
 // [AUDIT-OK] OF member BufferBuilder.setSprite
-    private static void BufferBuilder_setSprite(BufferBuilder builder, TextureAtlasSprite sprite){
+    private static void optiRefine$setBufferSprite(BufferBuilder builder, TextureAtlasSprite sprite){
         throw new AbstractMethodError();
     }
 
@@ -92,7 +92,7 @@ public abstract class MixinBlockFluidRenderer {
 //   (via OptifineHelper; compile-time vanilla FaceBakery is private instance) instead of fixed 0.5 gray
 // - lava skips every adjustment (Material.LAVA gate)
 // - overlay keeps cleanroom's getBlockFaceShape==SOLID check (superset of OF's BEACON/SLIME_BLOCK)
-    public boolean wrap_renderFluid(IBlockAccess blockAccess, IBlockState blockStateIn, BlockPos blockPosIn, BufferBuilder worldRendererIn, Operation<Boolean> original) {
+    public boolean optiRefine$renderFluid(IBlockAccess blockAccess, IBlockState blockStateIn, BlockPos blockPosIn, BufferBuilder worldRendererIn, Operation<Boolean> original) {
         boolean rendered;
         boolean entityPushed = false;
 
@@ -105,7 +105,7 @@ public abstract class MixinBlockFluidRenderer {
             BlockLiquid blockliquid = (BlockLiquid) blockStateIn.getBlock();
             boolean isLava = blockStateIn.getMaterial() == Material.LAVA;
             TextureAtlasSprite[] atlasSprites = isLava ? this.atlasSpritesLava : this.atlasSpritesWater;
-            RenderEnv renderEnv = BufferBuilder_getRenderEnv(worldRendererIn, blockStateIn, blockPosIn);
+            RenderEnv renderEnv = optiRefine$getBufferRenderEnv(worldRendererIn, blockStateIn, blockPosIn);
             int fluidColor = CustomColors.getFluidColor(blockAccess, blockStateIn, blockPosIn, renderEnv);
             float colorRed = (float) (fluidColor >> 16 & 255) / 255.0F;
             float colorGreen = (float) (fluidColor >> 8 & 255) / 255.0F;
@@ -134,7 +134,7 @@ public abstract class MixinBlockFluidRenderer {
                     rendered = true;
                     float f12 = BlockLiquid.getSlopeAngle(blockAccess, blockPosIn, material, blockStateIn);
                     TextureAtlasSprite textureatlassprite = f12 > -999.0F ? atlasSprites[1] : atlasSprites[0];
-                    BufferBuilder_setSprite(worldRendererIn, textureatlassprite);
+                    optiRefine$setBufferSprite(worldRendererIn, textureatlassprite);
                     f7 -= 0.001F;
                     f8 -= 0.001F;
                     f9 -= 0.001F;
@@ -190,7 +190,7 @@ public abstract class MixinBlockFluidRenderer {
                 }
 
                 if (flagDown) {
-                    BufferBuilder_setSprite(worldRendererIn, atlasSprites[0]);
+                    optiRefine$setBufferSprite(worldRendererIn, atlasSprites[0]);
                     float f35 = atlasSprites[0].getMinU();
                     float f36 = atlasSprites[0].getMaxU();
                     float f37 = atlasSprites[0].getMinV();
@@ -228,7 +228,7 @@ public abstract class MixinBlockFluidRenderer {
 
                     BlockPos blockpos = blockPosIn.add(j1, 0, k1);
                     TextureAtlasSprite textureatlassprite1 = atlasSprites[1];
-                    BufferBuilder_setSprite(worldRendererIn, textureatlassprite1);
+                    optiRefine$setBufferSprite(worldRendererIn, textureatlassprite1);
                     float f40 = 0.0F;
                     float f41 = 0.0F;
 
@@ -238,7 +238,7 @@ public abstract class MixinBlockFluidRenderer {
 
                         if (iblockstate.getBlockFaceShape(blockAccess, blockpos, EnumFacing.VALUES[i1 + 2].getOpposite()) == BlockFaceShape.SOLID) {
                             textureatlassprite1 = this.atlasSpriteWaterOverlay;
-                            BufferBuilder_setSprite(worldRendererIn, textureatlassprite1);
+                            optiRefine$setBufferSprite(worldRendererIn, textureatlassprite1);
                         }
 
                         if (block == Blocks.FARMLAND || block == Blocks.GRASS_PATH) {
@@ -335,7 +335,7 @@ public abstract class MixinBlockFluidRenderer {
                     }
                 }
 
-                BufferBuilder_setSprite(worldRendererIn, null);
+                optiRefine$setBufferSprite(worldRendererIn, null);
                 return rendered;
             }
 

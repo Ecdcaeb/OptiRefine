@@ -15,7 +15,7 @@ public abstract class MixinLayerSheepWool {
 
     @WrapOperation(method = "doRenderLayer(Lnet/minecraft/entity/passive/EntitySheep;FFFFFFF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/passive/EntitySheep;getDyeRgb(Lnet/minecraft/item/EnumDyeColor;)[F"))
     // [AUDIT-OK] all 3 getDyeRgb INVOKEs wrapped with getSheepColors — matches OF:30-43
-    public float[] custom_color(EnumDyeColor dyeColor, Operation<float[]> original) {
+    public float[] optiRefine$applyCustomWoolColor(EnumDyeColor dyeColor, Operation<float[]> original) {
         float[] floats = original.call(dyeColor);
         if (Config.isCustomColors()) {
             return CustomColors.getSheepColors(dyeColor, floats);

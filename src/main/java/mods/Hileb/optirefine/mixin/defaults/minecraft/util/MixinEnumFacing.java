@@ -25,7 +25,7 @@ public abstract class MixinEnumFacing {
 
     @WrapMethod(method = "getOpposite")
 // [AUDIT-OK] getOpposite -> VALUES[opposite] matches OF (baseline byIndex(opposite) is equivalent for 0..5)
-    public EnumFacing getOpposite$fast(Operation<EnumFacing> original){
+    public EnumFacing optiRefine$lookupOppositeFacing(Operation<EnumFacing> original){
         return VALUES[this.opposite];
     }
 }

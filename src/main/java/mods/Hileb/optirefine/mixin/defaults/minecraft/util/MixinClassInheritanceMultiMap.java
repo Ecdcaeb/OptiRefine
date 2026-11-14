@@ -30,25 +30,25 @@ public abstract class MixinClassInheritanceMultiMap<T> extends AbstractSet<T> {
 
     @Inject(method = "<init>", at = @At("RETURN"))
 // [AUDIT-OK] empty-flag refresh on <init> matches OF (empty = values.isEmpty())
-    public void init$checkEmpty(Class<?> p_i45909_1_, CallbackInfo ci){
+    public void optiRefine$initializeEmptyFlag(Class<?> baseClass, CallbackInfo ci){
         this.empty = this.values.isEmpty();
     }
 
     @Inject(method = "add", at = @At("RETURN"))
 // [AUDIT-OK] empty-flag refresh on add matches OF; CIR correct for non-void add
-    public void add$checkEmpty(Object p_add_1_, CallbackInfoReturnable<Boolean> cir){
+    public void optiRefine$refreshEmptyFlagAfterAdd(Object element, CallbackInfoReturnable<Boolean> cir){
         this.empty = this.values.isEmpty();
     }
 
     @Inject(method = "addForClass", at = @At("RETURN"))
 // [AUDIT-OK] empty-flag refresh on addForClass matches OF
-    public void addForClass$checkEmpty(Object p_181743_1_, Class<?> p_181743_2_, CallbackInfo ci){
+    public void optiRefine$refreshEmptyFlagAfterClassAdd(Object element, Class<?> elementClass, CallbackInfo ci){
         this.empty = this.values.isEmpty();
     }
 
     @Inject(method = "remove", at = @At("RETURN"))
 // [AUDIT-OK] empty-flag refresh on remove matches OF; CIR correct for non-void remove
-    public void remove$checkEmpty(Object p_add_1_, CallbackInfoReturnable<Boolean> cir){
+    public void optiRefine$refreshEmptyFlagAfterRemove(Object element, CallbackInfoReturnable<Boolean> cir){
         this.empty = this.values.isEmpty();
     }
 

@@ -70,13 +70,13 @@ public abstract class MixinWorldClient extends World {
 
     // Ignored
 // [AUDIT-NOTE] ctor only satisfies mixin-extends-World hierarchy; not applied at runtime
-    protected MixinWorldClient(ISaveHandler p_i45749_1_, WorldInfo p_i45749_2_, WorldProvider p_i45749_3_, Profiler p_i45749_4_, boolean p_i45749_5_) {
-        super(p_i45749_1_, p_i45749_2_, p_i45749_3_, p_i45749_4_, p_i45749_5_);
+    protected MixinWorldClient(ISaveHandler saveHandler, WorldInfo worldInfo, WorldProvider provider, Profiler profiler, boolean isRemote) {
+        super(saveHandler, worldInfo, provider, profiler, isRemote);
     }
 
 // [AUDIT-OK] target ctor (Lnet/minecraft/client/network/NetHandlerPlayClient;Lnet/minecraft/world/WorldSettings;ILnet/minecraft/world/EnumDifficulty;Lnet/minecraft/profiler/Profiler;)V matches baseline
     @Inject(method = "<init>", at = @At("RETURN"))
-    public void injectInit(NetHandlerPlayClient netHandler, WorldSettings settings, int dimension, EnumDifficulty difficulty, Profiler profilerIn, CallbackInfo ci){
+    public void optiRefine$installCustomGuiPlayerController(NetHandlerPlayClient netHandler, WorldSettings settings, int dimensionId, EnumDifficulty difficulty, Profiler profiler, CallbackInfo ci){
         if (this.mc.playerController != null && this.mc.playerController.getClass() == PlayerControllerMP.class) {
             this.mc.playerController = new PlayerControllerOF(this.mc, netHandler);
             CustomGuis.setPlayerControllerOF((PlayerControllerOF)this.mc.playerController);
@@ -85,7 +85,7 @@ public abstract class MixinWorldClient extends World {
 
 // [AUDIT-OK] target refreshVisibleChunks()V declared in baseline; replicates OF chunk-dirty check
     @WrapMethod(method = "refreshVisibleChunks")
-    public void injectRefreshVisibleChunks(Operation<Void> original){
+    public void optiRefine$refreshVisibleChunksAfterPlayerMovement(Operation<Void> original){
         int cx = MathHelper.floor(this.mc.player.posX / 16.0);
         int cy = MathHelper.floor(this.mc.player.posZ / 16.0);
         if (cx != this.playerChunkX || cy != this.playerChunkY) {
@@ -203,7 +203,7 @@ public abstract class MixinWorldClient extends World {
 
     @Inject(method = "<init>*", at = @At("RETURN"))
     // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
-    private void optiRefine$initFields(CallbackInfo ci) {
+    private void optiRefine$initializeChunkRefreshState(CallbackInfo ci) {
         this.playerChunkX = Integer.MIN_VALUE;
         this.playerChunkY = Integer.MIN_VALUE;
         this.playerUpdate = false;

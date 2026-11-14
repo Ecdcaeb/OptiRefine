@@ -24,16 +24,16 @@ public abstract class MixinVertexBuffer {
 
     @WrapMethod(method = "bufferData")
     // [AUDIT-OK] bufferData baseline; vboRegion branch matches OF:26-29
-    public void wrapbufferData(ByteBuffer p_181722_1_, Operation<Void> original){
+    public void optiRefine$uploadRegionBuffer(ByteBuffer data, Operation<Void> original){
         if (this.vboRegion != null) {
-            this.vboRegion.bufferData(p_181722_1_, this.vboRange);
+            this.vboRegion.bufferData(data, this.vboRange);
         } else {
-            original.call(p_181722_1_);
+            original.call(data);
         }
     }
 
     @WrapMethod(method = "drawArrays")
-    public void wrapdrawArrays(int mode, Operation<Void> original){
+    public void optiRefine$drawRegionArrays(int mode, Operation<Void> original){
         if (this.drawMode > 0) {
             mode = this.drawMode;
         }

@@ -15,8 +15,8 @@ import org.spongepowered.asm.mixin.Mixin;
 public abstract class MixinGuiIngameForge extends GuiIngame {
 
 
-    public MixinGuiIngameForge(Minecraft p_i46325_1_) {
-        super(p_i46325_1_);
+    public MixinGuiIngameForge(Minecraft minecraft) {
+        super(minecraft);
     }
 
     // Forge draws experience in its own method, bypassing GuiIngame.renderExpBar.

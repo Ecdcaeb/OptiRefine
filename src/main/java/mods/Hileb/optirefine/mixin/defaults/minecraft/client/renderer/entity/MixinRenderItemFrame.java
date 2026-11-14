@@ -29,7 +29,7 @@ public abstract class MixinRenderItemFrame {
 
     @ModifyExpressionValue(method = "renderItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;isEmpty()Z"))
     // [AUDIT-OK] isEmpty() INVOKE unique; player-distance cull hardcodes 4096.0 (= OF:90-92, [AUDIT-FIXED]); isRenderItem uses itemRenderDistanceSq (= OF:144-158) — verified 2026-08-05
-    public boolean extraRenderCondition(boolean original, @Local(argsOnly = true) EntityItemFrame itemFrame){
+    public boolean optiRefine$cullDistantFrameItem(boolean original, @Local(argsOnly = true) EntityItemFrame itemFrame){
         if (!original) {
             if (!this.isRenderItem(itemFrame)) {
                 return true;

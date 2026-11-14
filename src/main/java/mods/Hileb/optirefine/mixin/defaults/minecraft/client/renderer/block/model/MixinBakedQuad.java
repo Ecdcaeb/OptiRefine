@@ -26,23 +26,23 @@ public abstract class MixinBakedQuad {
 
     @AccessTransformer(name = "field_178215_a", deobf = true)
     // [AUDIT-OK] AT fields: field_178215_a vertexData / field_178213_b tintIndex / field_178214_c face / field_187509_d sprite (tsrg, SRG+deobf) and format / applyDiffuseLighting (Forge-added, tsrg-less, MCP) — all present in runtime (cleanroom BakedQuad patch)
-    public int[] optirefine$acc_vertexData;
+    public int[] optiRefine$vertexDataAccess;
 
     @Unique
     @AccessTransformer(name = "field_178213_b", deobf = true)
-    public int optirefine$acc_tintIndex;
+    public int optiRefine$tintIndexAccess;
     @AccessTransformer(name = "field_178214_c", deobf = true)
-    public EnumFacing optirefine$acc_face;
+    public EnumFacing optiRefine$faceAccess;
     @Unique
     @AccessTransformer(name = "field_187509_d", deobf = true)
-    public TextureAtlasSprite optirefine$acc_sprite;
+    public TextureAtlasSprite optiRefine$spriteAccess;
 
     @AccessTransformer(name = "format")
-    public VertexFormat  optirefine$acc_format;
+    public VertexFormat  optiRefine$formatAccess;
 
     @Unique
     @AccessTransformer(name = "applyDiffuseLighting")
-    public boolean  optirefine$acc_applyDiffuseLighting;
+    public boolean  optiRefine$diffuseLightingAccess;
 
 
     @Shadow @Final @Mutable
@@ -102,22 +102,22 @@ public abstract class MixinBakedQuad {
     }
     @Inject(method = "<init>([IILnet/minecraft/util/EnumFacing;Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;ZLnet/minecraft/client/renderer/vertex/VertexFormat;)V", at = @At("RETURN"))
     // [AUDIT-OK] 6-arg ctor (int[],int,EnumFacing,TextureAtlasSprite,boolean,VertexFormat) added by cleanroom BakedQuad patch — target exists
-    public void init(int[] vertexDataIn, int tintIndexIn, EnumFacing faceIn, TextureAtlasSprite spriteIn, boolean applyDiffuseLighting, VertexFormat format, CallbackInfo ci){
+    public void optiRefine$initVertexData(int[] vertexDataIn, int tintIndexIn, EnumFacing faceIn, TextureAtlasSprite spriteIn, boolean applyDiffuseLighting, VertexFormat format, CallbackInfo ci){
         this.fixVertexData();
     }
 
     @ModifyReturnValue(method = "getSprite", at = @At("RETURN"))
     // [AUDIT-OK] target getSprite() baseline; null->getSpriteByUv matches OF:43-45
-    public TextureAtlasSprite $getSprite(TextureAtlasSprite orv) {
-        if (orv == null) {
+    public TextureAtlasSprite optiRefine$resolveMissingSprite(TextureAtlasSprite original) {
+        if (original == null) {
             return this.sprite = optiRefine$getSpriteByUv(this.getVertexData());
         }
-        return orv;
+        return original;
     }
 
     @Inject(method = "getVertexData", at = @At("HEAD"))
     // [AUDIT-OK] target getVertexData() baseline (deobf:29)
-    public void beforeGetVertexData(CallbackInfoReturnable<int[]> cir){
+    public void optiRefine$updateVertexData(CallbackInfoReturnable<int[]> cir){
         this.fixVertexData();
     }
 
@@ -126,7 +126,7 @@ public abstract class MixinBakedQuad {
 
     @ModifyReturnValue(method = "getFace", at = @At("RETURN"))
     // [AUDIT-OK] target getFace() baseline (deobf:44); null->getFacingFromVertexData matches OF:64-66
-    public EnumFacing $getSprite(EnumFacing original) {
+    public EnumFacing optiRefine$resolveMissingFace(EnumFacing original) {
         if (original == null) {
             return this.face = FaceBakery.getFacingFromVertexData(this.getVertexData());
         } else return original;
@@ -147,16 +147,16 @@ public abstract class MixinBakedQuad {
     }
 
     @Unique
-    private static int[] optiRefine$makeVertexDataSingle(int[] vd, TextureAtlasSprite sprite) {
-        int[] vdSingle = vd.clone();
+    private static int[] optiRefine$makeVertexDataSingle(int[] vertexData, TextureAtlasSprite sprite) {
+        int[] vdSingle = vertexData.clone();
         int step = vdSingle.length / 4;
 
         for (int i = 0; i < 4; i++) {
             int pos = i * step;
             float tu = Float.intBitsToFloat(vdSingle[pos + 4]);
             float tv = Float.intBitsToFloat(vdSingle[pos + 4 + 1]);
-            float u = TextureAtlasSprite_toSingleU(sprite, tu);
-            float v = TextureAtlasSprite_toSingleV(sprite, tv);
+            float u = optiRefine$toSpriteSingleU(sprite, tu);
+            float v = optiRefine$toSpriteSingleV(sprite, tv);
             vdSingle[pos + 4] = Float.floatToRawIntBits(u);
             vdSingle[pos + 4 + 1] = Float.floatToRawIntBits(v);
         }
@@ -166,11 +166,11 @@ public abstract class MixinBakedQuad {
 
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite toSingleU (F)F")
-    private static native float TextureAtlasSprite_toSingleU(TextureAtlasSprite textureAtlasSprite, float arg1);
+    private static native float optiRefine$toSpriteSingleU(TextureAtlasSprite textureAtlasSprite, float u);
 
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite toSingleV (F)F")
-    private static native float TextureAtlasSprite_toSingleV(TextureAtlasSprite textureAtlasSprite, float arg1);
+    private static native float optiRefine$toSpriteSingleV(TextureAtlasSprite textureAtlasSprite, float v);
 
     private static TextureAtlasSprite optiRefine$getSpriteByUv(int[] vertexData) {
         float uMin = 1.0F;
@@ -191,12 +191,12 @@ public abstract class MixinBakedQuad {
 
         float uMid = (uMin + uMax) / 2.0F;
         float vMid = (vMin + vMax) / 2.0F;
-        return TextureMap_getIconByUV(Minecraft.getMinecraft().getTextureMapBlocks(), uMid, vMid);
+        return optiRefine$getTextureMapIconByUV(Minecraft.getMinecraft().getTextureMapBlocks(), uMid, vMid);
     }
 
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureMap getIconByUV (FF)Lnet.minecraft.client.renderer.texture.TextureAtlasSprite;")
-    private static native TextureAtlasSprite TextureMap_getIconByUV(TextureMap textureMap, float u, float v);
+    private static native TextureAtlasSprite optiRefine$getTextureMapIconByUV(TextureMap textureMap, float u, float v);
 
     @Unique
     @SuppressWarnings("AddedMixinMembersNamePattern")
@@ -215,26 +215,26 @@ public abstract class MixinBakedQuad {
         }
     }
 
-    private static int[] optiRefine$expandVertexData(int[] vd) {
-        int step = vd.length / 4;
+    private static int[] optiRefine$expandVertexData(int[] vertexData) {
+        int step = vertexData.length / 4;
         int stepNew = step * 2;
         int[] vdNew = new int[stepNew * 4];
 
         for (int i = 0; i < 4; i++) {
-            System.arraycopy(vd, i * step, vdNew, i * stepNew, step);
+            System.arraycopy(vertexData, i * step, vdNew, i * stepNew, step);
         }
 
         return vdNew;
     }
 
     @Unique
-    private static int[] optiRefine$compactVertexData(int[] vd) {
-        int step = vd.length / 4;
+    private static int[] optiRefine$compactVertexData(int[] vertexData) {
+        int step = vertexData.length / 4;
         int stepNew = step / 2;
         int[] vdNew = new int[stepNew * 4];
 
         for (int i = 0; i < 4; i++) {
-            System.arraycopy(vd, i * step, vdNew, i * stepNew, stepNew);
+            System.arraycopy(vertexData, i * step, vdNew, i * stepNew, stepNew);
         }
 
         return vdNew;
@@ -296,8 +296,8 @@ public abstract class MixinBakedQuad {
             return this.quadEmissive;
         } else {
             TextureAtlasSprite sprite = this.getSprite();
-            if (this.quadEmissive == null && sprite != null && TextureAtlasSprite_spriteEmissive_get(sprite) != null) {
-                this.quadEmissive = new BakedQuadRetextured(cast_BakedQuad(this), TextureAtlasSprite_spriteEmissive_get(sprite));
+            if (this.quadEmissive == null && sprite != null && optiRefine$getEmissiveSprite(sprite) != null) {
+                this.quadEmissive = new BakedQuadRetextured(optiRefine$asBakedQuad(this), optiRefine$getEmissiveSprite(sprite));
             }
 
             this.quadEmissiveChecked = true;
@@ -306,10 +306,10 @@ public abstract class MixinBakedQuad {
     }
 
     @AccessibleOperation
-    private static native BakedQuad cast_BakedQuad(Object obj);
+    private static native BakedQuad optiRefine$asBakedQuad(Object instance);
 
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite spriteEmissive Lnet.minecraft.client.renderer.texture.TextureAtlasSprite;")
-    private static native TextureAtlasSprite TextureAtlasSprite_spriteEmissive_get(TextureAtlasSprite textureAtlasSprite);
+    private static native TextureAtlasSprite optiRefine$getEmissiveSprite(TextureAtlasSprite textureAtlasSprite);
 
     @Override
     // [AUDIT-OK] OF overrides toString (OF:215); nit: no @Unique — merged as added member (warns AddedMixinMembersNamePattern)
@@ -319,7 +319,7 @@ public abstract class MixinBakedQuad {
 
     @Inject(method = "<init>*", at = @At("RETURN"))
     // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
-    private void optiRefine$initFields(CallbackInfo ci) {
+    private void optiRefine$initializeSingleTextureVertexCache(CallbackInfo ci) {
         this.vertexDataSingle = null;
     }
 }

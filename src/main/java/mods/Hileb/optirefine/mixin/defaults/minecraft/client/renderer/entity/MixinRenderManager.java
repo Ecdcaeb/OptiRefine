@@ -37,22 +37,22 @@ public abstract class MixinRenderManager {
 
     @Inject(method = "<init>", at = @At("RETURN"))
     // [AUDIT-OK] target <init>(TextureManager,RenderItem) baseline; PlayerItemsLayer.register matches OF:231
-    public void init(TextureManager p_i46180_1, RenderItem p_i46180_2, CallbackInfo ci){
+    public void optiRefine$registerPlayerItemLayers(TextureManager textureManager, RenderItem itemRenderer, CallbackInfo ci){
         PlayerItemsLayer.register(this.skinMap);
     }
 
     @WrapOperation(method = "renderEntity", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/Render;doRender(Lnet/minecraft/entity/Entity;DDDFF)V"))
     // [AUDIT-OK] target renderEntity + Render.doRender INVOKE baseline; renderRender capture matches OF:358
-    public void beforeDoRender(Render<Entity> instance, Entity entity, double x, double y, double z, float entityYaw, float partialTicks, Operation<Void> original){
+    public void optiRefine$captureEntityRenderer(Render<Entity> renderer, Entity entity, double x, double y, double z, float entityYaw, float partialTicks, Operation<Void> original){
         if (CustomEntityModels.isActive()) {
-            this.renderRender = instance;
+            this.renderRender = renderer;
         }
-        original.call(instance, entity, x, y, z, entityYaw, partialTicks);
+        original.call(renderer, entity, x, y, z, entityYaw, partialTicks);
     }
 
     @WrapMethod(method = "renderDebugBoundingBox")
     // [AUDIT-OK] target renderDebugBoundingBox baseline (deobf:457); shadow-pass guard matches OF:421
-    public void blockRenderDebugBoundingBox(Entity entityIn, double x, double y, double z, float entityYaw, float partialTicks, Operation<Void> original){
+    public void optiRefine$skipShadowPassBoundingBox(Entity entityIn, double x, double y, double z, float entityYaw, float partialTicks, Operation<Void> original){
         if (!Shaders.isShadowPass) {
             original.call(entityIn, x, y, z, entityYaw, partialTicks);
         }

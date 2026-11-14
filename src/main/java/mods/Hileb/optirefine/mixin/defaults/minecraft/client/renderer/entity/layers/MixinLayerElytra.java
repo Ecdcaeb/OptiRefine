@@ -28,7 +28,7 @@ public abstract class MixinLayerElytra {
 
     @Redirect(method = "doRenderLayer", at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/entity/layers/LayerElytra;TEXTURE_ELYTRA:Lnet/minecraft/util/ResourceLocation;"))
     // [AUDIT-OK] both TEXTURE_ELYTRA field reads redirected; getCustomElytraTexture fallback matches OF:37-47
-    public ResourceLocation customTexture(@Local(argsOnly = true) EntityLivingBase entityLivingBaseIn){
+    public ResourceLocation optiRefine$selectCustomElytraTexture(@Local(argsOnly = true) EntityLivingBase entityLivingBaseIn){
         if (Config.isCustomItems()) {
             ItemStack itemStack = entityLivingBaseIn.getItemStackFromSlot(EntityEquipmentSlot.CHEST);
             return CustomItems.getCustomElytraTexture(itemStack, TEXTURE_ELYTRA);
@@ -39,12 +39,12 @@ public abstract class MixinLayerElytra {
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.entity.AbstractClientPlayer hasElytraCape ()Z")
     // [AUDIT-FIXED] OF:34 cape-fallback branch requires hasElytraCape(); the member exists at runtime only
     // (MixinAbstractClientPlayer @Public) so it is not on the compile classpath -> own bridge, declared here
-    private static native boolean _acc_AbstractClientPlayer_hasElytraCape_(AbstractClientPlayer player);
+    private static native boolean optiRefine$hasElytraCape(AbstractClientPlayer player);
 
     @ModifyExpressionValue(method = "doRenderLayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/entity/AbstractClientPlayer;hasPlayerInfo()Z"))
     // [AUDIT-FIXED] OF:34 `hasElytraCape() && hasPlayerInfo() && getLocationCape() != null && isWearing(CAPE)`;
     // runtime branch lacks hasElytraCape() so the elytra texture falls back to the cape even for non-cape skins
-    private boolean optiRefine$hasElytraCapeGate(boolean original, @Local AbstractClientPlayer abstractclientplayer) {
-        return original && _acc_AbstractClientPlayer_hasElytraCape_(abstractclientplayer);
+    private boolean optiRefine$hasElytraCapeGate(boolean original, @Local AbstractClientPlayer player) {
+        return original && optiRefine$hasElytraCape(player);
     }
 }

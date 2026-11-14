@@ -25,23 +25,23 @@ public abstract class MixinDefaultResourcePack {
 
     @WrapMethod(method = "getResourceStream")
     // [AUDIT-OK] target getResourceStream(ResourceLocation)LInputStream matches baseline; OptifineHelper == Forge port of ReflectorForge.getOptiFineResourceStream, matches OF
-    public InputStream injectGetResourceStream(ResourceLocation location, Operation<InputStream> original){
-        InputStream is = OptifineHelper.getOptifineResource("/assets/" + location.getNamespace() + "/" + location.getPath());
-        if (is == null) return original.call(location);
-        else return is;
+    public InputStream optiRefine$openOptifineResource(ResourceLocation location, Operation<InputStream> original){
+        InputStream input = OptifineHelper.getOptifineResource("/assets/" + location.getNamespace() + "/" + location.getPath());
+        if (input == null) return original.call(location);
+        else return input;
     }
 
     @WrapOperation(method = "getResourceStream", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/resources/FolderResourcePack;validatePath(Ljava/io/File;Ljava/lang/String;)Z"))
     // [AUDIT-OK] target FolderResourcePack.validatePath(File,String)Z (static, invoked from getResourceStream); body mirrors OF private validatePath (file: endsWith check, else delegate); instance handler legal per WrapOperation docs
-    private boolean validatePath(File file, String string, Operation<Boolean> original) throws IOException {
-        String var3 = file.getPath();
-        if (var3.startsWith("file:")) {
+    private boolean optiRefine$validateFileResourcePath(File file, String expectedPath, Operation<Boolean> original) throws IOException {
+        String filePath = file.getPath();
+        if (filePath.startsWith("file:")) {
             if (ON_WINDOWS) {
-                var3 = var3.replace("\\", "/");
+                filePath = filePath.replace("\\", "/");
             }
-            return var3.endsWith(string);
+            return filePath.endsWith(expectedPath);
         } else {
-            return original.call(file, string);
+            return original.call(file, expectedPath);
         }
     }
 
