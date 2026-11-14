@@ -11,9 +11,11 @@ Compilation and `runClient` share a dedicated `optifine` dependency, remapped fr
 namespace to MCP with Minecraft's class hierarchy. The hand-decompiled `_unpatched_srg` artifact is a
 compilation reference and cannot be used as a runtime distribution.
 
-The packaged `mods.Hileb.optirefine.optifine.Config` type is a compile facade. Mixin post-processing
-redirects its uses to OptiFine's default-package `Config`; ordinary helper classes need an explicit
-transformer target before using that facade.
+The packaged `mods.Hileb.optirefine.optifine.Config` type is a compile facade. Typed ASM mapping
+redirects its references to OptiFine's default-package `Config`, including descriptors, signatures,
+annotations, handles and dynamic constants. Ordinary OptiRefine helper classes are handled without
+individual target registration; completed mixin targets use the same mapper after extension lowering.
+Bootstrap/library classes are checked for forbidden facade dependencies in the runtime artifact.
 
 Mixin-owned handlers and internal helpers use `optiRefine$` followed by an action and its purpose,
 such as `optiRefine$drawExperienceTextWithCustomColor`. Constructor aliases, explicit-descriptor
@@ -32,6 +34,42 @@ The renamed build also passes real-client startup, debug text, normal/Fast Rende
 internal shaders on/off, video/skin settings and world exit. Controlled render failures check
 matrix/lightmap/model context restoration, texture bindings, sprite ordering and display-list
 cleanup. Results and captures are in `build/reports/mixin-naming/`.
+
+## Core architecture
+
+`OptiRefineCore` is the FML callback adapter. `OptiRefineBootstrap` owns transformer registration
+and the launch source; `ModMetadataLoader` reads folder/JAR metadata independently, and
+`OptiRefineModContainer` adapts that metadata and source to Forge. Default and optional-mod Mixin
+policies live in `core.mixin`.
+
+`MixinPostProcessor` tracks pending targets by `ClassNode` identity and processes each completed
+target from `IExtension.export`, after MixinExtras' late injectors. Its order is extension lowering,
+Config facade mapping, residual-reference verification, then final diagnostic output. The extension
+engine has ordered class, method, cleanup, field-alias and call-rewrite phases. Failures retain the
+original cause and report the class, phase, namespace status, member and annotation.
+
+`optirefine.modules.json` is the authoritative ordered mixin list. It declares G5 base, platform
+repairs, modern resource/CEM/shader groups and their shared client lifecycle dependency. Resource
+processing generates the default configuration's static common/client/server arrays so Unimined
+can remap every entry; the runtime plugin validates the selected side's dependencies. Common
+entries precede side entries, and the baseline order of 17 common/server and 152 total client
+mixins is preserved. These groups do not introduce feature-disable switches.
+
+`ShaderPackState` owns one pack's compute programs, prepare/shadowcomp custom textures and shadow
+alternates. G5 color/depth targets and gbuffers textures are borrowed. Closing a state releases
+owned resources once and clears borrowed references; the program registry, uniform objects and
+capability buffers retain game lifetime. Pack states are created at load boundaries, not per frame.
+
+The architecture cutover passes 26 persistent JVM contracts (`./gradlew build`), including
+generated-class execution, constructor helpers, alias chains, MCP/SRG selection, late-added calls,
+facade handles and runtime-artifact reference boundaries. JVM results are in
+`build/reports/tests/test/`.
+
+`./gradlew verifyClientContracts` launches an isolated client under `run/client-contracts` and
+requires OpenGL 4.3. On the documented G5 baseline, settings, resource/model priority, sorting snapshots,
+nine shader fixtures, resize, pack reload and owned/borrowed native resource lifetimes pass.
+Native results and captures are in `build/reports/client-contracts/`; the exact baseline mixin
+membership/order proof is in `build/reports/architecture/module-order.txt`.
 
 ## Runtime optimizations
 

@@ -24,6 +24,16 @@ The project targets **Java 25**
 ./gradlew build
 ```
 
+The build runs JVM bytecode and compatibility contracts. For the real-client checks, run:
+
+```
+./gradlew verifyClientContracts
+```
+
+This requires OpenGL 4.3 and opens an isolated client in `run/client-contracts`. Results and
+captures are written to `build/reports/client-contracts/`. The verification mod is a separate
+test artifact under `build/contract-tests/`.
+
 ## Installation
 
 - Tested with **Java 25**, **Cleanroom 0.5.17-alpha** and **OptiFine 1.12.2 HD U G5**.
