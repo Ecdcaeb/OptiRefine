@@ -1,4 +1,4 @@
-# <img width="56" height="56" alt="image" src="https://github.com/user-attachments/assets/ffd17053-9d3a-49a6-adf7-dc158776ddb4" /> OptiRefine  — Runtime Alpha Test
+# <img width="56" height="56" alt="image" src="https://github.com/user-attachments/assets/ffd17053-9d3a-49a6-adf7-dc158776ddb4" /> OptiRefine 0.1.0-alpha — Runtime Alpha Test
 
 > **Status: Runtime Alpha Test**. You can download and try it out, but it is **not recommended** for
 > important worlds or servers; crashes or rendering issues may still occur. **Issues are accepted** — bug
@@ -38,7 +38,7 @@ transformer target before using that facade.
 ## Test Environment
 
 - This revision's validation baseline: **Java 25.0.5**, **Cleanroom 0.5.17-alpha**, **OptiFine 1.12.2 HD U G5**.
-- Deployment: put the official OptiFine jar and `build/libs/optirefine-0.0.1-indev.jar` in the instance `mods/` folder.
+- Deployment: put the official OptiFine jar and `build/libs/optirefine-0.1.0-alpha.jar` in the instance `mods/` folder.
 - Other Cleanroom/OptiFine versions, including G6_pre1, require separate runtime verification.
 - Bug reports: attach `logs/latest.log` / `crash-reports/crash-*.txt`
 
