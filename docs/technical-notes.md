@@ -33,6 +33,13 @@ internal shaders on/off, video/skin settings and world exit. Controlled render f
 matrix/lightmap/model context restoration, texture bindings, sprite ordering and display-list
 cleanup. Results and captures are in `build/reports/mixin-naming/`.
 
+## Runtime optimizations
+
+Modern `prepare` and `shadowcomp` passes skip slots with neither graphics nor compute programs
+before binding samplers or images. Compute-only stages retain their original execution order.
+Real-client framebuffer checks cover these stages, conditional/zero dispatch and pack-off recovery.
+Optimization validation results and captures are in `build/reports/optimization-proof/`.
+
 ## Runtime validation
 
 Baseline: **Minecraft 1.12.2**, **Java 25.0.5**, **Cleanroom 0.5.17-alpha** and **OptiFine HD U G5**.

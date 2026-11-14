@@ -511,6 +511,7 @@ public final class ModernShaderPipeline {
             GL11.glDepthFunc(GL11.GL_ALWAYS);
             GL11.glDepthMask(false);
             for (Program program : stages) {
+                if (program.getId() == 0 && !hasComputes(program)) continue;
                 bindSamplers();
                 bindCustomTextures(shadow ? shadowcompTextures : prepareTextures);
                 bindImages();
