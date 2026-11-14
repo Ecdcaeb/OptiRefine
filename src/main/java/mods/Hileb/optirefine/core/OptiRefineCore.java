@@ -4,6 +4,7 @@ import com.google.common.eventbus.EventBus;
 import jakarta.annotation.Nullable;
 import mods.Hileb.optirefine.OptiRefine;
 import mods.Hileb.optirefine.core.transformer.OptiRefineConfigTransformer;
+import mods.Hileb.optirefine.core.transformer.ConfigFacadeMapper;
 import mods.Hileb.optirefine.core.transformer.OptifineForgeTransformer;
 import mods.Hileb.optirefine.core.transformer.OptifineTransformerTransformer;
 import mods.Hileb.optirefine.library.cursedmixinextensions.CursedMixinExtensions;
@@ -198,7 +199,8 @@ public class OptiRefineCore implements IFMLLoadingPlugin {
                 if (pendingMixinTransforms.remove(classNode)) {
                     // Export callbacks run after every extension's postApply, including MixinExtras' late injectors.
                     CursedMixinExtensions.postApply(classNode);
-                    OptiRefineConfigTransformer.transform0(classNode);
+                    ConfigFacadeMapper.remap(classNode);
+                    ConfigFacadeMapper.verify(classNode);
                     CursedMixinExtensions.dumpFinalClass(classNode);
                 }
             }
