@@ -17,6 +17,12 @@ public final class ModernResourcePaths {
     private ModernResourcePaths() {
     }
 
+    /** Clears cached translated names when resource loading is restarted. */
+    public static void clearCache() {
+        PACK_PATHS.clear();
+    }
+
+
     /** Cached names avoid allocating translated paths during resource existence checks. */
     public static PackPaths forLocation(ResourceLocation location) {
         if (!"minecraft".equals(location.getNamespace())) {

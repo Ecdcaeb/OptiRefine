@@ -47,6 +47,10 @@ Shader metadata checks reuse compiled dispatch patterns. Macro expansion allocat
 builder only after finding a replacement, retaining quoted replacements and the 16-pass limit.
 Parser checks cover unchanged lines, chained macros, fixed/relative groups and malformed input.
 
+Modern/legacy resource name translations are cleared when Minecraft starts a resource refresh.
+Names requested during loading remain cached until the next refresh. Real-client checks cover
+cache eviction and unchanged ZIP/folder lookup, same-pack precedence and cross-pack priority.
+
 Optimization validation results and captures are in `build/reports/optimization-proof/`.
 
 ## Runtime validation
