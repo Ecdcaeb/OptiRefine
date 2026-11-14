@@ -2,7 +2,7 @@
   "package": "mods.Hileb.optirefine.mixin.defaults",
   "required": true,
   "refmap": "optifine.refmap.json",
-  "plugin": "mods.Hileb.optirefine.core.OptiRefineCore$DefaultMixinPlugin",
+  "plugin": "mods.Hileb.optirefine.core.mixin.DefaultMixinPlugin",
   "target": "@env(DEFAULT)",
   "minVersion": "0.8.7",
   "mixinextras": {
