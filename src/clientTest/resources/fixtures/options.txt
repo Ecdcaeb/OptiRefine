@@ -1,0 +1,14 @@
+version:1343
+resourcePacks:[]
+incompatibleResourcePacks:[]
+renderDistance:4
+maxFps:60
+enableVsync:false
+pauseOnLostFocus:false
+fullscreen:false
+useVbo:true
+fboEnable:true
+mipmapLevels:0
+lang:en_us
+soundCategory_master:0.0
+tutorialStep:none

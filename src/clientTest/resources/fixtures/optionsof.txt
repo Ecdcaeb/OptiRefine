@@ -1,0 +1,6 @@
+ofFastRender:false
+ofRenderRegions:false
+ofCustomEntityModels:true
+ofCustomItems:true
+ofCustomColors:true
+ofEmissiveTextures:true

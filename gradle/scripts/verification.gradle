@@ -1,0 +1,96 @@
+import java.time.Duration
+
+sourceSets {
+    clientTest {
+        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+        runtimeClasspath += output + compileClasspath + sourceSets.main.runtimeClasspath
+    }
+}
+
+def moduleManifest = layout.projectDirectory.file('src/main/resources/optirefine.modules.json')
+tasks.named('processResources').configure {
+    inputs.file(moduleManifest)
+    doLast {
+        File configFile = new File(destinationDir, 'optirefine.default.mixin.json')
+        def parser = new groovy.json.JsonSlurper()
+        def config = parser.parse(configFile, 'UTF-8')
+        def plan = parser.parse(moduleManifest.asFile, 'UTF-8')
+        config.mixins = plan.blocks.findAll { it.side == 'common' }.collectMany { it.mixins }
+        config.client = plan.blocks.findAll { it.side == 'client' }.collectMany { it.mixins }
+        config.server = plan.blocks.findAll { it.side == 'server' }.collectMany { it.mixins }
+        configFile.setText(groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(config)) + '\n', 'UTF-8')
+    }
+}
+
+def runtimeArtifact = tasks.named(enable_shadow.toBoolean() ? 'remapShadowJar' : 'remapJar')
+tasks.named('test').configure {
+    dependsOn runtimeArtifact
+    inputs.files(runtimeArtifact.map { it.outputs.files })
+    doFirst {
+        systemProperty 'optirefine.contract.artifact', runtimeArtifact.get().outputs.files
+                .filter { it.isFile() && it.name.endsWith('.jar') }.singleFile.absolutePath
+    }
+}
+
+def clientContractJar = tasks.register('clientContractJar', Jar) {
+    dependsOn tasks.named('clientTestClasses')
+    from sourceSets.clientTest.output
+    archiveClassifier = 'client-contracts'
+    destinationDirectory = layout.buildDirectory.dir('contract-tests')
+}
+
+def clientContractDirectory = layout.projectDirectory.dir('run/client-contracts')
+def clientContractReport = layout.buildDirectory.file('reports/client-contracts/result.txt')
+def cleanClientContractMod = tasks.register('cleanClientContractMod', Delete) {
+    delete clientContractDirectory.file('mods/' + clientContractJar.get().archiveFileName.get())
+}
+
+tasks.register('verifyClientContracts', JavaExec) {
+    group = 'verification'
+    description = 'Runs G5 client contracts in an isolated game directory; requires OpenGL 4.3.'
+    dependsOn clientContractJar
+    dependsOn tasks.named('runClient').get().preRunTask
+    timeout = Duration.ofMinutes(6)
+    doFirst {
+        def client = tasks.named('runClient').get()
+        def applyAll = client.getClass().getClassLoader()
+                .loadClass('xyz.wagyourtail.unimined.api.runs.RunConfig')
+                .getDeclaredMethod('applyAll')
+        applyAll.setAccessible(true)
+        applyAll.invoke(client)
+        classpath = client.classpath
+        mainClass = client.mainClass
+        executable = client.executable
+        environment client.environment
+        def inheritedJvm = client.allJvmArgs + client.jvmArgumentProviders.collectMany { it.asArguments().toList() }
+        jvmArgs inheritedJvm.findAll { !it.startsWith('-Dfoundation.dump=') && !it.startsWith('-Dfoundation.verbose=') }
+        systemProperty 'foundation.dump', 'false'
+        systemProperty 'foundation.verbose', 'false'
+        systemProperty 'optirefine.contract.output', clientContractReport.get().asFile.parentFile.absolutePath
+        def inheritedApp = client.args + client.argumentProviders.collectMany { it.asArguments().toList() }
+        def app = []
+        for (int index = 0; index < inheritedApp.size(); index++) {
+            if (inheritedApp[index] == '--gameDir') index++
+            else app.add(inheritedApp[index])
+        }
+        app.addAll(['--gameDir', clientContractDirectory.asFile.absolutePath])
+        setArgs(app)
+        workingDir clientContractDirectory.asFile
+        project.copy {
+            from 'src/clientTest/resources/fixtures'
+            into clientContractDirectory
+        }
+        project.copy {
+            from clientContractJar.get().archiveFile
+            into clientContractDirectory.dir('mods')
+        }
+        clientContractReport.get().asFile.delete()
+    }
+    doLast {
+        File report = clientContractReport.get().asFile
+        if (!report.isFile() || !report.getText('UTF-8').startsWith('PASS\n')) {
+            throw new GradleException('Client contracts failed: ' + (report.isFile() ? report.getText('UTF-8') : 'no result report'))
+        }
+    }
+    finalizedBy cleanClientContractMod
+}
