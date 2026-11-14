@@ -233,4 +233,19 @@ class CursedMixinExtensionsTest {
         assertEquals(42, type.getMethod("answer").invoke(null));
         type.getConstructor().newInstance();
     }
+    @Test
+    void loweringFailuresRetainCauseAndPhaseContext() {
+        ClassNode node = target("BadSignatureDiagnostic");
+        MethodNode broken = method(node, Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "broken", "()I");
+        broken.visibleAnnotations = new ArrayList<>(List.of(annotation("SignatureFix", "value", "(I)I")));
+
+        IllegalStateException failure = assertThrows(IllegalStateException.class,
+                () -> CursedMixinExtensions.postApply(node));
+        assertTrue(failure.getCause() instanceof IllegalArgumentException);
+        assertTrue(failure.getMessage().contains("class=audit/BadSignatureDiagnostic"));
+        assertTrue(failure.getMessage().contains("phase=method annotations"));
+        assertTrue(failure.getMessage().contains("namespace=unresolved"));
+        assertTrue(failure.getMessage().contains("member=broken()I"));
+        assertTrue(failure.getMessage().contains("annotation=SignatureFix"));
+    }
 }

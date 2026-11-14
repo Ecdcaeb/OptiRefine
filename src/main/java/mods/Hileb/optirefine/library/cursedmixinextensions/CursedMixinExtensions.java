@@ -1,23 +1,16 @@
 package mods.Hileb.optirefine.library.cursedmixinextensions;
 
-import mods.Hileb.optirefine.core.OptiRefineLog;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.*;
 import mods.Hileb.optirefine.library.cursedmixinextensions.util.CallTransformTask;
-import mods.Hileb.optirefine.library.foundationx.asm.NonLoadingClassWriter;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraftforge.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.objectweb.asm.*;
 import org.objectweb.asm.tree.*;
-import org.objectweb.asm.util.ASMifier;
-import org.objectweb.asm.util.TraceClassVisitor;
 import org.spongepowered.asm.util.Annotations;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.PrintStream;
-import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.function.Predicate;
@@ -33,15 +26,83 @@ public class CursedMixinExtensions {
     
     private static final Logger LOGGER = LogManager.getLogger();
     
+    private static final class ProcessingContext {
+        private final ClassNode targetClass;
+        private final LinkedList<CallTransformTask> callTasks = new LinkedList<>();
+        private final List<String> constructorsToReplace = new ArrayList<>();
+        private final LinkedHashSet<MethodNode> methodsToRemove = new LinkedHashSet<>();
+        private boolean namespaceKnown;
+        private boolean srgRuntime;
+        private String phase = "initialization";
+        private String member = "<class>";
+        private String annotation = "<none>";
+
+        private ProcessingContext(ClassNode targetClass) {
+            this.targetClass = targetClass;
+        }
+
+        private void phase(String phase) {
+            this.phase = phase;
+            this.member = "<class>";
+            this.annotation = "<none>";
+            LOGGER.debug("Cursed mixin extensions class={} phase={}", targetClass.name, phase);
+        }
+        private boolean usesDeobfuscatedNames(boolean deobf) {
+            if (deobf && !namespaceKnown) {
+                srgRuntime = isSrgRuntime(targetClass);
+                namespaceKnown = true;
+                LOGGER.debug("Cursed mixin extensions class={} phase={} namespace={}",
+                        targetClass.name, phase, srgRuntime ? "SRG" : "MCP");
+            }
+            return deobf && !srgRuntime;
+        }
+
+        private void annotation(String member, String annotation) {
+            this.member = member;
+            this.annotation = annotation;
+            LOGGER.debug("Cursed mixin extensions class={} phase={} member={} annotation={}",
+                    targetClass.name, phase, member, annotation);
+        }
+
+        private void beginMember(String member) {
+            this.member = member;
+            this.annotation = "<none>";
+        }
+
+        private IllegalStateException failure(Throwable cause) {
+            String namespace = namespaceKnown ? (srgRuntime ? "SRG" : "MCP") : "unresolved";
+            return new IllegalStateException("Cursed mixin extensions failed: class=" + targetClass.name
+                    + " phase=" + phase + " namespace=" + namespace
+                    + " member=" + member + " annotation=" + annotation, cause);
+        }
+    }
+
     public static void postApply(ClassNode targetClass) {
+        ProcessingContext context = new ProcessingContext(targetClass);
+        try {
+            processClassAnnotations(context);
+            processMethodAnnotations(context);
+            removeMethods(context);
+            processFieldAliases(context);
+            rewriteCalls(context);
+        } catch (RuntimeException | LinkageError failure) {
+            throw context.failure(failure);
+        }
+
+    }
+
+    private static void processClassAnnotations(ProcessingContext context) {
+        ClassNode targetClass = context.targetClass;
+        LinkedList<CallTransformTask> tasks = context.callTasks;
+        context.phase("class annotations");
         LOGGER.debug("OptiRefine for !!! {}", targetClass.name);
 
-        LinkedList<CallTransformTask> tasks = new LinkedList<>();
-        boolean namespaceKnown = false;
-        boolean srgRuntime = false;
 
         AnnotationNode changeSuperClass = Annotations.getVisible(targetClass, ChangeSuperClass.class);
+
+
         if (changeSuperClass != null) {
+            context.annotation("<class>", "ChangeSuperClass");
             String oldOwner = targetClass.superName;
             targetClass.superName = Annotations.<Type>getValue(changeSuperClass).getInternalName();
             tasks.add((instructions, call) -> {
@@ -53,6 +114,7 @@ public class CursedMixinExtensions {
 
         AnnotationNode implementsItf = Annotations.getVisible(targetClass, Implements.class);
         if (implementsItf != null) {
+            context.annotation("<class>", "Implements");
             List<Type> targetToAdd = Annotations.getValue(implementsItf, "value");
             if (targetToAdd != null) {
                 for (Type type : targetToAdd) {
@@ -88,17 +150,119 @@ public class CursedMixinExtensions {
 
 
         }
+    }
+    private static void processFieldAliases(ProcessingContext context) {
+        ClassNode targetClass = context.targetClass;
+        context.phase("field access and aliases");
+        record FieldReferenceReplacement(String sourceName, String sourceDesc, String targetName, String targetDesc) {}
+        List<FieldReferenceReplacement> fieldReferenceReplacements = null;
+        Iterator<FieldNode> fieldNodeIterator = targetClass.fields.iterator();
+        while (fieldNodeIterator.hasNext()){
+            FieldNode field = fieldNodeIterator.next();
+            context.beginMember(field.name + field.desc);
 
-        List<String> ctrToReplace = new ArrayList<>();
-        LinkedHashSet<MethodNode> methodToRemove = new LinkedHashSet<>();
+            if (Annotations.getVisible(field, Public.class) != null) {
+                context.annotation(field.name + field.desc, "Public");
+                field.access |= Opcodes.ACC_PUBLIC;
+                field.access &= ~(Opcodes.ACC_PRIVATE | Opcodes.ACC_PROTECTED);
+            }
+            AnnotationNode accesstrasnformer = Annotations.getVisible(field, AccessTransformer.class);
+            if (accesstrasnformer != null) {
+                context.annotation(field.name + field.desc, "AccessTransformer");
+                fieldNodeIterator.remove();
+                int access = Annotations.getValue(accesstrasnformer, "access", -1);
+                String name = Annotations.getValue(accesstrasnformer, "name");
+                boolean deobf = Annotations.getValue(accesstrasnformer, "deobf", Boolean.FALSE);
 
+                String desc = field.desc;
+                if (access == -1) access = field.access;
+                if (name == null) name = field.name;
+
+                String rawName = name;
+                String rawDesc = desc;
+                if(deobf) {
+                    name = FMLDeobfuscatingRemapper.INSTANCE.mapFieldName(targetClass.name, name, desc);
+                    desc = FMLDeobfuscatingRemapper.INSTANCE.mapDesc(desc);
+                }
+
+                for (FieldNode mn : targetClass.fields) {
+                    if ((mn.name.equals(name) && mn.desc.equals(desc))
+                            || (deobf && mn.name.equals(rawName) && mn.desc.equals(rawDesc))) {
+                        mn.access = access;
+                        if (!field.name.equals(mn.name) || !field.desc.equals(mn.desc)) {
+                            if (fieldReferenceReplacements == null) {
+                                fieldReferenceReplacements = new ArrayList<>();
+                            }
+                            fieldReferenceReplacements.add(new FieldReferenceReplacement(
+                                    field.name, field.desc, mn.name, mn.desc));
+                        }
+                    }
+                }
+            }
+        }
+
+        if (fieldReferenceReplacements != null) {
+            context.beginMember("<field references>");
+            context.annotation("<field references>", "field alias rewrite");
+            for (MethodNode method : targetClass.methods) {
+                for (AbstractInsnNode instruction : method.instructions) {
+                    if (instruction instanceof FieldInsnNode reference
+                            && reference.owner.equals(targetClass.name)) {
+                        for (FieldReferenceReplacement replacement : fieldReferenceReplacements) {
+                            if (reference.name.equals(replacement.sourceName())
+                                    && reference.desc.equals(replacement.sourceDesc())) {
+                                reference.name = replacement.targetName();
+                                reference.desc = replacement.targetDesc();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private static void rewriteCalls(ProcessingContext context) {
+        context.phase("late call rewrites");
+        if (!context.callTasks.isEmpty()) {
+            transformCalls(context, context.callTasks.toArray(CallTransformTask[]::new));
+        }
+    }
+    private static void removeMethods(ProcessingContext context) {
+        ClassNode targetClass = context.targetClass;
+        context.phase("method removal");
+        for (MethodNode methodNode : context.methodsToRemove) {
+            context.beginMember(methodNode.name + methodNode.desc);
+            context.annotation(methodNode.name + methodNode.desc, "method removal");
+            LOGGER.debug("REMOVE METHOD FOR {} {}", targetClass.name, methodNode.name);
+            targetClass.methods.remove(methodNode);
+        }
+
+        if (!context.constructorsToReplace.isEmpty()) {
+            for (ListIterator<MethodNode> it = targetClass.methods.listIterator(); it.hasNext(); ) {
+                MethodNode method = it.next();
+                context.beginMember(method.name + method.desc);
+                context.annotation(method.name + method.desc, "constructor replacement removal");
+
+                if (Annotations.getVisible(method, ReplaceConstructor.class) == null) {
+                    if (Objects.equals(method.name, "<init>") && context.constructorsToReplace.contains(method.desc)) {
+                        it.remove();
+                    }
+                }
+            }
+        }
+    }
+    private static void processMethodAnnotations(ProcessingContext context) {
+        ClassNode targetClass = context.targetClass;
+        LinkedList<CallTransformTask> tasks = context.callTasks;
+        context.phase("method annotations");
         for (MethodNode method : targetClass.methods) {
-            boolean remove = false;
+            context.beginMember(method.name + method.desc);
             final String originalName = method.name;
             final String originalDesc = method.desc;
 
             AnnotationNode signFix = Annotations.getVisible(method, SignatureFix.class);
             if (signFix != null) {
+                context.annotation(originalName + originalDesc, "SignatureFix");
                 String descriptor = ((String) Annotations.getValue(signFix)).replace('.', '/');
                 Type returnType = Type.getReturnType(descriptor);
                 if (!Arrays.equals(Type.getArgumentTypes(originalDesc), Type.getArgumentTypes(descriptor))) {
@@ -124,8 +288,9 @@ public class CursedMixinExtensions {
             }
 
             if (Annotations.getVisible(method, ShadowSuperConstructor.class) != null) {
+                context.annotation(originalName + originalDesc, "ShadowSuperConstructor");
                 LOGGER.debug("ShadowSuperConstructor Instance, {}", method.name);
-                methodToRemove.add(method);
+                context.methodsToRemove.add(method);
                 tasks.add((instructions, call) -> {
                     if (call.owner.equals(targetClass.name) && call.name.equals(originalName) && call.desc.equals(originalDesc)) {
                         call.setOpcode(Opcodes.INVOKESPECIAL);
@@ -136,8 +301,9 @@ public class CursedMixinExtensions {
             }
 
             if (Annotations.getVisible(method, ShadowConstructor.class) != null) {
+                context.annotation(originalName + originalDesc, "ShadowConstructor");
                 LOGGER.debug("ShadowConstructor Instance, {}", method.name);
-                methodToRemove.add(method);
+                context.methodsToRemove.add(method);
                 tasks.add((instructions, call) -> {
                     if (call.owner.equals(targetClass.name) && call.name.equals(originalName) && call.desc.equals(originalDesc)) {
                         call.setOpcode(Opcodes.INVOKESPECIAL);
@@ -148,8 +314,9 @@ public class CursedMixinExtensions {
 
             AnnotationNode superMethod = Annotations.getVisible(method, ShadowSuper.class);
             if (superMethod != null) {
+                context.annotation(originalName + originalDesc, "ShadowSuper");
                 LOGGER.debug("ShadowSuper Instance, {}", method.name);
-                methodToRemove.add(method);
+                context.methodsToRemove.add(method);
                 String targetName = Annotations.getValue(superMethod);
 
                 tasks.add((instructions, call) -> {
@@ -163,12 +330,14 @@ public class CursedMixinExtensions {
             }
 
             if (Annotations.getVisible(method, Public.class) != null) {
+                context.annotation(originalName + originalDesc, "Public");
                 LOGGER.debug("Public Instance, {}", method.name);
                 method.access |= Opcodes.ACC_PUBLIC;
                 method.access &= ~(Opcodes.ACC_PRIVATE | Opcodes.ACC_PROTECTED);
             }
 
             if (Annotations.getVisible(method, NewConstructor.class) != null) {
+                context.annotation(originalName + originalDesc, "NewConstructor");
                 LOGGER.debug("NewConstructor Instance, {}", method.name);
                 tasks.add((instructions, call) -> {
                     if (call.owner.equals(targetClass.name) && call.name.equals(originalName) && call.desc.equals(originalDesc)) {
@@ -180,8 +349,9 @@ public class CursedMixinExtensions {
             }
 
             if (Annotations.getVisible(method, ReplaceConstructor.class) != null) {
+                context.annotation(originalName + originalDesc, "ReplaceConstructor");
                 LOGGER.debug("ReplaceConstructor Instance, {}", method.name);
-                ctrToReplace.add(method.desc);
+                context.constructorsToReplace.add(method.desc);
                 tasks.add((instructions, call) -> {
                     if (call.owner.equals(targetClass.name) && call.name.equals(originalName) && call.desc.equals(originalDesc)) {
                         call.setOpcode(Opcodes.INVOKESPECIAL);
@@ -193,8 +363,9 @@ public class CursedMixinExtensions {
 
             AnnotationNode accessTransform = Annotations.getVisible(method, AccessTransformer.class);
             if (accessTransform != null) {
+                context.annotation(originalName + originalDesc, "AccessTransformer");
                 LOGGER.debug("Accessible Transformer Instance, {}", method.name);
-                methodToRemove.add(method);
+                context.methodsToRemove.add(method);
                 int access = Annotations.getValue(accessTransform, "access", -1);
                 String name = Annotations.getValue(accessTransform, "name");
                 if(name != null) name = name.replace('.', '/');
@@ -235,19 +406,16 @@ public class CursedMixinExtensions {
 
             AnnotationNode accessibleOperation = Annotations.getVisible(method, AccessibleOperation.class);
             if (accessibleOperation != null) {
+                context.annotation(originalName + originalDesc, "AccessibleOperation");
                 LOGGER.debug("Accessible Operation Instance, {}", method.name);
                 boolean isBuildIn = Annotations.getVisible(method, AccessibleOperation.BuildIn.class) != null;
-                methodToRemove.add(method);
+                context.methodsToRemove.add(method);
                 int opcodes = Annotations.getValue(accessibleOperation, "opcode", Opcodes.NOP);
                 String desc = Annotations.getValue(accessibleOperation, "desc");
                 if(desc != null) desc = desc.replace('.','/');
                 boolean itf = Annotations.getValue(accessibleOperation, "itf", Boolean.FALSE);
                 boolean deobf = Annotations.getValue(accessibleOperation, "deobf", Boolean.FALSE);
-                if (deobf && !namespaceKnown) {
-                    srgRuntime = isSrgRuntime(targetClass);
-                    namespaceKnown = true;
-                }
-                final boolean useDeobf = deobf && !srgRuntime;
+                final boolean useDeobf = context.usesDeobfuscatedNames(deobf);
 
                 if (isBuildIn) {
                     method.access = method.access & ~(Opcodes.ACC_NATIVE | Opcodes.ACC_ABSTRACT);
@@ -420,119 +588,7 @@ public class CursedMixinExtensions {
                 }
             }
         }
-
-        for(MethodNode methodNode : methodToRemove) {
-            LOGGER.debug("REMOVE METHOD FOR {} {}", targetClass.name, methodNode.name);
-            targetClass.methods.remove(methodNode);
-        }
-
-        if (!ctrToReplace.isEmpty()) {
-            for (ListIterator<MethodNode> it = targetClass.methods.listIterator(); it.hasNext(); ) {
-                MethodNode method = it.next();
-
-                if (Annotations.getVisible(method, ReplaceConstructor.class) == null) {
-                    if (Objects.equals(method.name, "<init>") && ctrToReplace.contains(method.desc)) {
-                        it.remove();
-                    }
-                }
-            }
-        }
-
-        record FieldReferenceReplacement(String sourceName, String sourceDesc, String targetName, String targetDesc) {}
-        List<FieldReferenceReplacement> fieldReferenceReplacements = null;
-        Iterator<FieldNode> fieldNodeIterator = targetClass.fields.iterator();
-        while (fieldNodeIterator.hasNext()){
-            FieldNode field = fieldNodeIterator.next();
-
-            if (Annotations.getVisible(field, Public.class) != null) {
-                field.access |= Opcodes.ACC_PUBLIC;
-                field.access &= ~(Opcodes.ACC_PRIVATE | Opcodes.ACC_PROTECTED);
-            }
-            AnnotationNode accesstrasnformer = Annotations.getVisible(field, AccessTransformer.class);
-            if (accesstrasnformer != null) {
-                fieldNodeIterator.remove();
-                int access = Annotations.getValue(accesstrasnformer, "access", -1);
-                String name = Annotations.getValue(accesstrasnformer, "name");
-                boolean deobf = Annotations.getValue(accesstrasnformer, "deobf", Boolean.FALSE);
-
-                String desc = field.desc;
-                if (access == -1) access = field.access;
-                if (name == null) name = field.name;
-
-                String rawName = name;
-                String rawDesc = desc;
-                if(deobf) {
-                    name = FMLDeobfuscatingRemapper.INSTANCE.mapFieldName(targetClass.name, name, desc);
-                    desc = FMLDeobfuscatingRemapper.INSTANCE.mapDesc(desc);
-                }
-
-                for (FieldNode mn : targetClass.fields) {
-                    if ((mn.name.equals(name) && mn.desc.equals(desc))
-                            || (deobf && mn.name.equals(rawName) && mn.desc.equals(rawDesc))) {
-                        mn.access = access;
-                        if (!field.name.equals(mn.name) || !field.desc.equals(mn.desc)) {
-                            if (fieldReferenceReplacements == null) {
-                                fieldReferenceReplacements = new ArrayList<>();
-                            }
-                            fieldReferenceReplacements.add(new FieldReferenceReplacement(
-                                    field.name, field.desc, mn.name, mn.desc));
-                        }
-                    }
-                }
-            }
-        }
-
-        if (fieldReferenceReplacements != null) {
-            for (MethodNode method : targetClass.methods) {
-                for (AbstractInsnNode instruction : method.instructions) {
-                    if (instruction instanceof FieldInsnNode reference
-                            && reference.owner.equals(targetClass.name)) {
-                        for (FieldReferenceReplacement replacement : fieldReferenceReplacements) {
-                            if (reference.name.equals(replacement.sourceName())
-                                    && reference.desc.equals(replacement.sourceDesc())) {
-                                reference.name = replacement.targetName();
-                                reference.desc = replacement.targetDesc();
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        transformCalls(targetClass, tasks.toArray(CallTransformTask[]::new));
-
-        if (DUMP) {
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            PrintStream printStream = new PrintStream(byteArrayOutputStream);
-            try{
-                ClassWriter classWriter = new NonLoadingClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
-
-                targetClass.accept(new TraceClassVisitor(new ClassVisitor(Opcodes.ASM9, classWriter) {
-                    @Override
-                    public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-                        printStream.printf("NEW CLASS %s %s", name, superName);
-                        super.visit(version, access, name, signature, superName, interfaces);
-                    }
-
-                    @Override
-                    public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
-                        printStream.printf("NEW METHOD %s %s", name, descriptor);
-                        try {
-                            return super.visitMethod(access, name, descriptor, signature, exceptions);
-                        } catch (Throwable throwable) {
-                            throwable.printStackTrace(printStream);
-                            return new MethodVisitor(Opcodes.ASM9, null) {};
-                        }
-                    }
-                }, new ASMifier(), new PrintWriter(printStream)));
-                classWriter.toByteArray();
-            }catch (Throwable t) {
-                t.printStackTrace(printStream);
-                System.err.print(byteArrayOutputStream.toByteArray());
-            }
-        }
     }
-
     /**
      * Writes the fully post-processed class bytes to &lt;Launch.minecraftHome&gt;/.klass/&lt;class&gt;.class
      * when foundation.dump is enabled, after all postprocessors have completed.
@@ -556,8 +612,11 @@ public class CursedMixinExtensions {
         }
     }
 
-    private static void transformCalls(ClassNode classNode, CallTransformTask... tasks) {
+    private static void transformCalls(ProcessingContext context, CallTransformTask... tasks) {
+        ClassNode classNode = context.targetClass;
         for (MethodNode method : classNode.methods) {
+            context.beginMember(method.name + method.desc);
+            context.annotation(method.name + method.desc, "call rewrite");
             List<MethodInsnNode> calls = new ArrayList<>();
             for (AbstractInsnNode insn = method.instructions.getFirst(); insn != null; insn = insn.getNext()) {
                 if (insn instanceof MethodInsnNode mi) calls.add(mi);
