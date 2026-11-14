@@ -438,6 +438,8 @@ public class CursedMixinExtensions {
             }
         }
 
+        record FieldReferenceReplacement(String sourceName, String sourceDesc, String targetName, String targetDesc) {}
+        List<FieldReferenceReplacement> fieldReferenceReplacements = null;
         Iterator<FieldNode> fieldNodeIterator = targetClass.fields.iterator();
         while (fieldNodeIterator.hasNext()){
             FieldNode field = fieldNodeIterator.next();
@@ -468,19 +470,32 @@ public class CursedMixinExtensions {
                     if ((mn.name.equals(name) && mn.desc.equals(desc))
                             || (deobf && mn.name.equals(rawName) && mn.desc.equals(rawDesc))) {
                         mn.access = access;
-                        for (MethodNode method : targetClass.methods) {
-                            for (AbstractInsnNode instruction : method.instructions) {
-                                if (instruction instanceof FieldInsnNode reference
-                                        && reference.owner.equals(targetClass.name)
-                                        && reference.name.equals(field.name) && reference.desc.equals(field.desc)) {
-                                    reference.name = mn.name;
-                                    reference.desc = mn.desc;
-                                }
+                        if (!field.name.equals(mn.name) || !field.desc.equals(mn.desc)) {
+                            if (fieldReferenceReplacements == null) {
+                                fieldReferenceReplacements = new ArrayList<>();
+                            }
+                            fieldReferenceReplacements.add(new FieldReferenceReplacement(
+                                    field.name, field.desc, mn.name, mn.desc));
+                        }
+                    }
+                }
+            }
+        }
+
+        if (fieldReferenceReplacements != null) {
+            for (MethodNode method : targetClass.methods) {
+                for (AbstractInsnNode instruction : method.instructions) {
+                    if (instruction instanceof FieldInsnNode reference
+                            && reference.owner.equals(targetClass.name)) {
+                        for (FieldReferenceReplacement replacement : fieldReferenceReplacements) {
+                            if (reference.name.equals(replacement.sourceName())
+                                    && reference.desc.equals(replacement.sourceDesc())) {
+                                reference.name = replacement.targetName();
+                                reference.desc = replacement.targetDesc();
                             }
                         }
                     }
                 }
-
             }
         }
 

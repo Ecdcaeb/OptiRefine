@@ -51,6 +51,11 @@ Modern/legacy resource name translations are cleared when Minecraft starts a res
 Names requested during loading remain cached until the next refresh. Real-client checks cover
 cache eviction and unchanged ZIP/folder lookup, same-pack precedence and cross-pack priority.
 
+Field access transformers collect ordered alias replacements, then rewrite field references in
+one class-wide instruction walk. Eight generated-class cases retain byte-identical output to the
+previous processor, covering alias chains, descriptors, repeated targets, foreign owners and
+MCP/SRG matching; a generated chained alias also passes JVM linkage and execution.
+
 Optimization validation results and captures are in `build/reports/optimization-proof/`.
 
 ## Runtime validation
