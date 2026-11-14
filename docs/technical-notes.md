@@ -38,6 +38,11 @@ cleanup. Results and captures are in `build/reports/mixin-naming/`.
 Modern `prepare` and `shadowcomp` passes skip slots with neither graphics nor compute programs
 before binding samplers or images. Compute-only stages retain their original execution order.
 Real-client framebuffer checks cover these stages, conditional/zero dispatch and pack-off recovery.
+
+Quad sprite sorting reuses a builder-owned scratch array, grows it only when required and clears
+its used entries after sorting. Saved vertex states retain independent sprite arrays. Real-client
+checks cover repeated sorting, growth, builder isolation and snapshot restoration.
+
 Optimization validation results and captures are in `build/reports/optimization-proof/`.
 
 ## Runtime validation

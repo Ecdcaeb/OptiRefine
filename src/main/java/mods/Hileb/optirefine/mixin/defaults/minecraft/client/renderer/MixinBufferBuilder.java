@@ -91,6 +91,8 @@ public abstract class MixinBufferBuilder {
 // [AUDIT-OK] OF-added field, not in baseline
     @Unique
     private TextureAtlasSprite[] quadSpritesPrev;
+    @Unique
+    private TextureAtlasSprite[] optiRefine$quadSpritesScratch;
     @SuppressWarnings("AddedMixinMembersNamePattern")
 // [AUDIT-OK] OF-added field, not in baseline
     @Unique
@@ -148,13 +150,21 @@ public abstract class MixinBufferBuilder {
     private void optiRefine$sortQuadSprites(Object[] order, Comparator<?> comparator, Operation<Void> original) {
         original.call(order, comparator);
         if (this.quadSprites != null) {
-            TextureAtlasSprite[] quadSpritesSorted = new TextureAtlasSprite[this.vertexCount / 4];
-
-            for (int ix = 0; ix < order.length; ix++) {
-                int indexQuad = (Integer) order[ix];
-                quadSpritesSorted[ix] = this.quadSprites[indexQuad];
+            int quadCount = this.vertexCount / 4;
+            TextureAtlasSprite[] sorted = this.optiRefine$quadSpritesScratch;
+            if (sorted == null || sorted.length < quadCount) {
+                sorted = new TextureAtlasSprite[quadCount];
+                this.optiRefine$quadSpritesScratch = sorted;
             }
-            System.arraycopy(quadSpritesSorted, 0, this.quadSprites, 0, quadSpritesSorted.length);
+            try {
+                for (int index = 0; index < order.length; index++) {
+                    int sourceQuad = (Integer) order[index];
+                    sorted[index] = this.quadSprites[sourceQuad];
+                }
+                System.arraycopy(sorted, 0, this.quadSprites, 0, quadCount);
+            } finally {
+                Arrays.fill(sorted, 0, quadCount, null);
+            }
         }
     }
 
@@ -709,6 +719,7 @@ public abstract class MixinBufferBuilder {
         this.drawnIcons = new boolean[256];
         this.quadSprites = null;
         this.quadSpritesPrev = null;
+        this.optiRefine$quadSpritesScratch = null;
         this.quadSprite = null;
         this.renderEnv = null;
         this.animatedSprites = null;
