@@ -122,8 +122,15 @@ public abstract class MixinGuiOverlayDebug extends Gui {
         if (tm != null) sbx.append(optiRefine$getTextureAnimationCount(tm) + TextureAnimations.getCountAnimations());
         String ofInfo = sbx.toString();
 
-        // [AUDIT-FIXED] .toList() is immutable; Forge's GuiOverlayDebugForge.getLeft adds rows to the returned list -> UnsupportedOperationException
-        return new java.util.ArrayList<>(original.call().stream().map((s) -> s.startsWith("P: ") ? s + ofInfo : s).toList());
+        // Forge appends rows to its own mutable copy.
+        List<String> debugLines = new java.util.ArrayList<>(original.call());
+        for (int index = 0; index < debugLines.size(); index++) {
+            String line = debugLines.get(index);
+            if (line.startsWith("P: ")) {
+                debugLines.set(index, line + ofInfo);
+            }
+        }
+        return debugLines;
     }
 
     // Cache only our base rows; Forge receives its own mutable list on every call.

@@ -56,6 +56,10 @@ one class-wide instruction walk. Eight generated-class cases retain byte-identic
 previous processor, covering alias chains, descriptors, repeated targets, foreign owners and
 MCP/SRG matching; a generated chained alias also passes JVM linkage and execution.
 
+Debug HUD performance rows are updated in one independent mutable list, avoiding an intermediate
+stream result. Actual client checks verify the animation suffix and that Forge-style additions
+do not leak into later calls; captures verify the rendered debug overlay.
+
 Optimization validation results and captures are in `build/reports/optimization-proof/`.
 
 ## Runtime validation
