@@ -43,6 +43,10 @@ Quad sprite sorting reuses a builder-owned scratch array, grows it only when req
 its used entries after sorting. Saved vertex states retain independent sprite arrays. Real-client
 checks cover repeated sorting, growth, builder isolation and snapshot restoration.
 
+Shader metadata checks reuse compiled dispatch patterns. Macro expansion allocates its output
+builder only after finding a replacement, retaining quoted replacements and the 16-pass limit.
+Parser checks cover unchanged lines, chained macros, fixed/relative groups and malformed input.
+
 Optimization validation results and captures are in `build/reports/optimization-proof/`.
 
 ## Runtime validation

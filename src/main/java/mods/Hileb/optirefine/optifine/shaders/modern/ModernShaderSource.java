@@ -17,6 +17,9 @@ public final class ModernShaderSource {
     private static final Pattern DEFINE = Pattern.compile("^\\s*#\\s*define\\s+(\\w+)(?:\\s+(.*))?$");
     private static final Pattern UNDEF = Pattern.compile("^\\s*#\\s*undef\\s+(\\w+).*$");
     private static final Pattern WORD = Pattern.compile("\\b[A-Za-z_]\\w*\\b");
+    private static final Pattern LOCAL_SIZE = Pattern.compile(".*\\blayout\\s*\\([^)]*\\blocal_size_[xyz]\\s*=.*");
+    private static final Pattern INVALID_GROUPS = Pattern.compile(".*\\bconst\\s+ivec3\\s+workGroups\\b.*");
+    private static final Pattern INVALID_RELATIVE = Pattern.compile(".*\\bconst\\s+vec2\\s+workGroupsRender\\b.*");
     private final MacroState macros = new MacroState();
     private final Map<String, String> definitions = new HashMap<>();
     public int colors;
@@ -55,7 +58,7 @@ public final class ModernShaderSource {
             Matcher uniform = UNIFORM.matcher(line);
             while (uniform.find()) uniform(uniform.group(1), uniform.group(2));
             String expanded = expand(line);
-            if (expanded.matches(".*\\blayout\\s*\\([^)]*\\blocal_size_[xyz]\\s*=.*")) localSize = true;
+            if (LOCAL_SIZE.matcher(expanded).matches()) localSize = true;
             try {
                 Matcher fixed = GROUPS.matcher(expanded);
                 if (fixed.find()) {
@@ -65,7 +68,7 @@ public final class ModernShaderSource {
                     groupsY = Integer.parseInt(values[1].trim());
                     groupsZ = Integer.parseInt(values[2].trim());
                     if (groupsX < 0 || groupsY < 0 || groupsZ < 0) throw new IllegalArgumentException("workGroups must be nonnegative");
-                } else if (expanded.contains("workGroups") && expanded.matches(".*\\bconst\\s+ivec3\\s+workGroups\\b.*")) {
+                } else if (expanded.contains("workGroups") && INVALID_GROUPS.matcher(expanded).matches()) {
                     throw new IllegalArgumentException("invalid workGroups declaration");
                 }
                 Matcher relative = RELATIVE.matcher(expanded);
@@ -75,7 +78,7 @@ public final class ModernShaderSource {
                     relativeX = number(values[0]);
                     relativeY = number(values[1]);
                     if (relativeX < 0 || relativeY < 0 || !Float.isFinite(relativeX) || !Float.isFinite(relativeY)) throw new IllegalArgumentException("workGroupsRender must be finite and nonnegative");
-                } else if (expanded.matches(".*\\bconst\\s+vec2\\s+workGroupsRender\\b.*")) {
+                } else if (INVALID_RELATIVE.matcher(expanded).matches()) {
                     throw new IllegalArgumentException("invalid workGroupsRender declaration");
                 }
             } catch (IllegalArgumentException exception) {
@@ -117,18 +120,17 @@ public final class ModernShaderSource {
 
     private String expand(String line) {
         for (int depth = 0; depth < 16; depth++) {
+            StringBuilder result = null;
             Matcher matcher = WORD.matcher(line);
-            StringBuffer result = new StringBuffer();
-            boolean changed = false;
             while (matcher.find()) {
                 String replacement = definitions.get(matcher.group());
                 if (replacement != null) {
+                    if (result == null) result = new StringBuilder(line.length());
                     matcher.appendReplacement(result, Matcher.quoteReplacement(replacement));
-                    changed = true;
                 }
             }
+            if (result == null) return line;
             matcher.appendTail(result);
-            if (!changed) return line;
             line = result.toString();
         }
         return line;
