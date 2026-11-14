@@ -44,7 +44,6 @@
     "minecraft.server.management.MixinPlayerChunkMap",
     "minecraftforge.fml.MixinFMLClientHandler",
     "optifine.MixinConfig",
-    "optifine.MixinReflector",
     "optifine.MixinReflectorForge",
     "minecraft.client.MixinLoadingScreenRenderer",
     "minecraft.client.gui.MixinFontRenderer",

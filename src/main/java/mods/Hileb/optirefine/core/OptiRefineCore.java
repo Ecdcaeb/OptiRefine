@@ -4,6 +4,7 @@ import com.google.common.eventbus.EventBus;
 import jakarta.annotation.Nullable;
 import mods.Hileb.optirefine.OptiRefine;
 import mods.Hileb.optirefine.core.transformer.OptiRefineConfigTransformer;
+import mods.Hileb.optirefine.core.transformer.OptifineForgeTransformer;
 import mods.Hileb.optirefine.core.transformer.OptifineTransformerTransformer;
 import mods.Hileb.optirefine.library.cursedmixinextensions.CursedMixinExtensions;
 import mods.Hileb.optirefine.library.fmlmodhacker.MetaDataDecoder;
@@ -55,6 +56,7 @@ public class OptiRefineCore implements IFMLLoadingPlugin {
 
     public static void setupTransformers(){
         TransformerHelper.registerTransformer(new OptifineTransformerTransformer());
+        TransformerHelper.registerTransformer(new OptifineForgeTransformer());
         TransformerHelper.registerTransformer(new OptiRefineConfigTransformer());
 
     }
