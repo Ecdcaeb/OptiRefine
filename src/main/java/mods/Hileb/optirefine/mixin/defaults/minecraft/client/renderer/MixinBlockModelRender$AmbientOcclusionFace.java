@@ -6,7 +6,6 @@ import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.NewConstr
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.ShadowSuper;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.renderer.BlockModelRenderer;
-import net.minecraft.util.math.BlockPos;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -14,9 +13,7 @@ import org.spongepowered.asm.mixin.Mutable;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(targets = "net.minecraft.client.renderer.BlockModelRenderer$AmbientOcclusionFace")
 @SuppressWarnings("unused")
 public abstract class MixinBlockModelRender$AmbientOcclusionFace {
@@ -36,9 +33,6 @@ public abstract class MixinBlockModelRender$AmbientOcclusionFace {
 // [AUDIT-OK] baseline member vertexBrightness (SRG field_178207_c)
     private int[] vertexBrightness;
 
-// [AUDIT-OK] OF-added field, not in baseline
-    @Unique
-    private BlockPos.MutableBlockPos[] blockPosArr;
 
     @ShadowSuper("<init>")
     public void _Object() {}
@@ -50,22 +44,9 @@ public abstract class MixinBlockModelRender$AmbientOcclusionFace {
         // [AUDIT-FIXED] cursed-generated <init>()V lacks vanilla field initializers; replicate them
         this.vertexBrightness = new int[4];
         this.vertexColorMultiplier = new float[4];
-        this.blockPosArr = new BlockPos.MutableBlockPos[5];
-        for (int i = 0; i < this.blockPosArr.length; i++) {
-            this.blockPosArr[i] = new BlockPos.MutableBlockPos();
-        }
+        // The baseline update method retains and releases its five pooled corner positions.
     }
 
-    @Inject(method = "<init>", at = @At("RETURN"))
-    public void injectConstructor(CallbackInfo ci){
-// [AUDIT-OK] target <init>(Lnet/minecraft/client/renderer/BlockModelRenderer;)V matches baseline; blockPosArr init matches OF ctor
-        if (this.blockPosArr == null) {
-            this.blockPosArr = new BlockPos.MutableBlockPos[5];
-        }
-        for (int i = 0; i < this.blockPosArr.length; i++) {
-            this.blockPosArr[i] = new BlockPos.MutableBlockPos();
-        }
-    }
 
 
     @SuppressWarnings({"unused", "MissingUnique"})
@@ -91,15 +72,4 @@ public abstract class MixinBlockModelRender$AmbientOcclusionFace {
         this.vertexColorMultiplier[3] = 1.0F;
     }
 
-    //TODO
-    //MutableBlockPos blockpos$pooledmutableblockpos1 = this.blockPosArr[1].setPos(blockpos).move(blockmodelrenderer$enumneighborinfo.corners[0]);
-    //BlockPos.PooledMutableBlockPos blockpos$pooledmutableblockpos1 = PooledMutableBlockPos.retain(blockpos).move(blockmodelrenderer$enumneighborinfo.corners[0]);
-
-
-
-    @Inject(method = "<init>*", at = @At("RETURN"))
-    // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
-    private void optiRefine$initFields(CallbackInfo ci) {
-        this.blockPosArr = new BlockPos.MutableBlockPos[5];
-    }
 }

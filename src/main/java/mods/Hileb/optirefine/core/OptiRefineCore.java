@@ -4,8 +4,6 @@ import com.google.common.eventbus.EventBus;
 import jakarta.annotation.Nullable;
 import mods.Hileb.optirefine.OptiRefine;
 import mods.Hileb.optirefine.core.transformer.OptiRefineConfigTransformer;
-import mods.Hileb.optirefine.core.transformer.dev.OptifineDevTweakerTransformer;
-import mods.Hileb.optirefine.core.transformer.dev.OptifineDevUtilTransformer;
 import mods.Hileb.optirefine.core.transformer.OptifineTransformerTransformer;
 import mods.Hileb.optirefine.library.cursedmixinextensions.CursedMixinExtensions;
 import mods.Hileb.optirefine.library.fmlmodhacker.MetaDataDecoder;
@@ -20,6 +18,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
+import org.spongepowered.asm.mixin.MixinEnvironment;
+import org.spongepowered.asm.mixin.transformer.IMixinTransformer;
+import org.spongepowered.asm.mixin.transformer.ext.Extensions;
+import org.spongepowered.asm.mixin.transformer.ext.IExtension;
+import org.spongepowered.asm.mixin.transformer.ext.ITargetClassContext;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
 
 import java.io.File;
@@ -32,6 +35,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 
 @IFMLLoadingPlugin.SortingIndex(1000)
 @IFMLLoadingPlugin.Name(OptiRefine.NAME)
@@ -52,10 +57,6 @@ public class OptiRefineCore implements IFMLLoadingPlugin {
         TransformerHelper.registerTransformer(new OptifineTransformerTransformer());
         TransformerHelper.registerTransformer(new OptiRefineConfigTransformer());
 
-        if (FMLLaunchHandler.isDeobfuscatedEnvironment()) {
-            TransformerHelper.registerTransformer(new OptifineDevUtilTransformer());
-            TransformerHelper.registerTransformer(new OptifineDevTweakerTransformer());
-        }
     }
 
     @Nullable
@@ -173,10 +174,41 @@ public class OptiRefineCore implements IFMLLoadingPlugin {
         }
     }
 
+    private static final Set<ClassNode> pendingMixinTransforms = Collections.newSetFromMap(new IdentityHashMap<>());
+    private static boolean mixinExtensionRegistered;
+
+    private static synchronized void registerMixinExtension() {
+        if (mixinExtensionRegistered) return;
+        MixinEnvironment environment = MixinEnvironment.getCurrentEnvironment();
+        Extensions extensions = (Extensions) ((IMixinTransformer) environment.getActiveTransformer()).getExtensions();
+        extensions.add(new IExtension() {
+            @Override
+            public boolean checkActive(MixinEnvironment environment) { return true; }
+
+            @Override
+            public void preApply(ITargetClassContext context) {}
+
+            @Override
+            public void postApply(ITargetClassContext context) {}
+
+            @Override
+            public void export(MixinEnvironment environment, String name, boolean force, ClassNode classNode) {
+                if (pendingMixinTransforms.remove(classNode)) {
+                    // Export callbacks run after every extension's postApply, including MixinExtras' late injectors.
+                    CursedMixinExtensions.postApply(classNode);
+                    OptiRefineConfigTransformer.transform0(classNode);
+                    CursedMixinExtensions.dumpFinalClass(classNode);
+                }
+            }
+        });
+        extensions.select(environment);
+        mixinExtensionRegistered = true;
+    }
+
     public static class DefaultMixinPlugin implements IMixinConfigPlugin {
         @Override
         public void onLoad(String s) {
-
+            registerMixinExtension();
         }
 
         @Override
@@ -212,15 +244,14 @@ public class OptiRefineCore implements IFMLLoadingPlugin {
 
         @Override
         public void postApply(String s, ClassNode classNode, String s1, IMixinInfo iMixinInfo) {
-            CursedMixinExtensions.postApply(classNode);
-            OptiRefineConfigTransformer.transform0(classNode);
+            pendingMixinTransforms.add(classNode);
         }
     }
 
     public static class ModMixinPlugin implements IMixinConfigPlugin {
         @Override
         public void onLoad(String s) {
-
+            registerMixinExtension();
         }
 
         @Override
@@ -264,7 +295,7 @@ public class OptiRefineCore implements IFMLLoadingPlugin {
 
         @Override
         public void postApply(String s, ClassNode classNode, String s1, IMixinInfo iMixinInfo) {
-            CursedMixinExtensions.postApply(classNode);
+            pendingMixinTransforms.add(classNode);
         }
     }
 }

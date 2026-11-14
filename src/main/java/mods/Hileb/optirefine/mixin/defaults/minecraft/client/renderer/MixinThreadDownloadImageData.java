@@ -158,6 +158,9 @@ public abstract class MixinThreadDownloadImageData extends SimpleTexture{
                 LOGGER.debug("Loading http texture from local cache ({})", this.cacheFile);
                 try {
                     this.bufferedImage = ImageIO.read(this.cacheFile);
+                    if (this.bufferedImage == null) {
+                        throw new IOException("Unrecognized skin image: " + this.cacheFile);
+                    }
                     if (this.imageBuffer != null) {
                         this.setBufferedImage(this.imageBuffer.parseUserSkin(this.bufferedImage));
                     }

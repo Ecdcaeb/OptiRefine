@@ -33,11 +33,11 @@ public abstract class MixinTileEntitySignRenderer {
     }
 
 
-    @Definition(id = "p_192841_9_", local = @Local(ordinal = 6))
-    @Expression("p_192841_9_ < 0")
+    @Definition(id = "destroyStage", local = @Local(type = int.class, argsOnly = true))
+    @Expression("destroyStage < 0")
     @ModifyExpressionValue(method = "render(Lnet/minecraft/tileentity/TileEntitySign;DDDFIF)V", at = @At("MIXINEXTRAS:EXPRESSION"))
-    // [AUDIT-OK] 'p_192841_9_ < 0' = destroyStage<0 guard (unique); isRenderText matches OF:69; needs-verification: @Local(ordinal=6) assumes LVT order this,te,x,y,z,partialTicks,destroyStage,alpha
-    public boolean disableTextRendering(boolean o, @Local(ordinal = 1) TileEntitySign entity){
+    // destroyStage is the only int argument; the tile entity is captured from arguments too.
+    public boolean disableTextRendering(boolean o, @Local(argsOnly = true) TileEntitySign entity){
         return o && isRenderText(entity);
     }
 

@@ -104,8 +104,8 @@ public abstract class MixinGlStateManager {
     @Public
 // [AUDIT-OK] baseline member tryBlendFuncSeparate(IIII)V (SRG func_179120_a); @Public for OF jar
     private static native void tryBlendFuncSeparate(int srcFactor, int dstFactor, int srcFactorAlpha, int dstFactorAlpha);    @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.GlStateManager$BooleanState field_179201_b Z")
-// [AUDIT-OK] vanilla SRG field_179201_b = currentState (GlStateManager$BooleanState), deobf=true
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.GlStateManager$BooleanState optiRefine$isEnabled ()Z")
+    // Read through a remapped shadow in BooleanState instead of a raw SRG field instruction.
     private static native boolean BooleanState_currentState_get(GlStateManager.BooleanState instance);
 
     // ===== alpha lock =====
@@ -274,11 +274,14 @@ public abstract class MixinGlStateManager {
         if (Config.isShaders() && !creatingDisplayList) {
             int instances = Shaders.activeProgram.getCountInstances();
             if (instances > 1) {
-                for (int i = 1; i < instances; i++) {
-                    Shaders.uniform_instanceId.setValue(i);
-                    org.lwjgl.opengl.GL11.glDrawArrays(mode, first, count);
+                try {
+                    for (int i = 1; i < instances; i++) {
+                        Shaders.uniform_instanceId.setValue(i);
+                        org.lwjgl.opengl.GL11.glDrawArrays(mode, first, count);
+                    }
+                } finally {
+                    Shaders.uniform_instanceId.setValue(0);
                 }
-                Shaders.uniform_instanceId.setValue(0);
             }
         }
     }
@@ -289,11 +292,14 @@ public abstract class MixinGlStateManager {
         if (Config.isShaders() && !creatingDisplayList) {
             int instances = Shaders.activeProgram.getCountInstances();
             if (instances > 1) {
-                for (int i = 1; i < instances; i++) {
-                    Shaders.uniform_instanceId.setValue(i);
-                    org.lwjgl.opengl.GL11.glCallList(list);
+                try {
+                    for (int i = 1; i < instances; i++) {
+                        Shaders.uniform_instanceId.setValue(i);
+                        org.lwjgl.opengl.GL11.glCallList(list);
+                    }
+                } finally {
+                    Shaders.uniform_instanceId.setValue(0);
                 }
-                Shaders.uniform_instanceId.setValue(0);
             }
         }
     }
@@ -320,11 +326,14 @@ public abstract class MixinGlStateManager {
         if (Config.isShaders() && !creatingDisplayList) {
             int instances = Shaders.activeProgram.getCountInstances();
             if (instances > 1) {
-                for (int i = 1; i < instances; i++) {
-                    Shaders.uniform_instanceId.setValue(i);
-                    org.lwjgl.opengl.GL11.glCallLists(lists);
+                try {
+                    for (int i = 1; i < instances; i++) {
+                        Shaders.uniform_instanceId.setValue(i);
+                        org.lwjgl.opengl.GL11.glCallLists(lists);
+                    }
+                } finally {
+                    Shaders.uniform_instanceId.setValue(0);
                 }
-                Shaders.uniform_instanceId.setValue(0);
             }
         }
     }
@@ -337,11 +346,14 @@ public abstract class MixinGlStateManager {
         if (Config.isShaders() && !creatingDisplayList) {
             int instances = Shaders.activeProgram.getCountInstances();
             if (instances > 1) {
-                for (int i = 1; i < instances; i++) {
-                    Shaders.uniform_instanceId.setValue(i);
-                    org.lwjgl.opengl.GL14.glMultiDrawArrays(mode, firsts, counts);
+                try {
+                    for (int i = 1; i < instances; i++) {
+                        Shaders.uniform_instanceId.setValue(i);
+                        org.lwjgl.opengl.GL14.glMultiDrawArrays(mode, firsts, counts);
+                    }
+                } finally {
+                    Shaders.uniform_instanceId.setValue(0);
                 }
-                Shaders.uniform_instanceId.setValue(0);
             }
         }
     }

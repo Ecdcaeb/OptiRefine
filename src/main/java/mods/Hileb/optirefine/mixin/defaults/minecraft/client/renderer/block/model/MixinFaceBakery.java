@@ -25,7 +25,7 @@ import org.spongepowered.asm.mixin.injection.ModifyConstant;
 public abstract class MixinFaceBakery {
 // [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
 
-    @AccessTransformer(access = Opcodes.ACC_PUBLIC, name = "getFaceBrightness", deobf = true)
+    @AccessTransformer(access = Opcodes.ACC_PUBLIC, name = "func_178412_b", deobf = true)
     public float optirefine$acc_getFaceBrightness(EnumFacing facing) { return 0.0F; }
 
     @WrapOperation(method = "fillVertexData([IILnet/minecraft/util/EnumFacing;Lnet/minecraft/client/renderer/block/model/BlockFaceUV;[FLnet/minecraft/client/renderer/texture/TextureAtlasSprite;Lnet/minecraftforge/common/model/ITransformation;Lnet/minecraft/client/renderer/block/model/BlockPartRotation;Z)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/block/model/FaceBakery;storeVertexData([IIILorg/lwjgl/util/vector/Vector3f;ILnet/minecraft/client/renderer/texture/TextureAtlasSprite;Lnet/minecraft/client/renderer/block/model/BlockFaceUV;)V"))
@@ -35,11 +35,8 @@ public abstract class MixinFaceBakery {
         original.call(instance, faceData, storeIndex, vertexIndex, position, shadeColor, sprite, faceUV);
     }
 
-    @ModifyConstant(method = "makeQuadVertexData(Lnet/minecraft/client/renderer/block/model/BlockFaceUV;Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;Lnet/minecraft/util/EnumFacing;[FLnet/minecraftforge/common/model/ITransformation;Lnet/minecraft/client/renderer/block/model/BlockPartRotation;Z)[I", constant = @Constant(intValue = 28))
-    // [AUDIT-OK] makeQuadVertexData ITransformation [I matches patch; 28->56 shader size matches OF
-    public int wideShaderSize_makeQuadVertexData(int constant){
-        return  Config.isShaders() ? 56 : constant;
-    }
+    // Keep the base quad compact until ForgeHooksClient.fillNormal has processed its
+    // seven-int vertices. BakedQuad's constructor expands the completed data for shaders.
 
     @ModifyConstant(method = "getFaceBrightness", constant = @Constant(floatValue = 0.5F))
     // [AUDIT-OK] getFaceBrightness baseline; 0.5/0.8/0.6 -> Shaders.blockLightLevel05/08/06 match OF:125/134/141
@@ -63,13 +60,8 @@ public abstract class MixinFaceBakery {
         } else return constant;
     }
 
-    // ===== shader-wide stride support =====
-    // [AUDIT-FIXED] 2026-08-05: OF computes the vertex stride as data.length/4 in storeVertexData
-    // (OF:183-184), applyFacing (OF:302) and getFacingFromVertexData (OF:261-262); the runtime
-    // baseline hard-codes the ITEM stride 7 in all three (the cleanroom patch only added the
-    // .999/.001 UV blend and the ITransformation overloads). With makeQuadVertexData widened to
-    // 56 under shaders, stride-7 writes misalign the BLOCK-format layout read at render time -
-    // suspected root cause of shader terrain triangle tearing.
+    // OF helpers use the array's vertex stride; preserve this for callers supplying
+    // shader-expanded data as well as the compact arrays baked before Forge normals.
 
     @WrapMethod(method = "storeVertexData")
     private void optiRefine$storeVertexData(int[] faceData, int storeIndex, int vertexIndex, Vector3f position, int shadeColor, TextureAtlasSprite sprite, BlockFaceUV faceUV, Operation<Void> original){

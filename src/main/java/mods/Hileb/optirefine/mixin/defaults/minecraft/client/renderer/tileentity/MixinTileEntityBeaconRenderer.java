@@ -20,12 +20,16 @@ public abstract class MixinTileEntityBeaconRenderer {
     // [AUDIT-OK] renderBeacon baseline; textureScale/empty guards + begin/endBeacon match OF:21-43
     public void _renderBeacon(double x, double y, double z, double partialTicks, double textureScale, List<TileEntityBeacon.BeamSegment> beamSegments, double totalWorldTime, Operation<Void> original) {
         if (!(textureScale <= 0.0) && !beamSegments.isEmpty()) {
-            if (Config.isShaders()) {
+            boolean shaders = Config.isShaders();
+            if (shaders) {
                 Shaders.beginBeacon();
             }
-            original.call(x, y, z, partialTicks, textureScale, beamSegments, totalWorldTime);
-            if (Config.isShaders()) {
-                Shaders.endBeacon();
+            try {
+                original.call(x, y, z, partialTicks, textureScale, beamSegments, totalWorldTime);
+            } finally {
+                if (shaders) {
+                    Shaders.endBeacon();
+                }
             }
 
         }

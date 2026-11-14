@@ -1,5 +1,11 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraftforge.client;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import mods.Hileb.optirefine.optifine.Config;
+import net.minecraft.client.gui.FontRenderer;
+import net.optifine.CustomColors;
+import org.spongepowered.asm.mixin.injection.At;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiIngame;
 import net.minecraftforge.client.GuiIngameForge;
@@ -7,11 +13,18 @@ import org.spongepowered.asm.mixin.Mixin;
 @SuppressWarnings("ALL")
 @Mixin(GuiIngameForge.class)
 public abstract class MixinGuiIngameForge extends GuiIngame {
-// [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
-// [AUDIT-OK] empty shell (registered, no members) - MixinModelRotation-like
 
 
     public MixinGuiIngameForge(Minecraft p_i46325_1_) {
         super(p_i46325_1_);
+    }
+
+    // Forge draws experience in its own method, bypassing GuiIngame.renderExpBar.
+    @WrapOperation(method = "renderExperience", remap = false, at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/FontRenderer;drawString(Ljava/lang/String;III)I", remap = true))
+    private int optiRefine$experienceTextColor(FontRenderer renderer, String text, int x, int y, int color, Operation<Integer> original) {
+        if (color != 0 && Config.isCustomColors()) {
+            color = CustomColors.getExpBarTextColor(color);
+        }
+        return original.call(renderer, text, x, y, color);
     }
 }

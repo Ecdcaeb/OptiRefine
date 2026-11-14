@@ -126,18 +126,22 @@ public abstract class MixinGuiOverlayDebug extends Gui {
         return new java.util.ArrayList<>(original.call().stream().map((s) -> s.startsWith("P: ") ? s + ofInfo : s).toList());
     }
 
-// [AUDIT-OK] target getDebugInfoRight()Ljava/util/List; declared in baseline; OF: add(4, "Native: X/YMB"), set(5, "GC: X MB/s"); 100ms cache via debugInfoRight/updateInfoRightTimeMs mirrors OF renderDebugInfoRight caching
+    // Cache only our base rows; Forge receives its own mutable list on every call.
     @WrapMethod(method = "getDebugInfoRight")
     public List<String> injectGetDebugInfoRight(Operation<List<String>> original) {
         List<String> list = this.debugInfoRight;
         if (list == null || System.currentTimeMillis() > this.updateInfoRightTimeMs) {
-            list = original.call();
-            list.add(4, "Native: " + optiRefine$bytesToMb(NativeMemory.getBufferAllocated()) + "/" + optiRefine$bytesToMb(NativeMemory.getBufferMaximum()) + "MB");
-            list.set(5, "GC: " + MemoryMonitor.getAllocationRateMb() + "MB/s");
+            list = new java.util.ArrayList<>(original.call());
+            int memoryLine = 0;
+            while (memoryLine < list.size() && !list.get(memoryLine).startsWith("Allocated:")) {
+                memoryLine++;
+            }
+            list.add(Math.min(memoryLine + 1, list.size()), "Native: " + optiRefine$bytesToMb(NativeMemory.getBufferAllocated()) + "/" + optiRefine$bytesToMb(NativeMemory.getBufferMaximum()) + "MB");
+            list.add(Math.min(memoryLine + 2, list.size()), "GC: " + MemoryMonitor.getAllocationRateMb() + "MB/s");
             this.debugInfoRight = list;
             this.updateInfoRightTimeMs = System.currentTimeMillis() + 100L;
         }
-        return list;
+        return new java.util.ArrayList<>(list);
     }
 
     @Inject(method = "<init>*", at = @At("RETURN"))

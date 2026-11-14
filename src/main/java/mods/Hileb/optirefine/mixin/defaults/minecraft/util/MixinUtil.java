@@ -2,7 +2,6 @@ package mods.Hileb.optirefine.mixin.defaults.minecraft.util;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -17,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.At;
 public abstract class MixinUtil {
 
     @WrapOperation(method = "runTask", at = @At(value = "INVOKE", target = "Ljava/util/concurrent/FutureTask;get()Ljava/lang/Object;"))
-    private static <V> V optiRefine$rethrowOom(FutureTask<V> task, Operation<V> original) {
+    private static <V> V optiRefine$rethrowOom(FutureTask<V> task, Operation<V> original) throws Throwable {
         try {
             return original.call(task);
         } catch (Throwable t) {
@@ -32,13 +31,8 @@ public abstract class MixinUtil {
                 }
                 cause = next;
             }
-            if (t instanceof RuntimeException re) {
-                throw re;
-            }
-            if (t instanceof Error err) {
-                throw err;
-            }
-            throw new RuntimeException(t);
+            // Preserve the checked exception so runTask's existing handlers still log and return null.
+            throw t;
         }
     }
 }

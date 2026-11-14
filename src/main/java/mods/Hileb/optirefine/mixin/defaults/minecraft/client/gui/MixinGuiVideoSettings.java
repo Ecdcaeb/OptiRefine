@@ -24,7 +24,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.io.IOException;
 @Mixin(GuiVideoSettings.class)
-// [AUDIT-NOTE] @ChangeSuperClass(GuiScreenOF) mirrors OF hierarchy (OF GuiVideoSettings extends GuiScreenOF); requires GuiScreenOF no-arg ctor for target implicit super() (needs-verification)
+// GuiScreenOF supplies the right-click option dispatch and a no-argument constructor.
 @ChangeSuperClass(GuiScreenOF.class)
 public abstract class MixinGuiVideoSettings extends GuiScreen {
 // [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
@@ -57,8 +57,12 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
 
 // [AUDIT-OK] OF-added member, not in baseline
     @Unique
-    private final TooltipManager optiRefine$tooltipManager =
-            new TooltipManager(this, new TooltipProviderOptions());
+    private TooltipManager optiRefine$tooltipManager;
+
+    @Inject(method = "<init>*", at = @At("RETURN"))
+    private void optiRefine$initTooltipManager(CallbackInfo ci) {
+        this.optiRefine$tooltipManager = new TooltipManager(this, new TooltipProviderOptions());
+    }
 
 // [AUDIT-OK] target initGui() matches baseline; HEAD cancel replicates OF buildVideoSettingsButtons
     @Inject(method = "initGui", at = @At("HEAD"), cancellable = true)
@@ -101,7 +105,7 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
         y += 21;
         this.buttonList.add(new GuiButton(200, this.width / 2 - 100, this.height / 6 + 168 + 11, I18n.format("gui.done")));
 
-        // vanilla drawScreen/mouse handlers still touch optionsRowList; keep an empty list
+        // Vanilla mouse handlers still touch optionsRowList; keep an empty list.
         this.optionsRowList = new GuiOptionsRowList(this.mc, this.width, this.height, 32, this.height - 32, 25, new GameSettings.Options[0]);
 
         ci.cancel(); // stop vanilla initGui
@@ -193,18 +197,16 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
         }
     }
 
-// [AUDIT-NOTE] OF-added; protected @Unique is non-private (Mixin warns); may need @Public if OF GuiScreenOF invokes it cross-package (needs-verification)
-    @Unique
-    protected void optiRefine$actionPerformedRightClick(GuiButton button) {
+    @SuppressWarnings("AddedMixinMembersNamePattern")
+    protected void actionPerformedRightClick(GuiButton button) {
         if (button != null && button.id == GameSettings.Options.GUI_SCALE.ordinal()) {
             optiRefine$actionPerformedImpl(button, -1);
         }
     }
 
-// [AUDIT-OK] target drawScreen(int,int,float) matches baseline
-// [AUDIT-NOTE] HEAD strings drawn before vanilla drawDefaultBackground (dimmed); vanilla body re-draws title at y=5 -> double title vs OF (needs-verification)
-    @Inject(method = "drawScreen", at = @At("HEAD"))
-    private void optiRefine$drawScreenHead(int mouseX, int mouseY, float partialTicks, CallbackInfo ci) {
+    @Inject(method = "drawScreen", at = @At("HEAD"), cancellable = true)
+    private void optiRefine$drawScreen(int mouseX, int mouseY, float partialTicks, CallbackInfo ci) {
+        this.drawDefaultBackground();
         this.drawCenteredString(this.fontRenderer, this.screenTitle, this.width / 2, 15, 0xFFFFFF);
 
         final String ver = "OptiFine HD G5 Ultra + " + Reference.BRAND;
@@ -213,12 +215,9 @@ public abstract class MixinGuiVideoSettings extends GuiScreen {
         final String verMc = "Cleanroom " + CleanroomVersion.getVersion();
         int len = this.fontRenderer.getStringWidth(verMc);
         this.drawString(this.fontRenderer, verMc, this.width - len - 2, this.height - 10, 8421504);
-    }
-
-// [AUDIT-OK] target drawScreen(int,int,float) matches baseline
-    @Inject(method = "drawScreen", at = @At("TAIL"))
-    private void optiRefine$drawScreenTail(int mouseX, int mouseY, float partialTicks, CallbackInfo ci) {
+        super.drawScreen(mouseX, mouseY, partialTicks);
         this.optiRefine$tooltipManager.drawTooltips(mouseX, mouseY, this.buttonList);
+        ci.cancel();
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")

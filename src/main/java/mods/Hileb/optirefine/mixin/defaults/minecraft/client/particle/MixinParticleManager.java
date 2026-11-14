@@ -4,9 +4,8 @@ import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.Share;
-import com.llamalad7.mixinextras.sugar.ref.LocalRef;
+import com.llamalad7.mixinextras.sugar.ref.LocalBooleanRef;
 import mods.Hileb.optirefine.library.common.utils.Caster;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.block.material.Material;
@@ -47,18 +46,15 @@ public abstract class MixinParticleManager {
 // and gates the render call with "if (var9 || !(var16 instanceof ParticleSuspend))"; vanilla has no flag.
     @Inject(method = "renderParticles", at = @At("HEAD"))
     public void optiRefine$computeCameraInWater(Entity entityIn, float partialTicks, CallbackInfo ci,
-                                                @Share(namespace = "optirefine", value = "cameraInWater") LocalRef<Boolean> cameraInWater) {
+                                                @Share(namespace = "optirefine", value = "cameraInWater") LocalBooleanRef cameraInWater) {
         cameraInWater.set(ActiveRenderInfo.getBlockStateAtEntityViewpoint(this.world, entityIn, partialTicks).getMaterial() == Material.WATER);
     }
 
-    @WrapOperation(method = "renderParticles", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/particle/Particle;renderParticle(Lnet/minecraft/client/renderer/BufferBuilder;Lnet/minecraft/entity/Entity;FFFFFFFF)V"))
-// [AUDIT-FIXED] OF renderParticles:312-313 skips ParticleSuspend when the camera block is WATER
-    public void optiRefine$skipSuspendInWater(BufferBuilder bufferbuilder, Entity entityIn, float partialTicks, float f1, float f2, float f3, float f4, float f5, Operation<Void> original,
-                                              @Local Particle particle,
-                                              @Share(namespace = "optirefine", value = "cameraInWater") LocalRef<Boolean> cameraInWater) {
-        Boolean inWater = cameraInWater.get();
-        if (inWater == null || !inWater || !(particle instanceof ParticleSuspend)) {
-            original.call(bufferbuilder, entityIn, partialTicks, f1, f2, f3, f4, f5);
+    @WrapOperation(method = "renderParticles", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/particle/Particle;renderParticle(Lnet/minecraft/client/renderer/BufferBuilder;Lnet/minecraft/entity/Entity;FFFFFF)V"))
+    public void optiRefine$skipSuspendOutOfWater(Particle particle, BufferBuilder bufferbuilder, Entity entityIn, float partialTicks, float f1, float f2, float f3, float f4, float f5, Operation<Void> original,
+                                              @Share(namespace = "optirefine", value = "cameraInWater") LocalBooleanRef cameraInWater) {
+        if (cameraInWater.get() || !(particle instanceof ParticleSuspend)) {
+            original.call(particle, bufferbuilder, entityIn, partialTicks, f1, f2, f3, f4, f5);
         }
     }
 
@@ -103,7 +99,7 @@ public abstract class MixinParticleManager {
     @WrapOperation(method = "updateEffects", at = @At(value = "INVOKE", target = "Ljava/util/ArrayDeque;add(Ljava/lang/Object;)Z"))
     public boolean fixLayers(ArrayDeque<Object> fxLayersJK, Object particle, Operation<Boolean> original){
         if (!(particle instanceof Barrier) || !this.reuseBarrierParticle((Particle) particle, Caster.cast(fxLayersJK))) {
-            fxLayersJK.add(particle);
+            return original.call(fxLayersJK, particle);
         }
 
         return false;

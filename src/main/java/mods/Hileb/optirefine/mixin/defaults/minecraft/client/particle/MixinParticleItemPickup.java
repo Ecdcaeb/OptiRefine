@@ -1,19 +1,19 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.particle;
 
-import com.llamalad7.mixinextras.sugar.Share;
-import com.llamalad7.mixinextras.sugar.ref.LocalRef;
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.particle.ParticleItemPickup;
 import net.minecraft.client.renderer.BufferBuilder;
+import net.minecraft.client.renderer.RenderGlobal;
+import org.objectweb.asm.Opcodes;
 import net.minecraft.entity.Entity;
 import net.optifine.shaders.Program;
 import net.optifine.shaders.Shaders;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(ParticleItemPickup.class)
 public abstract class MixinParticleItemPickup {
 // [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
@@ -23,34 +23,26 @@ public abstract class MixinParticleItemPickup {
     @Final
     private Entity item;
 
-// [AUDIT-OK] target renderParticle(Lnet/minecraft/client/renderer/BufferBuilder;Lnet/minecraft/entity/Entity;FFFFFFF)V matches baseline; handler params match
-    @Inject(method = "renderParticle", at = @At("HEAD"))
-    public void preInjectRenderParticle(BufferBuilder buffer,
-                                        Entity entityIn,
-                                        float partialTicks,
-                                        float rotationX, float rotationZ, float rotationYZ,
-                                        float rotationXY, float rotationXZ,
-                                        CallbackInfo ci, @Share("oldShadersProgram")LocalRef<Program> oldShadersProgram){
-        oldShadersProgram.set(null);
-        if (Config.isShaders()) {
-            oldShadersProgram.set(Shaders.activeProgram);
-            Shaders.nextEntity(this.item);
+    @WrapMethod(method = "renderParticle")
+    private void optiRefine$renderParticle(BufferBuilder buffer, Entity entityIn, float partialTicks,
+                                          float rotationX, float rotationZ, float rotationYZ,
+                                          float rotationXY, float rotationXZ, Operation<Void> original) {
+        if (!Config.isShaders()) {
+            original.call(buffer, entityIn, partialTicks, rotationX, rotationZ, rotationYZ, rotationXY, rotationXZ);
+            return;
         }
-
-    }
-
-// [AUDIT-OK] target renderParticle matches baseline; RETURN restores shader program
-    @Inject(method = "renderParticle", at = @At("RETURN"))
-    public void postInjectRenderParticle(BufferBuilder buffer,
-                                        Entity entityIn,
-                                        float partialTicks,
-                                        float rotationX, float rotationZ, float rotationYZ,
-                                        float rotationXY, float rotationXZ,
-                                        CallbackInfo ci, @Share("oldShadersProgram")LocalRef<Program> oldShadersProgram){
-        if (Config.isShaders()) {
-            Shaders.setEntityId(null);
-            Shaders.useProgram(oldShadersProgram.get());
+        Program oldProgram = Shaders.activeProgram;
+        Entity oldEntity = RenderGlobal_renderedEntity_get(Config.getRenderGlobal());
+        Shaders.nextEntity(this.item);
+        try {
+            original.call(buffer, entityIn, partialTicks, rotationX, rotationZ, rotationYZ, rotationXY, rotationXZ);
+        } finally {
+            Shaders.setEntityId(oldEntity);
+            Shaders.useProgram(oldProgram);
         }
     }
+
+    @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.RenderGlobal renderedEntity Lnet.minecraft.entity.Entity;")
+    private static native Entity RenderGlobal_renderedEntity_get(RenderGlobal renderGlobal);
 
 }

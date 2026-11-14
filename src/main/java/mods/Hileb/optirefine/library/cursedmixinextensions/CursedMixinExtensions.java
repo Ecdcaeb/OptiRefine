@@ -37,6 +37,8 @@ public class CursedMixinExtensions {
         LOGGER.debug("OptiRefine for !!! {}", targetClass.name);
 
         LinkedList<CallTransformTask> tasks = new LinkedList<>();
+        boolean namespaceKnown = false;
+        boolean srgRuntime = false;
 
         AnnotationNode changeSuperClass = Annotations.getVisible(targetClass, ChangeSuperClass.class);
         if (changeSuperClass != null) {
@@ -92,17 +94,40 @@ public class CursedMixinExtensions {
 
         for (MethodNode method : targetClass.methods) {
             boolean remove = false;
+            final String originalName = method.name;
+            final String originalDesc = method.desc;
 
             AnnotationNode signFix = Annotations.getVisible(method, SignatureFix.class);
             if (signFix != null) {
-                method.signature = ((String)Annotations.getValue(signFix)).replace('.', '/');
+                String descriptor = ((String) Annotations.getValue(signFix)).replace('.', '/');
+                Type returnType = Type.getReturnType(descriptor);
+                if (!Arrays.equals(Type.getArgumentTypes(originalDesc), Type.getArgumentTypes(descriptor))) {
+                    throw new IllegalArgumentException("SignatureFix cannot change method arguments: " + targetClass.name + "." + originalName);
+                }
+                if (!Type.getReturnType(originalDesc).equals(returnType)) {
+                    if (returnType.getSort() != Type.OBJECT && returnType.getSort() != Type.ARRAY) {
+                        throw new IllegalArgumentException("SignatureFix requires a reference return type: " + targetClass.name + "." + originalName);
+                    }
+                    for (AbstractInsnNode insn : method.instructions.toArray()) {
+                        if (insn.getOpcode() == Opcodes.ARETURN) {
+                            method.instructions.insertBefore(insn, new TypeInsnNode(Opcodes.CHECKCAST, returnType.getInternalName()));
+                        }
+                    }
+                }
+                method.desc = descriptor;
+                method.signature = null;
+                tasks.add((instructions, call) -> {
+                    if (call.owner.equals(targetClass.name) && call.name.equals(originalName) && call.desc.equals(originalDesc)) {
+                        call.desc = descriptor;
+                    }
+                });
             }
 
             if (Annotations.getVisible(method, ShadowSuperConstructor.class) != null) {
                 LOGGER.debug("ShadowSuperConstructor Instance, {}", method.name);
                 methodToRemove.add(method);
                 tasks.add((instructions, call) -> {
-                    if (call.name.equals(method.name) && call.desc.equals(method.desc)) {
+                    if (call.owner.equals(targetClass.name) && call.name.equals(originalName) && call.desc.equals(originalDesc)) {
                         call.setOpcode(Opcodes.INVOKESPECIAL);
                         call.name = "<init>";
                         call.owner = targetClass.superName;
@@ -114,7 +139,7 @@ public class CursedMixinExtensions {
                 LOGGER.debug("ShadowConstructor Instance, {}", method.name);
                 methodToRemove.add(method);
                 tasks.add((instructions, call) -> {
-                    if (call.name.equals(method.name) && call.desc.equals(method.desc)) {
+                    if (call.owner.equals(targetClass.name) && call.name.equals(originalName) && call.desc.equals(originalDesc)) {
                         call.setOpcode(Opcodes.INVOKESPECIAL);
                         call.name = "<init>";
                     }
@@ -128,7 +153,7 @@ public class CursedMixinExtensions {
                 String targetName = Annotations.getValue(superMethod);
 
                 tasks.add((instructions, call) -> {
-                    if (call.name.equals(method.name) && call.desc.equals(method.desc)) {
+                    if (call.owner.equals(targetClass.name) && call.name.equals(originalName) && call.desc.equals(originalDesc)) {
                         call.setOpcode(Opcodes.INVOKESPECIAL);
                         call.name = targetName;
                         call.owner = targetClass.superName;
@@ -146,7 +171,7 @@ public class CursedMixinExtensions {
             if (Annotations.getVisible(method, NewConstructor.class) != null) {
                 LOGGER.debug("NewConstructor Instance, {}", method.name);
                 tasks.add((instructions, call) -> {
-                    if (call.name.equals(method.name) && call.desc.equals(method.desc)) {
+                    if (call.owner.equals(targetClass.name) && call.name.equals(originalName) && call.desc.equals(originalDesc)) {
                         call.setOpcode(Opcodes.INVOKESPECIAL);
                         call.name = "<init>";
                     }
@@ -158,7 +183,7 @@ public class CursedMixinExtensions {
                 LOGGER.debug("ReplaceConstructor Instance, {}", method.name);
                 ctrToReplace.add(method.desc);
                 tasks.add((instructions, call) -> {
-                    if (call.name.equals(method.name) && call.desc.equals(method.desc)) {
+                    if (call.owner.equals(targetClass.name) && call.name.equals(originalName) && call.desc.equals(originalDesc)) {
                         call.setOpcode(Opcodes.INVOKESPECIAL);
                         call.name = "<init>";
                     }
@@ -174,11 +199,14 @@ public class CursedMixinExtensions {
                 String name = Annotations.getValue(accessTransform, "name");
                 if(name != null) name = name.replace('.', '/');
                 boolean deobf = Annotations.getValue(accessTransform, "deobf", Boolean.FALSE);
-                final boolean useDeobf = deobf && !isSrgRuntime(targetClass);
 
                 if ("<class>".equals(name)) {
                     if (access >= 0) {
-                        targetClass.access = access;
+                        targetClass.access = (access & ~(Opcodes.ACC_STATIC | Opcodes.ACC_PRIVATE | Opcodes.ACC_PROTECTED))
+                                | (targetClass.access & Opcodes.ACC_SUPER);
+                        for (InnerClassNode innerClass : targetClass.innerClasses) {
+                            if (innerClass.name.equals(targetClass.name)) innerClass.access = access;
+                        }
                     }
                 } else {
                     String desc = method.desc;
@@ -215,7 +243,11 @@ public class CursedMixinExtensions {
                 if(desc != null) desc = desc.replace('.','/');
                 boolean itf = Annotations.getValue(accessibleOperation, "itf", Boolean.FALSE);
                 boolean deobf = Annotations.getValue(accessibleOperation, "deobf", Boolean.FALSE);
-                final boolean useDeobf = deobf && !isSrgRuntime(targetClass);
+                if (deobf && !namespaceKnown) {
+                    srgRuntime = isSrgRuntime(targetClass);
+                    namespaceKnown = true;
+                }
+                final boolean useDeobf = deobf && !srgRuntime;
 
                 if (isBuildIn) {
                     method.access = method.access & ~(Opcodes.ACC_NATIVE | Opcodes.ACC_ABSTRACT);
@@ -287,7 +319,7 @@ public class CursedMixinExtensions {
                         }
                     });
 
-                } else if (opcodes == Opcodes.INSTANCEOF) {
+                } else if (opcodes == Opcodes.INSTANCEOF || opcodes == Opcodes.CHECKCAST) {
                     final String owner;
                     if (useDeobf) {
                         owner = FMLDeobfuscatingRemapper.INSTANCE.map(desc);
@@ -295,7 +327,7 @@ public class CursedMixinExtensions {
                     LOGGER.debug("AccessibleOperation {} : INSTANCEOF : {}", targetClass.name, owner);
                     tasks.add((instructions, call) -> {
                         if (call.owner.equals(targetClass.name) && call.name.equals(method.name) && call.desc.equals(method.desc)) {
-                            instructions.insert(call, new TypeInsnNode(Opcodes.INSTANCEOF, owner.replace('.', '/')));
+                            instructions.insert(call, new TypeInsnNode(opcodes, owner.replace('.', '/')));
                             instructions.remove(call);
                         }
                     });
@@ -420,7 +452,6 @@ public class CursedMixinExtensions {
                 int access = Annotations.getValue(accesstrasnformer, "access", -1);
                 String name = Annotations.getValue(accesstrasnformer, "name");
                 boolean deobf = Annotations.getValue(accesstrasnformer, "deobf", Boolean.FALSE);
-                final boolean useDeobf = deobf && !isSrgRuntime(targetClass);
 
                 String desc = field.desc;
                 if (access == -1) access = field.access;
@@ -434,12 +465,19 @@ public class CursedMixinExtensions {
                 }
 
                 for (FieldNode mn : targetClass.fields) {
-                    if(mn.name.equals(name) && mn.desc.equals(desc)) {
+                    if ((mn.name.equals(name) && mn.desc.equals(desc))
+                            || (deobf && mn.name.equals(rawName) && mn.desc.equals(rawDesc))) {
                         mn.access = access;
-                    }
-                    // deobf=true: also match the raw (SRG) name for SRG runtimes
-                    if(deobf && mn.name.equals(rawName) && mn.desc.equals(rawDesc)) {
-                        mn.access = access;
+                        for (MethodNode method : targetClass.methods) {
+                            for (AbstractInsnNode instruction : method.instructions) {
+                                if (instruction instanceof FieldInsnNode reference
+                                        && reference.owner.equals(targetClass.name)
+                                        && reference.name.equals(field.name) && reference.desc.equals(field.desc)) {
+                                    reference.name = mn.name;
+                                    reference.desc = mn.desc;
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -447,8 +485,6 @@ public class CursedMixinExtensions {
         }
 
         transformCalls(targetClass, tasks.toArray(CallTransformTask[]::new));
-
-        dumpClass(targetClass);
 
         if (DUMP) {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -459,7 +495,7 @@ public class CursedMixinExtensions {
                 targetClass.accept(new TraceClassVisitor(new ClassVisitor(Opcodes.ASM9, classWriter) {
                     @Override
                     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-                        printStream.printf("NEW CLASS %s %s", name);
+                        printStream.printf("NEW CLASS %s %s", name, superName);
                         super.visit(version, access, name, signature, superName, interfaces);
                     }
 
@@ -484,9 +520,12 @@ public class CursedMixinExtensions {
 
     /**
      * Writes the fully post-processed class bytes to &lt;Launch.minecraftHome&gt;/.klass/&lt;class&gt;.class
-     * for every class that passes through postApply. Debug aid for real-machine inspection.
+     * when foundation.dump is enabled, after all postprocessors have completed.
      */
-    private static void dumpClass(ClassNode classNode) {
+    public static void dumpFinalClass(ClassNode classNode) {
+        if (!DUMP) {
+            return;
+        }
         try {
             File home = Launch.minecraftHome;
             if (home == null) {
@@ -527,16 +566,31 @@ public class CursedMixinExtensions {
      */
     private static boolean isSrgRuntime(ClassNode targetClass) {
         for (FieldNode field : targetClass.fields) {
-            if (field.name.matches("field_\\d+_[a-zA-Z]+")) {
+            if (isSrgName(field.name, "field_")) {
                 return true;
             }
         }
         for (MethodNode method : targetClass.methods) {
-            if (method.name.matches("func_\\d+_[a-zA-Z]+")) {
+            if (isSrgName(method.name, "func_")) {
                 return true;
             }
         }
         return false;
+    }
+
+    private static boolean isSrgName(String name, String prefix) {
+        if (!name.startsWith(prefix)) return false;
+        int separator = name.indexOf('_', prefix.length());
+        if (separator <= prefix.length() || separator == name.length() - 1) return false;
+        for (int i = prefix.length(); i < separator; i++) {
+            char c = name.charAt(i);
+            if (c < '0' || c > '9') return false;
+        }
+        for (int i = separator + 1; i < name.length(); i++) {
+            char c = name.charAt(i);
+            if ((c < 'a' || c > 'z') && (c < 'A' || c > 'Z')) return false;
+        }
+        return true;
     }
     public static AbstractInsnNode findPreviousNode(AbstractInsnNode start,
                                                     Predicate<AbstractInsnNode> checkNode) {

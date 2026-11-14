@@ -16,16 +16,6 @@ public abstract class MixinBlockStateBase implements IBlockState {
 
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
-// [AUDIT-OK] OF-added field blockId (in OF BlockStateBase, not in baseline), MCP name matches
-    @Unique
-    private int blockId;
-
-    @SuppressWarnings("AddedMixinMembersNamePattern")
-// [AUDIT-OK] OF-added field blockStateId (in OF, not in baseline)
-    @Unique
-    private int blockStateId;
-
-    @SuppressWarnings("AddedMixinMembersNamePattern")
 // [AUDIT-OK] OF-added field metadata (in OF, not in baseline; BlockStateBase itself does not implement IBlockState.getMetadata)
     @Unique
     private int metadata;
@@ -37,22 +27,16 @@ public abstract class MixinBlockStateBase implements IBlockState {
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Public
-// [AUDIT-OK] OF-added method getBlockId, body matches OF
+    // Forge remaps registry IDs when loading a world or joining a server; states outlive those remaps.
     public int getBlockId() {
-        if (this.blockId < 0) {
-             this.blockId = Block.getIdFromBlock(this.getBlock());
-         }
-         return this.blockId;
+        return Block.getIdFromBlock(this.getBlock());
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Public
-// [AUDIT-OK] OF-added method getBlockStateId, body matches OF
+    // Only metadata is stable for the lifetime of an immutable state.
     public int getBlockStateId() {
-         if (this.blockStateId < 0) {
-             this.blockStateId = Block.getStateId(this);
-         }
-         return this.blockStateId;
+        return this.getBlockId() + (this.getMetadata() << 12);
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
@@ -78,8 +62,6 @@ public abstract class MixinBlockStateBase implements IBlockState {
     @Inject(method = "<init>*", at = @At("RETURN"))
     // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
     private void optiRefine$initFields(CallbackInfo ci) {
-        this.blockId = -1;
-        this.blockStateId = -1;
         this.metadata = -1;
         this.blockLocation = null;
     }

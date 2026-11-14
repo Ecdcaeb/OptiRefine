@@ -29,6 +29,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -241,10 +242,12 @@ public abstract class MixinTextureAtlasSprite {
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern", "MissingUnique"})
     @NewConstructor
     @Public
-    // [AUDIT-NOTE] @NewConstructor -> target <init>(String,Z); field initializers (indexInMap=-1 etc.) not injected into this post-apply ctor -> spriteSingle.indexInMap=0 vs OF -1 (minor divergence)
+    // This constructor is added after mixin injection, so initialize both baseline and added state here.
     public void _TextureAtlasSprite(String name, boolean isSpriteSingle) {
         _Object();
         this.iconName = name;
+        this.framesTextureData = new ArrayList<>();
+        this.optiRefine$initFields();
         this.isSpriteSingle = isSpriteSingle;
     }
 
@@ -253,6 +256,7 @@ public abstract class MixinTextureAtlasSprite {
     @Inject(method = "<init>(Ljava/lang/String;)V", at = @At("RETURN"))
     // [AUDIT-OK] target <init>(Ljava/lang/String;)V matches baseline; RETURN inject replicates OF spriteSingle init
     private void optiRefine$init(CallbackInfo ci) {
+        this.optiRefine$initFields();
         if (Config.isMultiTexture()) {
             this.spriteSingle = _new_TextureAtlasSprite(AccessibleOperation.Construction.construction(), this.getIconName() + ".spriteSingle", true);
         }
@@ -345,6 +349,11 @@ public abstract class MixinTextureAtlasSprite {
         }
     }
 
+    @ModifyArg(method = "updateAnimationInterpolated", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/texture/TextureUtil;uploadTextureMipmap([[IIIIIZZ)V"), index = 6)
+    private boolean optiRefine$clampInterpolatedSingle(boolean clamp) {
+        return this.isSpriteSingle;
+    }
+
     @Shadow
     // [AUDIT-OK] baseline member updateAnimationInterpolated exists in TextureAtlasSprite
     private void updateAnimationInterpolated() {
@@ -389,10 +398,16 @@ public abstract class MixinTextureAtlasSprite {
     // [AUDIT-OK] target loadSpriteFrames(IResource,I)V matches baseline; WrapMethod body mirrors OF (scale/shaders/fixTransparent/spriteSingle)
     private void optiRefine$loadSpriteFrames(IResource resource, int mipmapLevelsIn, Operation<Void> original) throws java.io.IOException {
         java.awt.image.BufferedImage bufferedimage = TextureUtil.readBufferedImage(resource.getInputStream());
+        if (bufferedimage == null) {
+            throw new java.io.IOException("Unable to decode sprite " + this.iconName);
+        }
         if (this.width != bufferedimage.getWidth()) {
             bufferedimage = TextureUtils.scaleImage(bufferedimage, this.width);
         }
         AnimationMetadataSection animationmetadatasection = resource.getMetadata("animation");
+        if (animationmetadatasection != null && (bufferedimage.getHeight() < this.width || bufferedimage.getHeight() % this.width != 0)) {
+            throw new java.io.IOException("Invalid animation dimensions for " + this.iconName);
+        }
         int[][] aint = new int[mipmapLevelsIn][];
         aint[0] = new int[bufferedimage.getWidth() * bufferedimage.getHeight()];
         bufferedimage.getRGB(0, 0, bufferedimage.getWidth(), bufferedimage.getHeight(), aint[0], 0, bufferedimage.getWidth());
@@ -404,7 +419,7 @@ public abstract class MixinTextureAtlasSprite {
             if (animationmetadatasection.getFrameCount() > 0) {
                 for (j = 0; j < animationmetadatasection.getFrameCount(); ++j) {
                     int k = animationmetadatasection.getFrameIndex(j);
-                    if (k >= i) {
+                    if (k < 0 || k >= i) {
                         throw new RuntimeException("invalid frameindex " + k);
                     }
                     this.allocateFrameTextureData(k);
@@ -435,8 +450,9 @@ public abstract class MixinTextureAtlasSprite {
                 }
             }
             if (this.spriteSingle != null) {
-                IResource iresource = Config.getResourceManager().getResource(resource.getResourceLocation());
-                this.spriteSingle.loadSpriteFrames(iresource, mipmapLevelsIn);
+                try (IResource iresource = Config.getResourceManager().getResource(resource.getResourceLocation())) {
+                    this.spriteSingle.loadSpriteFrames(iresource, mipmapLevelsIn);
+                }
             }
         }
     }
@@ -499,7 +515,9 @@ public abstract class MixinTextureAtlasSprite {
                 this.spriteNormal = new TextureAtlasSprite(s);
                 TextureAtlasSprite_isShadersSprite_set(this.spriteNormal, true);
                 this.spriteNormal.copyFrom((TextureAtlasSprite) (Object) this);
-                TextureMap_generateMipmaps(Config.getTextureMap(), Config.getResourceManager(), this.spriteNormal); // boolean return consumed (stack balance)
+                if (!TextureMap_generateMipmaps(Config.getTextureMap(), Config.getResourceManager(), this.spriteNormal)) {
+                    this.spriteNormal = null;
+                }
             }
         }
         if (Shaders.configSpecularMap) {
@@ -510,7 +528,9 @@ public abstract class MixinTextureAtlasSprite {
                 this.spriteSpecular = new TextureAtlasSprite(s1);
                 TextureAtlasSprite_isShadersSprite_set(this.spriteSpecular, true);
                 this.spriteSpecular.copyFrom((TextureAtlasSprite) (Object) this);
-                TextureMap_generateMipmaps(Config.getTextureMap(), Config.getResourceManager(), this.spriteSpecular); // boolean return consumed (stack balance)
+                if (!TextureMap_generateMipmaps(Config.getTextureMap(), Config.getResourceManager(), this.spriteSpecular)) {
+                    this.spriteSpecular = null;
+                }
             }
         }
     }
@@ -552,6 +572,10 @@ public abstract class MixinTextureAtlasSprite {
     @Inject(method = "resetSprite", at = @At("RETURN"))
     // [AUDIT-OK] target resetSprite()V matches baseline; RETURN inject replicates OF spriteSingle propagation
     private void optiRefine$resetSprite(CallbackInfo ci) {
+        this.spriteNormal = null;
+        this.spriteSpecular = null;
+        this.animationIndex = -1;
+        this.animationActive = false;
         if (this.spriteSingle != null) {
             TextureAtlasSprite_resetSprite(this.spriteSingle);
         }
@@ -678,9 +702,8 @@ public abstract class MixinTextureAtlasSprite {
         this.animationMetadata = animationMetadata;
     }
 
-    @Inject(method = "<init>*", at = @At("RETURN"))
-    // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
-    private void optiRefine$initFields(CallbackInfo ci) {
+    @Unique
+    private void optiRefine$initFields() {
         this.indexInMap = -1;
         this.glSpriteTextureId = -1;
         this.spriteSingle = null;

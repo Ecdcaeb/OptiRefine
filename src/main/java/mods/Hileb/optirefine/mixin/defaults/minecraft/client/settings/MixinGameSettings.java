@@ -20,7 +20,6 @@ import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.settings.GameSettings;
 import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.launchwrapper.Launch;
 import net.minecraftforge.client.resource.IResourceType;
 import net.minecraftforge.client.resource.VanillaResourceType;
 import net.minecraftforge.fml.client.FMLClientHandler;
@@ -247,11 +246,11 @@ public abstract class MixinGameSettings {
     // [AUDIT-OK] target <init>(Minecraft,File)V; 32.0F unique in ctor; constant->48/64 folds OF memory-based setValueMax upgrades
     public float make_RENDER_DISTANCE(float constant){
         long var3 = 1000000L;
-        if (Runtime.getRuntime().maxMemory() >= 1500L * var3) {
-            return 48.0F;
-        }
         if (Runtime.getRuntime().maxMemory() >= 2500L * var3) {
             return 64.0F;
+        }
+        if (Runtime.getRuntime().maxMemory() >= 1500L * var3) {
+            return 48.0F;
         }
         return constant;
     }
@@ -305,8 +304,8 @@ public abstract class MixinGameSettings {
         }
     }
 
-    @Inject(method = "setOptionValue", at = @At(value = "FIELD", target = "Lnet/minecraft/client/settings/GameSettings;fancyGraphics:Z", shift = At.Shift.AFTER))
-    // [AUDIT-FIXED] FIELD inject shift AFTER: runs after `fancyGraphics = !fancyGraphics` -> updateRenderClouds sees the toggled value (OF semantics)
+    @Inject(method = "setOptionValue", at = @At(value = "FIELD", target = "Lnet/minecraft/client/settings/GameSettings;fancyGraphics:Z", opcode = Opcodes.PUTFIELD, shift = At.Shift.AFTER))
+    // Update clouds only after the new graphics mode has been stored.
     public void hookForupdateRenderClouds(GameSettings.Options settingsOption, int value, CallbackInfo ci) {
         this.optiRefine$updateRenderClouds();
     }
@@ -317,7 +316,8 @@ public abstract class MixinGameSettings {
     public void hookForoadOfOptions(Operation<Void> original) {
         boolean init = this.optionsFileOF == null;
         if (init) {
-            this.optionsFileOF = new File(Launch.minecraftHome, "optionsof.txt");
+            this.optiRefine$initDefaults();
+            this.optionsFileOF = new File(this.optionsFile.getParentFile(), "optionsof.txt");
             this.limitFramerate = (int) GameSettings.Options.FRAMERATE_LIMIT.getValueMax();
             this.ofKeyBindZoom = new KeyBinding("of.key.zoom", 46, "key.categories.misc");
             this.keyBindings = ArrayUtils.add(this.keyBindings, this.ofKeyBindZoom);
@@ -449,8 +449,14 @@ public abstract class MixinGameSettings {
     @WrapMethod(method = "setOptionFloatValue")
     // [AUDIT-FIXED] dispatch OF float options first, then vanilla branches (OF GameSettings:407-408)
     public void optiRefine$setOptionFloatValue(GameSettings.Options option, float val, Operation<Void> original) {
-        this.optiRefine$setOptionFloatValueOF(option, val);
-        original.call(option, val);
+        if (option == GameSettings.Options.FRAMERATE_LIMIT) {
+            this.enableVsync = val <= 0.0F;
+            original.call(option, this.enableVsync ? GameSettings.Options.FRAMERATE_LIMIT.getValueMax() : val);
+            this.updateVSync();
+        } else {
+            this.optiRefine$setOptionFloatValueOF(option, val);
+            original.call(option, val);
+        }
     }
 
     @WrapMethod(method = "getOptionFloatValue")
@@ -1145,8 +1151,8 @@ public abstract class MixinGameSettings {
     }
 
     @SuppressWarnings("MissingUnique")
-    @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.settings.GameSettings$Options field_148272_O F")
-    // [AUDIT-OK] vanilla SRG field_148272_O = GameSettings$Options.valueMax; missing deobf=true (devrun only)
+    @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.settings.GameSettings$Options field_148272_O F", deobf = true)
+    // Map the vanilla SRG field in both development and production.
     private static native float Options_valueMax_get(GameSettings.Options options);
 
     @Shadow
@@ -1521,6 +1527,7 @@ public abstract class MixinGameSettings {
         try {
             PrintWriter printwriter = new PrintWriter(new OutputStreamWriter(new FileOutputStream(this.optionsFileOF), StandardCharsets.UTF_8));
             printwriter.println("ofFogType:" + this.ofFogType);
+            printwriter.println("ofRenderDistanceChunks:" + this.renderDistanceChunks);
             printwriter.println("ofFogStart:" + this.ofFogStart);
             printwriter.println("ofMipmapType:" + this.ofMipmapType);
             printwriter.println("ofOcclusionFancy:" + this.ofOcclusionFancy);
@@ -1822,9 +1829,13 @@ public abstract class MixinGameSettings {
         return index < 0 ? vals[0] : val;
     }
 
-    @Inject(method = "<init>*", at = @At("RETURN"))
-    // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
-    private void optiRefine$initFields(CallbackInfo ci) {
+    @Inject(method = "<init>()V", at = @At("RETURN"))
+    private void optiRefine$initNoArg(CallbackInfo ci) {
+        this.optiRefine$initDefaults();
+    }
+
+    @Unique
+    private void optiRefine$initDefaults() {
         this.ofFogType = 1;
         this.ofFogStart = 0.8F;
         this.ofMipmapType = 0;

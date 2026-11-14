@@ -58,8 +58,11 @@ import net.optifine.CustomColors;
 import net.optifine.CustomSky;
 import net.optifine.DynamicLights;
 import net.optifine.RandomEntities;
+import net.optifine.SmartAnimations;
+import net.optifine.render.ChunkVisibility;
 import net.optifine.render.CloudRenderer;
 import net.optifine.render.RenderEnv;
+import net.optifine.shaders.ShadowUtils;
 import net.optifine.shaders.Shaders;
 import net.optifine.shaders.gui.GuiShaderOptions;
 import org.lwjgl.input.Keyboard;
@@ -146,6 +149,14 @@ public abstract class MixinRenderGlobal {
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.chunk.RenderChunk getChunk ()Lnet/minecraft/world/chunk/Chunk;")
 // [AUDIT-OK] OF-added RenderChunk.getChunk(), not in baseline (MixinRenderChunk provides)
     private static native net.minecraft.world.chunk.Chunk RenderChunk_getChunk(RenderChunk renderChunk);
+
+    @SuppressWarnings("MissingUnique")
+    @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.client.renderer.BlockModelRenderer updateAoLightValue ()V")
+    private static native void BlockModelRenderer_updateAoLightValue();
+
+    @SuppressWarnings("MissingUnique")
+    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.chunk.RenderChunk getRenderInfo ()Lnet/minecraft/client/renderer/RenderGlobal$ContainerLocalRenderInformation;")
+    private static native RenderGlobal.ContainerLocalRenderInformation RenderChunk_getRenderInfo(RenderChunk renderChunk);
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
 // [AUDIT-OK] OF-added field, not in baseline (@Public static)
@@ -284,10 +295,10 @@ public abstract class MixinRenderGlobal {
 // [AUDIT-OK] baseline member renderInfos (SRG field_72755_R) - filled by baseline setupTerrain
     public java.util.List<RenderGlobal.ContainerLocalRenderInformation> renderInfos;
 
-    private List<RenderGlobal.ContainerLocalRenderInformation> renderInfosEntities = new java.util.ArrayList<>(1024);
-    @Public
-// [AUDIT-OK] OF-added field, not in baseline (@Public; OF keeps private)
-    private List<RenderGlobal.ContainerLocalRenderInformation> renderInfosTileEntities = new java.util.ArrayList<>(1024);
+    @Unique
+    private List<RenderGlobal.ContainerLocalRenderInformation> optiRefine$shadowRenderInfos;
+    @Unique
+    private List<RenderGlobal.ContainerLocalRenderInformation> optiRefine$normalRenderInfos;
     @Shadow
 // [AUDIT-OK] baseline member setTileEntities (SRG field_181024_n)
     private Set<TileEntity> setTileEntities;
@@ -322,12 +333,47 @@ public abstract class MixinRenderGlobal {
         }
     }
 
-    @Inject(method = "setWorldAndLoadRenderers", at = @At("TAIL"))
-    // [AUDIT-FIXED] 2026-08-05: OF clears dynamic lights when the world is swapped (OF:461).
+    @Inject(method = "setupTerrain", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/ChunkRenderContainer;initialize(DDD)V", shift = At.Shift.AFTER), cancellable = true)
+    private void optiRefine$setupShadowTerrain(Entity viewEntity, double partialTicks, ICamera camera, int frameCount, boolean playerSpectator, CallbackInfo ci) {
+        if (!Shaders.isShadowPass) {
+            if (this.optiRefine$normalRenderInfos != null && this.renderInfos == this.optiRefine$shadowRenderInfos) {
+                this.renderInfos = this.optiRefine$normalRenderInfos;
+            }
+            return;
+        }
+        // Camera occlusion is unsuitable for shadow casters: iterate chunks along the light
+        // direction, retaining empty sections too because they can contain entities or TESRs.
+        if (this.renderInfos != this.optiRefine$shadowRenderInfos) {
+            this.optiRefine$normalRenderInfos = this.renderInfos;
+        }
+        this.renderInfos = this.optiRefine$shadowRenderInfos;
+        this.renderInfos.clear();
+        Iterator<RenderChunk> chunks = ShadowUtils.makeShadowChunkIterator(this.world, partialTicks, viewEntity, this.renderDistanceChunks, this.viewFrustum);
+        while (chunks.hasNext()) {
+            RenderChunk chunk = chunks.next();
+            if (chunk != null) {
+                this.renderInfos.add(RenderChunk_getRenderInfo(chunk));
+            }
+        }
+        // Balance setupTerrain's active profiler section; the normal pass handles chunk rebuilds.
+        this.world.profiler.endSection();
+        ci.cancel();
+    }
+
+    @Inject(method = "setWorldAndLoadRenderers", at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/RenderGlobal;world:Lnet/minecraft/client/multiplayer/WorldClient;", opcode = Opcodes.PUTFIELD, shift = At.Shift.AFTER))
+    // Reset world-dependent OptiFine state before the baseline reloads renderers.
     private void optiRefine$dynamicLightsClearWorld(net.minecraft.client.multiplayer.WorldClient worldIn, CallbackInfo ci) {
         if (Config.isDynamicLights()) {
             DynamicLights.clear();
         }
+        ChunkVisibility.reset();
+        this.renderEnv.reset(null, null);
+        Shaders.checkWorldChanged(this.world);
+        if (this.renderInfos == this.optiRefine$shadowRenderInfos && this.optiRefine$normalRenderInfos != null) {
+            this.renderInfos = this.optiRefine$normalRenderInfos;
+        }
+        this.optiRefine$normalRenderInfos = null;
+        this.optiRefine$shadowRenderInfos.clear();
     }
 
     @Inject(method = "loadRenderers", at = @At("TAIL"))
@@ -339,6 +385,12 @@ public abstract class MixinRenderGlobal {
         // [AUDIT-FIXED] 2026-08-05: OF clears dynamic lights in loadRenderers (OF:500).
         if (Config.isDynamicLights()) {
             DynamicLights.clear();
+        }
+        if (this.world != null) {
+            Blocks.LEAVES.setGraphicsLevel(Config.isTreesFancy());
+            Blocks.LEAVES2.setGraphicsLevel(Config.isTreesFancy());
+            BlockModelRenderer_updateAoLightValue();
+            SmartAnimations.update();
         }
     }
 
@@ -377,12 +429,16 @@ public abstract class MixinRenderGlobal {
     // enable GL_NORMAL_ARRAY + midTexCoord/tangent/entity attrib arrays and flip backface culling.
     // Missing -> terrain programs read default attributes -> blocks render black/blank under shaderpacks.
     public void optiRefine$renderChunkLayer(net.minecraft.client.renderer.ChunkRenderContainer instance, net.minecraft.util.BlockRenderLayer layer, Operation<Void> original) {
-        if (Config.isShaders()) {
+        boolean shaders = Config.isShaders();
+        if (shaders) {
             net.optifine.shaders.ShadersRender.preRenderChunkLayer(layer);
         }
-        original.call(instance, layer);
-        if (Config.isShaders()) {
-            net.optifine.shaders.ShadersRender.postRenderChunkLayer(layer);
+        try {
+            original.call(instance, layer);
+        } finally {
+            if (shaders) {
+                net.optifine.shaders.ShadersRender.postRenderChunkLayer(layer);
+            }
         }
     }
     @Shadow
@@ -462,8 +518,8 @@ public abstract class MixinRenderGlobal {
             List<Entity> list2 = com.google.common.collect.Lists.newArrayList();
             PooledMutableBlockPos pooledmutableblockpos = PooledMutableBlockPos.retain();
             boolean flag1 = Shaders.isShadowPass && !this.mc.player.isSpectator();
-            // [AUDIT-FIXED] iterate baseline renderInfos (field_72755_R, filled by baseline setupTerrain);
-            // mixin-added renderInfosEntities was never populated -> entities/TEs never rendered
+            // setupTerrain supplies normal camera visibility or the separate shadow caster list.
+            // Keep empty sections in that list so their entities and TESRs are still visited.
             for (RenderGlobal.ContainerLocalRenderInformation renderglobal$containerlocalrenderinformation : this.renderInfos) {
                 Chunk chunk = RenderChunk_getChunk(renderglobal$containerlocalrenderinformation.renderChunk);
                 ClassInheritanceMultiMap<Entity> classinheritancemultimap = chunk.getEntityLists()[renderglobal$containerlocalrenderinformation.renderChunk.getPosition().getY() / 16];
@@ -604,6 +660,10 @@ public abstract class MixinRenderGlobal {
                     if (!tileentity1.shouldRenderInPass(pass)) {
                         continue;
                     }
+                    AxisAlignedBB boundingBox = tileentity1.getRenderBoundingBox();
+                    if (boundingBox != null && !camera.isBoundingBoxInFrustum(boundingBox)) {
+                        continue;
+                    }
                     if (flag) {
                         Shaders.nextBlockEntity(tileentity1);
                     }
@@ -628,7 +688,7 @@ public abstract class MixinRenderGlobal {
                         }
                     }
                     IBlockState iblockstate = this.world.getBlockState(blockpos);
-                    if (tileentity2 != null && iblockstate.getBlock().hasTileEntity(iblockstate)) {
+                    if (tileentity2 != null && (iblockstate.hasCustomBreakingProgress() || tileentity2.canRenderBreaking()) && tileentity2.shouldRenderInPass(pass)) {
                         if (flag) {
                             Shaders.nextBlockEntity(tileentity2);
                         }
@@ -1447,6 +1507,7 @@ public abstract class MixinRenderGlobal {
         this.renderOverlayDamaged = false;
         this.renderOverlayEyes = false;
         this.firstWorldLoad = false;
+        this.optiRefine$shadowRenderInfos = new java.util.ArrayList<>(1024);
         this.cloudRenderer = new CloudRenderer(this.mc);
         this.renderEnv = new RenderEnv(Blocks.AIR.getDefaultState(), new BlockPos(0, 0, 0));
     }

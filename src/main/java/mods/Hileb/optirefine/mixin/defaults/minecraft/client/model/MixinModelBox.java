@@ -128,7 +128,9 @@ public abstract class MixinModelBox {
         );
         if (mirror) {
             for (TexturedQuad texturedquad : this.quadList) {
-                texturedquad.flipFace();
+                if (texturedquad != null) {
+                    texturedquad.flipFace();
+                }
             }
         }
     }

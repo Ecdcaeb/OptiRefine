@@ -17,7 +17,7 @@ public abstract class MixinShaders {
 // [AUDIT] 2026-08-03 — OptiFine's full ResourceManager reload on shaderpack switch is mostly unnecessary;
 // redirect to a selective reload (TEXTURES + MODELS) so sounds/languages aren't restarted.
 
-    @WrapOperation(method = "loadShaderPack", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;func_175603_A()Lcom/google/common/util/concurrent/ListenableFuture;"))
+    @WrapOperation(method = "loadShaderPack", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;scheduleResourcesRefresh()Lcom/google/common/util/concurrent/ListenableFuture;"))
     private static ListenableFuture<Object> optiRefine$selectiveRefresh(Minecraft mc, Operation<ListenableFuture<Object>> original) {
         // SelectiveReloadStateHandler state is read at reload time, so run the reload
         // synchronously inside begin/end (async submission would lose the predicate).

@@ -94,10 +94,12 @@ public abstract class MixinBlockFluidRenderer {
 // - overlay keeps cleanroom's getBlockFaceShape==SOLID check (superset of OF's BEACON/SLIME_BLOCK)
     public boolean wrap_renderFluid(IBlockAccess blockAccess, IBlockState blockStateIn, BlockPos blockPosIn, BufferBuilder worldRendererIn, Operation<Boolean> original) {
         boolean rendered;
+        boolean entityPushed = false;
 
         try {
             if (Config.isShaders()) {
                 SVertexBuilder.pushEntity(blockStateIn, blockPosIn, blockAccess, worldRendererIn);
+                entityPushed = true;
             }
 
             BlockLiquid blockliquid = (BlockLiquid) blockStateIn.getBlock();
@@ -339,7 +341,7 @@ public abstract class MixinBlockFluidRenderer {
 
             rendered = false;
         } finally {
-            if (Config.isShaders()) {
+            if (entityPushed) {
                 SVertexBuilder.popEntity(worldRendererIn);
             }
         }

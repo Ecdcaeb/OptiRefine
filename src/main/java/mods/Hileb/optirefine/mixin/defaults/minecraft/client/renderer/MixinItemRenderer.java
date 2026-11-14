@@ -10,13 +10,10 @@ import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.ItemRenderer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.init.Items;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemBow;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.client.multiplayer.WorldClient;
 import net.optifine.DynamicLights;
 import net.optifine.shaders.Shaders;
 import org.objectweb.asm.Opcodes;
@@ -34,7 +31,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * <ul>
  *     <li>{@code renderItemSide}: keep depth mask when shaders want it</li>
  *     <li>{@code setLightmap}: dynamic lights support</li>
- *     <li>{@code renderItemInFirstPerson(float)}: {@code Items.BOW == } -&gt; {@code instanceof ItemBow}</li>
  *     <li>{@code renderItemInFirstPerson(AbstractClientPlayer,...)}: skip hand rendering for shaders</li>
  *     <li>{@code renderWaterOverlayTexture}: shaders underwater overlay switch</li>
  *     <li>{@code renderFireInFirstPerson}: sprite tracking for shaders</li>
@@ -86,9 +82,9 @@ public abstract class MixinItemRenderer {
     /**
      * OptiFine: {@code if (flag && (!Config.isShaders() || !Shaders.renderItemKeepDepthMask))}.
      */
-    @Redirect(method = "renderItemSide", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GlStateManager;depthMask(Z)V", ordinal = 0))
+    @Redirect(method = "renderItemSide", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GlStateManager;depthMask(Z)V"))
     private void optiRefine$renderItemSideDepthMask(boolean flag) {
-// [AUDIT-OK] target renderItemSide (SRG func_187462_a) GlStateManager.depthMask(false) ordinal 0 matches baseline (line 72); guard matches OF renderItemKeepDepthMask
+        // Guard both the disable and restore calls so the shader pass keeps its depth mask.
         if (!Config.isShaders() || !Shaders.renderItemKeepDepthMask) {
             GlStateManager.depthMask(flag);
         }
@@ -97,9 +93,9 @@ public abstract class MixinItemRenderer {
     /**
      * OptiFine: {@code if (Config.isDynamicLights()) var2 = DynamicLights.getCombinedLight(...)}.
      */
-    @Redirect(method = "setLightmap", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;getCombinedLight(Lnet/minecraft/util/math/BlockPos;I)I"))
-    private int optiRefine$setLightmapDynamicLights(World world, BlockPos pos, int light) {
-// [AUDIT-OK] target setLightmap()V (SRG func_187464_b) World.getCombinedLight matches baseline (line 98)
+    @Redirect(method = "setLightmap", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/WorldClient;getCombinedLight(Lnet/minecraft/util/math/BlockPos;I)I"))
+    private int optiRefine$setLightmapDynamicLights(WorldClient world, BlockPos pos, int light) {
+        // The invocation owner in Cleanroom is WorldClient, where the inherited method is called.
         int combined = world.getCombinedLight(pos, light);
         if (Config.isDynamicLights()) {
             combined = DynamicLights.getCombinedLight(this.mc.getRenderViewEntity(), combined);
@@ -107,15 +103,6 @@ public abstract class MixinItemRenderer {
         return combined;
     }
 
-    /**
-     * OptiFine: {@code var9.getItem() == Items.BOW} -&gt; {@code var9.getItem() instanceof ItemBow}.
-     */
-    @Redirect(method = "renderItemInFirstPerson(F)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;getItem()Lnet/minecraft/item/Item;"))
-    private Item optiRefine$itemBow(ItemStack stack) {
-// [AUDIT-OK] target renderItemInFirstPerson(F)V (SRG func_78440_a) ItemStack.getItem matches baseline (line 315, single occurrence); instanceof ItemBow matches OF
-        Item item = stack.getItem();
-        return item instanceof ItemBow ? Items.BOW : item;
-    }
 
     /**
      * OptiFine: {@code if (!Config.isShaders() || !Shaders.isSkipRenderHand(var4))} wraps the whole method.
@@ -151,11 +138,8 @@ public abstract class MixinItemRenderer {
     /**
      * OptiFine: notify shaders when the equipped main-hand item changes.
      */
-    @Inject(method = "updateEquippedItem", at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/ItemRenderer;itemStackMainHand:Lnet/minecraft/item/ItemStack;", opcode = Opcodes.PUTFIELD, ordinal = 0, shift = At.Shift.AFTER))
+    @Inject(method = "updateEquippedItem", at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/ItemRenderer;itemStackMainHand:Lnet/minecraft/item/ItemStack;", opcode = Opcodes.PUTFIELD, shift = At.Shift.AFTER))
     private void optiRefine$setItemToRenderMain(CallbackInfo ci) {
-// [AUDIT-FIXED] 2026-08-05: updateEquippedItem has exactly ONE PUTFIELD itemStackMainHand
-// (forge line 601; cleanroom patch wraps it in a condition, does not add a second store);
-// ordinal=1 could not be found -> mixin apply failure. ordinal=0 verified.
         if (Config.isShaders()) {
             Shaders.setItemToRenderMain(this.itemStackMainHand);
         }
@@ -164,9 +148,8 @@ public abstract class MixinItemRenderer {
     /**
      * OptiFine: notify shaders when the equipped off-hand item changes.
      */
-    @Inject(method = "updateEquippedItem", at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/ItemRenderer;itemStackOffHand:Lnet/minecraft/item/ItemStack;", opcode = Opcodes.PUTFIELD, ordinal = 0, shift = At.Shift.AFTER))
+    @Inject(method = "updateEquippedItem", at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/ItemRenderer;itemStackOffHand:Lnet/minecraft/item/ItemStack;", opcode = Opcodes.PUTFIELD, shift = At.Shift.AFTER))
     private void optiRefine$setItemToRenderOff(CallbackInfo ci) {
-// [AUDIT-FIXED] 2026-08-05: single PUTFIELD itemStackOffHand (forge line 606); ordinal=1 not found -> apply failure. ordinal=0 verified.
         if (Config.isShaders()) {
             Shaders.setItemToRenderOff(this.itemStackOffHand);
         }

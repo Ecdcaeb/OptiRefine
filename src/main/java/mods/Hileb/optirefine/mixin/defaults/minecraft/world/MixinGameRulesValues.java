@@ -20,17 +20,22 @@ public abstract class MixinGameRulesValues {
 // [AUDIT-OK] baseline member valueBoolean exists in GameRules$Value
     private boolean valueBoolean;
 
-// [AUDIT-OK] setValue(Ljava/lang/String;)V matches baseline; HEAD+cancel replicates OF early-return for "true"/"false" (valueInteger/valueDouble left stale, same as OF)
+    @Shadow
+    private int valueInteger;
+
+    // Avoid parsing boolean literals while preserving the baseline integer representation.
     @Inject(method = "setValue", at = @At("HEAD"), cancellable = true)
     public void __setValue(String value, CallbackInfo ci){
         this.valueString = value;
         if (value != null) {
             if ("false".equals(value)) {
                 this.valueBoolean = false;
+                this.valueInteger = 0;
                 ci.cancel();
             }
             if ("true".equals(value)) {
                 this.valueBoolean = true;
+                this.valueInteger = 1;
                 ci.cancel();
             }
         }

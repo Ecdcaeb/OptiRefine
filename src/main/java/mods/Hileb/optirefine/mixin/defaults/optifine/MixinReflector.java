@@ -6,12 +6,11 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 /**
- * OptiFine's {@code Reflector} statics eagerly construct {@code new ReflectorClass(SomeClient.class)},
- * which forces those client classes to load during {@code <clinit>} (e.g. {@code RenderItemFrame}
- * while {@code GameSettings} is still constructing). Redirect Class-literal constructors to the
- * string form so resolution is deferred until first {@code exists()}/{@code getTargetClass()}.
+ * Uses ReflectorClass's registered string form so its reflective resolution is deferred.
+ * The Class argument is still loaded by the caller; ReflectorForge's initializer separately
+ * avoids entering Reflector during early client bootstrap.
  */
-@Mixin(targets = "net.optifine.reflect.Reflector")
+@Mixin(targets = "net.optifine.reflect.Reflector", remap = false)
 public abstract class MixinReflector {
 
     @Redirect(

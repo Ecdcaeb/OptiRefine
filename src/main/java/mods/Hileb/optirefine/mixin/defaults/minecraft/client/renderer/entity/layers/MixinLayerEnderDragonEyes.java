@@ -19,20 +19,30 @@ public abstract class MixinLayerEnderDragonEyes {
     @WrapOperation(method = "doRenderLayer(Lnet/minecraft/entity/boss/EntityDragon;FFFFFFF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/ModelBase;render(Lnet/minecraft/entity/Entity;FFFFFF)V"))
     // [AUDIT-OK] ModelBase.render INVOKE unique; begin/endSpiderEyes + renderOverlayEyes match OF LayerEnderDragonEyes:33-41 (OF reuses beginSpiderEyes for dragon)
     public void wrap_render(ModelBase instance, Entity entity, float v0, float v1, float v2, float v3, float v4, float v5, Operation<Void> original){
-        if (Config.isShaders()) {
+        boolean shaders = Config.isShaders();
+        net.optifine.shaders.Program oldProgram = shaders ? Shaders.activeProgram : null;
+        RenderGlobal renderGlobal = Config.getRenderGlobal();
+        boolean overlayEyes = RenderGlobal_renderOverlayEyes_get(renderGlobal);
+        if (shaders) {
             Shaders.beginSpiderEyes();
         }
-
-        RenderGlobal_renderOverlayEyes_set(Config.getRenderGlobal(), true);
-        instance.render(entity, v0, v1, v2, v3, v4, v5);
-        RenderGlobal_renderOverlayEyes_set(Config.getRenderGlobal(), false);
-        if (Config.isShaders()) {
-            // SpiderEyes?
-            Shaders.endSpiderEyes();
+        RenderGlobal_renderOverlayEyes_set(renderGlobal, true);
+        try {
+            original.call(instance, entity, v0, v1, v2, v3, v4, v5);
+        } finally {
+            RenderGlobal_renderOverlayEyes_set(renderGlobal, overlayEyes);
+            if (shaders) {
+                Shaders.endSpiderEyes();
+                net.minecraft.client.renderer.GlStateManager.alphaFunc(516, 0.1F);
+                Shaders.useProgram(oldProgram);
+            }
         }
     }
 
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.PUTFIELD, desc = "net.minecraft.client.renderer.RenderGlobal renderOverlayEyes Z")
     private static native void RenderGlobal_renderOverlayEyes_set(RenderGlobal renderGlobal, boolean val);
+
+    @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.RenderGlobal renderOverlayEyes Z")
+    private static native boolean RenderGlobal_renderOverlayEyes_get(RenderGlobal renderGlobal);
 }

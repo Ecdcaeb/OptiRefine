@@ -3,6 +3,7 @@ package mods.Hileb.optirefine.mixin.defaults.minecraft.client.gui;
 import com.llamalad7.mixinextras.expression.Definition;
 import com.llamalad7.mixinextras.expression.Expression;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -181,12 +182,12 @@ public abstract class MixinFontRenderer {
         }
     }
 
-// [AUDIT-OK] target ctor (GameSettings,ResourceLocation,TextureManager,Z) matches baseline; bindTexture invoke present
+    // Forge routes binding through FontRenderer.bindTexture, including construction.
     @WrapOperation(
             method = "<init>",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/texture/TextureManager;bindTexture(Lnet/minecraft/util/ResourceLocation;)V")
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/FontRenderer;bindTexture(Lnet/minecraft/util/ResourceLocation;)V")
     )
-    private void optiRefine$ctorBindHd(TextureManager self, ResourceLocation ignored, Operation<Void> original) {
+    private void optiRefine$ctorBindHd(FontRenderer self, ResourceLocation ignored, Operation<Void> original) {
         this.locationFontTexture = FontUtils.getHdFontLocation(this.locationFontTextureBase);
         original.call(self, this.locationFontTexture);
     }
@@ -351,28 +352,28 @@ public abstract class MixinFontRenderer {
 // [AUDIT-OK] OF renderStringAtPos: float var10 = var5 != -1 && !unicodeFlag ? offsetBold : 0.5F replaces
 // vanilla f1 = unicodeFlag ? 0.5F : 1.0F (shadow offset). First float-1.0F constant = the ternary else branch.
     @ModifyConstant(method = "renderStringAtPos", constant = @Constant(floatValue = 1.0F, ordinal = 0))
-    private float optiRefine$shadowOffset(float constant, @Local(ordinal = 3) int glyphIndex) {
+    private float optiRefine$shadowOffset(float constant, @Local(index = 5) int glyphIndex) {
         return glyphIndex != -1 && !this.unicodeFlag ? this.offsetBold : 0.5F;
     }
 
 // [AUDIT-OK] OF bold advance: var8 += var10 (same offsetBold formula) replaces vanilla ++f.
 // Second float-1.0F constant = the ++f bold advance.
     @ModifyConstant(method = "renderStringAtPos", constant = @Constant(floatValue = 1.0F, ordinal = 1))
-    private float optiRefine$boldAdvance(float constant, @Local(ordinal = 3) int glyphIndex) {
+    private float optiRefine$boldAdvance(float constant, @Local(index = 5) int glyphIndex) {
         return glyphIndex != -1 && !this.unicodeFlag ? this.offsetBold : 0.5F;
     }
 
-// [AUDIT-OK] target renderChar(CI)F matches baseline; single float-4.0F constant (space branch)
-    @ModifyConstant(method = "renderChar", constant = @Constant(floatValue = 4.0F))
-    private float optiRefine$renderCharSpaceWidth(float constant, char ch) {
-        return (!this.unicodeFlag) ? this.charWidthFloat[ch] : 4.0F;
-    }
 
 // [AUDIT-OK] expression matches baseline renderDefaultChar "(float)l - 0.01F"
     @Expression("? = @((float)? - 0.01)")
     @ModifyExpressionValue(method = "renderDefaultChar", at = @At("MIXINEXTRAS:EXPRESSION"))
     private float optiRefine$renderDefaultCharUseFloat(float original, @Local(argsOnly = true) int ch) {
         return this.charWidthFloat[ch] - 0.01F;
+    }
+
+    @ModifyReturnValue(method = "renderDefaultChar", at = @At("RETURN"))
+    private float optiRefine$renderDefaultCharWidth(float original, int ch, boolean italic) {
+        return this.charWidthFloat[ch];
     }
 
 // [AUDIT-OK] OF-added member (not in tsrg): MCP name setBlendState correct
@@ -392,24 +393,26 @@ public abstract class MixinFontRenderer {
         GlStateManager.enableBlend();
         GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
 
-        int ret = original.call(text, x, y, color, dropShadow);
-
-        optiRefine$setBlendState(this.oldBlendState);
-        return ret;
+        try {
+            return original.call(text, x, y, color, dropShadow);
+        } finally {
+            optiRefine$setBlendState(this.oldBlendState);
+        }
     }
 
 // [AUDIT-OK] target drawSplitString(Ljava/lang/String;IIII)V declared in baseline
     @WrapMethod(method = "drawSplitString")
     private void optiRefine$drawSplitStringBlend(String str, int x, int y, int wrapWidth, int textColor, Operation<Void> original) {
-        if (this.blend) {
-            optiRefine$getBlendState(this.oldBlendState);
-            GlStateManager.enableBlend();
-            GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+        if (!this.blend) {
+            original.call(str, x, y, wrapWidth, textColor);
+            return;
         }
-
-        original.call(str, x, y, wrapWidth, textColor);
-
-        if (this.blend) {
+        optiRefine$getBlendState(this.oldBlendState);
+        GlStateManager.enableBlend();
+        GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+        try {
+            original.call(str, x, y, wrapWidth, textColor);
+        } finally {
             optiRefine$setBlendState(this.oldBlendState);
         }
     }
@@ -420,15 +423,19 @@ public abstract class MixinFontRenderer {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/FontRenderer;sizeStringToWidth(Ljava/lang/String;I)I")
     )
     private int optiRefine$wrapWidthFast(FontRenderer self, String s, int width, Operation<Integer> original) {
-        if (s.length() <= 1) return 1;
-        return original.call(self, s, width);
+        int size = original.call(self, s, width);
+        int firstGlyph = 0;
+        while (firstGlyph + 1 < s.length() && s.charAt(firstGlyph) == '§') {
+            firstGlyph += 2;
+        }
+        return Math.max(size, Math.min(s.length(), firstGlyph + 1));
     }
 
 // [AUDIT-OK] OF-added helper, not in baseline
     @Unique
     private float optiRefine$getCharWidthFloat(char ch) {
         if (ch == 167) return -1.0F; // '§'
-        if (ch == ' ' || ch == 160) return this.charWidthFloat[32];
+        if (ch == ' ' || ch == 160) return this.unicodeFlag ? 4.0F : this.charWidthFloat[32];
 
         int idx = OPTIREFINE_CHARSET.indexOf(ch);
         if (ch > 0 && idx != -1 && !this.unicodeFlag) {
@@ -467,14 +474,14 @@ public abstract class MixinFontRenderer {
             if (cw < 0.0F && i < text.length() - 1) {
                 c = text.charAt(++i);
                 if (c == 'l' || c == 'L') bold = true;
-                else if (c == 'r' || c == 'R') bold = false;
+                else if (c == 'r' || c == 'R' || "0123456789abcdefABCDEF".indexOf(c) >= 0) bold = false;
                 cw = 0.0F;
             }
 
             w += cw;
 
             if (bold && cw > 0.0F) {
-                w += this.unicodeFlag ? 1.0F : this.offsetBold;
+                w += this.unicodeFlag || OPTIREFINE_CHARSET.indexOf(c) < 0 ? 0.5F : this.offsetBold;
             }
         }
 
@@ -502,13 +509,13 @@ public abstract class MixinFontRenderer {
             if (expectingFormat) {
                 expectingFormat = false;
                 if (c == 'l' || c == 'L') bold = true;
-                else if (c == 'r' || c == 'R') bold = false;
+                else if (c == 'r' || c == 'R' || "0123456789abcdefABCDEF".indexOf(c) >= 0) bold = false;
             } else if (cw < 0.0F) {
                 expectingFormat = true;
             } else {
                 w += cw;
                 if (bold && cw > 0.0F) {
-                    w += this.unicodeFlag ? 1.0F : this.offsetBold;
+                    w += this.unicodeFlag || OPTIREFINE_CHARSET.indexOf(c) < 0 ? 0.5F : this.offsetBold;
                 }
             }
 
@@ -539,6 +546,9 @@ public abstract class MixinFontRenderer {
                     break;
                 case ' ':
                     lastSpace = i;
+                    w += this.optiRefine$getCharWidthFloat(c);
+                    if (bold) w += this.unicodeFlag ? 0.5F : this.offsetBold;
+                    break;
                 case '§':
                     if (i < len - 1) {
                         ++i;
@@ -556,7 +566,7 @@ public abstract class MixinFontRenderer {
                 default:
                     w += this.optiRefine$getCharWidthFloat(c);
                     if (bold) {
-                        w += this.unicodeFlag ? 1.0F : this.offsetBold;
+                        w += this.unicodeFlag || OPTIREFINE_CHARSET.indexOf(c) < 0 ? 0.5F : this.offsetBold;
                     }
                     break;
             }
@@ -583,10 +593,10 @@ public abstract class MixinFontRenderer {
         return original.call(ch, italic);
     }
 
-// [AUDIT-OK] expression matches baseline renderStringAtPos "(float)((int)f)"
+    // Forge extracted the glyph advance into doDraw; preserve its render hook.
     @Expression("(float)((int)?)")
-    @ModifyExpressionValue(method = "renderStringAtPos", at = @At("MIXINEXTRAS:EXPRESSION"))
-    private float optiRefine$renderStringAtPosFloatStep(float truncated, @Local(ordinal = 1) float f) {
+    @ModifyExpressionValue(method = "doDraw", at = @At("MIXINEXTRAS:EXPRESSION"))
+    private float optiRefine$renderStringAtPosFloatStep(float truncated, @Local(argsOnly = true) float f) {
         return f;
     }
 

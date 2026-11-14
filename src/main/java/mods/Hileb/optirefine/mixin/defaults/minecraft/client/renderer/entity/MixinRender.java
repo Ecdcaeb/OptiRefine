@@ -4,12 +4,11 @@ import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
-import com.llamalad7.mixinextras.sugar.Share;
-import com.llamalad7.mixinextras.sugar.ref.LocalBooleanRef;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessTransformer;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.renderer.BufferBuilder;
+import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.BlockRenderLayer;
@@ -41,7 +40,7 @@ public abstract class MixinRender {
     private ResourceLocation locationTextureCustom;
 
     @SuppressWarnings("unused")
-    @AccessTransformer(name = "shadowSize", access = org.objectweb.asm.Opcodes.ACC_PUBLIC)
+    @AccessTransformer(name = "field_76989_e", deobf = true, access = org.objectweb.asm.Opcodes.ACC_PUBLIC)
     // [AUDIT-OK] AT shadowSize: vanilla protected (deobf:33) -> public, matches OF:32
     public float acc_shadowSize;
 
@@ -51,28 +50,26 @@ public abstract class MixinRender {
         return this.locationTextureCustom != null ? this.locationTextureCustom : original.call(instance, entity);
     }
 
-    @Inject(method = "renderEntityOnFire", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/BufferBuilder;begin(ILnet/minecraft/client/renderer/vertex/VertexFormat;)V"))
-    // [AUDIT-OK] renderEntityOnFire baseline; setBlockLayer(SOLID) before begin matches OF:129-131
-    public void before_renderEntityOnFire(Entity entity, double x, double y, double z, float partialTicks, CallbackInfo ci, @Share(namespace = "optirefine", value = "multitexture")LocalBooleanRef multitextureRef, @Local(ordinal = 0) BufferBuilder builder){
-        boolean multitexture = Config.isMultiTexture();
-        if (multitexture) {
-            BufferBuilder_setBlockLayer(builder, BlockRenderLayer.SOLID);
+    @WrapMethod(method = "renderEntityOnFire")
+    private void optiRefine$renderFire(Entity entity, double x, double y, double z, float partialTicks, Operation<Void> original) {
+        if (!Config.isMultiTexture()) {
+            original.call(entity, x, y, z, partialTicks);
+            return;
         }
-        multitextureRef.set(multitexture);
+        BufferBuilder builder = Tessellator.getInstance().getBuffer();
+        BufferBuilder_setBlockLayer(builder, BlockRenderLayer.SOLID);
+        try {
+            original.call(entity, x, y, z, partialTicks);
+        } finally {
+            BufferBuilder_setBlockLayer(builder, null);
+            GlStateManager_bindCurrentTexture();
+        }
     }
 
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.BufferBuilder setBlockLayer (Lnet.minecraft.util.BlockRenderLayer;)V")
     private static native void BufferBuilder_setBlockLayer(BufferBuilder builder, BlockRenderLayer layer);
 
-    @Inject(method = "renderEntityOnFire", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/Tessellator;draw()V", shift = At.Shift.AFTER))
-    // [AUDIT-FIXED] cleanup AFTER Tessellator.draw (INVOKE fires pre-call by default; OF:163-164 cleans up after draw)
-    public void after_renderEntityOnFire(Entity entity, double x, double y, double z, float partialTicks, CallbackInfo ci, @Share(namespace = "optirefine", value = "multitexture")LocalBooleanRef multitextureRef, @Local(ordinal = 0) BufferBuilder builder){
-        if (multitextureRef.get()) {
-            BufferBuilder_setBlockLayer(builder, null);
-            GlStateManager_bindCurrentTexture();
-        }
-    }
 
     @Inject(method = "renderEntityOnFire", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/Render;bindTexture(Lnet/minecraft/util/ResourceLocation;)V"))
     // [AUDIT-FIXED] 2026-08-05: OF:138 sets the per-iteration fire sprite before the quads

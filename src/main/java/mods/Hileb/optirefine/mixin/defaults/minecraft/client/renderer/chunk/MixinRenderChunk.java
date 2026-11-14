@@ -46,6 +46,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
@@ -184,13 +185,16 @@ public abstract class MixinRenderChunk {
         // [AUDIT-FIXED] three-way audit (2026-08-05): OF:235 aboolean[fixed ordinal] |= b (var43 = fixBlockLayer(...).ordinal(), OF:223-224);
         // unfixed ordinal mis-indexes layersUsed when fixBlockLayer remaps (mipmaps/CustomBlockLayers)
         // -> RenderGlobal.isLayerEmpty skips populated layer, block invisible.
-        aboolean[this.optiRefine$fixBlockLayer(enumblockrendertype, blockRenderLayer).ordinal()] |= b;
+        int layerIndex = this.optiRefine$fixBlockLayer(enumblockrendertype, blockRenderLayer).ordinal();
+        aboolean[layerIndex] |= b;
         RenderEnv renderEnv = renderEnvLocalRef.get();
         if (renderEnv != null && renderEnv.isOverlaysRendered()) {
             this.optiRefine$postRenderOverlays(generator.getRegionRenderCacheBuilder(), compiledchunk, aboolean);
             renderEnv.setOverlaysRendered(false);
         }
-        return b;
+        // The caller has already loaded the old flag for its |= expression.
+        // Preserve overlays added above when that pending array store completes.
+        return aboolean[layerIndex];
     }
 
     @WrapOperation(method = "rebuildChunk", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/chunk/RenderChunk;postRenderBlocks(Lnet/minecraft/util/BlockRenderLayer;FFFLnet/minecraft/client/renderer/BufferBuilder;Lnet/minecraft/client/renderer/chunk/CompiledChunk;)V"))
@@ -351,14 +355,19 @@ public abstract class MixinRenderChunk {
         }
     }
 
+    @ModifyVariable(method = "rebuildChunk", at = @At("STORE"), ordinal = 0)
+    private BlockPos optiRefine$snapshotCompilePosition(BlockPos pos) {
+        return pos.toImmutable();
+    }
+
     //@Deprecated worldView
     @Redirect(method = "rebuildChunk", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/ChunkCache;isEmpty()Z"))
     // [AUDIT-OK] ChunkCacheOF swap + renderStart/renderFinish match OF rebuildChunk:292-310
-    public boolean ifWorldViewEmpty(ChunkCache instance, @Share(namespace = "optifine", value = "chunkCacheOF") LocalRef<IBlockAccess> chunkCacheOF){
-        if (this.isChunkRegionEmpty()) {
+    public boolean ifWorldViewEmpty(ChunkCache instance, @Local(ordinal = 0) BlockPos pos, @Share(namespace = "optifine", value = "chunkCacheOF") LocalRef<IBlockAccess> chunkCacheOF){
+        if (this.optiRefine$isChunkRegionEmpty(pos)) {
             return true;
         } else {
-            ChunkCacheOF chunkCacheOF_ = optiRefine$makeChunkCacheOF(this.position);
+            ChunkCacheOF chunkCacheOF_ = optiRefine$makeChunkCacheOF(pos);
             chunkCacheOF_.renderStart();
             chunkCacheOF.set(chunkCacheOF_);
             return false;
@@ -445,7 +454,8 @@ public abstract class MixinRenderChunk {
     @SuppressWarnings("AddedMixinMembersNamePattern")
     private Chunk getChunk(BlockPos posIn) {
         Chunk chunkLocal = this.chunk;
-        if (chunkLocal != null && chunkLocal.isLoaded()) {
+        if (chunkLocal != null && chunkLocal.isLoaded()
+                && chunkLocal.x == posIn.getX() >> 4 && chunkLocal.z == posIn.getZ() >> 4) {
             return chunkLocal;
         } else {
             chunkLocal = this.world.getChunk(posIn);

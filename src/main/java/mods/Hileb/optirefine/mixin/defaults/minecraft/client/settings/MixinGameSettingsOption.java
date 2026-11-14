@@ -2,214 +2,173 @@ package mods.Hileb.optirefine.mixin.defaults.minecraft.client.settings;
 
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
-import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessTransformer;
 import mods.Hileb.optirefine.optifine.Config;
-import mods.Hileb.optirefine.optifine.client.GameSettingsOptionOF;
 import net.minecraft.client.settings.GameSettings;
+import net.minecraftforge.common.util.EnumHelper;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
 @Mixin(GameSettings.Options.class)
-// [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
 public abstract class MixinGameSettingsOption {
-    // [AUDIT-NOTE] dead @Unique fields (no longer used; enum creation unified via GameSettingsOptionOF)
-    private static final Class<?>[] _optirefine_args0 = new Class[]{String.class, boolean.class, boolean.class};
-    @Unique
-    private static final Class<?>[] _optirefine_args1 = new Class[]{String.class, boolean.class, boolean.class, float.class, float.class, float.class};
-
-    @SuppressWarnings("unused")
-    // [AUDIT-OK] OF-added enum constants (72 total, FOG_FANCY..SMART_ANIMATIONS); private static final + @Public; unified via GameSettingsOptionOF - NO EnumHelper.addEnum in this file (verified)
-    @Public private static final GameSettings.Options FOG_FANCY = GameSettingsOptionOF.FOG_FANCY;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options FOG_START = GameSettingsOptionOF.FOG_START;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options MIPMAP_TYPE = GameSettingsOptionOF.MIPMAP_TYPE;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options SMOOTH_FPS = GameSettingsOptionOF.SMOOTH_FPS;
-    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    // [AUDIT-OK] OF-added enum constant (unified via GameSettingsOptionOF)
-    @Public private static final GameSettings.Options CLOUDS = GameSettingsOptionOF.CLOUDS;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options CLOUD_HEIGHT = GameSettingsOptionOF.CLOUD_HEIGHT;
-    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    // [AUDIT-OK] OF-added enum constant (unified via GameSettingsOptionOF)
-    @Public private static final GameSettings.Options TREES = GameSettingsOptionOF.TREES;
-    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Public private static final GameSettings.Options RAIN = GameSettingsOptionOF.RAIN;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options ANIMATED_WATER = GameSettingsOptionOF.ANIMATED_WATER;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options ANIMATED_LAVA = GameSettingsOptionOF.ANIMATED_LAVA;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options ANIMATED_FIRE = GameSettingsOptionOF.ANIMATED_FIRE;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options ANIMATED_PORTAL = GameSettingsOptionOF.ANIMATED_PORTAL;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options AO_LEVEL = GameSettingsOptionOF.AO_LEVEL;
-    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Public private static final GameSettings.Options LAGOMETER = GameSettingsOptionOF.LAGOMETER;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options SHOW_FPS = GameSettingsOptionOF.SHOW_FPS;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options AUTOSAVE_TICKS = GameSettingsOptionOF.AUTOSAVE_TICKS;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options BETTER_GRASS = GameSettingsOptionOF.BETTER_GRASS;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options ANIMATED_REDSTONE = GameSettingsOptionOF.ANIMATED_REDSTONE;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options ANIMATED_EXPLOSION = GameSettingsOptionOF.ANIMATED_EXPLOSION;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options ANIMATED_FLAME = GameSettingsOptionOF.ANIMATED_FLAME;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options ANIMATED_SMOKE = GameSettingsOptionOF.ANIMATED_SMOKE;
-    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Public private static final GameSettings.Options WEATHER = GameSettingsOptionOF.WEATHER;
-    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Public private static final GameSettings.Options SKY = GameSettingsOptionOF.SKY;
-    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Public private static final GameSettings.Options STARS = GameSettingsOptionOF.STARS;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options SUN_MOON = GameSettingsOptionOF.SUN_MOON;
-    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Public private static final GameSettings.Options VIGNETTE = GameSettingsOptionOF.VIGNETTE;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options CHUNK_UPDATES = GameSettingsOptionOF.CHUNK_UPDATES;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options CHUNK_UPDATES_DYNAMIC = GameSettingsOptionOF.CHUNK_UPDATES_DYNAMIC;
-    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Public private static final GameSettings.Options TIME = GameSettingsOptionOF.TIME;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options CLEAR_WATER = GameSettingsOptionOF.CLEAR_WATER;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options SMOOTH_WORLD = GameSettingsOptionOF.SMOOTH_WORLD;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options VOID_PARTICLES = GameSettingsOptionOF.VOID_PARTICLES;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options WATER_PARTICLES = GameSettingsOptionOF.WATER_PARTICLES;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options RAIN_SPLASH = GameSettingsOptionOF.RAIN_SPLASH;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options PORTAL_PARTICLES = GameSettingsOptionOF.PORTAL_PARTICLES;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options POTION_PARTICLES = GameSettingsOptionOF.POTION_PARTICLES;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options FIREWORK_PARTICLES = GameSettingsOptionOF.FIREWORK_PARTICLES;
-    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-    @Public private static final GameSettings.Options PROFILER = GameSettingsOptionOF.PROFILER;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options DRIPPING_WATER_LAVA = GameSettingsOptionOF.DRIPPING_WATER_LAVA;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options BETTER_SNOW = GameSettingsOptionOF.BETTER_SNOW;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options FULLSCREEN_MODE = GameSettingsOptionOF.FULLSCREEN_MODE;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options ANIMATED_TERRAIN = GameSettingsOptionOF.ANIMATED_TERRAIN;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options SWAMP_COLORS = GameSettingsOptionOF.SWAMP_COLORS;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options RANDOM_ENTITIES = GameSettingsOptionOF.RANDOM_ENTITIES;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options SMOOTH_BIOMES = GameSettingsOptionOF.SMOOTH_BIOMES;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options CUSTOM_FONTS = GameSettingsOptionOF.CUSTOM_FONTS;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options CUSTOM_COLORS = GameSettingsOptionOF.CUSTOM_COLORS;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options SHOW_CAPES = GameSettingsOptionOF.SHOW_CAPES;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options CONNECTED_TEXTURES = GameSettingsOptionOF.CONNECTED_TEXTURES;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options CUSTOM_ITEMS = GameSettingsOptionOF.CUSTOM_ITEMS;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options AA_LEVEL = GameSettingsOptionOF.AA_LEVEL;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options AF_LEVEL = GameSettingsOptionOF.AF_LEVEL;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options ANIMATED_TEXTURES = GameSettingsOptionOF.ANIMATED_TEXTURES;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options NATURAL_TEXTURES = GameSettingsOptionOF.NATURAL_TEXTURES;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options EMISSIVE_TEXTURES = GameSettingsOptionOF.EMISSIVE_TEXTURES;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options HELD_ITEM_TOOLTIPS = GameSettingsOptionOF.HELD_ITEM_TOOLTIPS;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options DROPPED_ITEMS = GameSettingsOptionOF.DROPPED_ITEMS;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options LAZY_CHUNK_LOADING = GameSettingsOptionOF.LAZY_CHUNK_LOADING;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options CUSTOM_SKY = GameSettingsOptionOF.CUSTOM_SKY;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options FAST_MATH = GameSettingsOptionOF.FAST_MATH;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options FAST_RENDER = GameSettingsOptionOF.FAST_RENDER;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options TRANSLUCENT_BLOCKS = GameSettingsOptionOF.TRANSLUCENT_BLOCKS;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options DYNAMIC_FOV = GameSettingsOptionOF.DYNAMIC_FOV;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options DYNAMIC_LIGHTS = GameSettingsOptionOF.DYNAMIC_LIGHTS;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options ALTERNATE_BLOCKS = GameSettingsOptionOF.ALTERNATE_BLOCKS;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options CUSTOM_ENTITY_MODELS = GameSettingsOptionOF.CUSTOM_ENTITY_MODELS;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options ADVANCED_TOOLTIPS = GameSettingsOptionOF.ADVANCED_TOOLTIPS;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options SCREENSHOT_SIZE = GameSettingsOptionOF.SCREENSHOT_SIZE;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options CUSTOM_GUIS = GameSettingsOptionOF.CUSTOM_GUIS;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options RENDER_REGIONS = GameSettingsOptionOF.RENDER_REGIONS;
-    @SuppressWarnings("unused")
-    @Public private static final GameSettings.Options SHOW_GL_ERRORS = GameSettingsOptionOF.SHOW_GL_ERRORS;
-    @SuppressWarnings("unused")
-    // [AUDIT-OK] OF-added enum constant (unified via GameSettingsOptionOF)
-    @Public private static final GameSettings.Options SMART_ANIMATIONS = GameSettingsOptionOF.SMART_ANIMATIONS;
+    @Public private static GameSettings.Options FOG_FANCY;
+    @Public private static GameSettings.Options FOG_START;
+    @Public private static GameSettings.Options MIPMAP_TYPE;
+    @Public private static GameSettings.Options SMOOTH_FPS;
+    @Public private static GameSettings.Options CLOUDS;
+    @Public private static GameSettings.Options CLOUD_HEIGHT;
+    @Public private static GameSettings.Options TREES;
+    @Public private static GameSettings.Options RAIN;
+    @Public private static GameSettings.Options ANIMATED_WATER;
+    @Public private static GameSettings.Options ANIMATED_LAVA;
+    @Public private static GameSettings.Options ANIMATED_FIRE;
+    @Public private static GameSettings.Options ANIMATED_PORTAL;
+    @Public private static GameSettings.Options AO_LEVEL;
+    @Public private static GameSettings.Options LAGOMETER;
+    @Public private static GameSettings.Options SHOW_FPS;
+    @Public private static GameSettings.Options AUTOSAVE_TICKS;
+    @Public private static GameSettings.Options BETTER_GRASS;
+    @Public private static GameSettings.Options ANIMATED_REDSTONE;
+    @Public private static GameSettings.Options ANIMATED_EXPLOSION;
+    @Public private static GameSettings.Options ANIMATED_FLAME;
+    @Public private static GameSettings.Options ANIMATED_SMOKE;
+    @Public private static GameSettings.Options WEATHER;
+    @Public private static GameSettings.Options SKY;
+    @Public private static GameSettings.Options STARS;
+    @Public private static GameSettings.Options SUN_MOON;
+    @Public private static GameSettings.Options VIGNETTE;
+    @Public private static GameSettings.Options CHUNK_UPDATES;
+    @Public private static GameSettings.Options CHUNK_UPDATES_DYNAMIC;
+    @Public private static GameSettings.Options TIME;
+    @Public private static GameSettings.Options CLEAR_WATER;
+    @Public private static GameSettings.Options SMOOTH_WORLD;
+    @Public private static GameSettings.Options VOID_PARTICLES;
+    @Public private static GameSettings.Options WATER_PARTICLES;
+    @Public private static GameSettings.Options RAIN_SPLASH;
+    @Public private static GameSettings.Options PORTAL_PARTICLES;
+    @Public private static GameSettings.Options POTION_PARTICLES;
+    @Public private static GameSettings.Options FIREWORK_PARTICLES;
+    @Public private static GameSettings.Options PROFILER;
+    @Public private static GameSettings.Options DRIPPING_WATER_LAVA;
+    @Public private static GameSettings.Options BETTER_SNOW;
+    @Public private static GameSettings.Options FULLSCREEN_MODE;
+    @Public private static GameSettings.Options ANIMATED_TERRAIN;
+    @Public private static GameSettings.Options SWAMP_COLORS;
+    @Public private static GameSettings.Options RANDOM_ENTITIES;
+    @Public private static GameSettings.Options SMOOTH_BIOMES;
+    @Public private static GameSettings.Options CUSTOM_FONTS;
+    @Public private static GameSettings.Options CUSTOM_COLORS;
+    @Public private static GameSettings.Options SHOW_CAPES;
+    @Public private static GameSettings.Options CONNECTED_TEXTURES;
+    @Public private static GameSettings.Options CUSTOM_ITEMS;
+    @Public private static GameSettings.Options AA_LEVEL;
+    @Public private static GameSettings.Options AF_LEVEL;
+    @Public private static GameSettings.Options ANIMATED_TEXTURES;
+    @Public private static GameSettings.Options NATURAL_TEXTURES;
+    @Public private static GameSettings.Options EMISSIVE_TEXTURES;
+    @Public private static GameSettings.Options HELD_ITEM_TOOLTIPS;
+    @Public private static GameSettings.Options DROPPED_ITEMS;
+    @Public private static GameSettings.Options LAZY_CHUNK_LOADING;
+    @Public private static GameSettings.Options CUSTOM_SKY;
+    @Public private static GameSettings.Options FAST_MATH;
+    @Public private static GameSettings.Options FAST_RENDER;
+    @Public private static GameSettings.Options TRANSLUCENT_BLOCKS;
+    @Public private static GameSettings.Options DYNAMIC_FOV;
+    @Public private static GameSettings.Options DYNAMIC_LIGHTS;
+    @Public private static GameSettings.Options ALTERNATE_BLOCKS;
+    @Public private static GameSettings.Options CUSTOM_ENTITY_MODELS;
+    @Public private static GameSettings.Options ADVANCED_TOOLTIPS;
+    @Public private static GameSettings.Options SCREENSHOT_SIZE;
+    @Public private static GameSettings.Options CUSTOM_GUIS;
+    @Public private static GameSettings.Options RENDER_REGIONS;
+    @Public private static GameSettings.Options SHOW_GL_ERRORS;
+    @Public private static GameSettings.Options SMART_ANIMATIONS;
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.PUTFIELD, desc = "net.minecraft.client.settings.GameSettings$Options field_148271_N F", deobf = true)
     // [AUDIT-OK] vanilla SRG field_148271_N = valueMin, deobf=true (per contract)
     private static native void Options_valueMin_set(GameSettings.Options options, float value);
 
-    @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessibleOperation(opcode = Opcodes.PUTFIELD, desc = "net.minecraft.client.settings.GameSettings$Options field_148272_O F", deobf = true)
-    // [AUDIT-OK] vanilla SRG field_148272_O = valueMax, deobf=true (per contract)
-    private static native void Options_valueMax_set(GameSettings.Options options, float value);
-
-    @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessTransformer(name = "field_148270_M", access = Opcodes.ACC_PUBLIC, deobf = true)
-    // [AUDIT-OK] vanilla SRG field_148270_M = valueStep; AT access=ACC_PUBLIC REPLACES flags -> drops ACC_FINAL, making <clinit> PUTFIELD legal (matches "final drop" intent)
-    private float acc_valueStep;
-
-    @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessibleOperation(opcode = Opcodes.PUTFIELD, desc = "net.minecraft.client.settings.GameSettings$Options field_148270_M F", deobf = true)
-    // [AUDIT-OK] vanilla SRG field_148270_M = valueStep, deobf=true (per contract)
-    private static native void Options_valueStep_set(GameSettings.Options options, float value);
 
     @Inject(method = "<clinit>", at = @At("TAIL"))
-    // [AUDIT-OK] target <clinit> static -> static handler; TAIL value table matches OF Options ctor defaults exactly (FOV 30/110/1, RENDER_DISTANCE 2/16/1, FRAMERATE_LIMIT 0/260/5, MIPMAP_LEVELS 0/4/1, MIPMAP_TYPE 0/3/1, FULLSCREEN_MODE 0/displayModes/1, AA_LEVEL 0/16/1, AF_LEVEL 1/16/1, default 0/1/0). Ordering OK: static field inits (EnumHelper via GameSettingsOptionOF) applied in MAIN pass before INJECT_APPLY TAIL handler -> values() includes OF constants
     private static void optiRefine$initOptionValues(CallbackInfo ci) {
-        for (GameSettings.Options opt : GameSettings.Options.values()) {
-            float min = 0.0F;
-            float max = 1.0F;
-            float step = 0.0F;
-            switch (opt.name()) {
-                case "FOV": min = 30.0F; max = 110.0F; step = 1.0F; break;
-                case "RENDER_DISTANCE": min = 2.0F; max = 16.0F; step = 1.0F; break;
-                case "FRAMERATE_LIMIT": min = 0.0F; max = 260.0F; step = 5.0F; break;
-                case "MIPMAP_LEVELS": min = 0.0F; max = 4.0F; step = 1.0F; break;
-                case "MIPMAP_TYPE": min = 0.0F; max = 3.0F; step = 1.0F; break;
-                case "FULLSCREEN_MODE": min = 0.0F; max = (float) Config.getDisplayModes().length; step = 1.0F; break;
-                case "AA_LEVEL": min = 0.0F; max = 16.0F; step = 1.0F; break;
-                case "AF_LEVEL": min = 1.0F; max = 16.0F; step = 1.0F; break;
-                default: break;
-            }
-            Options_valueMin_set(opt, min);
-            Options_valueMax_set(opt, max);
-            Options_valueStep_set(opt, step);
-        }
+        // Register only after vanilla has assigned $VALUES. The helper class reads
+        // these constants after this initializer completes, in either load order.
+        Class<?>[] args = {String.class, boolean.class, boolean.class};
+        Class<?>[] rangeArgs = {String.class, boolean.class, boolean.class, float.class, float.class, float.class};
+        FOG_FANCY = EnumHelper.addEnum(GameSettings.Options.class, "FOG_FANCY", args, "of.options.FOG_FANCY", false, false);
+        FOG_START = EnumHelper.addEnum(GameSettings.Options.class, "FOG_START", args, "of.options.FOG_START", false, false);
+        MIPMAP_TYPE = EnumHelper.addEnum(GameSettings.Options.class, "MIPMAP_TYPE", rangeArgs, "of.options.MIPMAP_TYPE", true, false, 0.0F, 3.0F, 1.0F);
+        SMOOTH_FPS = EnumHelper.addEnum(GameSettings.Options.class, "SMOOTH_FPS", args, "of.options.SMOOTH_FPS", false, false);
+        CLOUDS = EnumHelper.addEnum(GameSettings.Options.class, "CLOUDS", args, "of.options.CLOUDS", false, false);
+        CLOUD_HEIGHT = EnumHelper.addEnum(GameSettings.Options.class, "CLOUD_HEIGHT", args, "of.options.CLOUD_HEIGHT", true, false);
+        TREES = EnumHelper.addEnum(GameSettings.Options.class, "TREES", args, "of.options.TREES", false, false);
+        RAIN = EnumHelper.addEnum(GameSettings.Options.class, "RAIN", args, "of.options.RAIN", false, false);
+        ANIMATED_WATER = EnumHelper.addEnum(GameSettings.Options.class, "ANIMATED_WATER", args, "of.options.ANIMATED_WATER", false, false);
+        ANIMATED_LAVA = EnumHelper.addEnum(GameSettings.Options.class, "ANIMATED_LAVA", args, "of.options.ANIMATED_LAVA", false, false);
+        ANIMATED_FIRE = EnumHelper.addEnum(GameSettings.Options.class, "ANIMATED_FIRE", args, "of.options.ANIMATED_FIRE", false, false);
+        ANIMATED_PORTAL = EnumHelper.addEnum(GameSettings.Options.class, "ANIMATED_PORTAL", args, "of.options.ANIMATED_PORTAL", false, false);
+        AO_LEVEL = EnumHelper.addEnum(GameSettings.Options.class, "AO_LEVEL", args, "of.options.AO_LEVEL", true, false);
+        LAGOMETER = EnumHelper.addEnum(GameSettings.Options.class, "LAGOMETER", args, "of.options.LAGOMETER", false, false);
+        SHOW_FPS = EnumHelper.addEnum(GameSettings.Options.class, "SHOW_FPS", args, "of.options.SHOW_FPS", false, false);
+        AUTOSAVE_TICKS = EnumHelper.addEnum(GameSettings.Options.class, "AUTOSAVE_TICKS", args, "of.options.AUTOSAVE_TICKS", false, false);
+        BETTER_GRASS = EnumHelper.addEnum(GameSettings.Options.class, "BETTER_GRASS", args, "of.options.BETTER_GRASS", false, false);
+        ANIMATED_REDSTONE = EnumHelper.addEnum(GameSettings.Options.class, "ANIMATED_REDSTONE", args, "of.options.ANIMATED_REDSTONE", false, false);
+        ANIMATED_EXPLOSION = EnumHelper.addEnum(GameSettings.Options.class, "ANIMATED_EXPLOSION", args, "of.options.ANIMATED_EXPLOSION", false, false);
+        ANIMATED_FLAME = EnumHelper.addEnum(GameSettings.Options.class, "ANIMATED_FLAME", args, "of.options.ANIMATED_FLAME", false, false);
+        ANIMATED_SMOKE = EnumHelper.addEnum(GameSettings.Options.class, "ANIMATED_SMOKE", args, "of.options.ANIMATED_SMOKE", false, false);
+        WEATHER = EnumHelper.addEnum(GameSettings.Options.class, "WEATHER", args, "of.options.WEATHER", false, false);
+        SKY = EnumHelper.addEnum(GameSettings.Options.class, "SKY", args, "of.options.SKY", false, false);
+        STARS = EnumHelper.addEnum(GameSettings.Options.class, "STARS", args, "of.options.STARS", false, false);
+        SUN_MOON = EnumHelper.addEnum(GameSettings.Options.class, "SUN_MOON", args, "of.options.SUN_MOON", false, false);
+        VIGNETTE = EnumHelper.addEnum(GameSettings.Options.class, "VIGNETTE", args, "of.options.VIGNETTE", false, false);
+        CHUNK_UPDATES = EnumHelper.addEnum(GameSettings.Options.class, "CHUNK_UPDATES", args, "of.options.CHUNK_UPDATES", false, false);
+        CHUNK_UPDATES_DYNAMIC = EnumHelper.addEnum(GameSettings.Options.class, "CHUNK_UPDATES_DYNAMIC", args, "of.options.CHUNK_UPDATES_DYNAMIC", false, false);
+        TIME = EnumHelper.addEnum(GameSettings.Options.class, "TIME", args, "of.options.TIME", false, false);
+        CLEAR_WATER = EnumHelper.addEnum(GameSettings.Options.class, "CLEAR_WATER", args, "of.options.CLEAR_WATER", false, false);
+        SMOOTH_WORLD = EnumHelper.addEnum(GameSettings.Options.class, "SMOOTH_WORLD", args, "of.options.SMOOTH_WORLD", false, false);
+        VOID_PARTICLES = EnumHelper.addEnum(GameSettings.Options.class, "VOID_PARTICLES", args, "of.options.VOID_PARTICLES", false, false);
+        WATER_PARTICLES = EnumHelper.addEnum(GameSettings.Options.class, "WATER_PARTICLES", args, "of.options.WATER_PARTICLES", false, false);
+        RAIN_SPLASH = EnumHelper.addEnum(GameSettings.Options.class, "RAIN_SPLASH", args, "of.options.RAIN_SPLASH", false, false);
+        PORTAL_PARTICLES = EnumHelper.addEnum(GameSettings.Options.class, "PORTAL_PARTICLES", args, "of.options.PORTAL_PARTICLES", false, false);
+        POTION_PARTICLES = EnumHelper.addEnum(GameSettings.Options.class, "POTION_PARTICLES", args, "of.options.POTION_PARTICLES", false, false);
+        FIREWORK_PARTICLES = EnumHelper.addEnum(GameSettings.Options.class, "FIREWORK_PARTICLES", args, "of.options.FIREWORK_PARTICLES", false, false);
+        PROFILER = EnumHelper.addEnum(GameSettings.Options.class, "PROFILER", args, "of.options.PROFILER", false, false);
+        DRIPPING_WATER_LAVA = EnumHelper.addEnum(GameSettings.Options.class, "DRIPPING_WATER_LAVA", args, "of.options.DRIPPING_WATER_LAVA", false, false);
+        BETTER_SNOW = EnumHelper.addEnum(GameSettings.Options.class, "BETTER_SNOW", args, "of.options.BETTER_SNOW", false, false);
+        FULLSCREEN_MODE = EnumHelper.addEnum(GameSettings.Options.class, "FULLSCREEN_MODE", rangeArgs, "of.options.FULLSCREEN_MODE", true, false, 0.0F, (float) Config.getDisplayModes().length, 1.0F);
+        ANIMATED_TERRAIN = EnumHelper.addEnum(GameSettings.Options.class, "ANIMATED_TERRAIN", args, "of.options.ANIMATED_TERRAIN", false, false);
+        SWAMP_COLORS = EnumHelper.addEnum(GameSettings.Options.class, "SWAMP_COLORS", args, "of.options.SWAMP_COLORS", false, false);
+        RANDOM_ENTITIES = EnumHelper.addEnum(GameSettings.Options.class, "RANDOM_ENTITIES", args, "of.options.RANDOM_ENTITIES", false, false);
+        SMOOTH_BIOMES = EnumHelper.addEnum(GameSettings.Options.class, "SMOOTH_BIOMES", args, "of.options.SMOOTH_BIOMES", false, false);
+        CUSTOM_FONTS = EnumHelper.addEnum(GameSettings.Options.class, "CUSTOM_FONTS", args, "of.options.CUSTOM_FONTS", false, false);
+        CUSTOM_COLORS = EnumHelper.addEnum(GameSettings.Options.class, "CUSTOM_COLORS", args, "of.options.CUSTOM_COLORS", false, false);
+        SHOW_CAPES = EnumHelper.addEnum(GameSettings.Options.class, "SHOW_CAPES", args, "of.options.SHOW_CAPES", false, false);
+        CONNECTED_TEXTURES = EnumHelper.addEnum(GameSettings.Options.class, "CONNECTED_TEXTURES", args, "of.options.CONNECTED_TEXTURES", false, false);
+        CUSTOM_ITEMS = EnumHelper.addEnum(GameSettings.Options.class, "CUSTOM_ITEMS", args, "of.options.CUSTOM_ITEMS", false, false);
+        AA_LEVEL = EnumHelper.addEnum(GameSettings.Options.class, "AA_LEVEL", rangeArgs, "of.options.AA_LEVEL", true, false, 0.0F, 16.0F, 1.0F);
+        AF_LEVEL = EnumHelper.addEnum(GameSettings.Options.class, "AF_LEVEL", rangeArgs, "of.options.AF_LEVEL", true, false, 1.0F, 16.0F, 1.0F);
+        ANIMATED_TEXTURES = EnumHelper.addEnum(GameSettings.Options.class, "ANIMATED_TEXTURES", args, "of.options.ANIMATED_TEXTURES", false, false);
+        NATURAL_TEXTURES = EnumHelper.addEnum(GameSettings.Options.class, "NATURAL_TEXTURES", args, "of.options.NATURAL_TEXTURES", false, false);
+        EMISSIVE_TEXTURES = EnumHelper.addEnum(GameSettings.Options.class, "EMISSIVE_TEXTURES", args, "of.options.EMISSIVE_TEXTURES", false, false);
+        HELD_ITEM_TOOLTIPS = EnumHelper.addEnum(GameSettings.Options.class, "HELD_ITEM_TOOLTIPS", args, "of.options.HELD_ITEM_TOOLTIPS", false, false);
+        DROPPED_ITEMS = EnumHelper.addEnum(GameSettings.Options.class, "DROPPED_ITEMS", args, "of.options.DROPPED_ITEMS", false, false);
+        LAZY_CHUNK_LOADING = EnumHelper.addEnum(GameSettings.Options.class, "LAZY_CHUNK_LOADING", args, "of.options.LAZY_CHUNK_LOADING", false, false);
+        CUSTOM_SKY = EnumHelper.addEnum(GameSettings.Options.class, "CUSTOM_SKY", args, "of.options.CUSTOM_SKY", false, false);
+        FAST_MATH = EnumHelper.addEnum(GameSettings.Options.class, "FAST_MATH", args, "of.options.FAST_MATH", false, false);
+        FAST_RENDER = EnumHelper.addEnum(GameSettings.Options.class, "FAST_RENDER", args, "of.options.FAST_RENDER", false, false);
+        TRANSLUCENT_BLOCKS = EnumHelper.addEnum(GameSettings.Options.class, "TRANSLUCENT_BLOCKS", args, "of.options.TRANSLUCENT_BLOCKS", false, false);
+        DYNAMIC_FOV = EnumHelper.addEnum(GameSettings.Options.class, "DYNAMIC_FOV", args, "of.options.DYNAMIC_FOV", false, false);
+        DYNAMIC_LIGHTS = EnumHelper.addEnum(GameSettings.Options.class, "DYNAMIC_LIGHTS", args, "of.options.DYNAMIC_LIGHTS", false, false);
+        ALTERNATE_BLOCKS = EnumHelper.addEnum(GameSettings.Options.class, "ALTERNATE_BLOCKS", args, "of.options.ALTERNATE_BLOCKS", false, false);
+        CUSTOM_ENTITY_MODELS = EnumHelper.addEnum(GameSettings.Options.class, "CUSTOM_ENTITY_MODELS", args, "of.options.CUSTOM_ENTITY_MODELS", false, false);
+        ADVANCED_TOOLTIPS = EnumHelper.addEnum(GameSettings.Options.class, "ADVANCED_TOOLTIPS", args, "of.options.ADVANCED_TOOLTIPS", false, false);
+        SCREENSHOT_SIZE = EnumHelper.addEnum(GameSettings.Options.class, "SCREENSHOT_SIZE", args, "of.options.SCREENSHOT_SIZE", false, false);
+        CUSTOM_GUIS = EnumHelper.addEnum(GameSettings.Options.class, "CUSTOM_GUIS", args, "of.options.CUSTOM_GUIS", false, false);
+        RENDER_REGIONS = EnumHelper.addEnum(GameSettings.Options.class, "RENDER_REGIONS", args, "of.options.RENDER_REGIONS", false, false);
+        SHOW_GL_ERRORS = EnumHelper.addEnum(GameSettings.Options.class, "SHOW_GL_ERRORS", args, "of.options.SHOW_GL_ERRORS", false, false);
+        SMART_ANIMATIONS = EnumHelper.addEnum(GameSettings.Options.class, "SMART_ANIMATIONS", args, "of.options.SMART_ANIMATIONS", false, false);
+        Options_valueMin_set(GameSettings.Options.FRAMERATE_LIMIT, 0.0F);
     }
 }

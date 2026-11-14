@@ -118,25 +118,32 @@ public abstract class MixinIntegratedServer extends MinecraftServer {
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Public
-// [AUDIT-OK] OF-added member onTick() loop, matches OF
+    // The opacity flag applies to every loaded dimension, not just the first world in the array.
     private void onTick() {
+        boolean updateWaterOpacity = Config.waterOpacityChanged;
+        if (updateWaterOpacity) {
+            Config.waterOpacityChanged = false;
+        }
         for (WorldServer ws : this.worlds) {
+            if (updateWaterOpacity) {
+                ClearWater.updateWaterOpacity(Config.getGameSettings(), ws);
+            }
             this.onTick(ws);
         }
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
     @Public
-// [AUDIT-OK] OF-added member getDifficultyAsync, matches OF
-    public DifficultyInstance getDifficultyAsync(World world, BlockPos blockPos) {
+    // The render and server threads exchange the request and result under the same monitor.
+    public synchronized DifficultyInstance getDifficultyAsync(World world, BlockPos blockPos) {
         this.difficultyUpdateWorld = world;
-        this.difficultyUpdatePos = blockPos;
+        this.difficultyUpdatePos = blockPos == null ? null : blockPos.toImmutable();
         return this.difficultyLast;
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
-// [AUDIT-OK] OF-added member onTick(WorldServer), matches OF (time/weather/waterOpacity/difficulty)
+    // Apply per-world time/weather settings and service the pending difficulty request.
     private void onTick(WorldServer ws) {
         if (!Config.isTimeDefault()) {
             this.fixWorldTime(ws);
@@ -144,14 +151,12 @@ public abstract class MixinIntegratedServer extends MinecraftServer {
         if (!Config.isWeatherEnabled()) {
             this.fixWorldWeather(ws);
         }
-        if (Config.waterOpacityChanged) {
-            Config.waterOpacityChanged = false;
-            ClearWater.updateWaterOpacity(Config.getGameSettings(), ws);
-        }
-        if (this.difficultyUpdateWorld == ws && this.difficultyUpdatePos != null) {
-            this.difficultyLast = ws.getDifficultyForLocation(this.difficultyUpdatePos);
-            this.difficultyUpdateWorld = null;
-            this.difficultyUpdatePos = null;
+        synchronized (this) {
+            if (this.difficultyUpdateWorld == ws && this.difficultyUpdatePos != null) {
+                this.difficultyLast = ws.getDifficultyForLocation(this.difficultyUpdatePos);
+                this.difficultyUpdateWorld = null;
+                this.difficultyUpdatePos = null;
+            }
         }
     }
 

@@ -129,6 +129,9 @@ public abstract class MixinTextureManager {
                 (entry) -> {
                     var location = entry.getKey();
                     var tex = entry.getValue();
+                    if (tex == TextureUtil.MISSING_TEXTURE) {
+                        return true;
+                    }
                     if (StringUtils.startsWithAny(location.getPath(), "mcpatcher/", "optifine/")
                             || EmissiveTextures.isEmissive(location)) {
                         if (tex instanceof AbstractTexture at) {

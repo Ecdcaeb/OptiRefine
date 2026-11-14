@@ -5,10 +5,11 @@ import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.optifine.Config;
-import net.minecraftforge.client.CloudRenderer;
 import net.optifine.shaders.Shaders;
+import org.lwjgl.opengl.GL20;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 
 /**
@@ -26,12 +27,18 @@ import org.spongepowered.asm.mixin.injection.At;
  *   - ofClouds=OFF  -&gt; skip render (return false)
  *   - shaders on    -&gt; Shaders.beginClouds()/endClouds() around the draw
  *   - ofCloudsHeight-&gt; cloud plane Y offset (getCloudHeight() + ofCloudsHeight * 128.0F)
- *   - fancy/fast    -&gt; NOT mapped (Forge CloudRenderer geometry is vanilla-fixed; OF's fancy
- *                      hexahedron cloud / fast flat-plane split is dropped — acceptable
- *                      degradation, mirrors what a vanilla-only cloud setup would look like)
+ *   - fancy/fast    -&gt; use Forge's existing cloudMode geometry branches with OF's effective setting
  */
 @Mixin(targets = "net.minecraftforge.client.CloudRenderer")
 public abstract class MixinCloudRenderer {
+
+    @Shadow
+    private native boolean isBuilt();
+
+    @ModifyExpressionValue(method = "checkSettings", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/settings/GameSettings;shouldRenderClouds()I"))
+    private int optiRefine$cloudMode(int original) {
+        return Config.isCloudsOff() ? 0 : Config.isCloudsFancy() ? 2 : 1;
+    }
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.settings.GameSettings ofCloudsHeight F")
@@ -40,11 +47,15 @@ public abstract class MixinCloudRenderer {
 
     @WrapMethod(method = "render")
     private boolean optiRefine$render(int cloudTicks, float partialTicks, Operation<Boolean> original) {
-        if (Config.isCloudsOff()) {
+        if (Config.isCloudsOff() || !isBuilt()) {
             return false;
         }
         boolean shaders = Config.isShaders();
         if (shaders) {
+            // Forge clouds use POSITION_TEX_COLOR, including their direct VBO draw path.
+            GL20.glDisableVertexAttribArray(Shaders.midTexCoordAttrib);
+            GL20.glDisableVertexAttribArray(Shaders.tangentAttrib);
+            GL20.glDisableVertexAttribArray(Shaders.entityAttrib);
             Shaders.beginClouds();
         }
         boolean rendered;

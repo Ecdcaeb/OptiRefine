@@ -34,11 +34,14 @@ java {
 
 configurations {
     contain
+    optifine
     implementation.extendsFrom(contain)
     modCompileOnly
     compileOnly.extendsFrom(modCompileOnly)
+    compileOnly.extendsFrom(optifine)
     modRuntimeOnly
     runtimeOnly.extendsFrom(modRuntimeOnly)
+    runtimeOnly.extendsFrom(optifine)
 }
 
 def remapTaskName = enable_shadow.toBoolean() ? "remapShadowJar" : "remapJar"
@@ -88,6 +91,9 @@ unimined.minecraft {
     mods {
         remap(configurations.modCompileOnly)
         remap(configurations.modRuntimeOnly)
+        remap(configurations.optifine) {
+            namespace "official"
+        }
     }
 }
 

@@ -25,7 +25,7 @@ import java.util.ArrayList;
  *
  * <ul>
  *     <li>new public fields: openGL31, vboRegions, GL_COPY_READ/WRITE_BUFFER, GL_QUADS, GL_TRIANGLES (lastBrightnessX/Y land via cleanroom, shadowed)</li>
- *     <li>{@code initializeTextures()} now calls {@code Config.initDisplay()} and detects GL 1.3/ARB_copy_buffer (vboRegions)</li>
+ *     <li>{@code initializeTextures()} now calls {@code Config.initDisplay()} and detects GL 3.1/ARB_copy_buffer (vboRegions)</li>
  *     <li>{@code useVbo()} disabled by multi-texture / render-regions</li>
  *     <li>{@code isFramebufferEnabled()} disabled by fast-render / antialiasing</li>
  *     <li>new glBufferData / glBufferSubData / glCopyBufferSubData helpers</li>
@@ -91,7 +91,7 @@ public abstract class MixinOpenGlHelper {
 
     @Inject(method = "initializeTextures", at = @At("HEAD"))
     private static void optiRefine$initializeTextures(CallbackInfo ci) {
-// [AUDIT-OK] target initializeTextures()V (SRG func_77474_a) matches baseline; adds Config.initDisplay + GL1.3/ARB_copy_buffer detection per OF
+        // VBO region copies require OpenGL 3.1 or ARB_copy_buffer, plus multi-draw support.
         Config.initDisplay();
         ContextCapabilities capabilities = GLContext.getCapabilities();
         openGL31 = capabilities.OpenGL31;
@@ -104,7 +104,7 @@ public abstract class MixinOpenGlHelper {
         if (!vboRegions) {
             ArrayList<String> list = new ArrayList<>();
             if (!flag) {
-                list.add("OpenGL 1.3, ARB_copy_buffer");
+                list.add("OpenGL 3.1 or ARB_copy_buffer");
             }
             if (!flag1) {
                 list.add("OpenGL 1.4");
@@ -117,7 +117,7 @@ public abstract class MixinOpenGlHelper {
 
     @ModifyReturnValue(method = "useVbo", at = @At("RETURN"))
     private static boolean optiRefine$useVbo(boolean original) {
-// [AUDIT-OK] target useVbo()Z (SRG func_176075_f) matches baseline; NOTE: keeps vanilla framebufferSupported gate that OF drops — minor divergence
+        // Preserve the baseline VBO support and user setting gates.
         if (Config.isMultiTexture()) {
             return false;
         }

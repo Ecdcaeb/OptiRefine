@@ -181,9 +181,8 @@ public abstract class MixinPlayerChunkMap {
         return MathHelper.clamp(value, 3, 64);
     }
 
-    @Redirect(method = "setPlayerViewRadius", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/management/PlayerChunkMap;getOrCreateEntry(II)Lnet/minecraft/server/management/PlayerChunkMapEntry;"))
-// [AUDIT-OK] non-lazy branch returns this.getOrCreateEntry; lazy branch returns null and the
-// following addPlayer is null-guarded (wrap_addPlayer2) — no NPE (verified 2026-08-05)
+    @Redirect(method = "setPlayerViewRadius", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/management/PlayerChunkMap;getOrCreateEntry(II)Lnet/minecraft/server/management/PlayerChunkMapEntry;", ordinal = 0))
+    // Only defer additions; shrinking must still remove players from existing entries.
     public PlayerChunkMapEntry wrap_getOrCreateEntry2(PlayerChunkMap instance, int p_187302_1_, int p_187302_2_,
            @Share(value = "chunkX", namespace = "optirefine") LocalIntRef chunkX,
            @Share(value = "chunkZ", namespace = "optirefine") LocalIntRef chunkZ
@@ -217,18 +216,17 @@ public abstract class MixinPlayerChunkMap {
         } else return instance.containsPlayer(p_187275_1_);
     }
 
-    @Redirect(method = "setPlayerViewRadius", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/management/PlayerChunkMapEntry;removePlayer(Lnet/minecraft/entity/player/EntityPlayerMP;)V"))
-// [AUDIT-OK] null-entry -> pending remove, matches OF setPlayerViewRadius shrink path
-    public void removeEntry2(PlayerChunkMapEntry instance, EntityPlayerMP p_187277_1_, @Local EntityPlayerMP playerMP,
-                             @Share(value = "chunkX", namespace = "optirefine") LocalIntRef chunkX,
-                             @Share(value = "chunkZ", namespace = "optirefine") LocalIntRef chunkZ
-    ){
-        if (instance == null) {
-            this.getPendingEntriesSafe(playerMP).remove(new ChunkPos(chunkX.get(), chunkZ.get()));
-        } else {
-            instance.removePlayer(p_187277_1_);
-        }
+    @Redirect(method = "setPlayerViewRadius", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/management/PlayerChunkMap;getOrCreateEntry(II)Lnet/minecraft/server/management/PlayerChunkMapEntry;", ordinal = 1))
+    private PlayerChunkMapEntry optiRefine$getEntryForRadiusShrink(PlayerChunkMap instance, int chunkX, int chunkZ, @Local EntityPlayerMP player) {
+        this.getPendingEntriesSafe(player).remove(new ChunkPos(chunkX, chunkZ));
+        return this.getEntry(chunkX, chunkZ);
+    }
 
+    @Redirect(method = "setPlayerViewRadius", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/management/PlayerChunkMapEntry;removePlayer(Lnet/minecraft/entity/player/EntityPlayerMP;)V"))
+    public void removeEntry2(PlayerChunkMapEntry instance, EntityPlayerMP player) {
+        if (instance != null) {
+            instance.removePlayer(player);
+        }
     }
 
 

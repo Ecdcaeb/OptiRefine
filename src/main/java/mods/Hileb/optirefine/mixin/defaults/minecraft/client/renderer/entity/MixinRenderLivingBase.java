@@ -1,12 +1,11 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer.entity;
 
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
-import com.llamalad7.mixinextras.sugar.Share;
-import com.llamalad7.mixinextras.sugar.ref.LocalRef;
-import mods.Hileb.optirefine.library.common.utils.Counter;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessTransformer;
+import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.model.ModelBase;
@@ -19,6 +18,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.optifine.EmissiveTextures;
 import net.optifine.entity.model.CustomEntityModels;
 import net.optifine.shaders.Shaders;
+import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -34,18 +34,17 @@ public abstract class MixinRenderLivingBase<T extends EntityLivingBase> {
 // [AUDIT] 2026-08-03 - see AGENT.md; issues: 1
 
     @SuppressWarnings("unused")
-    @AccessTransformer(name = "mainModel", access = org.objectweb.asm.Opcodes.ACC_PUBLIC)
-    // [AUDIT-OK] AT mainModel: vanilla protected (deobf:30) -> public, matches OF:33
+    @AccessTransformer(name = "field_77045_g", deobf = true, access = org.objectweb.asm.Opcodes.ACC_PUBLIC)
+    // Publicize mainModel in both production SRG and development MCP namespaces.
     public ModelBase acc_mainModel;
 
-    @SuppressWarnings("unused")
-    @AccessTransformer(name = "addLayer", access = org.objectweb.asm.Opcodes.ACC_PUBLIC)
-    // [AUDIT-OK] addLayer is already public in baseline (deobf:42) — AT no-op (field-based processor only widens fields); harmless
-    public boolean acc_addLayer;
 
     @Shadow
     // [AUDIT-OK] baseline member mainModel (protected)
     protected ModelBase mainModel;
+
+    @Shadow
+    protected FloatBuffer brightnessBuffer;
 
 
     // [AUDIT-OK] OF-added fields renderEntity/renderLimbSwing/renderLimbSwingAmount/renderAgeInTicks/renderHeadYaw/renderHeadPitch/renderScaleFactor/renderPartialTicks/renderModelPushMatrix/renderLayersPushMatrix (OF:39-48)
@@ -84,9 +83,8 @@ public abstract class MixinRenderLivingBase<T extends EntityLivingBase> {
     }
 
     @WrapOperation(method = "doRender(Lnet/minecraft/entity/EntityLivingBase;DDDFF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/ModelBase;setRotationAngles(FFFFFFLnet/minecraft/entity/Entity;)V", ordinal = 0))
-    // [AUDIT-FIXED] three-way audit (P13): @Local(argsOnly=true, ordinal=5) = doRender arg5 partialTicks
-    // (argsOnly ordinal counts all params 0-based) — code correct, comment was stale.
-    public void customEntityModelsAction(ModelBase instance, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, float scaleFactor, Entity entityIn, Operation<Void> original, @Local(argsOnly = true, ordinal = 5) float partialTicks){
+    // @Local ordinals count values of the captured type: entityYaw is float 0, partialTicks is float 1.
+    public void customEntityModelsAction(ModelBase instance, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, float scaleFactor, Entity entityIn, Operation<Void> original, @Local(argsOnly = true, ordinal = 1) float partialTicks){
         original.call(instance, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scaleFactor, entityIn);
         if (CustomEntityModels.isActive()) {
             this.renderEntity = (EntityLivingBase) entityIn;
@@ -100,41 +98,87 @@ public abstract class MixinRenderLivingBase<T extends EntityLivingBase> {
         }
     }
 
-    @Inject(method = "doRender(Lnet/minecraft/entity/EntityLivingBase;DDDFF)V", at = @At("TAIL"))
-    // [AUDIT-FIXED] reset renderEntity after the render branch (OF RenderLivingBase:215-217); stale entity pointer otherwise
-    private void optiRefine$resetRenderEntity(CallbackInfo ci) {
-        if (CustomEntityModels.isActive()) {
-            this.renderEntity = null;
+    @WrapMethod(method = "doRender(Lnet/minecraft/entity/EntityLivingBase;DDDFF)V")
+    private void optiRefine$renderContext(EntityLivingBase entity, double x, double y, double z, float yaw, float partialTicks, Operation<Void> original) {
+        if (!CustomEntityModels.isActive()) {
+            original.call(entity, x, y, z, yaw, partialTicks);
+            return;
         }
+        EntityLivingBase previousEntity = this.renderEntity;
+        float previousLimbSwing = this.renderLimbSwing;
+        float previousLimbSwingAmount = this.renderLimbSwingAmount;
+        float previousAgeInTicks = this.renderAgeInTicks;
+        float previousHeadYaw = this.renderHeadYaw;
+        float previousHeadPitch = this.renderHeadPitch;
+        float previousScale = this.renderScaleFactor;
+        float previousPartialTicks = this.renderPartialTicks;
+        try {
+            original.call(entity, x, y, z, yaw, partialTicks);
+        } finally {
+            this.renderEntity = previousEntity;
+            this.renderLimbSwing = previousLimbSwing;
+            this.renderLimbSwingAmount = previousLimbSwingAmount;
+            this.renderAgeInTicks = previousAgeInTicks;
+            this.renderHeadYaw = previousHeadYaw;
+            this.renderHeadPitch = previousHeadPitch;
+            this.renderScaleFactor = previousScale;
+            this.renderPartialTicks = previousPartialTicks;
+        }
+    }
+
+    @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.optifine.EmissiveTextures optiRefine$isRendering ()Z")
+    private static native boolean EmissiveTextures_isRendering();
+
+    @Inject(method = "doRender(Lnet/minecraft/entity/EntityLivingBase;DDDFF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GlStateManager;enableOutlineMode(I)V", shift = At.Shift.AFTER))
+    private void optiRefine$cullOutlineBackFaces(CallbackInfo ci) {
+        // The through-wall glow pass disables depth testing. Living models normally also disable
+        // culling, so a box's later back faces overwrite its visible faces (issue #2).
+        // Cull only inside the outline branch; leave the ordinary two-sided model pass intact.
+        GlStateManager.enableCull();
+    }
+
+    @Inject(method = "doRender(Lnet/minecraft/entity/EntityLivingBase;DDDFF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GlStateManager;disableOutlineMode()V"))
+    private void optiRefine$restoreOutlineCulling(CallbackInfo ci) {
+        GlStateManager.disableCull();
     }
 
     @WrapOperation(method = "doRender(Lnet/minecraft/entity/EntityLivingBase;DDDFF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/RenderLivingBase;renderModel(Lnet/minecraft/entity/EntityLivingBase;FFFFFF)V", ordinal = 1))
     // [AUDIT-OK] renderModel ordinal 1 = else-branch call; emissive double-render matches OF:180-200
     public void customEmissiveTextures(RenderLivingBase<EntityLivingBase> instance, EntityLivingBase entitylivingbaseIn, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, float scaleFactor, Operation<Void> original){
-        if (EmissiveTextures.isActive()) {
+        boolean emissive = EmissiveTextures.isActive() && !EmissiveTextures_isRendering();
+        if (emissive) {
             EmissiveTextures.beginRender();
         }
-
-        if (this.renderModelPushMatrix) {
-            GlStateManager.pushMatrix();
-        }
-
-        original.call(instance, entitylivingbaseIn, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scaleFactor);
-        if (this.renderModelPushMatrix) {
-            GlStateManager.popMatrix();
-        }
-
-        if (EmissiveTextures.isActive()) {
-            if (EmissiveTextures.hasEmissive()) {
+        try {
+            boolean pushMatrix = this.renderModelPushMatrix;
+            if (pushMatrix) {
+                GlStateManager.pushMatrix();
+            }
+            try {
+                original.call(instance, entitylivingbaseIn, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scaleFactor);
+            } finally {
+                if (pushMatrix) {
+                    GlStateManager.popMatrix();
+                }
+            }
+            if (emissive && EmissiveTextures.hasEmissive()) {
                 this.renderModelPushMatrix = true;
                 EmissiveTextures.beginRenderEmissive();
-                GlStateManager.pushMatrix();
-                original.call(instance, entitylivingbaseIn, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scaleFactor);
-                GlStateManager.popMatrix();
-                EmissiveTextures.endRenderEmissive();
+                try {
+                    GlStateManager.pushMatrix();
+                    try {
+                        original.call(instance, entitylivingbaseIn, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scaleFactor);
+                    } finally {
+                        GlStateManager.popMatrix();
+                    }
+                } finally {
+                    EmissiveTextures.endRenderEmissive();
+                }
             }
-
-            EmissiveTextures.endRender();
+        } finally {
+            if (emissive) {
+                EmissiveTextures.endRender();
+            }
         }
     }
 
@@ -149,75 +193,52 @@ public abstract class MixinRenderLivingBase<T extends EntityLivingBase> {
     @WrapOperation(method = "renderLayers", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/layers/LayerRenderer;doRenderLayer(Lnet/minecraft/entity/EntityLivingBase;FFFFFFF)V"))
     // [AUDIT-OK] renderLayers LayerRenderer.doRenderLayer wrap matches OF renderLayers emissive structure
     public void onRenderLayers(LayerRenderer<EntityLivingBase> instance, EntityLivingBase e, float v1, float v2, float v3, float v4, float v5, float v6, float v7, Operation<Void> original){
-        if (EmissiveTextures.isActive()) {
+        boolean emissive = EmissiveTextures.isActive() && !EmissiveTextures_isRendering();
+        if (emissive) {
             EmissiveTextures.beginRender();
         }
-
-        if (this.renderLayersPushMatrix) {
-            GlStateManager.pushMatrix();
-        }
-
-        original.call(instance, e, v1, v2, v3, v4, v5, v6, v7);
-        if (this.renderLayersPushMatrix) {
-            GlStateManager.popMatrix();
-        }
-
-        if (EmissiveTextures.isActive()) {
-            if (EmissiveTextures.hasEmissive()) {
+        try {
+            boolean pushMatrix = this.renderLayersPushMatrix;
+            if (pushMatrix) {
+                GlStateManager.pushMatrix();
+            }
+            try {
+                original.call(instance, e, v1, v2, v3, v4, v5, v6, v7);
+            } finally {
+                if (pushMatrix) {
+                    GlStateManager.popMatrix();
+                }
+            }
+            if (emissive && EmissiveTextures.hasEmissive()) {
                 this.renderLayersPushMatrix = true;
                 EmissiveTextures.beginRenderEmissive();
-                GlStateManager.pushMatrix();
-                original.call(instance, e, v1, v2, v3, v4, v5, v6, v7);
-                GlStateManager.popMatrix();
-                EmissiveTextures.endRenderEmissive();
+                try {
+                    GlStateManager.pushMatrix();
+                    try {
+                        original.call(instance, e, v1, v2, v3, v4, v5, v6, v7);
+                    } finally {
+                        GlStateManager.popMatrix();
+                    }
+                } finally {
+                    EmissiveTextures.endRenderEmissive();
+                }
             }
-
-            EmissiveTextures.endRender();
+        } finally {
+            if (emissive) {
+                EmissiveTextures.endRender();
+            }
         }
     }
 
-    @Inject(method = "setBrightness", at = @At("HEAD"))
-    // [AUDIT-OK] setBrightness baseline; 4x FloatBuffer.put(F) wrap, 4th put -> setEntityColor matches OF:328/340 (incl. hurt-time branch)
-    public void initBrightnessSetting(EntityLivingBase entitylivingbaseIn, float partialTicks, boolean combineTextures, CallbackInfoReturnable<Boolean> cir,
-                                      @Share(namespace = "optirefine", value = "bufferCounter")LocalRef<Counter> bufferCounter,
-                                      @Share(namespace = "optirefine", value = "colorVec3f") LocalRef<float[]> vec3fColor){
-
-        bufferCounter.set(new Counter());
-        vec3fColor.set(new float[3]);
-    }
-
-    @WrapOperation(method = "setBrightness", at = @At(value = "INVOKE", target = "Ljava/nio/FloatBuffer;put(F)Ljava/nio/FloatBuffer;"))
-    public FloatBuffer afterBrightnessSetting(FloatBuffer instance, float v, Operation<FloatBuffer> original,
-                                              @Share(namespace = "optirefine", value = "bufferCounter")LocalRef<Counter> bufferCounter,
-                                              @Share(namespace = "optirefine", value = "colorVec3f") LocalRef<float[]> vec3fColor){
-        original.call(instance, v);
-        bufferCounter.get().add();
-        int count = bufferCounter.get().count();
-        if (count == 4) {
-            if (Config.isShaders()) {
-                float[] vec3f = vec3fColor.get();
-                Shaders.setEntityColor(vec3f[0], vec3f[1], vec3f[2], v);
-            }
-        } else {
-            vec3fColor.get()[count - 1] = v;
+    @Inject(method = "setBrightness", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GlStateManager;glTexEnv(IILjava/nio/FloatBuffer;)V"))
+    private void optiRefine$setShaderEntityColor(EntityLivingBase entitylivingbaseIn, float partialTicks, boolean combineTextures, CallbackInfoReturnable<Boolean> cir) {
+        // Both hurt and color-multiplier branches have populated and flipped this existing buffer.
+        // Absolute reads preserve its position and avoid per-render counters and color arrays.
+        if (Config.isShaders()) {
+            Shaders.setEntityColor(this.brightnessBuffer.get(0), this.brightnessBuffer.get(1), this.brightnessBuffer.get(2), this.brightnessBuffer.get(3));
         }
-        return instance;
     }
 
-    /*
-    * this.brightnessBuffer.put(f2);
-      this.brightnessBuffer.put(f3);
-      this.brightnessBuffer.put(f4);
-      this.brightnessBuffer.put(1.0F - f1);
-      * -->
-      this.myOperationHandler(f2, f3, f4, 1.0F - f1)
-
-    * */
-    /**
-     * if (Config.isShaders()) {
-     *           Shaders.setEntityColor(f2, f3, f4, 1.0F - f1);
-     *       }
-     * */
 
     @Shadow
     // [AUDIT-OK] baseline member layerRenderers (protected, deobf:32)

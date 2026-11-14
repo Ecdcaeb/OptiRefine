@@ -12,6 +12,7 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.VertexFormat;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.client.renderer.vertex.VertexFormatElement;
 import net.optifine.model.QuadBounds;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.*;
@@ -62,6 +63,43 @@ public abstract class MixinBakedQuad {
     @Unique
     private BakedQuad quadEmissive;
 
+    @Shadow
+    public abstract EnumFacing getFace();
+
+    @Unique
+    private VertexFormat optiRefine$compactFormat;
+    @Unique
+    private VertexFormat optiRefine$expandedFormat;
+
+    @ModifyReturnValue(method = "getFormat", at = @At("RETURN"))
+    private VertexFormat optiRefine$getMatchingFormat(VertexFormat original) {
+        this.fixVertexData();
+        // Four vertices of four-byte ints: array length equals bytes per vertex.
+        int vertexBytes = this.vertexData.length;
+        if (original.getSize() == vertexBytes) {
+            return original;
+        }
+        VertexFormat cached = vertexBytes == 28 ? this.optiRefine$compactFormat : this.optiRefine$expandedFormat;
+        if (cached == null) {
+            cached = new VertexFormat();
+            for (VertexFormatElement element : original.getElements()) {
+                if (cached.getSize() + element.getSize() > vertexBytes) {
+                    break;
+                }
+                cached.addElement(element);
+            }
+            if (cached.getSize() < vertexBytes) {
+                cached.addElement(new VertexFormatElement(0, VertexFormatElement.EnumType.BYTE,
+                        VertexFormatElement.EnumUsage.PADDING, vertexBytes - cached.getSize()));
+            }
+            if (vertexBytes == 28) {
+                this.optiRefine$compactFormat = cached;
+            } else {
+                this.optiRefine$expandedFormat = cached;
+            }
+        }
+        return cached;
+    }
     @Inject(method = "<init>([IILnet/minecraft/util/EnumFacing;Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;ZLnet/minecraft/client/renderer/vertex/VertexFormat;)V", at = @At("RETURN"))
     // [AUDIT-OK] 6-arg ctor (int[],int,EnumFacing,TextureAtlasSprite,boolean,VertexFormat) added by cleanroom BakedQuad patch — target exists
     public void init(int[] vertexDataIn, int tintIndexIn, EnumFacing faceIn, TextureAtlasSprite spriteIn, boolean applyDiffuseLighting, VertexFormat format, CallbackInfo ci){
@@ -100,6 +138,7 @@ public abstract class MixinBakedQuad {
     @SuppressWarnings("AddedMixinMembersNamePattern")
     // [AUDIT-OK] OF-added member (OF:72); toSingleU/toSingleV/getIconByUV are OF members (MCP, no deobf) provided by MixinTextureAtlasSprite/MixinTextureMap
     public int[] getVertexDataSingle() {
+        this.fixVertexData();
         if (this.vertexDataSingle == null) {
             this.vertexDataSingle = optiRefine$makeVertexDataSingle(this.getVertexData(), this.getSprite());
         }
@@ -234,14 +273,14 @@ public abstract class MixinBakedQuad {
     @SuppressWarnings("AddedMixinMembersNamePattern")
     public boolean isFaceQuad() {
         QuadBounds qb = this.getQuadBounds();
-        return qb.isFaceQuad(this.face);
+        return qb.isFaceQuad(this.getFace());
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
     @Unique
     public boolean isFullQuad() {
         QuadBounds qb = this.getQuadBounds();
-        return qb.isFullQuad(this.face);
+        return qb.isFullQuad(this.getFace());
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")
@@ -256,8 +295,9 @@ public abstract class MixinBakedQuad {
         if (this.quadEmissiveChecked) {
             return this.quadEmissive;
         } else {
-            if (this.quadEmissive == null && this.sprite != null && TextureAtlasSprite_spriteEmissive_get(this.sprite) != null) {
-                this.quadEmissive = new BakedQuadRetextured(cast_BakedQuad(this), TextureAtlasSprite_spriteEmissive_get(this.sprite));
+            TextureAtlasSprite sprite = this.getSprite();
+            if (this.quadEmissive == null && sprite != null && TextureAtlasSprite_spriteEmissive_get(sprite) != null) {
+                this.quadEmissive = new BakedQuadRetextured(cast_BakedQuad(this), TextureAtlasSprite_spriteEmissive_get(sprite));
             }
 
             this.quadEmissiveChecked = true;

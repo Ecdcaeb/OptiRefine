@@ -254,7 +254,7 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
     private static native int GlStateManager_getBoundTexture();
 
     @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.client.renderer.texture.TextureUtil func_94277_a (I)V")
+    @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.client.renderer.texture.TextureUtil func_94277_a (I)V", deobf = true)
     // [AUDIT-OK] vanilla SRG func_94277_a = TextureUtil.bindTexture(I)V
     private static native void TextureUtil_bindTexture(int texture);
 
@@ -280,9 +280,9 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
 
     // ===== loadSprites: reset index + max mipmap detection =====
 
-    @Inject(method = "loadSprites", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/texture/ITextureMapPopulator;registerSprites(Lnet/minecraft/client/renderer/texture/TextureMap;)V", shift = At.Shift.BEFORE))
+    @Inject(method = "loadSprites", at = @At(value = "INVOKE", target = "Ljava/util/Map;clear()V", shift = At.Shift.AFTER))
 
-    // [AUDIT-OK] target loadSprites(IResourceManager,ITextureMapPopulator)V (func_174943_a) matches baseline; reset before registerSprites like OF
+    // Reset before Forge's pre-stitch hook, which may register indexed sprites too.
     private void optiRefine$loadSpritesReset(IResourceManager resourceManager, ITextureMapPopulator iconCreatorIn, CallbackInfo ci) {
 
         this.counterIndexInMap.reset();
@@ -316,10 +316,8 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
     // [AUDIT-OK] target loadTextureAtlas(IResourceManager)V (func_110571_b) matches baseline; body mirrors OF rewrite
     private void optiRefine$loadTextureAtlas(IResourceManager resourceManager, Operation<Void> original) {
         Config.dbg("Multitexture: " + Config.isMultiTexture());
-        if (Config.isMultiTexture()) {
-            for (TextureAtlasSprite sprite : this.mapUploadedSprites.values()) {
-                TextureAtlasSprite_deleteSpriteTexture(sprite);
-            }
+        for (TextureAtlasSprite sprite : this.mapUploadedSprites.values()) {
+            TextureAtlasSprite_deleteSpriteTexture(sprite);
         }
         ConnectedTextures.updateIcons((TextureMap) (Object) this);
         CustomItems.updateIcons((TextureMap) (Object) this);
@@ -789,18 +787,17 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
             TextureAtlasSprite textureatlassprite = entry.getValue();
             ResourceLocation resourcelocation = new ResourceLocation(textureatlassprite.getIconName());
             ResourceLocation resourcelocation1 = this.completeResourceLocation(resourcelocation);
-            if (!textureatlassprite.hasCustomLoader(resourceManager, resourcelocation)) {
-                try {
-                    IResource iresource = resourceManager.getResource(resourcelocation1);
+            if (!textureatlassprite.hasCustomLoader(resourceManager, resourcelocation1)) {
+                try (IResource iresource = resourceManager.getResource(resourcelocation1)) {
                     if (iresource != null) {
-                        InputStream inputstream = iresource.getInputStream();
-                        if (inputstream != null) {
-                            Dimension dimension = TextureUtils.getImageSize(inputstream, "png");
-                            inputstream.close();
-                            if (dimension != null) {
-                                int k = dimension.width;
-                                int l = MathHelper.smallestEncompassingPowerOfTwo(k);
-                                hashmap.merge(l, 1, Integer::sum);
+                        try (InputStream inputstream = iresource.getInputStream()) {
+                            if (inputstream != null) {
+                                Dimension dimension = TextureUtils.getImageSize(inputstream, "png");
+                                if (dimension != null) {
+                                    int k = dimension.width;
+                                    int l = MathHelper.smallestEncompassingPowerOfTwo(k);
+                                    hashmap.merge(l, 1, Integer::sum);
+                                }
                             }
                         }
                     }
@@ -888,7 +885,7 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
                 for (int i1 = i; i1 <= k; ++i1) {
                     if (i1 >= 0 && i1 < this.iconGridCountX) {
                         for (int j1 = j; j1 <= l; ++j1) {
-                            if (j1 >= 0 && j1 < this.iconGridCountX) {
+                            if (j1 >= 0 && j1 < this.iconGridCountY) {
                                 int k1 = j1 * this.iconGridCountX + i1;
                                 this.iconGrid[k1] = textureatlassprite;
                             } else {
@@ -906,13 +903,16 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
     @Public
     // [AUDIT-OK] OF-added @Public method getIconByUV, not in baseline
     public TextureAtlasSprite getIconByUV(double u, double v) {
-        if (this.iconGrid == null) {
+        if (this.iconGrid == null || !(u >= 0.0 && u < 1.0 && v >= 0.0 && v < 1.0)) {
             return null;
         } else {
             int i = (int) (u / this.iconGridSizeU);
             int j = (int) (v / this.iconGridSizeV);
+            if (i < 0 || i >= this.iconGridCountX || j < 0 || j >= this.iconGridCountY) {
+                return null;
+            }
             int k = j * this.iconGridCountX + i;
-            return k >= 0 && k <= this.iconGrid.length ? this.iconGrid[k] : null;
+            return this.iconGrid[k];
         }
     }
 

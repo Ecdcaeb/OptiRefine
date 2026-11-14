@@ -45,4 +45,12 @@ public abstract class MixinDefaultResourcePack {
         }
     }
 
+    @WrapOperation(method = "resourceExists", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/resources/DefaultResourcePack;getResourceStream(Lnet/minecraft/util/ResourceLocation;)Ljava/io/InputStream;"))
+    private InputStream optiRefine$closeResourceProbe(DefaultResourcePack pack, ResourceLocation location, Operation<InputStream> original) {
+        InputStream input = original.call(pack, location);
+        // resourceExists only tests this result for null; it never reads the stream.
+        org.apache.commons.io.IOUtils.closeQuietly(input);
+        return input;
+    }
+
 }

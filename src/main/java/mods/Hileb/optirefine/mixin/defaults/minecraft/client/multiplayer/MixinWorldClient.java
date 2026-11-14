@@ -173,10 +173,13 @@ public abstract class MixinWorldClient extends World {
     @Public
     @Override
     public boolean setBlockState(@Nonnull BlockPos pos, @Nonnull  IBlockState newState, int flags) {
+        boolean previousPlayerUpdate = this.playerUpdate;
         this.playerUpdate = this.isPlayerActing();
-        boolean res = super.setBlockState(pos, newState, flags);
-        this.playerUpdate = false;
-        return res;
+        try {
+            return super.setBlockState(pos, newState, flags);
+        } finally {
+            this.playerUpdate = previousPlayerUpdate;
+        }
     }
 
     @SuppressWarnings("AddedMixinMembersNamePattern")

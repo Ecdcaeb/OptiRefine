@@ -7,6 +7,7 @@ import net.minecraftforge.fml.client.FMLClientHandler;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
+import java.util.ArrayList;
 import java.util.List;
 @Mixin(FMLClientHandler.class)
 public abstract class MixinFMLClientHandler {
@@ -18,11 +19,13 @@ public abstract class MixinFMLClientHandler {
     @ModifyReturnValue(method = "getAdditionalBrandingInformation", at = @At("RETURN"))
     // [AUDIT-FIXED] keep the F3 branding line short: name only, no version (full version already in the mod list)
     public List<String> modifyOptifineBrand(List<String> original){
-        original.replaceAll(s -> {
+        if (original.isEmpty()) return original;
+        List<String> branding = new ArrayList<>(original);
+        branding.replaceAll(s -> {
             if (s.startsWith("Optifine")) {
                 return s + " + OptiRefine";
             } else return s;
         });
-        return original;
+        return branding;
     }
 }

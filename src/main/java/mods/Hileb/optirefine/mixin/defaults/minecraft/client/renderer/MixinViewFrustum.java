@@ -41,7 +41,10 @@ public abstract class MixinViewFrustum {
 
     @Inject(method = "<init>*", at = @At("RETURN"))
     private void optiRefine$initFields(CallbackInfo ci) {
-        this.optiRefine$mapVboRegions = new HashMap<>();
+        // createRenderChunks can allocate regions before the constructor returns.
+        if (this.optiRefine$mapVboRegions == null) {
+            this.optiRefine$mapVboRegions = new HashMap<>();
+        }
     }
 
     @WrapOperation(method = "createRenderChunks", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/chunk/RenderChunk;setPosition(III)V"))

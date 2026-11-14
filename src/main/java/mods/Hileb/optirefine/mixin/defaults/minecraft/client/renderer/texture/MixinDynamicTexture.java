@@ -1,6 +1,5 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer.texture;
 
-import java.nio.IntBuffer;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.renderer.texture.AbstractTexture;
@@ -13,8 +12,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Mutable;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 @SuppressWarnings("ALL")
@@ -39,10 +36,9 @@ public abstract class MixinDynamicTexture extends AbstractTexture {
     @Redirect(method = "<init>(II)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/texture/TextureUtil;allocateTexture(III)V"))
     // [AUDIT-OK] target <init>(II)V matches baseline; redirect of allocateTexture replicates OF ctor (dynamicTextureData expanded to width*height*3 + ShadersTex.initDynamicTexture)
     public void afterConstructed(int glTextureId, int textureWidth, int textureHeight){
+        // Keep the array stable when shaders are enabled after callers cache getTextureData().
+        this.dynamicTextureData = new int[textureWidth * textureHeight * 3];
         if (Config.isShaders()) {
-            if (this.dynamicTextureData == null || this.dynamicTextureData.length < textureWidth * textureHeight * 3) {
-                this.dynamicTextureData = new int[textureWidth * textureHeight * 3];
-            }
 
             ShadersTex.initDynamicTexture(glTextureId, textureWidth, textureHeight, (DynamicTexture)(Object)this);
             this.shadersInitialized = true;
@@ -56,11 +52,6 @@ public abstract class MixinDynamicTexture extends AbstractTexture {
     public void onUpdate(int glTextureId, int[] textureData, int width, int height){
         if (Config.isShaders()) {
             if (!this.shadersInitialized) {
-                // [AUDIT-FIXED] expand data here too: instances created outside the (II) ctor path
-                // (e.g. Forge CloudRenderer) reach this branch with a 1x buffer -> ShadersTex.initDynamicTexture overflows
-                if (this.dynamicTextureData == null || this.dynamicTextureData.length < this.width * this.height * 3) {
-                    this.dynamicTextureData = new int[this.width * this.height * 3];
-                }
                 ShadersTex.initDynamicTexture(this.getGlTextureId(), this.width, this.height, DynamicTexture_cast(this));
                 this.shadersInitialized = true;
             }
@@ -75,10 +66,5 @@ public abstract class MixinDynamicTexture extends AbstractTexture {
     // [AUDIT-OK] NOP cast helper: call removed, preceding aload(this) remains as arg (semantically identical)
     private native static DynamicTexture DynamicTexture_cast(MixinDynamicTexture obj);
 
-    @Inject(method = "<init>*", at = @At("RETURN"))
-    // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
-    private void optiRefine$initFields(CallbackInfo ci) {
-        this.shadersInitialized = false;
-    }
 }
 

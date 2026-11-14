@@ -27,10 +27,14 @@ public abstract class MixinVertexBufferUploader {
     public void optiRefine$draw(BufferBuilder vertexBufferIn, Operation<Void> original) {
         if (vertexBufferIn.getDrawMode() == 7 && Config.isQuadsToTriangles()) {
             BufferBuilder_quadsToTriangles(vertexBufferIn);
-            VertexBuffer_setDrawMode(vertexBuffer, vertexBufferIn.getDrawMode());
         }
-        VertexBuffer_bufferData(vertexBuffer, vertexBufferIn.getByteBuffer());
-        vertexBufferIn.reset();
+        // Every upload replaces the previous primitive layout, including after a setting change.
+        VertexBuffer_setDrawMode(vertexBuffer, vertexBufferIn.getDrawMode());
+        try {
+            VertexBuffer_bufferData(vertexBuffer, vertexBufferIn.getByteBuffer());
+        } finally {
+            vertexBufferIn.reset();
+        }
     }
 
     @SuppressWarnings("MissingUnique")

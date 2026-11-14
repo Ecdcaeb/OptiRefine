@@ -36,7 +36,7 @@ public abstract class MixinGuiIngame {
 // ItemStack.isEmpty() INVOKE ordinal 1 (after check, before both LEFT/RIGHT branches). Reset at TAIL
 // (nothing between offhand draw and TAIL renders custom items; keeps flag true no longer than needed).
 
-    @Inject(method = "renderHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiIngame;renderHotbarItem(IIFLnet/minecraft/entity/EntityPlayer;Lnet/minecraft/item/ItemStack;)V", ordinal = 0, shift = At.Shift.BEFORE))
+    @Inject(method = "renderHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiIngame;renderHotbarItem(IIFLnet/minecraft/entity/player/EntityPlayer;Lnet/minecraft/item/ItemStack;)V", ordinal = 0, shift = At.Shift.BEFORE))
     private void optiRefine$renderHotbarMainHand(CallbackInfo ci) {
         CustomItems.setRenderOffHand(false);
     }

@@ -3,6 +3,7 @@ package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessTransformer;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
@@ -11,6 +12,7 @@ import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GLAllocation;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.VertexFormat;
@@ -35,6 +37,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.nio.*;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Comparator;
 @Mixin(BufferBuilder.class)
 public abstract class MixinBufferBuilder {
 // [AUDIT] 2026-08-03 — see AGENT.md; issues: 3
@@ -51,17 +54,11 @@ public abstract class MixinBufferBuilder {
 // [AUDIT-OK] vanilla SRG field_179000_c = rawFloatBuffer, deobf=true
     public FloatBuffer acc_rawFloatBuffer;
 
-    @Shadow
-    private FloatBuffer rawFloatBuffer;
-
-    @Inject(method = "growBuffer", at = @At("TAIL"))
-    // [AUDIT-FIXED] Rebase the writable float view to byte offset 0. WorldVertexBufferUploader
-    // leaves byteBuffer positioned at the last vertex attribute offset after draw().
-    private void optiRefine$restoreWritableFloatBuffer(int p_181670_1_, CallbackInfo ci) {
-        ByteBuffer viewSource = this.byteBuffer.duplicate();
-        viewSource.clear();
-        viewSource.order(this.byteBuffer.order());
-        this.rawFloatBuffer = viewSource.asFloatBuffer();
+    @Redirect(method = "growBuffer", at = @At(value = "INVOKE", target = "Ljava/nio/FloatBuffer;asReadOnlyBuffer()Ljava/nio/FloatBuffer;", remap = false))
+    // Keep the writable view created after growth rewinds the new buffer to byte offset 0.
+    // Reusing it also avoids rebuilding a shifted view on every endVertex() call (#6).
+    private FloatBuffer optiRefine$writableFloatBuffer(FloatBuffer buffer) {
+        return buffer;
     }
 
     
@@ -131,28 +128,12 @@ public abstract class MixinBufferBuilder {
 // [AUDIT-OK] target BufferBuilder.<init>(I)V matches baseline; SVertexBuilder.initVertexBuilder matches OF ctor
         SVertexBuilder.initVertexBuilder((BufferBuilder)(Object)this);
     }
-    /*
-    ((Buffer)this.rawShortBuffer).position(k << 1);
-         if (this.quadSprites != null) {
-            TextureAtlasSprite[] sprites = this.quadSprites;
-            int quadSize = this.getBufferQuadSize();
-            this.quadSprites = new TextureAtlasSprite[quadSize];
-            System.arraycopy(sprites, 0, this.quadSprites, 0, Math.min(sprites.length, this.quadSprites.length));
-            this.quadSpritesPrev = null;
-         }
-    * */
-    @Redirect(method = "growBuffer", at = @At(value = "INVOKE", target = "Ljava/nio/ShortBuffer;position(I)Ljava/nio/ShortBuffer;"))
-    public ShortBuffer savequadSprites(ShortBuffer instance, int newPosition){
-// [AUDIT-OK] target growBuffer(I)V matches baseline; quadSprites realloc mirrors OF growBuffer
-        ShortBuffer buffer = instance.position(newPosition);
+    @Inject(method = "growBuffer", at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/BufferBuilder;rawShortBuffer:Ljava/nio/ShortBuffer;", opcode = Opcodes.PUTFIELD, shift = At.Shift.AFTER))
+    private void optiRefine$growQuadSprites(int increaseAmount, CallbackInfo ci) {
         if (this.quadSprites != null) {
-            TextureAtlasSprite[] sprites = this.quadSprites;
-            int quadSize = this.getBufferQuadSize();
-            this.quadSprites = new TextureAtlasSprite[quadSize];
-            System.arraycopy(sprites, 0, this.quadSprites, 0, Math.min(sprites.length, this.quadSprites.length));
+            this.quadSprites = Arrays.copyOf(this.quadSprites, this.getBufferQuadSize());
             this.quadSpritesPrev = null;
         }
-        return buffer;
     }
 
     @Shadow
@@ -163,15 +144,14 @@ public abstract class MixinBufferBuilder {
     private VertexFormat vertexFormat;
 
     @SuppressWarnings("unused")
-    @Inject(method = "sortVertexData", at = @At("TAIL"))
-    public void afterSortVertexData(float p_181674_1_, float p_181674_2_, float p_181674_3_, CallbackInfo ci, @Local Integer[] ainteger){
-// [AUDIT-OK] target sortVertexData(FFF)V matches baseline
+    @WrapOperation(method = "sortVertexData", at = @At(value = "INVOKE", target = "Ljava/util/Arrays;sort([Ljava/lang/Object;Ljava/util/Comparator;)V", remap = false))
+    private void optiRefine$sortQuadSprites(Object[] order, Comparator<?> comparator, Operation<Void> original) {
+        original.call(order, comparator);
         if (this.quadSprites != null) {
             TextureAtlasSprite[] quadSpritesSorted = new TextureAtlasSprite[this.vertexCount / 4];
-            int quadStep = this.vertexFormat.getSize() / 4 * 4;
 
-            for (int ix = 0; ix < ainteger.length; ix++) {
-                int indexQuad = ainteger[ix];
+            for (int ix = 0; ix < order.length; ix++) {
+                int indexQuad = (Integer) order[ix];
                 quadSpritesSorted[ix] = this.quadSprites[indexQuad];
             }
             System.arraycopy(quadSpritesSorted, 0, this.quadSprites, 0, quadSpritesSorted.length);
@@ -190,12 +170,8 @@ public abstract class MixinBufferBuilder {
     // was never assigned. Replaced with a plain wrap building the vanilla 2-arg State and setting
     // stateQuadSprites via a PUTFIELD bridge — same OF semantics, no cursed ctor codegen.
     public BufferBuilder.State optiRefine$getVertexState(Operation<BufferBuilder.State> original) {
-        int[] aint = new int[this.getBufferSize()];
-        this.rawIntBuffer.rewind();
-        this.rawIntBuffer.get(aint);
-        this.rawIntBuffer.position(this.getBufferSize());
-        BufferBuilder.State state = ((BufferBuilder) (Object) this).new State(aint, new VertexFormat(this.vertexFormat));
-        BufferBuilder$State_stateQuadSprites_set(state, this.quadSprites == null ? null : this.quadSprites.clone());
+        BufferBuilder.State state = original.call();
+        BufferBuilder$State_stateQuadSprites_set(state, this.quadSprites == null ? null : Arrays.copyOf(this.quadSprites, this.vertexCount / 4));
         return state;
     }
 
@@ -261,7 +237,7 @@ public abstract class MixinBufferBuilder {
         this.modeTriangles = false;
     }
 
-    @Inject(method = "begin", at = @At(value = "INVOKE", target = "Ljava/nio/ByteBuffer;limit(I)Ljava/nio/ByteBuffer;", shift = At.Shift.AFTER))
+    @Inject(method = "begin", at = @At("RETURN"))
     public void afterBegin(int p_181668_1_, VertexFormat p_181668_2_, CallbackInfo ci){
 // [AUDIT-OK] target begin(ILnet/minecraft/client/renderer/vertex/VertexFormat;)V matches baseline
         if (Config.isShaders()) {
@@ -431,14 +407,17 @@ public abstract class MixinBufferBuilder {
     @Unique
 // [AUDIT-OK] OF-added method, not in baseline
     public void drawMultiTexture() {
-        if (this.quadSprites != null) {
+        if (this.quadSprites == null) {
+            return;
+        }
+        int previousTexture = GlStateManager_getBoundTexture();
+        try {
             int maxTextureIndex = TextureMap_getCountRegisteredSprites(Config.getMinecraft().getTextureMapBlocks());
             if (this.drawnIcons.length <= maxTextureIndex) {
                 this.drawnIcons = new boolean[maxTextureIndex + 1];
             }
 
             Arrays.fill(this.drawnIcons, false);
-            int texSwitch = 0;
             int grassOverlayIndex = -1;
             int countQuads = this.vertexCount / 4;
 
@@ -453,7 +432,6 @@ public abstract class MixinBufferBuilder {
                             }
                         } else {
                             i = this.drawForIcon(icon, i) - 1;
-                            texSwitch++;
                             if (this.blockLayer != BlockRenderLayer.TRANSLUCENT) {
                                 this.drawnIcons[iconIndex] = true;
                             }
@@ -464,13 +442,16 @@ public abstract class MixinBufferBuilder {
 
             if (grassOverlayIndex >= 0) {
                 this.drawForIcon(TextureUtils.iconGrassSideOverlay, grassOverlayIndex);
-                texSwitch++;
             }
 
-            if (texSwitch > 0) {
-            }
+        } finally {
+            GlStateManager.bindTexture(previousTexture);
         }
     }
+
+    @SuppressWarnings("MissingUnique")
+    @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "net.minecraft.client.renderer.GlStateManager getBoundTexture ()I")
+    private static native int GlStateManager_getBoundTexture();
 
     @SuppressWarnings("MissingUnique")
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite glSpriteTextureId I")
@@ -480,7 +461,7 @@ public abstract class MixinBufferBuilder {
     @SuppressWarnings("AddedMixinMembersNamePattern")
 // [AUDIT-OK] OF-added method, not in baseline
     private int drawForIcon(TextureAtlasSprite sprite, int startQuadPos) {
-        GL11.glBindTexture(3553, TextureAtlasSprite_glSpriteTextureId_get(sprite));
+        GlStateManager.bindTexture(TextureAtlasSprite_glSpriteTextureId_get(sprite));
         int firstRegionEnd = -1;
         int lastPos = -1;
         int countQuads = this.vertexCount / 4;
@@ -525,9 +506,9 @@ public abstract class MixinBufferBuilder {
     private void draw(int startQuadVertex, int endQuadVertex) {
         int vxQuadCount = endQuadVertex - startQuadVertex;
         if (vxQuadCount > 0) {
-            int startVertex = startQuadVertex * 4;
-            int vxCount = vxQuadCount * 4;
-            GL11.glDrawArrays(this.drawMode, startVertex, vxCount);
+            int verticesPerQuad = this.modeTriangles ? 6 : 4;
+            GlStateManager.glDrawArrays(this.modeTriangles ? GL11.GL_TRIANGLES : this.drawMode,
+                    startQuadVertex * verticesPerQuad, vxQuadCount * verticesPerQuad);
         }
     }
 
@@ -553,7 +534,7 @@ public abstract class MixinBufferBuilder {
     @Unique
 // [AUDIT-OK] OF-added method, not in baseline
     private int getBufferQuadSize() {
-        return this.rawIntBuffer.capacity() * 4 / (this.vertexFormat.getIntegerSize() * 4);
+        return this.rawIntBuffer.capacity() / (this.vertexFormat.getIntegerSize() * 4);
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
@@ -655,7 +636,7 @@ public abstract class MixinBufferBuilder {
     @Unique
 // [AUDIT-OK] OF-added method, not in baseline
     public void quadsToTriangles() {
-        if (this.drawMode == 7) {
+        if (this.drawMode == GL11.GL_QUADS && !this.modeTriangles) {
             if (this.byteBufferTriangles == null) {
                 this.byteBufferTriangles = GLAllocation.createDirectByteBuffer(this.byteBuffer.capacity() * 2);
             }

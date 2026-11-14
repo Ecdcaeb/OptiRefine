@@ -1,7 +1,9 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.multiplayer;
 
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessTransformer;
 import net.minecraft.client.multiplayer.ChunkProviderClient;
+import net.minecraft.world.chunk.Chunk;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -12,5 +14,5 @@ public abstract class MixinChunkProviderClient {
     @SuppressWarnings({"unused", "MissingUnique"})
     @Unique
     @AccessTransformer(name = "field_73236_b", deobf = true, access = Opcodes.ACC_PUBLIC)
-    private Object acc_loadedChunks;
+    private Long2ObjectMap<Chunk> acc_loadedChunks;
 }

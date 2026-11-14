@@ -4,9 +4,7 @@ import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import java.nio.IntBuffer;
 import mods.Hileb.optirefine.optifine.Config;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.optifine.render.VboRange;
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Mutable;
 import org.spongepowered.asm.mixin.Shadow;
@@ -17,11 +15,9 @@ import org.spongepowered.asm.mixin.Shadow;
  * exactly 16*16*16 = 4096 chunks; one extra put overflows (Java 25
  * BufferOverflowException, VboRegion.java:310). Grow the index buffers like
  * expandVbo() already does for the GL buffer.
- * <p>
- * Also fixes vertexBytes staleness: VboRegion caches DefaultVertexFormats.BLOCK
- * size (28) at construction. When shaders swap it to 56 via
- * SVertexFormat.makeDefVertexFormatBlock, toBytes/toVertex still use 28,
- * halving byte calculations and corrupting VBO uploads (spikes/triangles).
+ * Keep the region's original vertex stride: shader changes reload renderers and
+ * create new regions. Reinterpreting a live GL buffer with a different stride
+ * changes byte offsets without resizing its allocation or converting its data.
  */
 @Mixin(targets = "net.optifine.render.VboRegion")
 public abstract class MixinVboRegion {
@@ -34,16 +30,6 @@ public abstract class MixinVboRegion {
     @Mutable
     private IntBuffer bufferCountVertex;
 
-    @Shadow(remap = false)
-    @Final
-    @Mutable
-    private int vertexBytes;
-
-    @Shadow(remap = false)
-    private int capacity;
-
-    @Shadow(remap = false)
-    private int glBufferId;
 
     @WrapMethod(method = "drawArrays", remap = false)
     private void optiRefine$growDrawBuffers(int drawMode, VboRange range, Operation<Void> original) {
@@ -62,24 +48,4 @@ public abstract class MixinVboRegion {
         original.call(drawMode, range);
     }
 
-    @WrapMethod(method = "toBytes", remap = false)
-    private long optiRefine$toBytes(int vertex, Operation<Long> original) {
-        int dynamicBytes = DefaultVertexFormats.BLOCK.getSize();
-        return (long) vertex * dynamicBytes;
-    }
-
-    @WrapMethod(method = "toVertex", remap = false)
-    private int optiRefine$toVertex(long bytes, Operation<Integer> original) {
-        int dynamicBytes = DefaultVertexFormats.BLOCK.getSize();
-        return (int) (bytes / dynamicBytes);
-    }
-
-    @WrapMethod(method = "bufferData", remap = false)
-    private void optiRefine$checkVertexBytes(java.nio.ByteBuffer data, VboRange range, Operation<Void> original) {
-        int dynamic = DefaultVertexFormats.BLOCK.getSize();
-        if (this.vertexBytes != dynamic) {
-            this.vertexBytes = dynamic;
-        }
-        original.call(data, range);
-    }
 }

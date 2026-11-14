@@ -196,33 +196,52 @@ public abstract class MixinModelRenderer {
 
 // [AUDIT-OK] target render(F)V matches baseline; instance handler; replicates OF render
     @WrapMethod(method = "render")
-    public void injectPreRender(float scale, Operation<Void> original){
-        if (!this.isHidden && this.showModel) {
-            this.checkResetDisplayList();
-            if (!this.compiled) {
-                this.compileDisplayList(scale);
-            }
-
-            int lastTextureId = 0;
-            if (this.textureLocation != null && !_acc_RenderGlobal_renderOverlayDamaged_(this.renderGlobal)) {
-                if (_acc_RenderGlobal_renderOverlayEyes_(this.renderGlobal)) {
-                    return;
-                }
-
-                lastTextureId = (_acc_GlStateManager_getBoundTexture_());
+    public void injectPreRender(float scale, Operation<Void> original) {
+        if (this.isHidden || !this.showModel) {
+            return;
+        }
+        this.checkResetDisplayList();
+        if (!this.compiled) {
+            this.compileDisplayList(scale);
+        }
+        boolean customTexture = this.textureLocation != null && !_acc_RenderGlobal_renderOverlayDamaged_(this.renderGlobal);
+        if (customTexture && _acc_RenderGlobal_renderOverlayEyes_(this.renderGlobal)) {
+            return;
+        }
+        int previousTexture = customTexture ? _acc_GlStateManager_getBoundTexture_() : 0;
+        try {
+            if (customTexture) {
                 Config.getTextureManager().bindTexture(this.textureLocation);
             }
-
             if (this.modelUpdater != null) {
                 this.modelUpdater.update();
             }
 
-
+            float offsetX = this.offsetX, offsetY = this.offsetY, offsetZ = this.offsetZ;
+            float pivotX = this.rotationPointX, pivotY = this.rotationPointY, pivotZ = this.rotationPointZ;
+            boolean hasOffset = offsetX != 0.0F || offsetY != 0.0F || offsetZ != 0.0F;
+            boolean hasPivot = pivotX != 0.0F || pivotY != 0.0F || pivotZ != 0.0F;
+            if (hasPivot) {
+                pivotX *= scale;
+                pivotY *= scale;
+                pivotZ *= scale;
+            }
+            boolean rotated = this.rotateAngleX != 0.0F || this.rotateAngleY != 0.0F || this.rotateAngleZ != 0.0F;
             boolean scaled = this.scaleX != 1.0F || this.scaleY != 1.0F || this.scaleZ != 1.0F;
-            GlStateManager.translate(this.offsetX, this.offsetY, this.offsetZ);
-            if (this.rotateAngleX != 0.0F || this.rotateAngleY != 0.0F || this.rotateAngleZ != 0.0F) {
-                GlStateManager.pushMatrix();
-                GlStateManager.translate(this.rotationPointX * scale, this.rotationPointY * scale, this.rotationPointZ * scale);
+            boolean offsetTranslated = false, matrixPushed = false, pivotTranslated = false;
+            try {
+                if (hasOffset) {
+                    GlStateManager.translate(offsetX, offsetY, offsetZ);
+                    offsetTranslated = true;
+                }
+                if (rotated || scaled) {
+                    GlStateManager.pushMatrix();
+                    matrixPushed = true;
+                }
+                if (hasPivot) {
+                    GlStateManager.translate(pivotX, pivotY, pivotZ);
+                    pivotTranslated = true;
+                }
                 if (this.rotateAngleZ != 0.0F) {
                     GlStateManager.rotate(this.rotateAngleZ * (180.0F / (float) Math.PI), 0.0F, 0.0F, 1.0F);
                 }
@@ -241,91 +260,72 @@ public abstract class MixinModelRenderer {
                         childModel.render(scale);
                     }
                 }
-                GlStateManager.popMatrix();
-            } else if (this.rotationPointX == 0.0F && this.rotationPointY == 0.0F && this.rotationPointZ == 0.0F) {
-                if (scaled) {
-                    GlStateManager.scale(this.scaleX, this.scaleY, this.scaleZ);
+            } finally {
+                if (matrixPushed) {
+                    GlStateManager.popMatrix();
+                } else if (pivotTranslated) {
+                    GlStateManager.translate(-pivotX, -pivotY, -pivotZ);
                 }
-                GlStateManager.callList(this.displayList);
-                if (this.childModels != null) {
-                    for (ModelRenderer childModel : this.childModels) {
-                        childModel.render(scale);
-                    }
+                if (offsetTranslated) {
+                    GlStateManager.translate(-offsetX, -offsetY, -offsetZ);
                 }
-                if (scaled) {
-                    GlStateManager.scale(1.0F / this.scaleX, 1.0F / this.scaleY, 1.0F / this.scaleZ);
-                }
-            } else {
-                GlStateManager.translate(this.rotationPointX * scale, this.rotationPointY * scale, this.rotationPointZ * scale);
-                if (scaled) {
-                    GlStateManager.scale(this.scaleX, this.scaleY, this.scaleZ);
-                }
-                GlStateManager.callList(this.displayList);
-                if (this.childModels != null) {
-                    for (ModelRenderer childModel : this.childModels) {
-                        childModel.render(scale);
-                    }
-                }
-                if (scaled) {
-                    GlStateManager.scale(1.0F / this.scaleX, 1.0F / this.scaleY, 1.0F / this.scaleZ);
-                }
-                GlStateManager.translate(-this.rotationPointX * scale, -this.rotationPointY * scale, -this.rotationPointZ * scale);
             }
-            GlStateManager.translate(-this.offsetX, -this.offsetY, -this.offsetZ);
-            if (lastTextureId != 0) {
-                GlStateManager.bindTexture(lastTextureId);
+        } finally {
+            if (customTexture) {
+                GlStateManager.bindTexture(previousTexture);
             }
         }
     }
 
 // [AUDIT-OK] target renderWithRotation(F)V matches baseline; instance handler; replicates OF
     @WrapMethod(method = "renderWithRotation")
-    public void injectPreRenderWithRotation(float scale, Operation<Void> original){
-        if (!this.isHidden && this.showModel) {
-            this.checkResetDisplayList();
-            if (!this.compiled) {
-                this.compileDisplayList(scale);
-            }
-
-            int lastTextureId = 0;
-            if (this.textureLocation != null && !_acc_RenderGlobal_renderOverlayDamaged_(this.renderGlobal)) {
-                if (_acc_RenderGlobal_renderOverlayEyes_(this.renderGlobal)) {
-                    return;
-                }
-
-                lastTextureId = (_acc_GlStateManager_getBoundTexture_());
+    public void injectPreRenderWithRotation(float scale, Operation<Void> original) {
+        if (this.isHidden || !this.showModel) {
+            return;
+        }
+        this.checkResetDisplayList();
+        if (!this.compiled) {
+            this.compileDisplayList(scale);
+        }
+        boolean customTexture = this.textureLocation != null && !_acc_RenderGlobal_renderOverlayDamaged_(this.renderGlobal);
+        if (customTexture && _acc_RenderGlobal_renderOverlayEyes_(this.renderGlobal)) {
+            return;
+        }
+        int previousTexture = customTexture ? _acc_GlStateManager_getBoundTexture_() : 0;
+        try {
+            if (customTexture) {
                 Config.getTextureManager().bindTexture(this.textureLocation);
             }
-
             if (this.modelUpdater != null) {
                 this.modelUpdater.update();
             }
-
-
-            boolean scaled = this.scaleX != 1.0F || this.scaleY != 1.0F || this.scaleZ != 1.0F;
             GlStateManager.pushMatrix();
-            GlStateManager.translate(this.rotationPointX * scale, this.rotationPointY * scale, this.rotationPointZ * scale);
-            if (this.rotateAngleY != 0.0F) {
-                GlStateManager.rotate(this.rotateAngleY * (180.0F / (float) Math.PI), 0.0F, 1.0F, 0.0F);
-            }
-            if (this.rotateAngleX != 0.0F) {
-                GlStateManager.rotate(this.rotateAngleX * (180.0F / (float) Math.PI), 1.0F, 0.0F, 0.0F);
-            }
-            if (this.rotateAngleZ != 0.0F) {
-                GlStateManager.rotate(this.rotateAngleZ * (180.0F / (float) Math.PI), 0.0F, 0.0F, 1.0F);
-            }
-            if (scaled) {
-                GlStateManager.scale(this.scaleX, this.scaleY, this.scaleZ);
-            }
-            GlStateManager.callList(this.displayList);
-            if (this.childModels != null) {
-                for (ModelRenderer childModel : this.childModels) {
-                    childModel.render(scale);
+            try {
+                GlStateManager.translate(this.rotationPointX * scale, this.rotationPointY * scale, this.rotationPointZ * scale);
+                if (this.rotateAngleY != 0.0F) {
+                    GlStateManager.rotate(this.rotateAngleY * (180.0F / (float) Math.PI), 0.0F, 1.0F, 0.0F);
                 }
+                if (this.rotateAngleX != 0.0F) {
+                    GlStateManager.rotate(this.rotateAngleX * (180.0F / (float) Math.PI), 1.0F, 0.0F, 0.0F);
+                }
+                if (this.rotateAngleZ != 0.0F) {
+                    GlStateManager.rotate(this.rotateAngleZ * (180.0F / (float) Math.PI), 0.0F, 0.0F, 1.0F);
+                }
+                if (this.scaleX != 1.0F || this.scaleY != 1.0F || this.scaleZ != 1.0F) {
+                    GlStateManager.scale(this.scaleX, this.scaleY, this.scaleZ);
+                }
+                GlStateManager.callList(this.displayList);
+                if (this.childModels != null) {
+                    for (ModelRenderer childModel : this.childModels) {
+                        childModel.render(scale);
+                    }
+                }
+            } finally {
+                GlStateManager.popMatrix();
             }
-            GlStateManager.popMatrix();
-            if (lastTextureId != 0) {
-                GlStateManager.bindTexture(lastTextureId);
+        } finally {
+            if (customTexture) {
+                GlStateManager.bindTexture(previousTexture);
             }
         }
     }
@@ -346,11 +346,14 @@ public abstract class MixinModelRenderer {
 
 // [AUDIT-OK] glEndList()V invoke present in baseline compileDisplayList; sprites render before endList like OF
     @WrapOperation(method = "compileDisplayList", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GlStateManager;glEndList()V"))
-    private void renderSpriteListForCompileDisplayList(Operation<Void> original, @Local(argsOnly = true) float scale){
-        for (ModelSprite sprite : this.spriteList) {
-            sprite.render(Tessellator.getInstance(), scale);
+    private void renderSpriteListForCompileDisplayList(Operation<Void> original, @Local(argsOnly = true) float scale) {
+        try {
+            for (ModelSprite sprite : this.spriteList) {
+                sprite.render(Tessellator.getInstance(), scale);
+            }
+        } finally {
+            original.call();
         }
-        original.call();
     }
 
     @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})

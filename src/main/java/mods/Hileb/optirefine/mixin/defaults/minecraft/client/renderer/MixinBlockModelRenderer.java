@@ -102,10 +102,12 @@ public abstract class MixinBlockModelRenderer {
     public boolean renderModel(IBlockAccess worldIn, IBakedModel modelIn, IBlockState stateIn, BlockPos posIn, BufferBuilder buffer, boolean checkSides, long rand, Operation<Boolean> original) {
 // [AUDIT-OK] target renderModel(LIBlockAccess;LIBakedModel;LIBlockState;LBlockPos;LBufferBuilder;ZJ)Z (SRG func_187493_a) matches baseline
         boolean flag = Minecraft.isAmbientOcclusionEnabled() && stateIn.getLightValue(worldIn, posIn) == 0 && modelIn.isAmbientOcclusion(stateIn);
+        boolean entityPushed = false;
 
         try {
             if (Config.isShaders()) {
                 SVertexBuilder.pushEntity(stateIn, posIn, worldIn, buffer);
+                entityPushed = true;
             }
             if (!Config.isAlternateBlocks()) {
                 rand = 0L;
@@ -119,9 +121,6 @@ public abstract class MixinBlockModelRenderer {
                 this.renderOverlayModels(worldIn, modelIn, stateIn, posIn, buffer, checkSides, rand, renderEnv, flag);
             }
 
-            if (Config.isShaders()) {
-                SVertexBuilder.popEntity(buffer);
-            }
             return rendered;
         } catch (Throwable throwable) {
             CrashReport crashreport = CrashReport.makeCrashReport(throwable, "Tesselating block model");
@@ -129,6 +128,10 @@ public abstract class MixinBlockModelRenderer {
             CrashReportCategory.addBlockInfo(crashreportcategory, posIn, stateIn);
             crashreportcategory.addCrashSection("Using AO", flag);
             throw new ReportedException(crashreport);
+        } finally {
+            if (entityPushed) {
+                SVertexBuilder.popEntity(buffer);
+            }
         }
     }
 
@@ -428,9 +431,8 @@ public abstract class MixinBlockModelRenderer {
                 brightnessIn = stateIn.getPackedLightmapCoords(blockAccessIn, blockpos);
             }
 
-            if (TextureAtlasSprite_isEmissive_get(bakedquad.getSprite())) {
-                brightnessIn |= 240;
-            }
+            int quadBrightness = TextureAtlasSprite_isEmissive_get(bakedquad.getSprite())
+                    ? brightnessIn | 240 : brightnessIn;
 
             if (BufferBuilder_isMultiTexture(buffer)) {
                 buffer.addVertexData(BakedQuad_getVertexDataSingle(bakedquad));
@@ -439,7 +441,7 @@ public abstract class MixinBlockModelRenderer {
             }
 
             BufferBuilder_putSprite(buffer, bakedquad.getSprite());
-            buffer.putBrightness4(brightnessIn, brightnessIn, brightnessIn, brightnessIn);
+            buffer.putBrightness4(quadBrightness, quadBrightness, quadBrightness, quadBrightness);
             int colorMultiplier = CustomColors.getColorMultiplier(bakedquad, stateIn, blockAccessIn, posIn, renderEnv);
             if (bakedquad.hasTintIndex() || colorMultiplier != -1) {
                 int k = colorMultiplier;

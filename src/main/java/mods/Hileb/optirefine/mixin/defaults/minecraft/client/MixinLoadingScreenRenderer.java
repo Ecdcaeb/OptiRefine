@@ -13,18 +13,17 @@ import org.spongepowered.asm.mixin.injection.At;
 @Mixin(LoadingScreenRenderer.class)
 public abstract class MixinLoadingScreenRenderer {
 
-// [AUDIT-OK] OF setLoadingProgress: when CustomLoadingScreens.getCustomLoadingScreen() != null draw the
-// custom background instead of the vanilla options-background quad; the progress bar + text lines draw
-// on top in the same guarded body. First Tessellator.draw() in the method IS the background quad (the
-// FML guard is landed natively by cleanroom around the whole body).
-    @WrapOperation(method = "setLoadingProgress", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/Tessellator;draw()I", ordinal = 0))
-    public int injectDrawCustomBackground(Tessellator instance, Operation<Integer> original, @Local ScaledResolution scaledResolution) {
+    // The vanilla background vertices are already queued here; discard and finish
+    // that batch before the custom screen starts its own Tessellator batch.
+    @WrapOperation(method = "setLoadingProgress", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/Tessellator;draw()V", ordinal = 0))
+    public void injectDrawCustomBackground(Tessellator instance, Operation<Void> original, @Local ScaledResolution scaledResolution) {
         CustomLoadingScreen scr = CustomLoadingScreens.getCustomLoadingScreen();
         if (scr != null) {
+            instance.getBuffer().finishDrawing();
+            instance.getBuffer().reset();
             scr.drawBackground(scaledResolution.getScaledWidth(), scaledResolution.getScaledHeight());
-            return 0;
         } else {
-            return original.call(instance);
+            original.call(instance);
         }
     }
 }

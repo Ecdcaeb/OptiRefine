@@ -137,13 +137,4 @@ public abstract class MixinAbstractClientPlayer {
         this.reloadCapeTimeMs = reloadCapeTimeMs;
     }
 
-
-    @Inject(method = "<init>*", at = @At("RETURN"))
-    // [AUDIT-FIXED] wildcard ctor init: field-initializer injection is unreliable in cleanmix; <init>* matches all ctors without signature matching
-    private void optiRefine$initFields(CallbackInfo ci) {
-        this.locationOfCape = null;
-        this.reloadCapeTimeMs = 0L;
-        this.elytraOfCape = false;
-        this.nameClear = null;
-    }
 }
