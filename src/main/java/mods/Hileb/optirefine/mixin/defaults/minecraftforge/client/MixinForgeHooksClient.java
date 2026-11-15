@@ -2,11 +2,9 @@ package mods.Hileb.optirefine.mixin.defaults.minecraftforge.client;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import javax.vecmath.Vector3f;
 import net.minecraft.util.EnumFacing;
 import net.minecraftforge.client.ForgeHooksClient;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
 
 /**
  * Forge's {@code fillNormal} / {@code getVertexPos} hard-code the vanilla ITEM stride of 7 ints.
@@ -26,29 +24,26 @@ public abstract class MixinForgeHooksClient {
             original.call(faceData, facing);
             return;
         }
-        Vector3f v1 = optiRefine$getVertexPos(faceData, 3, stride);
-        Vector3f t = optiRefine$getVertexPos(faceData, 1, stride);
-        Vector3f v2 = optiRefine$getVertexPos(faceData, 2, stride);
-        v1.sub(t);
-        t.set(optiRefine$getVertexPos(faceData, 0, stride));
-        v2.sub(t);
-        v1.cross(v2, v1);
-        v1.normalize();
-        int x = ((byte) Math.round(v1.x * 127)) & 0xFF;
-        int y = ((byte) Math.round(v1.y * 127)) & 0xFF;
-        int z = ((byte) Math.round(v1.z * 127)) & 0xFF;
+        int second = stride * 2;
+        int third = stride * 3;
+        float firstX = Float.intBitsToFloat(faceData[third]) - Float.intBitsToFloat(faceData[stride]);
+        float firstY = Float.intBitsToFloat(faceData[third + 1]) - Float.intBitsToFloat(faceData[stride + 1]);
+        float firstZ = Float.intBitsToFloat(faceData[third + 2]) - Float.intBitsToFloat(faceData[stride + 2]);
+        float secondX = Float.intBitsToFloat(faceData[second]) - Float.intBitsToFloat(faceData[0]);
+        float secondY = Float.intBitsToFloat(faceData[second + 1]) - Float.intBitsToFloat(faceData[1]);
+        float secondZ = Float.intBitsToFloat(faceData[second + 2]) - Float.intBitsToFloat(faceData[2]);
+        float normalX = secondY * firstZ - secondZ * firstY;
+        float normalY = firstX * secondZ - firstZ * secondX;
+        float normalZ = secondX * firstY - secondY * firstX;
+        // Vecmath normalizes by a double reciprocal cast to float, then multiplies.
+        float inverseLength = (float) (1.0 / Math.sqrt(normalX * normalX + normalY * normalY + normalZ * normalZ));
+        int x = ((byte) Math.round(normalX * inverseLength * 127)) & 0xFF;
+        int y = ((byte) Math.round(normalY * inverseLength * 127)) & 0xFF;
+        int z = ((byte) Math.round(normalZ * inverseLength * 127)) & 0xFF;
         int normal = x | (y << 0x08) | (z << 0x10);
         for (int i = 0; i < 4; i++) {
             faceData[i * stride + 6] = normal;
         }
     }
 
-    @Unique
-    private static Vector3f optiRefine$getVertexPos(int[] data, int vertex, int stride) {
-        int idx = vertex * stride;
-        return new Vector3f(
-                Float.intBitsToFloat(data[idx]),
-                Float.intBitsToFloat(data[idx + 1]),
-                Float.intBitsToFloat(data[idx + 2]));
-    }
 }

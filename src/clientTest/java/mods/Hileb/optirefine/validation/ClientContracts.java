@@ -63,6 +63,8 @@ public final class ClientContracts {
                 evidence.append("Actual OpenGL: ").append(GL11.glGetString(GL11.GL_VERSION)).append('\n');
                 if (!Shaders.capabilities.OpenGL43) throw new AssertionError("Client contracts require OpenGL 4.3");
                 resources(mc); sortedSprites(mc);
+                GeometryContracts.verify();
+                evidence.append("Quad facing and packed normals preserve compact/expanded layouts, winding ties and non-finite inputs\n");
                 mc.gameSettings.showDebugInfo = true;
                 nextPack();
             } else if (pack >= 0 && ++packTicks == 45) {

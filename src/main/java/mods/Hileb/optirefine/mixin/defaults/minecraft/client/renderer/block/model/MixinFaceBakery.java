@@ -21,9 +21,13 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Constant;
 import org.spongepowered.asm.mixin.injection.ModifyConstant;
+import org.spongepowered.asm.mixin.Unique;
 @Mixin(FaceBakery.class)
 public abstract class MixinFaceBakery {
 // [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
+    @Unique
+    private static final EnumFacing[] optiRefine$facings = EnumFacing.values();
+
 
     @AccessTransformer(access = Opcodes.ACC_PUBLIC, name = "func_178412_b", deobf = true)
     public float optiRefine$exposeFaceBrightness(EnumFacing facing) { return 0.0F; }
@@ -79,7 +83,7 @@ public abstract class MixinFaceBakery {
     private void optiRefine$applyFacing(int[] faceData, EnumFacing facing, Operation<Void> original){
         int[] aint = new int[faceData.length];
         System.arraycopy(faceData, 0, aint, 0, faceData.length);
-        float[] afloat = new float[EnumFacing.values().length];
+        float[] afloat = new float[optiRefine$facings.length];
         afloat[EnumFaceDirection.Constants.WEST_INDEX] = 999.0F;
         afloat[EnumFaceDirection.Constants.DOWN_INDEX] = 999.0F;
         afloat[EnumFaceDirection.Constants.NORTH_INDEX] = 999.0F;
@@ -128,25 +132,27 @@ public abstract class MixinFaceBakery {
     private static EnumFacing optiRefine$getFacingFromVertexData(int[] data, Operation<EnumFacing> original){
         int stride = data.length / 4;
         int stride2 = stride * 2;
-        Vector3f v0 = new Vector3f(Float.intBitsToFloat(data[0]), Float.intBitsToFloat(data[1]), Float.intBitsToFloat(data[2]));
-        Vector3f v1 = new Vector3f(Float.intBitsToFloat(data[stride]), Float.intBitsToFloat(data[stride + 1]), Float.intBitsToFloat(data[stride + 2]));
-        Vector3f v2 = new Vector3f(Float.intBitsToFloat(data[stride2]), Float.intBitsToFloat(data[stride2 + 1]), Float.intBitsToFloat(data[stride2 + 2]));
-        Vector3f vec3 = new Vector3f();
-        Vector3f vec4 = new Vector3f();
-        Vector3f vec5 = new Vector3f();
-        Vector3f.sub(v0, v1, vec3);
-        Vector3f.sub(v2, v1, vec4);
-        Vector3f.cross(vec4, vec3, vec5);
-        float f = (float) Math.sqrt(vec5.x * vec5.x + vec5.y * vec5.y + vec5.z * vec5.z);
-        vec5.x /= f;
-        vec5.y /= f;
-        vec5.z /= f;
+        float originX = Float.intBitsToFloat(data[stride]);
+        float originY = Float.intBitsToFloat(data[stride + 1]);
+        float originZ = Float.intBitsToFloat(data[stride + 2]);
+        float leftX = Float.intBitsToFloat(data[0]) - originX;
+        float leftY = Float.intBitsToFloat(data[1]) - originY;
+        float leftZ = Float.intBitsToFloat(data[2]) - originZ;
+        float rightX = Float.intBitsToFloat(data[stride2]) - originX;
+        float rightY = Float.intBitsToFloat(data[stride2 + 1]) - originY;
+        float rightZ = Float.intBitsToFloat(data[stride2 + 2]) - originZ;
+        float normalX = rightY * leftZ - rightZ * leftY;
+        float normalY = leftX * rightZ - leftZ * rightX;
+        float normalZ = rightX * leftY - rightY * leftX;
+        float length = (float) Math.sqrt(normalX * normalX + normalY * normalY + normalZ * normalZ);
+        normalX /= length;
+        normalY /= length;
+        normalZ /= length;
         EnumFacing enumfacing = null;
         float f1 = 0.0F;
-        for (EnumFacing dir : EnumFacing.values()) {
+        for (EnumFacing dir : optiRefine$facings) {
             net.minecraft.util.math.Vec3i vec3i = dir.getDirectionVec();
-            Vector3f vdir = new Vector3f((float) vec3i.getX(), (float) vec3i.getY(), (float) vec3i.getZ());
-            float f2 = Vector3f.dot(vec5, vdir);
+            float f2 = normalX * (float) vec3i.getX() + normalY * (float) vec3i.getY() + normalZ * (float) vec3i.getZ();
             if (f2 >= 0.0F && f2 > f1) {
                 f1 = f2;
                 enumfacing = dir;

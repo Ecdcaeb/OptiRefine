@@ -196,6 +196,8 @@ public final class ModernShaderPipeline {
                 for (Compute compute : stages) compute.resize();
             }
         }
+        state.preparePrograms = activeStages(prepare);
+        state.shadowcompPrograms = activeStages(shadowcomp);
         state.ready = true;
         bindImages();
     }
@@ -318,10 +320,19 @@ public final class ModernShaderPipeline {
         return state != null && state.computes[owner.getIndex()] != null;
     }
 
-    public static boolean hasStages(Program[] programs) {
-        if (programs == null) return false;
-        for (Program program : programs) if (program.getId() != 0 || hasComputes(program)) return true;
-        return false;
+    private static Program[] activeStages(Program[] programs) {
+        if (programs == null) return ShaderPackState.NO_STAGES;
+        int count = 0;
+        for (Program program : programs) if (program.getId() != 0 || hasComputes(program)) count++;
+        if (count == 0) return ShaderPackState.NO_STAGES;
+        if (count == programs.length) return programs;
+        Program[] active = new Program[count];
+        int index = 0;
+        for (Program program : programs) {
+            if (program.getId() != 0 || hasComputes(program)) active[index++] = program;
+            if (index == count) break;
+        }
+        return active;
     }
 
     private static boolean hasGraphics(Program[] programs) {
@@ -368,7 +379,6 @@ public final class ModernShaderPipeline {
             for (Compute compute : stages) {
                 Shaders.useProgram(compute.uniformProgram);
                 if (compute.uniformProgram.getId() == 0) throw failure(compute.path + ": OpenGL rejected the linked compute program");
-                bindImages();
                 GL42.glMemoryBarrier(GL42.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL42.GL_TEXTURE_FETCH_BARRIER_BIT);
                 GL43.glDispatchCompute(compute.x, compute.y, compute.z);
                 GL42.glMemoryBarrier(GL42.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL42.GL_TEXTURE_FETCH_BARRIER_BIT);
@@ -438,11 +448,13 @@ public final class ModernShaderPipeline {
         GL13.glActiveTexture(GL13.GL_TEXTURE0);
     }
 
-    public static void renderPrepare() { renderStages(prepare, false); }
-    public static void renderShadowcomp() { renderStages(shadowcomp, true); }
+    public static void renderPrepare() { renderStages(false); }
+    public static void renderShadowcomp() { renderStages(true); }
 
-    private static void renderStages(Program[] stages, boolean shadow) {
-        if (state == null || !state.ready || !hasStages(stages)) return;
+    private static void renderStages(boolean shadow) {
+        if (state == null || !state.ready) return;
+        Program[] stages = shadow ? state.shadowcompPrograms : state.preparePrograms;
+        if (stages.length == 0) return;
         Program previous = Shaders.activeProgram;
         boolean previousShadow = Shaders.isShadowPass;
         boolean previousGlow = Shaders.isEntitiesGlowing;
@@ -477,7 +489,6 @@ public final class ModernShaderPipeline {
                 if (program.getId() == 0 && !hasComputes(program)) continue;
                 bindSamplers();
                 bindCustomTextures(shadow ? state.shadowcompTextures : state.prepareTextures);
-                bindImages();
                 dispatch(program);
                 if (program.getId() == 0) continue;
                 int count = shadow ? state.shadowColorCount : state.colorCount;

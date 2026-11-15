@@ -73,13 +73,38 @@ membership/order proof is in `build/reports/architecture/module-order.txt`.
 
 ## Runtime optimizations
 
-Modern `prepare` and `shadowcomp` passes skip slots with neither graphics nor compute programs
-before binding samplers or images. Compute-only stages retain their original execution order.
-Real-client framebuffer checks cover these stages, conditional/zero dispatch and pack-off recovery.
+Modern `prepare` and `shadowcomp` passes build ordered active-program arrays when a pack finishes
+loading. Empty groups return without scanning their 100 registry slots. Compute-only programs stay
+in these arrays; reload replaces them, and resize retains the same programs and execution order.
+
+The `Shaders.useProgram` return hook binds image textures even when the requested program is
+already active. Compute and modern stage callers use that binding instead of repeating it.
+Image/texture memory barriers and final state restoration remain in place.
 
 Quad sprite sorting reuses a builder-owned scratch array, grows it only when required and clears
 its used entries after sorting. Saved vertex states retain independent sprite arrays. Real-client
 checks cover repeated sorting, growth, builder isolation and snapshot restoration.
+
+Face orientation uses scalar vector arithmetic and a private cached facing array. Expanded Forge
+quad normals use the same scalar cross product and vecmath reciprocal normalization; compact
+quads retain Forge's original call. Floating-point operation order, direction ties and degenerate
+or non-finite inputs retain their existing results. Real-client geometry contracts compare both
+vertex layouts against the vector implementations and check unrelated vertex attributes.
+
+Native-client instrumentation against baseline `2ceffbd` records:
+
+| Probe | Before | After |
+| --- | ---: | ---: |
+| Allocated bytes for 100,000 face-orientation calls | 4,000,056 | 56 |
+| Image bindings for 300 compute dispatches | 4,800 | 2,400 |
+| Program checks for 100 calls to each empty stage group | 20,000 | 0 |
+
+The compute samples retain 900 image/texture memory barriers. The Java 25 build passes 26 JVM
+contracts; the real client passes 8,208 geometry cases and all nine shader fixtures, including
+resize, reload and owned/borrowed resource lifetimes. Raw samples and methodology are in
+`build/reports/performance-20261115/`; client captures remain in `build/reports/client-contracts/`.
+These are allocation and call-count measurements, not an FPS benchmark. The isolated test fixture
+disables the splash screen so startup warnings are logged without waiting for a keypress.
 
 Shader metadata checks reuse compiled dispatch patterns. Macro expansion allocates its output
 builder only after finding a replacement, retaining quoted replacements and the 16-pass limit.

@@ -4,6 +4,7 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.optifine.shaders.FlipTextures;
 import net.optifine.shaders.ICustomTexture;
 import net.optifine.shaders.Shaders;
+import net.optifine.shaders.Program;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL42;
@@ -15,6 +16,10 @@ import java.util.Set;
 
 /** Resources and metadata belonging to one shader-pack load. */
 final class ShaderPackState implements AutoCloseable {
+    static final Program[] NO_STAGES = new Program[0];
+    Program[] preparePrograms = NO_STAGES;
+    Program[] shadowcompPrograms = NO_STAGES;
+
     final int[] imageFormats = new int[8];
     final int[] mainTexturesA = new int[6];
     final int[] mainFormatsA = new int[6];
@@ -82,6 +87,7 @@ final class ShaderPackState implements AutoCloseable {
         if (closed) return;
         closed = true;
         ready = false;
+        preparePrograms = shadowcompPrograms = NO_STAGES;
         scanning = null;
         deleteShadowAlternates();
 
