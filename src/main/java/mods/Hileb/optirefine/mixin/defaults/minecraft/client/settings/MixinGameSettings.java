@@ -388,7 +388,7 @@ public abstract class MixinGameSettings {
             }
 
             this.ofAfLevel = Config.limit(this.ofAfLevel, 1, 16);
-            FMLClientHandler.instance().scheduleResourcesRefresh((o)->true); // TODO : figure out what types is needed
+            FMLClientHandler.instance().scheduleResourcesRefresh(VanillaResourceType.TEXTURES, VanillaResourceType.MODELS);
         }
 
         if (option == GameSettingsOptionOF.MIPMAP_TYPE) {
@@ -741,7 +741,7 @@ public abstract class MixinGameSettings {
 
         if (option == GameSettingsOptionOF.CUSTOM_ITEMS) {
             this.ofCustomItems = !this.ofCustomItems;
-            FMLClientHandler.instance().scheduleResourcesRefresh((o)->true); // TODO : figure out what types is needed
+            FMLClientHandler.instance().scheduleResourcesRefresh(VanillaResourceType.TEXTURES, VanillaResourceType.MODELS);
         }
 
         if (option == GameSettingsOptionOF.CUSTOM_SKY) {
@@ -817,7 +817,7 @@ public abstract class MixinGameSettings {
 
         if (option == GameSettingsOptionOF.ALTERNATE_BLOCKS) {
             this.ofAlternateBlocks = !this.ofAlternateBlocks;
-            FMLClientHandler.instance().scheduleResourcesRefresh((o)->true); // TODO : figure out what types is needed
+            FMLClientHandler.instance().scheduleResourcesRefresh(VanillaResourceType.TEXTURES, VanillaResourceType.MODELS);
         }
 
         if (option == GameSettingsOptionOF.DYNAMIC_LIGHTS) {

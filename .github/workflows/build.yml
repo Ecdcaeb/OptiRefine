@@ -25,9 +25,71 @@ jobs:
     - name: Add permission
       run: chmod +x ./gradlew
     - name: Execute Gradle build
-      run: ./gradlew build
+      run: ./gradlew build stageBuildArtifacts
 
-    - name: Upload a Build Artifact
+    - name: Upload runtime and source Jars
       uses: actions/upload-artifact@v7
       with:
-        path: build/libs
+        name: mod-jars
+        path: build/distributions/artifacts/*.jar
+        if-no-files-found: error
+    - name: Preserve build test reports
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: build-test-reports
+        path: |
+          build/reports/tests/
+          build/test-results/
+
+  native-client-contracts:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      LIBGL_ALWAYS_SOFTWARE: '1'
+      GALLIUM_DRIVER: llvmpipe
+      ALSOFT_DRIVERS: 'null'
+    steps:
+    - uses: actions/checkout@v6
+    - name: Set up JDK
+      uses: actions/setup-java@v5
+      with:
+        java-version: '25'
+        distribution: 'temurin'
+    - name: Set up Gradle
+      uses: gradle/actions/setup-gradle@v6
+      with:
+        gradle-version: 9.6.1
+    - name: Install Mesa and a focusable X11 desktop
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y xvfb xauth openbox wmctrl mesa-utils libgl1-mesa-dri libglx-mesa0 libasound2t64 libopenal1 libxtst6 libxi6 libxrender1 libxrandr2 libxcursor1 libxinerama1
+    - name: Run development and production client contracts
+      run: |
+        chmod +x ./gradlew
+        mkdir -p build/reports/native-desktop
+        xvfb-run -a -s '-screen 0 1280x1024x24 +extension GLX +render -noreset' bash -euc '
+          openbox >build/reports/native-desktop/openbox.log 2>&1 &
+          desktop_pid=$!
+          trap "kill $desktop_pid 2>/dev/null || true" EXIT
+          for attempt in $(seq 1 40); do
+            if wmctrl -m >build/reports/native-desktop/window-manager.txt 2>&1; then break; fi
+            sleep 0.25
+          done
+          wmctrl -m
+          glxinfo -B | tee build/reports/native-desktop/opengl.txt
+          ./gradlew verifyClientContracts verifyRuntimeClientContracts --no-daemon --continue
+        '
+    - name: Preserve client contract reports and game logs
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: native-client-contract-reports
+        path: |
+          build/reports/client-contracts/
+          build/reports/runtime-client-contracts/
+          build/reports/native-desktop/
+          run/client-contracts/logs/
+          run/client-contracts/crash-reports/
+          run/runtime-client-contracts/logs/
+          run/runtime-client-contracts/crash-reports/

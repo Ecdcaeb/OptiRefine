@@ -2,6 +2,7 @@ package mods.Hileb.optirefine.optifine.shaders.modern;
 
 import mods.Hileb.optirefine.core.OptiRefineLog;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.text.TextComponentString;
 import net.optifine.shaders.IShaderPack;
 import net.optifine.shaders.ICustomTexture;
@@ -292,6 +293,14 @@ public final class ModernShaderPipeline {
     }
 
     public static void onUseProgram() {
+        // G5 configures these only for deferred packs; prepare can produce them independently.
+        if (state != null && state.ready && state.colorCount > 4 && Shaders.activeProgramID != 0
+                && Shaders.activeProgram.getProgramStage() == ProgramStage.GBUFFERS) {
+            Shaders.uniform_gaux1.setValue(7);
+            Shaders.uniform_gaux2.setValue(8);
+            Shaders.uniform_gaux3.setValue(9);
+            Shaders.uniform_gaux4.setValue(10);
+        }
         if (state == null || !state.imagesRequested || Shaders.activeProgramID == 0) return;
         graphicsBarrier();
         for (int i = 0; i < IMAGE_UNIFORMS.length; i++) IMAGE_UNIFORMS[i].setValue(i);
@@ -407,6 +416,26 @@ public final class ModernShaderPipeline {
         GL13.glActiveTexture(GL13.GL_TEXTURE0);
     }
 
+    private static void rebindFlippedGbuffersSamplers(boolean shadow, int flippedBuffers) {
+        if (flippedBuffers == 0) return;
+        int active = GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE);
+        try {
+            int count = shadow ? state.shadowColorCount : state.colorCount;
+            // Main units 0..3 belong to block textures, lightmaps and material maps in gbuffers.
+            for (int i = shadow ? 0 : 4; i < count; i++) {
+                if ((flippedBuffers & 1 << i) == 0) continue;
+                GlStateManager.setActiveTexture(GL13.GL_TEXTURE0 + (shadow ? 13 + i : COLOR_UNITS[i]));
+                int previous = shadow ? state.shadowAlternates[i] : state.colors.getB(i);
+                // Keep pack/custom renderer overrides that were restored by glPopAttrib.
+                if (GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D) == previous) {
+                    GlStateManager.bindTexture(shadow ? state.shadowColors.get(i) : state.colors.getA(i));
+                }
+            }
+        } finally {
+            GlStateManager.setActiveTexture(active);
+        }
+    }
+
     private static void bindCustomTextures(ICustomTexture[] textures) {
         if (textures == null) return;
         for (ICustomTexture texture : textures) {
@@ -463,6 +492,7 @@ public final class ModernShaderPipeline {
         int matrixMode = GL11.glGetInteger(GL11.GL_MATRIX_MODE);
         int width = shadow ? state.shadowWidth : Shaders.renderWidth;
         int height = shadow ? state.shadowHeight : Shaders.renderHeight;
+        int flippedBuffers = 0;
         GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
         GL11.glMatrixMode(GL11.GL_PROJECTION);
         GL11.glPushMatrix();
@@ -507,6 +537,7 @@ public final class ModernShaderPipeline {
                         state.shadowColors.put(i, state.shadowAlternates[i]);
                         state.shadowAlternates[i] = current;
                     } else state.colors.flip(i);
+                    flippedBuffers ^= 1 << i;
                 }
             }
         } finally {
@@ -522,6 +553,7 @@ public final class ModernShaderPipeline {
             GL11.glMatrixMode(matrixMode);
             EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, framebuffer);
             GL11.glPopAttrib();
+            rebindFlippedGbuffersSamplers(shadow, flippedBuffers);
             bindImages();
         }
     }

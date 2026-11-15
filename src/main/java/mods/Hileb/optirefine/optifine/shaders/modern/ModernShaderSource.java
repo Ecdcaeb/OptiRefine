@@ -55,9 +55,9 @@ public final class ModernShaderSource {
                 continue;
             }
             if (line.trim().startsWith("#")) continue;
-            Matcher uniform = UNIFORM.matcher(line);
-            while (uniform.find()) uniform(uniform.group(1), uniform.group(2));
             String expanded = expand(line);
+            Matcher uniform = UNIFORM.matcher(expanded);
+            while (uniform.find()) uniform(uniform.group(1), uniform.group(2));
             if (LOCAL_SIZE.matcher(expanded).matches()) localSize = true;
             try {
                 Matcher fixed = GROUPS.matcher(expanded);

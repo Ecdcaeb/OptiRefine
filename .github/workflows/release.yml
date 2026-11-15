@@ -1,0 +1,140 @@
+name: Releases
+
+on:
+  push:
+    tags:
+      - "*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version for manual runs (tag pushes derive it from the tag)"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      LIBGL_ALWAYS_SOFTWARE: '1'
+      GALLIUM_DRIVER: llvmpipe
+      ALSOFT_DRIVERS: 'null'
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: 9.6.1
+
+      - name: Add permission
+        run: chmod +x ./gradlew
+
+      - name: Install Mesa and a focusable X11 desktop
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb xauth openbox wmctrl mesa-utils libgl1-mesa-dri libglx-mesa0 libasound2t64 libopenal1 libxtst6 libxi6 libxrender1 libxrandr2 libxcursor1 libxinerama1
+
+      - name: Resolve version
+        id: version
+        env:
+          REQUESTED_VERSION: ${{ inputs.version }}
+          RELEASE_REF_TYPE: ${{ github.ref_type }}
+          RELEASE_REF_NAME: ${{ github.ref_name }}
+        shell: bash
+        run: |
+          if [[ -n "$REQUESTED_VERSION" ]]; then
+            release_version="$REQUESTED_VERSION"
+          elif [[ "$RELEASE_REF_TYPE" == tag ]]; then
+            release_version="${RELEASE_REF_NAME#v}"
+          else
+            echo '::error::Manual releases require a version'
+            exit 1
+          fi
+          if [[ ! "$release_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$ ]]; then
+            echo '::error::Expected a numeric major.minor.patch version with optional prerelease/build suffix'
+            exit 1
+          fi
+          if [[ "$RELEASE_REF_TYPE" == tag ]]; then
+            if [[ "${RELEASE_REF_NAME#v}" != "$release_version" ]]; then
+              echo '::error::Requested version must match the selected release tag'
+              exit 1
+            fi
+            release_tag="$RELEASE_REF_NAME"
+          else
+            release_tag="v$release_version"
+          fi
+          echo "tag=$release_tag" >> "$GITHUB_OUTPUT"
+          echo "value=$release_version" >> "$GITHUB_OUTPUT"
+          if [[ "${release_version%%+*}" == *-* ]]; then
+            echo 'prerelease=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'prerelease=false' >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Execute Gradle build
+        env:
+          RELEASE_VERSION: ${{ steps.version.outputs.value }}
+        run: ./gradlew build "-Pmod_version=$RELEASE_VERSION"
+
+      - name: Validate development and final SRG clients
+        env:
+          RELEASE_VERSION: ${{ steps.version.outputs.value }}
+        run: |
+          mkdir -p build/reports/native-desktop
+          xvfb-run -a -s '-screen 0 1280x1024x24 +extension GLX +render -noreset' bash -euc '
+            openbox >build/reports/native-desktop/openbox.log 2>&1 &
+            desktop_pid=$!
+            trap "kill $desktop_pid 2>/dev/null || true" EXIT
+            for attempt in $(seq 1 40); do
+              if wmctrl -m >build/reports/native-desktop/window-manager.txt 2>&1; then break; fi
+              sleep 0.25
+            done
+            wmctrl -m
+            glxinfo -B | tee build/reports/native-desktop/opengl.txt
+            ./gradlew verifyClientContracts verifyRuntimeClientContracts "-Pmod_version=$RELEASE_VERSION" --no-daemon --continue
+          '
+
+      - name: Generate checksums
+        working-directory: build/libs
+        env:
+          RELEASE_VERSION: ${{ steps.version.outputs.value }}
+        run: |
+          sha256sum "optirefine-$RELEASE_VERSION.jar" "optirefine-$RELEASE_VERSION-sources.jar" > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: Preserve release verification reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-verification-reports
+          path: |
+            build/reports/
+            build/test-results/
+            run/client-contracts/logs/
+            run/client-contracts/crash-reports/
+            run/runtime-client-contracts/logs/
+            run/runtime-client-contracts/crash-reports/
+
+      - name: Publish release
+        uses: ncipollo/release-action@v1.21.0
+        with:
+          tag: ${{ steps.version.outputs.tag }}
+          commit: ${{ github.sha }}
+          name: OptiRefine ${{ steps.version.outputs.value }}
+          # only the remapped runtime jar + sources; the -dev jar is the pre-remap MCP intermediate
+          artifacts: "build/libs/optirefine-${{ steps.version.outputs.value }}.jar,build/libs/optirefine-${{ steps.version.outputs.value }}-sources.jar,build/libs/SHA256SUMS.txt"
+          generateReleaseNotes: true
+          failOnUnmatchedFiles: true
+          # alpha project: create as draft, publish manually; set draft: false for auto-release
+          draft: true
+          prerelease: ${{ steps.version.outputs.prerelease == 'true' }}

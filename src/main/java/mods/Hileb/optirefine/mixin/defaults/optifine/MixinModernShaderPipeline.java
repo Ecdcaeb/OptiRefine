@@ -6,6 +6,7 @@ import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import mods.Hileb.optirefine.optifine.shaders.modern.ModernShaderPipeline;
+import net.minecraft.client.Minecraft;
 import net.optifine.shaders.ICustomTexture;
 import net.optifine.shaders.Program;
 import net.optifine.shaders.Programs;
@@ -198,6 +199,17 @@ public abstract class MixinModernShaderPipeline {
             isShaderPackInitialized = true;
             Shaders.uninit();
             throw exception;
+        }
+    }
+
+    @WrapMethod(method = "beginRender")
+    private static void optiRefine$recoverFailedModernResize(Minecraft minecraft, float partialTicks, long finishTimeNano, Operation<Void> original) {
+        try {
+            original.call(minecraft, partialTicks, finishTimeNano);
+        } catch (ModernShaderPipeline.LoadException exception) {
+            minecraft.profiler.endSection();
+            Shaders.setShaderPack("OFF");
+            minecraft.getFramebuffer().bindFramebuffer(true);
         }
     }
 

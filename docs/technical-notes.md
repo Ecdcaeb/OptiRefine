@@ -60,16 +60,20 @@ alternates. G5 color/depth targets and gbuffers textures are borrowed. Closing a
 owned resources once and clears borrowed references; the program registry, uniform objects and
 capability buffers retain game lifetime. Pack states are created at load boundaries, not per frame.
 
-The architecture cutover passes 26 persistent JVM contracts (`./gradlew build`), including
-generated-class execution, constructor helpers, alias chains, MCP/SRG selection, late-added calls,
-facade handles and runtime-artifact reference boundaries. JVM results are in
-`build/reports/tests/test/`.
+`./gradlew build` runs 34 persistent JVM contracts, including generated-class execution,
+constructor helpers, alias chains, MCP/SRG selection, late-added calls, facade handles,
+runtime-artifact reference boundaries and macro-expanded shader uniform metadata. JVM results
+are in `build/reports/tests/test/`.
 
-`./gradlew verifyClientContracts` launches an isolated client under `run/client-contracts` and
-requires OpenGL 4.3. On the documented G5 baseline, settings, resource/model priority, sorting snapshots,
-nine shader fixtures, resize, pack reload and owned/borrowed native resource lifetimes pass.
-Native results and captures are in `build/reports/client-contracts/`; the exact baseline mixin
-membership/order proof is in `build/reports/architecture/module-order.txt`.
+`./gradlew verifyClientContracts` launches an isolated MCP development client under
+`run/client-contracts`. `./gradlew verifyRuntimeClientContracts` remaps the contract mod to SRG
+and launches the final runtime Jar with official G5, the original Minecraft client and the
+installer's production Cleanroom Jar under `run/runtime-client-contracts`. It asserts the SRG
+namespace and installed runtime Jar source. Production launches exclude source outputs, MCP
+artifacts and development flags. Both suites require OpenGL 4.3 and a focusable desktop.
+Reports and captures are in `build/reports/client-contracts/` and
+`build/reports/runtime-client-contracts/`; production reports also retain launch provenance and
+game logs. The baseline mixin order proof remains in `build/reports/architecture/module-order.txt`.
 
 ## Runtime optimizations
 
@@ -114,6 +118,11 @@ Modern/legacy resource name translations are cleared when Minecraft starts a res
 Names requested during loading remain cached until the next refresh. Real-client checks cover
 cache eviction and unchanged ZIP/folder lookup, same-pack precedence and cross-pack priority.
 
+AF, custom-item and alternate-block settings request texture/model reloads instead of every
+resource category. This respects Forge's `client.selectiveResourceReloadEnabled` setting, which
+defaults to false. The isolated client fixtures enable it and compare actual CIT models, atlas
+sprites and reloaded textures while retaining the live sound engine, translations and listeners.
+
 Field access transformers collect ordered alias replacements, then rewrite field references in
 one class-wide instruction walk. Eight generated-class cases retain byte-identical output to the
 previous processor, covering alias chains, descriptors, repeated targets, foreign owners and
@@ -146,12 +155,15 @@ packs use `mcpatcher/cit/`.
 
 Forge verification reports and captures are under `build/reports/forge-direct-*/`.
 
-Modern backport validation also passes on **OpenGL 4.6.0 / NVIDIA 582.78** with the baseline
-above. Nine shader fixtures check actual framebuffer pixels for ordered compute suffixes,
-compute-only composite/deferred, includes/options, render-quality resizing, fixed/relative/zero
-workgroups, program conditions, prepare/shadowcomp graphics ping-pong and graphics image reads
-from image unit 5. Native program deletion, shadow-alternate cleanup, image unbinding and
-pack-off/recovery are asserted. One fixture deliberately fails compilation to exercise recovery.
+Modern backport validation passes on **OpenGL 4.6.0 / NVIDIA 582.78** with the baseline above,
+in both the MCP development client and final SRG runtime Jar. Ten shader fixtures check actual
+framebuffer pixels for ordered compute suffixes, compute-only composite/deferred, includes/options,
+render-quality resizing, fixed/relative/zero workgroups, program conditions, prepare/shadowcomp
+graphics ping-pong and graphics image reads from image unit 5. Real gbuffers/shadow GLSL samplers
+also verify flipped textures and custom overrides. Native program deletion, shadow-alternate
+cleanup, image unbinding and pack-off/recovery are asserted. Separate fixtures deliberately fail
+compilation and active-pack resizing; the latter retains a complete game framebuffer and a
+rendered vanilla world before a subsequent valid pack reload.
 
 ZIP/folder resource fixtures check both roots, same-pack precedence, cross-pack priority and
 deduplication, then validate four real CIT model selections. A rendered pig JEM checks persistent,
@@ -174,11 +186,20 @@ graphics ping-pong changes and applies image/texture barriers before later consu
 programs, custom stage textures and shadow alternates are released on uninit/reload; client
 shutdown uninitializes shaders before destroying the GL context.
 
+Modern stage flips and resize operations refresh G5's gbuffers and shadow sampler bindings,
+including auxiliary color buffers. Uniform metadata is read after preprocessor expansion, so
+macro-defined types, names and aliases follow the compiled shader source. If an active pack's
+resize fails, shader uninitialization clears borrowed main-texture aliases before G5's OFF path.
+
 CEM adds `lerp`, boolean `ifb`, seeded `random`, `day_time` and `day_count`, plus real frame,
 dimension, player position/rotation, entity rotation/ID and death-time parameters. `var.*` float
 and `varb.*` boolean variables belong to each entity and are resolved through nested render
 scopes. Block entity models reject entity-variable namespaces. Existing G5 expressions remain
 available; functions and variables retain their float/boolean type checks.
+
+Worldless block entities rendered as items obtain their CEM world from the enclosing render
+scope, then the client world. A block entity's own world takes precedence. Normal returns,
+nested renders and exceptions restore the previous entity, block-entity and world context.
 
 Modern `optifine/` resource paths are accepted alongside `mcpatcher/`. Resolution preserves
 resource-pack priority, prefers the modern path within a pack containing both, and deduplicates
@@ -203,6 +224,12 @@ exceptions and nested calls. Custom-model context is restored to its enclosing r
 scales no longer require reciprocal scaling, and failed sprite compilation closes its display list.
 Other repairs cover shader vertex formats/caches, texture/resource lifetimes, chunk/VBO ownership,
 settings persistence and constructor initialization order.
+
+G5 release and 64-bit Java chat notices consume their one-shot flags; release notices retain
+the download link. Vanilla chat replacement preserves typed text and third-party subclasses.
+`/reloadChunks` and `/reloadShaders` complete locally, enter sent history and execute locally;
+ordinary commands still use the normal chat pipeline. The F3+L visible-chunk loader preserves
+the advancements-key exception, consumes F3 release and restores chunk-loading settings.
 
 Forge rendering/spawning hooks and custom vertex formats remain in the execution path. Exception
 cleanup and resource-lifetime repairs intentionally correct inherited G5 defects as well as porting

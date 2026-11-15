@@ -17,6 +17,9 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import net.minecraftforge.fml.common.Loader;
+import net.minecraftforge.fml.common.ModContainer;
+import net.minecraftforge.fml.relauncher.FMLLaunchHandler;
 import net.optifine.shaders.Programs;
 import net.optifine.shaders.Shaders;
 import org.lwjgl.BufferUtils;
@@ -30,13 +33,14 @@ import java.util.*;
 
 @Mod(modid = "optirefine_client_contracts", name = "OptiRefine Client Contracts", version = "1", clientSideOnly = true)
 public final class ClientContracts {
-    private static final String[] PACKS = {"modern-stages.zip", "modern-compute.zip", "modern-compute-only.zip", "modern-compute-half.zip", "modern-deferred.zip", "modern-graphics-images.zip", "modern-disabled.zip", "modern-zero.zip", "modern-failure.zip", "modern-compute.zip"};
+    private static final String[] PACKS = {"modern-stages.zip", "modern-compute.zip", "modern-compute-only.zip", "modern-compute-half.zip", "modern-deferred.zip", "modern-graphics-images.zip", "modern-disabled.zip", "modern-zero.zip", "modern-resize-failure.zip", "modern-failure.zip", "modern-compute.zip"};
     private final Path output = Path.of(System.getProperty("optirefine.contract.output"));
     private final long deadline = System.nanoTime() + 300_000_000_000L;
     private final StringBuilder evidence = new StringBuilder();
     private boolean launched, finished;
     private int ticks, pack = -1, packTicks;
     private boolean resized;
+    private boolean resizeFailureRequested;
     private float originalRenderQuality;
 
     @Mod.EventHandler public void initialize(FMLInitializationEvent event) { MinecraftForge.EVENT_BUS.register(this); }
@@ -47,6 +51,7 @@ public final class ClientContracts {
         try {
             if (System.nanoTime() > deadline) throw new AssertionError("Client contracts exceeded deadline");
             if (!launched && mc.currentScreen instanceof GuiMainMenu) {
+                verifyEnvironment(mc);
                 launched = true;
                 mc.gameSettings.renderDistanceChunks = 4; mc.gameSettings.limitFramerate = 60;
                 mc.gameSettings.enableVsync = false; mc.gameSettings.pauseOnLostFocus = false;
@@ -63,11 +68,22 @@ public final class ClientContracts {
                 evidence.append("Actual OpenGL: ").append(GL11.glGetString(GL11.GL_VERSION)).append('\n');
                 if (!Shaders.capabilities.OpenGL43) throw new AssertionError("Client contracts require OpenGL 4.3");
                 resources(mc); sortedSprites(mc);
+                SelectiveResourceContracts.verify(mc);
+                evidence.append("AF, custom-items and alternate-block settings retain selective texture/model reloads and live sound/language consumers\n");
+                CemContextContracts.verify(mc);
+                evidence.append("Worldless item chest CEM uses client/enclosing world values and restores nested and exceptional contexts\n");
                 GeometryContracts.verify();
                 evidence.append("Quad facing and packed normals preserve compact/expanded layouts, winding ties and non-finite inputs\n");
+                ShaderLifecycleContracts.createResizeFailurePack(mc);
                 mc.gameSettings.showDebugInfo = true;
                 nextPack();
             } else if (pack >= 0 && ++packTicks == 45) {
+                if (PACKS[pack].equals("modern-resize-failure.zip") && !resizeFailureRequested) {
+                    ShaderLifecycleContracts.requestInvalidResize();
+                    resizeFailureRequested = true;
+                    packTicks = 0;
+                    return;
+                }
                 if (pack == 2 && !resized) {
                     originalRenderQuality = Shaders.configRenderResMul;
                     Shaders.configRenderResMul = 0.5F;
@@ -88,11 +104,30 @@ public final class ClientContracts {
                 checkPack(mc);
                 if (pack + 1 == PACKS.length) {
                     Shaders.setShaderPack("OFF");
+                    ClientBehaviorContracts.verify(mc);
+                    evidence.append("Native chat replacement, local reload commands, completions, notices and native debug-key handling passed\n");
                     mc.world.sendQuittingDisconnectingPacket(); mc.loadWorld(null); mc.displayGuiScreen(new GuiMainMenu());
                     finish(mc, "PASS\n" + evidence);
                 } else nextPack();
             }
         } catch (Throwable error) { error.printStackTrace(); finish(mc, "FAIL\n" + evidence + error); }
+    }
+
+    private void verifyEnvironment(Minecraft mc) throws Exception {
+        boolean runtime = Boolean.getBoolean("optirefine.contract.runtime");
+        if (FMLLaunchHandler.isDeobfuscatedEnvironment() == runtime) {
+            throw new AssertionError("Client contracts use the wrong Minecraft namespace");
+        }
+        if (runtime) {
+            Minecraft.class.getDeclaredMethod("func_71410_x");
+            ModContainer mod = Loader.instance().getIndexedModList().get("optirefine");
+            File expected = new File(System.getProperty("optirefine.contract.artifact")).getCanonicalFile();
+            if (mod == null || mod.getSource() == null || !mod.getSource().getCanonicalFile().equals(expected)
+                    || !expected.toPath().startsWith(mc.gameDir.toPath().resolve("mods").toAbsolutePath())) {
+                throw new AssertionError("Production client did not load the final OptiRefine Jar from its isolated mods directory");
+            }
+            evidence.append("Production SRG Minecraft loads final OptiRefine Jar and official G5 through runtime discovery\n");
+        } else evidence.append("MCP development client uses the expected development namespace\n");
     }
 
     private void resources(Minecraft mc) throws Exception {
@@ -137,6 +172,12 @@ public final class ClientContracts {
     private void checkPack(Minecraft mc) throws Exception {
         String name = PACKS[pack];
         boolean shaders = (Boolean)Class.forName("Config").getMethod("isShaders").invoke(null);
+        if (name.equals("modern-resize-failure.zip")) {
+            ShaderLifecycleContracts.verifyResizeRecovery(mc);
+            screenshot(mc, "04-resize-off-recovery");
+            evidence.append("Active compute pack resize failure switches OFF, releases owned programs and retains the live world/framebuffer\n");
+            return;
+        }
         if (name.equals("modern-failure.zip")) {
             if (shaders || ModernShaderPipeline.isReady()) throw new AssertionError("Invalid pack did not recover through OFF");
             evidence.append("Invalid compute compilation recovers through OFF\n"); return;
@@ -147,6 +188,10 @@ public final class ClientContracts {
         } else {
             if (ModernShaderPipeline.getDispatchCount() == 0) throw new AssertionError("Compute-only stages were lost");
             pixel(name.equals("modern-graphics-images.zip") ? 5 : 0, name.equals("modern-stages.zip") ? new int[]{160,128,192} : new int[]{128,128,224});
+        }
+        if (name.equals("modern-stages.zip")) {
+            ShaderLifecycleContracts.verifySamplers();
+            evidence.append("Actual GLSL samplers see prepare/shadowcomp flips and preserve custom sampler overrides\n");
         }
         if (pack == 0) screenshot(mc, "02-prepare-shadowcomp-debug");
         if (pack == 5) screenshot(mc, "03-graphics-images");

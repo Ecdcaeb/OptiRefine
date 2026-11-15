@@ -1,10 +1,15 @@
 import java.time.Duration
+import java.util.jar.JarFile
 
 sourceSets {
     clientTest {
         compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
         runtimeClasspath += output + compileClasspath + sourceSets.main.runtimeClasspath
     }
+}
+
+tasks.named('compileClientTestJava', JavaCompile).configure {
+    sourceCompatibility = targetCompatibility = JavaVersion.VERSION_25
 }
 
 def moduleManifest = layout.projectDirectory.file('src/main/resources/optirefine.modules.json')
@@ -22,6 +27,10 @@ tasks.named('processResources').configure {
     }
 }
 
+// Capture the release input before Unimined replaces declarations with mapped files.
+def officialOptifine = configurations.optifine.copy()
+officialOptifine.transitive = false
+
 def runtimeArtifact = tasks.named(enable_shadow.toBoolean() ? 'remapShadowJar' : 'remapJar')
 tasks.named('test').configure {
     dependsOn runtimeArtifact
@@ -37,6 +46,26 @@ def clientContractJar = tasks.register('clientContractJar', Jar) {
     from sourceSets.clientTest.output
     archiveClassifier = 'client-contracts'
     destinationDirectory = layout.buildDirectory.dir('contract-tests')
+}
+
+// Use the main Minecraft hierarchy: the contract mod also links against OptiFine.
+def minecraft = unimined.minecrafts[sourceSets.main]
+def runtimeClientContractJar = minecraft.remap(clientContractJar.get(), 'remapClientContractJar') {
+    prodNamespace 'searge'
+    archiveClassifier = 'client-contracts-srg'
+    destinationDirectory = layout.buildDirectory.dir('contract-tests')
+}
+
+tasks.register('stageBuildArtifacts', Sync) {
+    group = 'distribution'
+    description = 'Stages only the final runtime and optional source Jars for CI uploads.'
+    dependsOn runtimeArtifact
+    from runtimeArtifact.map { it.outputs.files.filter { file -> file.name.endsWith('.jar') } }
+    if (generate_sources_jar.toBoolean()) {
+        dependsOn tasks.named('sourcesJar')
+        from tasks.named('sourcesJar').flatMap { it.archiveFile }
+    }
+    into layout.buildDirectory.dir('distributions/artifacts')
 }
 
 def clientContractDirectory = layout.projectDirectory.dir('run/client-contracts')
@@ -93,4 +122,135 @@ tasks.register('verifyClientContracts', JavaExec) {
         }
     }
     finalizedBy cleanClientContractMod
+}
+
+def runtimeClientDirectory = layout.projectDirectory.dir('run/runtime-client-contracts')
+def runtimeClientReports = layout.buildDirectory.dir('reports/runtime-client-contracts')
+def runtimeClientReport = runtimeClientReports.map { it.file('result.txt') }
+def runtimeClientLogs = tasks.register('collectRuntimeClientContractLogs', Copy) {
+    from(runtimeClientDirectory.dir('logs')) { into 'logs' }
+    from(runtimeClientDirectory.dir('crash-reports')) { into 'crash-reports' }
+    into runtimeClientReports
+}
+
+tasks.register('verifyRuntimeClientContracts', JavaExec) {
+    group = 'verification'
+    description = 'Runs the SRG runtime and SRG contract mod with official G5 in production Cleanroom; requires OpenGL 4.3.'
+    dependsOn runtimeArtifact, runtimeClientContractJar
+    dependsOn tasks.named('runClient').get().preRunTask
+    shouldRunAfter tasks.named('verifyClientContracts')
+    timeout = Duration.ofMinutes(6)
+    javaLauncher.set(tasks.named('runClient', JavaExec).flatMap { it.javaLauncher })
+    workingDir runtimeClientDirectory.asFile
+    finalizedBy runtimeClientLogs
+
+    doFirst {
+        File reports = runtimeClientReports.get().asFile
+        project.delete(reports)
+        reports.mkdirs()
+
+        def client = tasks.named('runClient').get()
+        // The installer owns the production entry point and FML tweak arguments.
+        // Never apply runClient's development properties, main class or classpath.
+        def version
+        File runtimeCleanroom
+        new JarFile(minecraft.mcPatcher.versionJsonJar).withCloseable { jar ->
+            def entry = jar.getJarEntry('version.json')
+            if (entry == null) throw new GradleException('Cleanroom installer has no production version.json')
+            jar.getInputStream(entry).withCloseable { stream ->
+                version = new groovy.json.JsonSlurper().parse(stream, 'UTF-8')
+            }
+            def loader = version.libraries.find { it.name.startsWith('com.cleanroommc:cleanroom:') }
+            if (loader == null) throw new GradleException('Cleanroom runtime library is missing from version.json')
+            String loaderPath = loader.downloads.artifact.path
+            def runtimeEntry = jar.getJarEntry('maven/' + loaderPath)
+            if (runtimeEntry == null) throw new GradleException('Cleanroom installer is missing runtime library ' + loaderPath)
+            runtimeCleanroom = layout.buildDirectory.file('runtime-client-contracts/libraries/' + loaderPath).get().asFile
+            runtimeCleanroom.parentFile.mkdirs()
+            jar.getInputStream(runtimeEntry).withCloseable { stream ->
+                runtimeCleanroom.withOutputStream { output -> stream.transferTo(output) }
+            }
+        }
+        // Production FML applies the installer's binary patches at launch. The
+        // provider's combined getMinecraft(official) Jar is already patched.
+        File officialMinecraft = minecraft.minecraftData.minecraftClientFile
+        new JarFile(officialMinecraft).withCloseable { jar ->
+            if (jar.getJarEntry('bib.class') == null || jar.getJarEntry('net/minecraft/client/Minecraft.class') != null
+                    || jar.getJarEntry('net/minecraftforge/fml/common/launcher/FMLTweaker.class') != null) {
+                throw new GradleException('Production contracts require the original official Minecraft client Jar')
+            }
+        }
+
+        // minecraftLibraries contains both runtime libraries and legacydev. Select
+        // only modules from the installer's runtime manifest; keep native Jars.
+        def runtimeModules = version.libraries.collect { library ->
+            library.name.split(':').take(2).join(':')
+        }.toSet()
+        def libraries = minecraft.minecraftLibraries.resolvedConfiguration.resolvedArtifacts.findAll { artifact ->
+            runtimeModules.contains(artifact.moduleVersion.id.group + ':' + artifact.name)
+        }.collect { it.file }.toSet()
+        if (libraries.any { !it.isFile() || !it.name.endsWith('.jar') || minecraft.isMinecraftJar(it.toPath()) }) {
+            throw new GradleException('Production library classpath contains a directory or Minecraft development artifact')
+        }
+        classpath = project.files(runtimeCleanroom, officialMinecraft, libraries)
+        mainClass = version.mainClass.toString()
+        if (javaLauncher.get().metadata.languageVersion.asInt() < (version.javaVersion.majorVersion as int)) {
+            throw new GradleException('Production contracts require Java ' + version.javaVersion.majorVersion)
+        }
+
+        // Reuse Unimined's assets and extracted natives without evaluating any
+        // MCP_TO_SRG, source_roots, crl.dev.*, or srg2mcp development suppliers.
+        def nativeDirectory = client.properties['natives_directory'].invoke().toString()
+        systemProperty 'java.library.path', nativeDirectory
+        jvmArgs '--enable-native-access=ALL-UNNAMED'
+        jvmArgs client.jvmArgs.findAll { it == '-XstartOnFirstThread' }
+        maxHeapSize = client.maxHeapSize ?: '2G'
+        systemProperty 'java.awt.headless', 'false'
+        systemProperty 'foundation.dump', 'false'
+        systemProperty 'foundation.verbose', 'false'
+        systemProperty 'optirefine.contract.runtime', 'true'
+        systemProperty 'optirefine.contract.output', reports.absolutePath
+
+        def substitutions = [
+                auth_player_name: minecraft_username.toString(),
+                auth_uuid: UUID.nameUUIDFromBytes(('OfflinePlayer:' + minecraft_username).getBytes('UTF-8')).toString(),
+                auth_access_token: '0', user_type: 'legacy',
+                version_name: version.id.toString(), version_type: version.type.toString(),
+                game_directory: runtimeClientDirectory.asFile.absolutePath,
+                assets_root: client.properties['assets_root'].invoke().toString(),
+                assets_index_name: version.assetIndex.id.toString()
+        ]
+        setArgs(version.minecraftArguments.toString().split(/\s+/).collect { argument ->
+            argument.replaceAll(/\$\{([^}]+)\}/) { match, key ->
+                if (!substitutions.containsKey(key)) throw new GradleException('Unknown production launch property: ' + key)
+                substitutions[key]
+            }
+        })
+
+        File runtimeJar = runtimeArtifact.get().outputs.files.filter { it.isFile() && it.name.endsWith('.jar') }.singleFile
+        File contractJar = runtimeClientContractJar.get().archiveFile.get().asFile
+        File optifineJar = officialOptifine.singleFile
+        project.sync {
+            from 'src/clientTest/resources/fixtures'
+            from([runtimeJar, contractJar, optifineJar]) { into 'mods' }
+            into runtimeClientDirectory
+        }
+        File installedRuntime = runtimeClientDirectory.file('mods/' + runtimeJar.name).asFile
+        systemProperty 'optirefine.contract.artifact', installedRuntime.absolutePath
+        new File(reports, 'launch.json').setText(groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson([
+                mainClass: mainClass.get(), java: javaLauncher.get().executablePath.asFile.absolutePath,
+                minecraft: officialMinecraft.absolutePath, classpath: classpath.files.collect { it.absolutePath },
+                cleanroom: runtimeCleanroom.absolutePath,
+                runtime: installedRuntime.absolutePath,
+                contracts: runtimeClientDirectory.file('mods/' + contractJar.name).asFile.absolutePath,
+                optifine: runtimeClientDirectory.file('mods/' + optifineJar.name).asFile.absolutePath,
+                arguments: args, jvmArguments: allJvmArgs
+        ])) + '\n', 'UTF-8')
+    }
+    doLast {
+        File report = runtimeClientReport.get().asFile
+        if (!report.isFile() || !report.getText('UTF-8').startsWith('PASS\n')) {
+            throw new GradleException('Runtime client contracts failed: ' + (report.isFile() ? report.getText('UTF-8') : 'no result report'))
+        }
+    }
 }

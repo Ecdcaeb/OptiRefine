@@ -9,6 +9,9 @@ import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Accessibl
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessTransformer;
 import mods.Hileb.optirefine.optifine.Config;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiChat;
+import net.minecraft.util.text.Style;
+import net.minecraft.util.text.event.ClickEvent;
 import net.minecraft.client.gui.advancements.GuiScreenAdvancements;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.multiplayer.WorldClient;
@@ -48,6 +51,7 @@ import net.optifine.CustomColors;
 import net.optifine.GlErrors;
 import net.optifine.Lagometer;
 import net.optifine.util.MemoryMonitor;
+import net.optifine.gui.GuiChatOF;
 import net.optifine.RandomEntities;
 import net.optifine.reflect.ReflectorResolver;
 import net.optifine.shaders.Shaders;
@@ -112,11 +116,8 @@ import java.nio.FloatBuffer;
  * calls). The Kirino headless render phases inside {@code renderWorldPass} are preserved
  * alongside the OptiFine shader stages.</p>
  *
- * <p>Minor OptiFine extras left as TODO: new-version/64-bit-Java chat notifications and
- * {@code GuiChatOF} swap in {@code frameInit}, {@code RenderChunk.renderChunksUpdated} reset in
- * {@code loadAllVisibleChunks}, {@code Minecraft.actionKeyF3} toggle and the {@code cameraZoom}
- * scaling in {@code setupCameraTransform} (dead branch in the reference — {@code cameraZoom} is
- * never assigned, so it stays 1.0). The {@code Config.isRainOff()}/{@code Config.isRainFancy()}/
+ * <p>The baseline {@code setupCameraTransform} retains camera zoom translation and scaling.
+ * The {@code Config.isRainOff()}/{@code Config.isRainFancy()}/
  * {@code Config.isRainSplash()} rain hooks in {@code renderRainSnow}/{@code addRainParticles} are
  * implemented via {@code optiRefine$addRainParticles}/{@code optiRefine$isRainOff}/
  * {@code optiRefine$isRainFancy*} below. The {@code ShaderLinkHelper} init in {@code updateRenderer}
@@ -403,6 +404,14 @@ public abstract class MixinEntityRenderer {
     private static native int optiRefine$getRenderGlobalCountChunksToUpdate(RenderGlobal renderGlobal);
 
     @SuppressWarnings({"unused", "MissingUnique"})
+    @AccessibleOperation(opcode = Opcodes.PUTFIELD, desc = "net.minecraft.client.Minecraft field_184129_aV Z", deobf = true)
+    private static native void optiRefine$setMinecraftActionKeyF3(Minecraft minecraft, boolean value);
+
+    @SuppressWarnings({"unused", "MissingUnique"})
+    @AccessibleOperation(opcode = Opcodes.PUTSTATIC, desc = "net.minecraft.client.renderer.chunk.RenderChunk field_178592_a I", deobf = true)
+    private static native void optiRefine$setRenderChunksUpdated(int value);
+
+    @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.RenderGlobal func_184384_n ()Z", deobf = true)
 // [AUDIT-OK] SRG func_184384_n + deobf=true double-matching (verified 2026-08-05)
     private static native boolean optiRefine$hasRenderGlobalNoChunkUpdates(RenderGlobal renderGlobal);    // ===== new fields (OptiFine) =====
@@ -532,8 +541,7 @@ public abstract class MixinEntityRenderer {
 
     /**
      * OptiFine: fog fancy/fast far-plane multipliers + clipDistance (min 173.0F).
-     * The reference's {@code cameraZoom} scaling branch is skipped — {@code cameraZoom} is never
-     * assigned anywhere in the OptiFine reference, so the branch is dead code (see class javadoc TODO).
+     * Camera zoom translation and scaling remain in the original Cleanroom method.
      */
     @Inject(method = "setupCameraTransform", at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/EntityRenderer;farPlaneDistance:F", opcode = Opcodes.PUTFIELD, shift = At.Shift.AFTER))
     private void optiRefine$farPlaneDistance(CallbackInfo ci) {
@@ -1227,8 +1235,7 @@ public abstract class MixinEntityRenderer {
     }
 
     /**
-     * OptiFine first-frame init. The new-version/64-bit chat notifications and the GuiChatOF swap
-     * are cosmetic and left as TODO.
+     * OptiFine first-frame init and vanilla chat replacement.
      */
 // [AUDIT-OK] OF-added method, not in baseline
     private void frameInit() {
@@ -1244,8 +1251,19 @@ public abstract class MixinEntityRenderer {
         Config.checkDisplayMode();
         WorldClient world = this.mc.world;
         if (world != null) {
+            String newRelease = Config.getNewRelease();
+            if (newRelease != null) {
+                TextComponentString message = new TextComponentString(I18n.format("of.message.newVersion",
+                        "\u00a7nHD Ultra " + newRelease + "\u00a7r"));
+                message.setStyle(new Style().setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL,
+                        "https://optifine.net/downloads")));
+                this.mc.ingameGUI.getChatGUI().printChatMessage(message);
+                Config.setNewRelease(null);
+            }
             if (Config.isNotify64BitJava()) {
                 Config.setNotify64BitJava(false);
+                this.mc.ingameGUI.getChatGUI().printChatMessage(
+                        new TextComponentString(I18n.format("of.message.java64Bit")));
             }
         }
         if (this.updatedWorld != world) {
@@ -1257,6 +1275,9 @@ public abstract class MixinEntityRenderer {
         }
         if (!this.setFxaaShader(Shaders.configAntialiasingLevel)) {
             Shaders.configAntialiasingLevel = 0;
+        }
+        if (this.mc.currentScreen != null && this.mc.currentScreen.getClass() == GuiChat.class) {
+            this.mc.displayGuiScreen(new GuiChatOF((GuiChat) this.mc.currentScreen));
         }
     }
 
@@ -1337,8 +1358,7 @@ public abstract class MixinEntityRenderer {
     }
 
     /**
-     * OptiFine F3+F4 visible-chunks loader. The {@code Minecraft.actionKeyF3} toggle is left as
-     * TODO (private field access).
+     * OptiFine F3+L visible-chunks loader.
      */
     @Unique
 // [AUDIT-OK] OF-added method, not in baseline
@@ -1363,12 +1383,12 @@ public abstract class MixinEntityRenderer {
             this.loadVisibleChunks = true;
             TextComponentString message = new TextComponentString(I18n.format("of.message.loadingVisibleChunks"));
             this.mc.ingameGUI.getChatGUI().printChatMessageWithOptionalDeletion(message, messageId);
+            optiRefine$setMinecraftActionKeyF3(this.mc, true);
         }
     }
 
     /**
-     * OptiFine: force-load all visible chunks. The {@code RenderChunk.renderChunksUpdated} reset is
-     * left as TODO (not provided by any OptiRefine mixin).
+     * OptiFine: force-load all visible chunks, then clear the ordinary per-second update counter.
      */
     @Unique
 // [AUDIT-OK] OF-added method, not in baseline
@@ -1413,6 +1433,7 @@ public abstract class MixinEntityRenderer {
             } while (loading);
             Config.log("Chunks loaded: " + updated);
             Config.log("Finished loading visible chunks");
+            optiRefine$setRenderChunksUpdated(0);
         } finally {
             optiRefine$setConfiguredChunkUpdates(this.mc.gameSettings, chunkUpdates);
             optiRefine$setLazyChunkLoadingEnabled(this.mc.gameSettings, lazyChunkLoading);

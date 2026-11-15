@@ -34,6 +34,20 @@ This requires OpenGL 4.3 and opens an isolated client in `run/client-contracts`.
 captures are written to `build/reports/client-contracts/`. The verification mod is a separate
 test artifact under `build/contract-tests/`.
 
+To verify the final SRG runtime Jar with official G5 and production Cleanroom, run:
+
+```
+./gradlew verifyRuntimeClientContracts
+```
+
+This uses `run/runtime-client-contracts` and writes reports to `build/reports/runtime-client-contracts/`.
+Both client suites require a graphical desktop and briefly focus the test window for shortcut checks.
+
+The [release workflow](.github/workflows/release.yml) runs the build and both client suites before
+creating a GitHub draft. It attaches the runtime Jar, sources Jar and `SHA256SUMS.txt`, and retains
+verification reports on failure. Version/tag mismatches are rejected; build metadata such as
+`+build-alpha` does not by itself mark a release as a prerelease.
+
 ## Installation
 
 - Tested with **Java 25**, **Cleanroom 0.5.17-alpha** and **OptiFine 1.12.2 HD U G5**.
