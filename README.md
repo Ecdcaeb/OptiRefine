@@ -1,5 +1,6 @@
-# <img width="56" height="56" alt="image" src="https://github.com/user-attachments/assets/ffd17053-9d3a-49a6-adf7-dc158776ddb4" /> OptiRefine 0.1.0-alpha — Runtime Alpha Test
+# <img width="56" height="56" alt="image" src="https://github.com/user-attachments/assets/ffd17053-9d3a-49a6-adf7-dc158776ddb4" /> OptiRefine — Runtime Alpha Test
 
+> [!IMPORTANT]
 > **Status: Runtime Alpha Test**. You can download and try it out, but it is **not recommended** for
 > important worlds or servers; crashes or rendering issues may still occur. **Issues are accepted** — bug
 > reports about crashes or errors caused by OptiRefine are welcome. Note: rendering anomalies while shaders
