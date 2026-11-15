@@ -68,16 +68,43 @@ tasks.register('stageBuildArtifacts', Sync) {
     into layout.buildDirectory.dir('distributions/artifacts')
 }
 
+def shaderFixtureDirectory = layout.projectDirectory.dir('src/clientTest/resources/fixtures/shaderpacks')
+def shaderFixtureArchives = shaderFixtureDirectory.asFile.listFiles()
+        .findAll { it.directory }
+        .sort { it.name }
+        .collect { File pack ->
+            def packName = pack.name.split('-').collect { it.capitalize() }.join('')
+            tasks.register("zip${packName}ShaderFixture", Zip) {
+                from pack
+                archiveFileName = "${pack.name}.zip"
+                destinationDirectory = layout.buildDirectory.dir('shader-fixtures')
+                preserveFileTimestamps = false
+                reproducibleFileOrder = true
+            }
+        }
+
+def clientContractFixtures = tasks.register('prepareClientContractFixtures', Sync) {
+    group = 'verification'
+    description = 'Packages editable shader sources and stages fixtures for both native client suites.'
+    from('src/clientTest/resources/fixtures') { exclude 'shaderpacks/**' }
+    from(shaderFixtureArchives.collect { it.flatMap { archive -> archive.archiveFile } }) { into 'shaderpacks' }
+    into layout.buildDirectory.dir('client-contract-fixtures')
+}
+
 def clientContractDirectory = layout.projectDirectory.dir('run/client-contracts')
 def clientContractReport = layout.buildDirectory.file('reports/client-contracts/result.txt')
+def developmentArtifact = tasks.named('jar')
 def cleanClientContractMod = tasks.register('cleanClientContractMod', Delete) {
     delete clientContractDirectory.file('mods/' + clientContractJar.get().archiveFileName.get())
+    delete clientContractDirectory.file('mods/' + developmentArtifact.get().archiveFileName.get())
 }
+
 
 tasks.register('verifyClientContracts', JavaExec) {
     group = 'verification'
     description = 'Runs G5 client contracts in an isolated game directory; requires OpenGL 4.3.'
-    dependsOn clientContractJar
+    dependsOn clientContractJar, clientContractFixtures, developmentArtifact
+
     dependsOn tasks.named('runClient').get().preRunTask
     timeout = Duration.ofMinutes(6)
     doFirst {
@@ -88,6 +115,7 @@ tasks.register('verifyClientContracts', JavaExec) {
         applyAll.setAccessible(true)
         applyAll.invoke(client)
         classpath = client.classpath
+
         mainClass = client.mainClass
         executable = client.executable
         environment client.environment
@@ -106,11 +134,11 @@ tasks.register('verifyClientContracts', JavaExec) {
         setArgs(app)
         workingDir clientContractDirectory.asFile
         project.copy {
-            from 'src/clientTest/resources/fixtures'
+            from clientContractFixtures
             into clientContractDirectory
         }
         project.copy {
-            from clientContractJar.get().archiveFile
+            from([developmentArtifact.flatMap { it.archiveFile }, clientContractJar.flatMap { it.archiveFile }])
             into clientContractDirectory.dir('mods')
         }
         clientContractReport.get().asFile.delete()
@@ -136,7 +164,7 @@ def runtimeClientLogs = tasks.register('collectRuntimeClientContractLogs', Copy)
 tasks.register('verifyRuntimeClientContracts', JavaExec) {
     group = 'verification'
     description = 'Runs the SRG runtime and SRG contract mod with official G5 in production Cleanroom; requires OpenGL 4.3.'
-    dependsOn runtimeArtifact, runtimeClientContractJar
+    dependsOn runtimeArtifact, runtimeClientContractJar, clientContractFixtures
     dependsOn tasks.named('runClient').get().preRunTask
     shouldRunAfter tasks.named('verifyClientContracts')
     timeout = Duration.ofMinutes(6)
@@ -231,7 +259,7 @@ tasks.register('verifyRuntimeClientContracts', JavaExec) {
         File contractJar = runtimeClientContractJar.get().archiveFile.get().asFile
         File optifineJar = officialOptifine.singleFile
         project.sync {
-            from 'src/clientTest/resources/fixtures'
+            from clientContractFixtures
             from([runtimeJar, contractJar, optifineJar]) { into 'mods' }
             into runtimeClientDirectory
         }

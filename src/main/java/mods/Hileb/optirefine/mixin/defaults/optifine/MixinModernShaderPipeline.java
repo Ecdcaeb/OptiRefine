@@ -21,6 +21,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
@@ -189,6 +190,11 @@ public abstract class MixinModernShaderPipeline {
             program.setDrawBuffers(buffers);
         }
         ci.cancel();
+    }
+
+    @ModifyArg(method = {"setupFrameBuffer", "setupShadowFrameBuffer"}, at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glTexImage2D(IIIIIIIILjava/nio/ByteBuffer;)V"), index = 2)
+    private static int optiRefine$sizedImageStorage(int format) {
+        return ModernShaderPipeline.imageStorageFormat(format);
     }
 
     @WrapMethod(method = {"setupFrameBuffer", "setupShadowFrameBuffer"})

@@ -269,6 +269,11 @@ public final class ModernShaderPipeline {
 
     private static final int GL12_CLAMP_TO_EDGE = 33071;
 
+    public static int imageStorageFormat(int format) {
+        // Image load/store requires sized storage, not just a sized image binding.
+        return state != null && state.imagesRequested && format == GL11.GL_RGBA ? GL11.GL_RGBA8 : format;
+    }
+
     // This is J9's conversion of legacy unsized formats to their sized image formats.
     private static int imageFormat(int format) {
         return switch (format) {
@@ -320,8 +325,12 @@ public final class ModernShaderPipeline {
         }
     }
 
+    // Image writes can feed later image, sampler, and framebuffer accesses, including readback.
+    private static void memoryBarrier() {
+        GL42.glMemoryBarrier(GL42.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL42.GL_TEXTURE_FETCH_BARRIER_BIT | GL42.GL_FRAMEBUFFER_BARRIER_BIT);
+    }
     public static void graphicsBarrier() {
-        if (state != null && state.ready && state.imagesRequested) GL42.glMemoryBarrier(GL42.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL42.GL_TEXTURE_FETCH_BARRIER_BIT);
+        if (state != null && state.ready && state.imagesRequested) memoryBarrier();
     }
     private static final int GL15_READ_WRITE = 35002;
 
@@ -388,9 +397,9 @@ public final class ModernShaderPipeline {
             for (Compute compute : stages) {
                 Shaders.useProgram(compute.uniformProgram);
                 if (compute.uniformProgram.getId() == 0) throw failure(compute.path + ": OpenGL rejected the linked compute program");
-                GL42.glMemoryBarrier(GL42.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL42.GL_TEXTURE_FETCH_BARRIER_BIT);
+                memoryBarrier();
                 GL43.glDispatchCompute(compute.x, compute.y, compute.z);
-                GL42.glMemoryBarrier(GL42.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL42.GL_TEXTURE_FETCH_BARRIER_BIT);
+                memoryBarrier();
                 state.dispatchCount++;
                 state.lastDispatchPath = compute.path;
                 state.lastGroupsX = compute.x;
@@ -624,7 +633,11 @@ public final class ModernShaderPipeline {
     public static int getLastGroupsY() { return state == null ? 0 : state.lastGroupsY; }
     public static int getLastGroupsZ() { return state == null ? 0 : state.lastGroupsZ; }
     public static boolean isReady() { return state != null && state.ready; }
-    public static int getMainImageTexture(int index) { return state != null && state.ready && index >= 0 && index < Math.min(6, state.colorCount) ? state.colors.getA(index) : 0; }
+
+    public static int getMainImageTexture(int index) {
+        if (state == null || !state.ready || index < 0 || index >= Math.min(6, state.colorCount)) return 0;
+        return state.colors.getA(index);
+    }
     public static int getShadowImageTexture(int index) { return state != null && state.ready && index >= 0 && index < Math.min(2, state.shadowColorCount) ? state.shadowColors.get(index) : 0; }
     public static int getImageInternalFormat(int unit) { return state == null ? GL11.GL_RGBA8 : state.imageFormats[unit]; }
     public static int getComputeProgramCount(int programIndex) {

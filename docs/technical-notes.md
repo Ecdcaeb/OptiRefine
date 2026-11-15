@@ -66,7 +66,8 @@ runtime-artifact reference boundaries and macro-expanded shader uniform metadata
 are in `build/reports/tests/test/`.
 
 `./gradlew verifyClientContracts` launches an isolated MCP development client under
-`run/client-contracts`. `./gradlew verifyRuntimeClientContracts` remaps the contract mod to SRG
+`run/client-contracts`, loading the development Jar and test mod through Forge's normal discovery.
+`./gradlew verifyRuntimeClientContracts` remaps the contract mod to SRG
 and launches the final runtime Jar with official G5, the original Minecraft client and the
 installer's production Cleanroom Jar under `run/runtime-client-contracts`. It asserts the SRG
 namespace and installed runtime Jar source. Production launches exclude source outputs, MCP
@@ -165,6 +166,11 @@ cleanup, image unbinding and pack-off/recovery are asserted. Separate fixtures d
 compilation and active-pack resizing; the latter retains a complete game framebuffer and a
 rendered vanilla world before a subsequent valid pack reload.
 
+The same MCP and SRG suites also pass with **Mesa 25.2.8 / llvmpipe / OpenGL 4.5 compatibility**
+in an isolated Windows runtime. This verifies the original pixel checks after normalizing legacy
+RGBA image storage, including main/shadow stages, resize recovery and subsequent pack reloads.
+The temporary per-stage diagnostics are removed from the final implementation.
+
 ZIP/folder resource fixtures check both roots, same-pack precedence, cross-pack priority and
 deduplication, then validate four real CIT model selections. A rendered pig JEM checks persistent,
 independent float/boolean variables and nested context restoration. Results and captures are in
@@ -182,9 +188,13 @@ produce a shader-pack error and use G5's existing pack-off path.
 dimension overrides, conditions, options, includes and uniform updates. Image units map
 `colorimg0..5` to current main textures and `shadowcolorimg0..1` to current shadow textures.
 Compute dispatch supports fixed `workGroups` and render-relative `workGroupsRender`, follows
-graphics ping-pong changes and applies image/texture barriers before later consumers. Owned
+graphics ping-pong changes and applies image, texture-fetch and framebuffer barriers before later consumers. Owned
 programs, custom stage textures and shadow alternates are released on uninit/reload; client
 shutdown uninitializes shaders before destroying the GL context.
+
+Packs with image uniforms allocate G5's legacy `GL_RGBA` color targets as sized `GL_RGBA8`
+storage, on both main ping-pong textures and shadow targets. Image operations require sized
+texture storage as well as a compatible sized image binding format.
 
 Modern stage flips and resize operations refresh G5's gbuffers and shadow sampler bindings,
 including auxiliary color buffers. Uniform metadata is read after preprocessor expansion, so

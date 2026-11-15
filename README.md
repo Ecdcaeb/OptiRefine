@@ -44,6 +44,18 @@ To verify the final SRG runtime Jar with official G5 and production Cleanroom, r
 This uses `run/runtime-client-contracts` and writes reports to `build/reports/runtime-client-contracts/`.
 Both client suites require a graphical desktop and briefly focus the test window for shortcut checks.
 
+Shader fixtures are editable sources in
+[`src/clientTest/resources/fixtures/shaderpacks/`](src/clientTest/resources/fixtures/shaderpacks/).
+Both client suites automatically build their ZIPs with `prepareClientContractFixtures` before
+launching. Edit a pack's `shaders/` directory and rerun either suite to rebuild that pack.
+To prepare the fixtures without starting Minecraft, run:
+
+```
+./gradlew prepareClientContractFixtures
+```
+
+Generated ZIPs are staged under `build/client-contract-fixtures/shaderpacks/`.
+
 The [release workflow](.github/workflows/release.yml) runs the build and both client suites before
 creating a GitHub draft. It attaches the runtime Jar, sources Jar and `SHA256SUMS.txt`, and retains
 verification reports on failure. Version/tag mismatches are rejected; build metadata such as
