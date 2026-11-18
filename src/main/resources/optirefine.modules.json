@@ -238,6 +238,7 @@
         "minecraft.client.renderer.MixinContainerLocalRenderInformation",
         "minecraft.client.multiplayer.MixinChunkProviderClient",
         "optifine.MixinChunkCacheOF",
+        "optifine.MixinConnectedTextures",
         "optifine.MixinDynamicLights",
         "optifine.MixinSVertexBuilder",
         "optifine.MixinShaders"
