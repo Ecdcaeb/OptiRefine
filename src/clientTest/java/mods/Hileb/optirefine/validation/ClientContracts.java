@@ -204,6 +204,8 @@ public final class ClientContracts {
             evidence.append("Actual GLSL samplers see prepare/shadowcomp flips and preserve custom sampler overrides\n");
             EntityRenderContracts.verify(mc);
             evidence.append("Faulting entity renderer restores the incoming entity, counter, profiler and Forge pass\n");
+            TntFlashContracts.verify(mc);
+            evidence.append("TNT flash and quiet phases produce the expected entityColor pixels\n");
         }
         if (pack == 0) screenshot(mc, "02-prepare-shadowcomp-debug");
         if (pack == 5) screenshot(mc, "03-graphics-images");

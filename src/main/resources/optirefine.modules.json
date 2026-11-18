@@ -189,6 +189,7 @@
         "minecraft.client.renderer.entity.MixinRenderLiving",
         "minecraft.client.renderer.entity.MixinRenderLivingBase",
         "minecraft.client.renderer.entity.MixinRenderManager",
+        "minecraft.client.renderer.entity.MixinRenderTNTPrimed",
         "minecraft.client.renderer.entity.MixinRenderXPOrb",
         "minecraft.client.renderer.entity.layers.MixinLayerArmorBase",
         "minecraft.client.renderer.entity.layers.MixinLayerCape",

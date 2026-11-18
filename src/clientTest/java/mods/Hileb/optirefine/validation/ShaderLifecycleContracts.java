@@ -233,11 +233,16 @@ final class ShaderLifecycleContracts {
     }
 
     private static int samplerProgram() {
-        int vertex = shader(GL20.GL_VERTEX_SHADER, "#version 130\nvoid main(){gl_Position=gl_Vertex;}");
+        return linkProgram("#version 130\nvoid main(){gl_Position=gl_Vertex;}",
+                "#version 130\nuniform sampler2D gaux2;uniform sampler2D shadowcolor0;uniform int chooseShadow;out vec4 color;void main(){color=chooseShadow!=0?texelFetch(shadowcolor0,ivec2(2,2),0):texelFetch(gaux2,ivec2(2,2),0);}");
+    }
+
+    static int linkProgram(String vertexSource, String fragmentSource) {
+        int vertex = shader(GL20.GL_VERTEX_SHADER, vertexSource);
         int fragment = 0, program = 0;
         boolean linked = false;
         try {
-            fragment = shader(GL20.GL_FRAGMENT_SHADER, "#version 130\nuniform sampler2D gaux2;uniform sampler2D shadowcolor0;uniform int chooseShadow;out vec4 color;void main(){color=chooseShadow!=0?texelFetch(shadowcolor0,ivec2(2,2),0):texelFetch(gaux2,ivec2(2,2),0);}");
+            fragment = shader(GL20.GL_FRAGMENT_SHADER, fragmentSource);
             program = GL20.glCreateProgram();
             GL20.glAttachShader(program, vertex); GL20.glAttachShader(program, fragment); GL20.glLinkProgram(program);
             if (GL20.glGetProgrami(program, GL20.GL_LINK_STATUS) == 0) throw new AssertionError(GL20.glGetProgramInfoLog(program, 8192));
