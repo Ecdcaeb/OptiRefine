@@ -1,10 +1,15 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer.texture;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import mods.Hileb.optirefine.optifine.client.AtlasSpriteMipmaps;
 import net.minecraft.client.renderer.texture.Stitcher;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.util.math.MathHelper;
 import net.optifine.util.MathUtils;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -44,6 +49,33 @@ public abstract class MixinStitcher {
     // [AUDIT-OK] baseline member stitchSlots (field_94317_b) exists in Stitcher
     private List<Stitcher.Slot> stitchSlots;
 
+    @Unique private boolean optiRefine$hasUnrotatedRectangles;
+
+    @WrapOperation(method = "addSprite", at = @At(value = "NEW", target = "(Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;I)Lnet/minecraft/client/renderer/texture/Stitcher$Holder;"))
+    private Stitcher.Holder optiRefine$createHolder(TextureAtlasSprite sprite, int mipLevel, Operation<Stitcher.Holder> original) {
+        Stitcher.Holder holder = original.call(sprite, mipLevel);
+        if (optiRefine$keepsOrientation(sprite)) {
+            this.optiRefine$hasUnrotatedRectangles = true;
+            if (holder.isRotated()) {
+                holder.rotate();
+            }
+        }
+        return holder;
+    }
+
+    @WrapOperation(method = "allocateSlot", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/texture/Stitcher$Holder;rotate()V"))
+    private void optiRefine$rotateHolder(Stitcher.Holder holder, Operation<Void> original) {
+        if (!optiRefine$keepsOrientation(holder.getAtlasSprite())) {
+            original.call(holder);
+        }
+    }
+
+    @Unique
+    private static boolean optiRefine$keepsOrientation(TextureAtlasSprite sprite) {
+        // Atlas UVs and pixel uploads use the sprite's original orientation.
+        return sprite.getIconWidth() != sprite.getIconHeight() && ((AtlasSpriteMipmaps) sprite).optiRefine$hasAlignedResource();
+    }
+
     /**
      * @author OptiRefine
      * @reason OptiFine: rounded-down power-of-two expansion decision + unconditional growth
@@ -51,6 +83,10 @@ public abstract class MixinStitcher {
     @Inject(method = "expandAndAllocateSlot", at = @At("HEAD"), cancellable = true)
     // [AUDIT-OK] target expandAndAllocateSlot (func_94311_c)Z non-void -> CIR; body mirrors OF (roundDownToPowerOfTwo + unconditional growth)
     private void optiRefine$expandAndAllocateSlot(Stitcher.Holder holder, CallbackInfoReturnable<Boolean> cir) {
+        if (this.optiRefine$hasUnrotatedRectangles) {
+            cir.setReturnValue(this.optiRefine$expandForRectangles(holder));
+            return;
+        }
         int i = Math.min(holder.getWidth(), holder.getHeight());
         int i1 = MathHelper.smallestEncompassingPowerOfTwo(this.currentWidth + i);
         int j1 = MathHelper.smallestEncompassingPowerOfTwo(this.currentHeight + i);
@@ -85,5 +121,48 @@ public abstract class MixinStitcher {
         slot.addSlot(holder);
         this.stitchSlots.add(slot);
         cir.setReturnValue(true);
+    }
+
+    @Unique
+    private boolean optiRefine$expandForRectangles(Stitcher.Holder holder) {
+        int width = holder.getWidth();
+        int height = holder.getHeight();
+        int rightWidth = this.currentWidth + width;
+        int rightHeight = Math.max(this.currentHeight, height);
+        int bottomWidth = Math.max(this.currentWidth, width);
+        int bottomHeight = this.currentHeight + height;
+        long rightArea = this.optiRefine$allocatedArea(rightWidth, rightHeight);
+        long bottomArea = this.optiRefine$allocatedArea(bottomWidth, bottomHeight);
+        if (rightArea == Long.MAX_VALUE && bottomArea == Long.MAX_VALUE) {
+            return false;
+        }
+
+        Stitcher.Slot slot;
+        if (rightArea <= bottomArea) {
+            slot = new Stitcher.Slot(this.currentWidth, 0, width, rightHeight);
+            if (rightHeight > this.currentHeight && this.currentWidth > 0) {
+                this.stitchSlots.add(new Stitcher.Slot(0, this.currentHeight, this.currentWidth, rightHeight - this.currentHeight));
+            }
+            this.currentWidth = rightWidth;
+            this.currentHeight = rightHeight;
+        } else {
+            slot = new Stitcher.Slot(0, this.currentHeight, bottomWidth, height);
+            if (bottomWidth > this.currentWidth && this.currentHeight > 0) {
+                this.stitchSlots.add(new Stitcher.Slot(this.currentWidth, 0, bottomWidth - this.currentWidth, this.currentHeight));
+            }
+            this.currentWidth = bottomWidth;
+            this.currentHeight = bottomHeight;
+        }
+        slot.addSlot(holder);
+        this.stitchSlots.add(slot);
+        return true;
+    }
+
+    @Unique
+    private long optiRefine$allocatedArea(int width, int height) {
+        int allocationWidth = MathHelper.smallestEncompassingPowerOfTwo(width);
+        int allocationHeight = MathHelper.smallestEncompassingPowerOfTwo(height);
+        return allocationWidth <= this.maxWidth && allocationHeight <= this.maxHeight
+                ? (long) allocationWidth * allocationHeight : Long.MAX_VALUE;
     }
 }

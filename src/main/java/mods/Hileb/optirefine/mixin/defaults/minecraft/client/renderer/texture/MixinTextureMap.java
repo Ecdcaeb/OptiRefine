@@ -6,10 +6,12 @@ import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Accessibl
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessTransformer;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.optifine.Config;
+import mods.Hileb.optirefine.optifine.client.AtlasSpriteMipmaps;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.StitcherException;
 import net.minecraft.client.renderer.texture.ITickableTextureObject;
 import net.minecraft.client.renderer.texture.ITextureMapPopulator;
+import net.minecraft.client.renderer.texture.PngSizeInfo;
 import net.minecraft.client.renderer.texture.Stitcher;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;
@@ -28,6 +30,8 @@ import net.optifine.CustomItems;
 import net.optifine.EmissiveTextures;
 import net.optifine.SmartAnimations;
 import net.optifine.SpriteDependencies;
+import net.optifine.shaders.MultiTexID;
+import net.optifine.shaders.Shaders;
 import net.optifine.shaders.ShadersTex;
 import net.optifine.util.CounterInt;
 import net.optifine.util.TextureUtils;
@@ -48,6 +52,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -325,6 +330,7 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
         int i = TextureUtils.getGLMaximumTextureSize();
         Stitcher stitcher = new Stitcher(i, i, 0, this.mipmapLevels);
         this.mapUploadedSprites.clear();
+        int requestedMipLevels = this.mipmapLevels;
         this.listAnimatedSprites.clear();
         int j = Integer.MAX_VALUE;
         int k = this.getMinSpriteSize();
@@ -340,7 +346,10 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
             ResourceLocation resourcelocation = this.getResourceLocation(textureatlassprite);
             IResource iresource = null;
             optiRefine$updateSpriteIndexInMap(textureatlassprite, this.counterIndexInMap);
-            if (textureatlassprite.hasCustomLoader(resourceManager, resourcelocation)) {
+            AtlasSpriteMipmaps spriteMipmaps = (AtlasSpriteMipmaps) textureatlassprite;
+            boolean customLoader = textureatlassprite.hasCustomLoader(resourceManager, resourcelocation);
+            if (customLoader) {
+                spriteMipmaps.optiRefine$clearAlignedResource();
                 if (textureatlassprite.load(resourceManager, resourcelocation, loc -> this.mapRegisteredSprites.get(loc.toString()))) {
                     Config.detail("Custom loader (skipped): " + textureatlassprite);
                     ++j1;
@@ -350,10 +359,10 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
                 ++i1;
             } else {
                 try {
-                    net.minecraft.client.renderer.texture.PngSizeInfo pngsizeinfo = net.minecraft.client.renderer.texture.PngSizeInfo.makeFromResource(resourceManager.getResource(resourcelocation));
+                    PngSizeInfo pngsizeinfo = PngSizeInfo.makeFromResource(resourceManager.getResource(resourcelocation));
                     iresource = resourceManager.getResource(resourcelocation);
                     boolean flag = iresource.getMetadata("animation") != null;
-                    textureatlassprite.loadSprite(pngsizeinfo, flag);
+                    spriteMipmaps.optiRefine$loadAtlasSprite(pngsizeinfo, flag, this.mipmapLevels > 0 ? k : 0);
                 } catch (RuntimeException runtimeexception) {
                     org.apache.logging.log4j.LogManager.getLogger().error("Unable to parse metadata from {}", resourcelocation, runtimeexception);
                     net.minecraftforge.fml.client.FMLClientHandler.instance().trackBrokenTexture(resourcelocation, runtimeexception.getMessage());
@@ -370,7 +379,7 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
             int l1 = textureatlassprite.getIconWidth();
             int i2 = textureatlassprite.getIconHeight();
             if (l1 >= 1 && i2 >= 1) {
-                if (l1 < k || this.mipmapLevels > 0) {
+                if ((customLoader || this.mipmapLevels == 0) && (l1 < k || this.mipmapLevels > 0)) {
                     int j2 = this.mipmapLevels > 0 ? TextureUtils.scaleToGrid(l1, k) : TextureUtils.scaleToMin(l1, k);
                     if (j2 != l1) {
                         if (!TextureUtils.isPowerOfTwo(l1)) {
@@ -383,13 +392,13 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
                         textureatlassprite.setIconHeight(k2);
                     }
                 }
-                j = Math.min(j, Math.min(textureatlassprite.getIconWidth(), textureatlassprite.getIconHeight()));
-                int l2 = Math.min(Integer.lowestOneBit(textureatlassprite.getIconWidth()), Integer.lowestOneBit(textureatlassprite.getIconHeight()));
-                if (l2 < l) {
-                    org.apache.logging.log4j.LogManager.getLogger().warn("Texture {} with size {}x{} limits mip level from {} to {}", resourcelocation, textureatlassprite.getIconWidth(), textureatlassprite.getIconHeight(), MathHelper.log2(l), MathHelper.log2(l2));
-                    l = l2;
-                }
                 if (this.generateMipmaps(resourceManager, textureatlassprite)) {
+                    j = Math.min(j, Math.min(textureatlassprite.getIconWidth(), textureatlassprite.getIconHeight()));
+                    int l2 = Math.min(Integer.lowestOneBit(textureatlassprite.getIconWidth()), Integer.lowestOneBit(textureatlassprite.getIconHeight()));
+                    if (l2 < l) {
+                        org.apache.logging.log4j.LogManager.getLogger().warn("Texture {} with size {}x{} limits mip level from {} to {}", resourcelocation, textureatlassprite.getIconWidth(), textureatlassprite.getIconHeight(), MathHelper.log2(l), MathHelper.log2(l2));
+                        l = l2;
+                    }
                     stitcher.addSprite(textureatlassprite);
                 }
             } else {
@@ -442,10 +451,17 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
             this.mapUploadedSprites.put(s, textureatlassprite1);
 
             try {
-                if (Config.isShaders()) {
-                    ShadersTex.uploadTexSubForLoadAtlas((TextureMap) (Object) this, textureatlassprite1.getIconName(), textureatlassprite1.getFrameTextureData(0), textureatlassprite1.getIconWidth(), textureatlassprite1.getIconHeight(), textureatlassprite1.getOriginX(), textureatlassprite1.getOriginY(), false, false);
+                AtlasSpriteMipmaps spriteMipmaps = (AtlasSpriteMipmaps) textureatlassprite1;
+                if (this.mipmapLevels < requestedMipLevels && textureatlassprite1 != this.missingImage) {
+                    spriteMipmaps.optiRefine$limitMipLevels(this.mipmapLevels + 1);
+                }
+                int[][] initialFrame = spriteMipmaps.optiRefine$getInitialFrame();
+                if (Config.isShaders() && spriteMipmaps.optiRefine$hasAlignedResource()) {
+                    this.optiRefine$uploadAlignedShaderSprite(textureatlassprite1, initialFrame);
+                } else if (Config.isShaders()) {
+                    ShadersTex.uploadTexSubForLoadAtlas((TextureMap) (Object) this, s, initialFrame, textureatlassprite1.getIconWidth(), textureatlassprite1.getIconHeight(), textureatlassprite1.getOriginX(), textureatlassprite1.getOriginY(), false, false);
                 } else {
-                    TextureUtil.uploadTextureMipmap(textureatlassprite1.getFrameTextureData(0), textureatlassprite1.getIconWidth(), textureatlassprite1.getIconHeight(), textureatlassprite1.getOriginX(), textureatlassprite1.getOriginY(), false, false);
+                    TextureUtil.uploadTextureMipmap(initialFrame, textureatlassprite1.getIconWidth(), textureatlassprite1.getIconHeight(), textureatlassprite1.getOriginX(), textureatlassprite1.getOriginY(), false, false);
                 }
             } catch (Throwable throwable1) {
                 CrashReport crashreport = CrashReport.makeCrashReport(throwable1, "Stitching texture atlas");
@@ -494,7 +510,8 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
                     boolean flag2 = true;
 
                     try {
-                        TextureUtil.uploadTextureMipmap(textureatlassprite4.getFrameTextureData(0), textureatlassprite4.getIconWidth(), textureatlassprite4.getIconHeight(), textureatlassprite4.getOriginX(), textureatlassprite4.getOriginY(), flag1, flag2);
+                        int[][] initialFrame = ((AtlasSpriteMipmaps) textureatlassprite4).optiRefine$getInitialFrame();
+                        TextureUtil.uploadTextureMipmap(initialFrame, textureatlassprite4.getIconWidth(), textureatlassprite4.getIconHeight(), textureatlassprite4.getOriginX(), textureatlassprite4.getOriginY(), flag1, flag2);
                     } catch (Exception exception) {
                         Config.dbg("Error uploading sprite single: " + textureatlassprite4 + ", parent: " + textureatlassprite3);
                         exception.printStackTrace();
@@ -511,6 +528,42 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
             Config.dbg("Exporting texture map: " + this.basePath);
             TextureUtils.saveGlTexture("debug/" + this.basePath.replaceAll("/", "_"), this.getGlTextureId(), this.mipmapLevels, stitcher.getCurrentWidth(), stitcher.getCurrentHeight());
         }
+    }
+
+    @Unique
+    private void optiRefine$uploadAlignedShaderSprite(TextureAtlasSprite sprite, int[][] initialFrame) {
+        MultiTexID textures = optiRefine$getTextureMapMultiTexID((TextureMap) (Object) this);
+        int width = sprite.getIconWidth();
+        int height = sprite.getIconHeight();
+        TextureUtil.uploadTextureMipmap(initialFrame, width, height, sprite.getOriginX(), sprite.getOriginY(), false, false);
+        try {
+            if (Shaders.configNormalMap) {
+                this.optiRefine$uploadAlignedSidecar(sprite, optiRefine$getTextureAtlasSpriteSpriteNormal(sprite), textures.norm, 0xFF7F7FFF);
+            }
+            if (Shaders.configSpecularMap) {
+                this.optiRefine$uploadAlignedSidecar(sprite, optiRefine$getTextureAtlasSpriteSpriteSpecular(sprite), textures.spec, 0);
+            }
+        } finally {
+            GlStateManager.bindTexture(textures.base);
+        }
+    }
+
+    @Unique
+    private void optiRefine$uploadAlignedSidecar(TextureAtlasSprite sprite, TextureAtlasSprite sidecar, int textureId, int fallback) {
+        int width = sprite.getIconWidth();
+        int height = sprite.getIconHeight();
+        int[][] pixels;
+        if (sidecar != null) {
+            pixels = ((AtlasSpriteMipmaps) sidecar).optiRefine$getInitialFrame();
+        } else {
+            pixels = new int[this.mipmapLevels + 1][];
+            for (int level = 0; level < pixels.length; ++level) {
+                pixels[level] = new int[(width >> level) * (height >> level)];
+                Arrays.fill(pixels[level], fallback);
+            }
+        }
+        GlStateManager.bindTexture(textureId);
+        TextureUtil.uploadTextureMipmap(pixels, width, height, sprite.getOriginX(), sprite.getOriginY(), false, false);
     }
 
     // ===== generateMipmaps: custom loader support =====
@@ -535,6 +588,10 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
                 try {
                     iresource = resourceManager.getResource(resourcelocation);
                     sprite.loadSpriteFrames(iresource, this.mipmapLevels + 1);
+                    AtlasSpriteMipmaps spriteMipmaps = (AtlasSpriteMipmaps) sprite;
+                    if (spriteMipmaps.optiRefine$hasAlignedResource() && Config.isShaders()) {
+                        spriteMipmaps.optiRefine$loadShaderSidecars((TextureMap) (Object) this, resourceManager);
+                    }
                     break label58;
                 } catch (RuntimeException runtimeexception) {
                     org.apache.logging.log4j.LogManager.getLogger().error("Unable to parse metadata from {}", resourcelocation, runtimeexception);

@@ -2,12 +2,16 @@ package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer.texture;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.NewConstructor;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.ShadowSuper;
 import mods.Hileb.optirefine.optifine.Config;
+import mods.Hileb.optirefine.optifine.client.AtlasSpriteMipmaps;
+import net.minecraft.client.renderer.texture.PngSizeInfo;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.texture.TextureUtil;
 import net.minecraft.client.resources.IResource;
 import net.minecraft.client.resources.IResourceManager;
@@ -31,7 +35,13 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 
+import java.awt.AlphaComposite;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -45,7 +55,10 @@ import java.util.List;
  */
 @Mixin(TextureAtlasSprite.class)
 // [AUDIT] 2026-08-03 - see AGENT.md; issues: 1
-public abstract class MixinTextureAtlasSprite {
+public abstract class MixinTextureAtlasSprite implements AtlasSpriteMipmaps {
+
+    @Unique private boolean optiRefine$allowRectangularLoad;
+    @Unique private boolean optiRefine$alignedResource;
 
     // ===== new fields =====
 
@@ -210,11 +223,6 @@ public abstract class MixinTextureAtlasSprite {
     private static native int optiRefine$getTextureAtlasSpriteAnimationIndex(TextureAtlasSprite sprite);
 
     @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessibleOperation(opcode = Opcodes.PUTFIELD, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite isShadersSprite Z")
-    // [AUDIT-OK] OF field isShadersSprite, MCP name (not in tsrg)
-    private static native void optiRefine$setTextureAtlasSpriteIsShadersSprite(TextureAtlasSprite sprite, boolean value);
-
-    @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureMap func_184397_a (Lnet/minecraft/client/resources/IResourceManager;Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;)Z", deobf = true)
     // [AUDIT-OK] desc )Z + deobf=true verified 2026-08-05
     private static native boolean optiRefine$generateTextureMapMipmaps(net.minecraft.client.renderer.texture.TextureMap textureMap, IResourceManager resourceManager, TextureAtlasSprite sprite);
@@ -377,6 +385,79 @@ public abstract class MixinTextureAtlasSprite {
         }
     }
 
+    @Override
+    public void optiRefine$loadAtlasSprite(PngSizeInfo size, boolean animated, int alignment) throws IOException {
+        TextureAtlasSprite sprite = (TextureAtlasSprite) (Object) this;
+        this.optiRefine$clearAlignedResource();
+        boolean previous = this.optiRefine$allowRectangularLoad;
+        this.optiRefine$allowRectangularLoad = alignment > 0;
+        try {
+            sprite.loadSprite(size, animated);
+        } finally {
+            this.optiRefine$allowRectangularLoad = previous;
+        }
+
+        int width = sprite.getIconWidth();
+        int height = sprite.getIconHeight();
+        if (alignment > 0 && width > 0 && height > 0) {
+            int alignedWidth = TextureUtils.scaleToGrid(width, alignment);
+            int alignedHeight = TextureUtils.scaleToGrid(height, alignment);
+            this.optiRefine$alignedResource = width != alignedWidth || height != alignedHeight || width != height;
+            if (this.optiRefine$alignedResource) {
+                this.interpolatedFrameData = null;
+            }
+            if (width != alignedWidth || height != alignedHeight) {
+                Config.log("Scaled sprite: " + sprite.getIconName() + ", " + width + "x" + height + " -> " + alignedWidth + "x" + alignedHeight);
+                sprite.setIconWidth(alignedWidth);
+                sprite.setIconHeight(alignedHeight);
+            }
+        }
+    }
+
+    @WrapOperation(method = "loadSprite", at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/texture/PngSizeInfo;pngHeight:I", ordinal = 1))
+    private int optiRefine$staticAspectRatioCheck(PngSizeInfo size, Operation<Integer> original) {
+        // The first read sets storage height. The second only enforces the vanilla square requirement.
+        return this.optiRefine$allowRectangularLoad ? size.pngWidth : original.call(size);
+    }
+
+    @Override
+    public void optiRefine$clearAlignedResource() {
+        if (this.optiRefine$alignedResource) {
+            this.optiRefine$alignedResource = false;
+            this.interpolatedFrameData = null;
+            if (this.spriteSingle != null) {
+                ((AtlasSpriteMipmaps) this.spriteSingle).optiRefine$clearAlignedResource();
+            }
+        }
+    }
+
+    @Override
+    public boolean optiRefine$hasAlignedResource() {
+        return this.optiRefine$alignedResource;
+    }
+
+    @Override
+    public int[][] optiRefine$getInitialFrame() {
+        int index = this.optiRefine$alignedResource && this.animationMetadata != null
+                ? this.animationMetadata.getFrameIndex(0) : 0;
+        return ((TextureAtlasSprite) (Object) this).getFrameTextureData(index);
+    }
+
+    @Override
+    public void optiRefine$limitMipLevels(int levels) {
+        List<int[][]> limited = new ArrayList<>(this.framesTextureData.size());
+        for (int[][] frame : this.framesTextureData) {
+            limited.add(frame != null && frame.length > levels ? Arrays.copyOf(frame, levels) : frame);
+        }
+        ((TextureAtlasSprite) (Object) this).setFramesTextureData(limited);
+        if (this.spriteNormal != null) {
+            ((AtlasSpriteMipmaps) this.spriteNormal).optiRefine$limitMipLevels(levels);
+        }
+        if (this.spriteSpecular != null) {
+            ((AtlasSpriteMipmaps) this.spriteSpecular).optiRefine$limitMipLevels(levels);
+        }
+    }
+
     // ===== loadSprite: spriteSingle size propagation =====
 
     @Inject(method = "loadSprite", at = @At("RETURN"))
@@ -401,44 +482,14 @@ public abstract class MixinTextureAtlasSprite {
         if (bufferedimage == null) {
             throw new java.io.IOException("Unable to decode sprite " + this.iconName);
         }
-        if (this.width != bufferedimage.getWidth()) {
+        if (!this.optiRefine$alignedResource && this.width != bufferedimage.getWidth()) {
             bufferedimage = TextureUtils.scaleImage(bufferedimage, this.width);
         }
-        AnimationMetadataSection animationmetadatasection = resource.getMetadata("animation");
-        if (animationmetadatasection != null && (bufferedimage.getHeight() < this.width || bufferedimage.getHeight() % this.width != 0)) {
-            throw new java.io.IOException("Invalid animation dimensions for " + this.iconName);
-        }
-        int[][] aint = new int[mipmapLevelsIn][];
-        aint[0] = new int[bufferedimage.getWidth() * bufferedimage.getHeight()];
-        bufferedimage.getRGB(0, 0, bufferedimage.getWidth(), bufferedimage.getHeight(), aint[0], 0, bufferedimage.getWidth());
-        if (animationmetadatasection == null) {
-            this.framesTextureData.add(aint);
-        } else {
-            int i = bufferedimage.getHeight() / this.width;
-            int j;
-            if (animationmetadatasection.getFrameCount() > 0) {
-                for (j = 0; j < animationmetadatasection.getFrameCount(); ++j) {
-                    int k = animationmetadatasection.getFrameIndex(j);
-                    if (k < 0 || k >= i) {
-                        throw new RuntimeException("invalid frameindex " + k);
-                    }
-                    this.allocateFrameTextureData(k);
-                    this.framesTextureData.set(k, getFrameTextureData(aint, this.width, this.width, k));
-                }
-                this.animationMetadata = animationmetadatasection;
-            } else {
-                ArrayList<AnimationFrame> arraylist = new ArrayList<>();
-                for (j = 0; j < i; ++j) {
-                    this.framesTextureData.add(getFrameTextureData(aint, this.width, this.width, j));
-                    arraylist.add(new AnimationFrame(j, -1));
-                }
-                this.animationMetadata = new AnimationMetadataSection(arraylist, this.width, this.height, animationmetadatasection.getFrameTime(), animationmetadatasection.isInterpolate());
-            }
-        }
+        this.optiRefine$readFrames(bufferedimage, resource.getMetadata("animation"), mipmapLevelsIn);
 
         if (!this.isShadersSprite) {
-            if (Config.isShaders()) {
-                this.loadShadersSprites();
+            if (!this.optiRefine$alignedResource && Config.isShaders()) {
+                this.optiRefine$loadShaderSidecars(Config.getTextureMap(), Config.getResourceManager());
             }
             for (int l = 0; l < this.framesTextureData.size(); ++l) {
                 int[][] aint1 = this.framesTextureData.get(l);
@@ -450,22 +501,82 @@ public abstract class MixinTextureAtlasSprite {
                 }
             }
             if (this.spriteSingle != null) {
-                try (IResource iresource = Config.getResourceManager().getResource(resource.getResourceLocation())) {
-                    this.spriteSingle.loadSpriteFrames(iresource, mipmapLevelsIn);
+                if (this.optiRefine$alignedResource) {
+                    MixinTextureAtlasSprite single = (MixinTextureAtlasSprite) (Object) this.spriteSingle;
+                    single.optiRefine$alignedResource = true;
+                    single.animationMetadata = this.animationMetadata;
+                    single.interpolatedFrameData = null;
+                } else {
+                    try (IResource iresource = Config.getResourceManager().getResource(resource.getResourceLocation())) {
+                        this.spriteSingle.loadSpriteFrames(iresource, mipmapLevelsIn);
+                    }
                 }
             }
         }
     }
 
-    @Shadow
-    // [AUDIT-OK] baseline member allocateFrameTextureData exists in TextureAtlasSprite
-    private void allocateFrameTextureData(int index) {
+    @Unique
+    private void optiRefine$readFrames(BufferedImage image, AnimationMetadataSection metadata, int levels) throws IOException {
+        if (metadata == null) {
+            this.framesTextureData.add(this.optiRefine$readFrame(image, 0, image.getHeight(), levels));
+            return;
+        }
+
+        int frameSize = image.getWidth();
+        int frameCount = image.getHeight() / frameSize;
+        if (frameCount == 0 || image.getHeight() % frameSize != 0) {
+            throw new IOException("Invalid animation dimensions for " + this.iconName);
+        }
+        boolean implicitOrder = metadata.getFrameCount() == 0;
+        int animationLength = implicitOrder ? frameCount : metadata.getFrameCount();
+        List<AnimationFrame> frames = implicitOrder ? new ArrayList<>(animationLength) : null;
+        for (int index = 0; index < animationLength; ++index) {
+            int frame = implicitOrder ? index : metadata.getFrameIndex(index);
+            if (frame < 0 || frame >= frameCount) {
+                throw new IllegalArgumentException("invalid frameindex " + frame);
+            }
+            this.allocateFrameTextureData(frame);
+            if (this.framesTextureData.get(frame) == null) {
+                this.framesTextureData.set(frame, this.optiRefine$readFrame(image, frame * frameSize, frameSize, levels));
+            }
+            if (implicitOrder) {
+                frames.add(new AnimationFrame(frame, -1));
+            }
+        }
+        this.animationMetadata = implicitOrder
+                ? new AnimationMetadataSection(frames, this.width, this.height, metadata.getFrameTime(), metadata.isInterpolate())
+                : metadata;
+    }
+
+    @Unique
+    private int[][] optiRefine$readFrame(BufferedImage source, int sourceY, int sourceHeight, int levels) {
+        int sourceWidth = source.getWidth();
+        if (this.optiRefine$alignedResource && (sourceWidth != this.width || sourceHeight != this.height)) {
+            BufferedImage frame = source.getSubimage(0, sourceY, sourceWidth, sourceHeight);
+            BufferedImage scaled = new BufferedImage(this.width, this.height, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D graphics = scaled.createGraphics();
+            try {
+                graphics.setComposite(AlphaComposite.Src);
+                graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                        this.width % sourceWidth == 0 && this.height % sourceHeight == 0
+                                ? RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR : RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+                graphics.drawImage(frame, 0, 0, this.width, this.height, null);
+            } finally {
+                graphics.dispose();
+            }
+            source = scaled;
+            sourceY = 0;
+            sourceWidth = this.width;
+            sourceHeight = this.height;
+        }
+        int[][] data = new int[levels][];
+        data[0] = source.getRGB(0, sourceY, sourceWidth, sourceHeight, null, 0, sourceWidth);
+        return data;
     }
 
     @Shadow
-    // [AUDIT-OK] baseline member getFrameTextureData (static 4-arg) exists in TextureAtlasSprite
-    private static int[][] getFrameTextureData(int[][] data, int width, int height, int frameIndex) {
-        return null;
+    // [AUDIT-OK] baseline member allocateFrameTextureData exists in TextureAtlasSprite
+    private void allocateFrameTextureData(int index) {
     }
 
     // [AUDIT-OK] OF-added @Unique method fixTransparentColor, not in baseline
@@ -504,43 +615,58 @@ public abstract class MixinTextureAtlasSprite {
         }
     }
 
-    @Unique
-    // [AUDIT-OK] OF-added @Unique method loadShadersSprites, not in baseline (uses TextureMap_generateMipmaps -> see ISSUE above)
-    private void loadShadersSprites() {
+    @Override
+    public void optiRefine$loadShaderSidecars(TextureMap atlas, IResourceManager resourceManager) {
+        if (this.isShadersSprite) {
+            return;
+        }
         if (Shaders.configNormalMap) {
-            String s = this.iconName + "_n";
-            ResourceLocation resourcelocation = new ResourceLocation(s);
-            resourcelocation = optiRefine$completeTextureMapResourceLocation(Config.getTextureMap(), resourcelocation);
-            if (Config.hasResource(resourcelocation)) {
-                this.spriteNormal = new TextureAtlasSprite(s);
-                optiRefine$setTextureAtlasSpriteIsShadersSprite(this.spriteNormal, true);
-                this.spriteNormal.copyFrom((TextureAtlasSprite) (Object) this);
-                if (!optiRefine$generateTextureMapMipmaps(Config.getTextureMap(), Config.getResourceManager(), this.spriteNormal)) {
-                    this.spriteNormal = null;
-                }
-            }
+            this.spriteNormal = this.optiRefine$loadSidecar(atlas, resourceManager, "_n");
         }
         if (Shaders.configSpecularMap) {
-            String s1 = this.iconName + "_s";
-            ResourceLocation resourcelocation1 = new ResourceLocation(s1);
-            resourcelocation1 = optiRefine$completeTextureMapResourceLocation(Config.getTextureMap(), resourcelocation1);
-            if (Config.hasResource(resourcelocation1)) {
-                this.spriteSpecular = new TextureAtlasSprite(s1);
-                optiRefine$setTextureAtlasSpriteIsShadersSprite(this.spriteSpecular, true);
-                this.spriteSpecular.copyFrom((TextureAtlasSprite) (Object) this);
-                if (!optiRefine$generateTextureMapMipmaps(Config.getTextureMap(), Config.getResourceManager(), this.spriteSpecular)) {
-                    this.spriteSpecular = null;
-                }
-            }
+            this.spriteSpecular = this.optiRefine$loadSidecar(atlas, resourceManager, "_s");
         }
+    }
+
+    @Unique
+    private TextureAtlasSprite optiRefine$loadSidecar(TextureMap atlas, IResourceManager resourceManager, String suffix) {
+        String name = this.iconName + suffix;
+        ResourceLocation location = optiRefine$completeTextureMapResourceLocation(atlas, new ResourceLocation(name));
+        try (IResource resource = resourceManager.getResource(location)) {
+            if (resource == null) {
+                return null;
+            }
+        } catch (IOException missing) {
+            return null;
+        }
+        TextureAtlasSprite sidecar = new TextureAtlasSprite(name);
+        MixinTextureAtlasSprite sprite = (MixinTextureAtlasSprite) (Object) sidecar;
+        sprite.isShadersSprite = true;
+        sidecar.copyFrom((TextureAtlasSprite) (Object) this);
+        sprite.optiRefine$alignedResource = this.optiRefine$alignedResource;
+        return optiRefine$generateTextureMapMipmaps(atlas, resourceManager, sidecar) ? sidecar : null;
     }
 
     // ===== generateMipmaps + frame helpers: spriteSingle propagation =====
 
+    @ModifyArg(method = "generateMipmaps", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;setFramesTextureData(Ljava/util/List;)V"))
+    private List<int[][]> optiRefine$keepAlignedFrameIndices(List<int[][]> generatedFrames) {
+        if (!this.optiRefine$alignedResource || generatedFrames.size() == this.framesTextureData.size()) {
+            return generatedFrames;
+        }
+        // The baseline compacts null slots, but animation metadata indexes the source strip.
+        List<int[][]> frames = new ArrayList<>(this.framesTextureData.size());
+        int generatedIndex = 0;
+        for (int[][] frame : this.framesTextureData) {
+            frames.add(frame == null ? null : generatedFrames.get(generatedIndex++));
+        }
+        return frames;
+    }
+
     @Inject(method = "generateMipmaps", at = @At("RETURN"))
     // [AUDIT-OK] target generateMipmaps(I)V (func_147963_d) matches baseline; RETURN inject replicates OF spriteSingle propagation
     private void optiRefine$generateMipmaps(int mipmapLevelsIn, CallbackInfo ci) {
-        if (this.spriteSingle != null) {
+        if (this.spriteSingle != null && !this.optiRefine$alignedResource) {
             this.spriteSingle.generateMipmaps(mipmapLevelsIn);
         }
     }
@@ -572,6 +698,7 @@ public abstract class MixinTextureAtlasSprite {
     @Inject(method = "resetSprite", at = @At("RETURN"))
     // [AUDIT-OK] target resetSprite()V matches baseline; RETURN inject replicates OF spriteSingle propagation
     private void optiRefine$resetSprite(CallbackInfo ci) {
+        this.optiRefine$clearAlignedResource();
         this.spriteNormal = null;
         this.spriteSpecular = null;
         this.animationIndex = -1;

@@ -72,6 +72,8 @@ public final class ClientContracts {
                 evidence.append("Forge JAR resource packs supply working CIT and CTM rules with user-pack priority\n");
                 SelectiveResourceContracts.verify(mc);
                 evidence.append("AF, custom-items and alternate-block settings retain selective texture/model reloads and live sound/language consumers\n");
+                NpotAtlasContracts.verify(mc);
+                evidence.append("Rectangular sprites retain atlas mip levels, content and animation uploads\n");
                 DimensionSkyContracts.verify(mc);
                 evidence.append("Native sky rendering selects signed and sparse Forge dimensions across reloads\n");
                 ShoulderTextureContracts.verify(mc);
@@ -117,6 +119,8 @@ public final class ClientContracts {
                 }
                 checkPack(mc);
                 if (pack + 1 == PACKS.length) {
+                    NpotAtlasContracts.verifyShaderSidecars(mc);
+                    evidence.append("Rectangular atlas uploads preserve shader normal and specular mipmaps\n");
                     Shaders.setShaderPack("OFF");
                     ClientBehaviorContracts.verify(mc);
                     evidence.append("Native chat replacement, local reload commands, completions, notices and native debug-key handling passed\n");
