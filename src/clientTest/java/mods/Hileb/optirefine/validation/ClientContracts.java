@@ -118,16 +118,20 @@ public final class ClientContracts {
         if (FMLLaunchHandler.isDeobfuscatedEnvironment() == runtime) {
             throw new AssertionError("Client contracts use the wrong Minecraft namespace");
         }
+        ModContainer mod = Loader.instance().getIndexedModList().get("optirefine");
+        File source = mod == null ? null : mod.getSource();
+        File expected = new File(System.getProperty("optirefine.contract.artifact")).getCanonicalFile();
+        File modsDirectory = new File(mc.gameDir, "mods").getCanonicalFile();
+        if (source == null || !expected.equals(source.getCanonicalFile())
+                || !expected.toPath().startsWith(modsDirectory.toPath())) {
+            throw new AssertionError("Expected OptiRefine from " + expected + ", loaded from " + source);
+        }
         if (runtime) {
             Minecraft.class.getDeclaredMethod("func_71410_x");
-            ModContainer mod = Loader.instance().getIndexedModList().get("optirefine");
-            File expected = new File(System.getProperty("optirefine.contract.artifact")).getCanonicalFile();
-            if (mod == null || mod.getSource() == null || !mod.getSource().getCanonicalFile().equals(expected)
-                    || !expected.toPath().startsWith(mc.gameDir.toPath().resolve("mods").toAbsolutePath())) {
-                throw new AssertionError("Production client did not load the final OptiRefine Jar from its isolated mods directory");
-            }
             evidence.append("Production SRG Minecraft loads final OptiRefine Jar and official G5 through runtime discovery\n");
-        } else evidence.append("MCP development client uses the expected development namespace\n");
+        } else {
+            evidence.append("MCP development client loads the OptiRefine development Jar through Forge discovery\n");
+        }
     }
 
     private void resources(Minecraft mc) throws Exception {

@@ -66,12 +66,15 @@ runtime-artifact reference boundaries and macro-expanded shader uniform metadata
 are in `build/reports/tests/test/`.
 
 `./gradlew verifyClientContracts` launches an isolated MCP development client under
-`run/client-contracts`, loading the development Jar and test mod through Forge's normal discovery.
+`run/client-contracts`. Forge discovers the development Jar and test mod in `mods/`. The launcher
+removes project source outputs and the command-line coremod request from its inherited settings,
+so Foundation first looks up the coremod after its Jar is available.
 `./gradlew verifyRuntimeClientContracts` remaps the contract mod to SRG
 and launches the final runtime Jar with official G5, the original Minecraft client and the
-installer's production Cleanroom Jar under `run/runtime-client-contracts`. It asserts the SRG
-namespace and installed runtime Jar source. Production launches exclude source outputs, MCP
-artifacts and development flags. Both suites require OpenGL 4.3 and a focusable desktop.
+installer's production Cleanroom Jar under `run/runtime-client-contracts`, using the installer's
+entry point and runtime libraries. Both suites verify the Minecraft namespace and the installed
+OptiRefine Jar before creating a world. They require OpenGL 4.3 and a focusable desktop.
+
 Reports and captures are in `build/reports/client-contracts/` and
 `build/reports/runtime-client-contracts/`; production reports also retain launch provenance and
 game logs. The baseline mixin order proof remains in `build/reports/architecture/module-order.txt`.

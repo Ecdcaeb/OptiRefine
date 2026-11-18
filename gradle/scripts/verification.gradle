@@ -114,13 +114,28 @@ tasks.register('verifyClientContracts', JavaExec) {
                 .getDeclaredMethod('applyAll')
         applyAll.setAccessible(true)
         applyAll.invoke(client)
-        classpath = client.classpath
+        def mainOutput = sourceSets.main.output
+        classpath = client.classpath - mainOutput
 
         mainClass = client.mainClass
         executable = client.executable
         environment client.environment
         def inheritedJvm = client.allJvmArgs + client.jvmArgumentProviders.collectMany { it.asArguments().toList() }
-        jvmArgs inheritedJvm.findAll { !it.startsWith('-Dfoundation.dump=') && !it.startsWith('-Dfoundation.verbose=') }
+        // Load the coremod after Forge discovers its Jar. An earlier failed class lookup is cached by Foundation.
+        def excludedProperties = ['-Dfml.coreMods.load', '-Dcrl.dev.mixin', '-Dcrl.dev.extrapath',
+                                  '-Dfoundation.dump', '-Dfoundation.verbose']
+        jvmArgs inheritedJvm.findAll { arg -> !excludedProperties.contains(arg.split('=', 2)[0]) }
+
+        def extraPathPrefix = '-Dcrl.dev.extrapath='
+        def extraPath = inheritedJvm.reverse().find { it.startsWith(extraPathPrefix) }
+        if (extraPath != null) {
+            def outputFiles = mainOutput.files
+            def extraMods = extraPath.substring(extraPathPrefix.length()).tokenize(File.pathSeparator)
+                    .findAll { !outputFiles.contains(project.file(it)) }
+            if (extraMods) {
+                systemProperty 'crl.dev.extrapath', extraMods.join(File.pathSeparator)
+            }
+        }
         systemProperty 'foundation.dump', 'false'
         systemProperty 'foundation.verbose', 'false'
         systemProperty 'optirefine.contract.output', clientContractReport.get().asFile.parentFile.absolutePath
@@ -141,6 +156,8 @@ tasks.register('verifyClientContracts', JavaExec) {
             from([developmentArtifact.flatMap { it.archiveFile }, clientContractJar.flatMap { it.archiveFile }])
             into clientContractDirectory.dir('mods')
         }
+        def installedDevelopmentJar = clientContractDirectory.file('mods/' + developmentArtifact.get().archiveFileName.get())
+        systemProperty 'optirefine.contract.artifact', installedDevelopmentJar.asFile.absolutePath
         clientContractReport.get().asFile.delete()
     }
     doLast {
