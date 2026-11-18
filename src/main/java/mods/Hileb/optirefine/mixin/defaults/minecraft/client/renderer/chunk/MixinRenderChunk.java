@@ -159,11 +159,10 @@ public abstract class MixinRenderChunk {
     @WrapOperation(method = "rebuildChunk", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/RegionRenderCacheBuilder;getWorldRendererByLayerId(I)Lnet/minecraft/client/renderer/BufferBuilder;"))
     // [AUDIT-OK] getWorldRendererByLayerId INVOKE; getRenderEnv + setRegionRenderCacheBuilder match OF:225-227
     public BufferBuilder optiRefine$prepareBlockRenderEnvironment(RegionRenderCacheBuilder cacheBuilder, int layerId, Operation<BufferBuilder> original, @Local IBlockState state, @Local BlockPos.MutableBlockPos pos, @Local(argsOnly = true) ChunkCompileTaskGenerator generator,
-                                               @Share(namespace = "optifine", value = "renderEnv")LocalRef<RenderEnv> renderEnvLocalRef, @Local BlockRenderLayer blockRenderLayer){
+                                               @Share(namespace = "optifine", value = "renderEnv") LocalRef<RenderEnv> renderEnvLocalRef,
+                                               @Share("effectiveLayer") LocalRef<BlockRenderLayer> effectiveLayer){
         BufferBuilder bufferBuilder = original.call(cacheBuilder, layerId);
-        // [AUDIT-FIXED] three-way audit (P9): OF:227 setBlockLayer(fixed layer) before renderBlock;
-        // drawnIcons/multi-texture key off it.
-        optiRefine$setBufferBlockLayer(bufferBuilder, this.optiRefine$fixBlockLayer(state, blockRenderLayer));
+        optiRefine$setBufferBlockLayer(bufferBuilder, effectiveLayer.get());
         RenderEnv renderEnv = optiRefine$getBufferRenderEnv(bufferBuilder, state, pos);
         renderEnv.setRegionRenderCacheBuilder(generator.getRegionRenderCacheBuilder());
         renderEnvLocalRef.set(renderEnv);
@@ -180,12 +179,12 @@ public abstract class MixinRenderChunk {
 
     @WrapOperation(method = "rebuildChunk", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/BlockRendererDispatcher;renderBlock(Lnet/minecraft/block/state/IBlockState;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/world/IBlockAccess;Lnet/minecraft/client/renderer/BufferBuilder;)Z"))
     // [AUDIT-OK] renderBlock INVOKE; overlays post-render matches OF:231-236
-    public boolean optiRefine$renderBlockOverlays(BlockRendererDispatcher blockRenderer, IBlockState state, BlockPos pos, IBlockAccess world, BufferBuilder buffer, Operation<Boolean> original, @Share(namespace = "optifine", value = "renderEnv")LocalRef<RenderEnv> renderEnvLocalRef, @Local BlockRenderLayer blockRenderLayer, @Local boolean[] renderedLayers, @Local(argsOnly = true) ChunkCompileTaskGenerator generator, @Local CompiledChunk compiledChunk){
+    public boolean optiRefine$renderBlockOverlays(BlockRendererDispatcher blockRenderer, IBlockState state, BlockPos pos, IBlockAccess world, BufferBuilder buffer, Operation<Boolean> original,
+                                                @Share(namespace = "optifine", value = "renderEnv") LocalRef<RenderEnv> renderEnvLocalRef,
+                                                @Share("effectiveLayer") LocalRef<BlockRenderLayer> effectiveLayer,
+                                                @Local boolean[] renderedLayers, @Local(argsOnly = true) ChunkCompileTaskGenerator generator, @Local CompiledChunk compiledChunk){
         boolean b = original.call(blockRenderer, state, pos, world, buffer);
-        // [AUDIT-FIXED] three-way audit (2026-08-05): OF:235 aboolean[fixed ordinal] |= b (var43 = fixBlockLayer(...).ordinal(), OF:223-224);
-        // unfixed ordinal mis-indexes layersUsed when fixBlockLayer remaps (mipmaps/CustomBlockLayers)
-        // -> RenderGlobal.isLayerEmpty skips populated layer, block invisible.
-        int layerIndex = this.optiRefine$fixBlockLayer(state, blockRenderLayer).ordinal();
+        int layerIndex = effectiveLayer.get().ordinal();
         renderedLayers[layerIndex] |= b;
         RenderEnv renderEnv = renderEnvLocalRef.get();
         if (renderEnv != null && renderEnv.isOverlaysRendered()) {
@@ -218,22 +217,23 @@ public abstract class MixinRenderChunk {
     private static native void optiRefine$setCompiledChunkAnimatedSprites(CompiledChunk compiledChunk, BlockRenderLayer layer, BitSet animatedSprites);
 
     @WrapOperation(method = "rebuildChunk", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/BlockRenderLayer;ordinal()I", ordinal = 0))
-    // [AUDIT-FIXED] three-way audit (P9): OF applies fixBlockLayer right after layer selection (OF:223),
-    // before ordinal/getWorldRendererByLayerId; main-loop ordinal() is the first ordinal() in rebuildChunk.
-    public int optiRefine$getEffectiveLayerOrdinal(BlockRenderLayer layer, Operation<Integer> original, @Local IBlockState state) {
-        return this.optiRefine$fixBlockLayer(state, layer).ordinal();
+    public int optiRefine$getEffectiveLayerOrdinal(BlockRenderLayer layer, Operation<Integer> original, @Local IBlockState state,
+                                                  @Share("effectiveLayer") LocalRef<BlockRenderLayer> effectiveLayer) {
+        BlockRenderLayer fixedLayer = this.optiRefine$fixBlockLayer(state, layer);
+        effectiveLayer.set(fixedLayer);
+        return fixedLayer.ordinal();
     }
 
     @WrapOperation(method = "rebuildChunk", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/chunk/CompiledChunk;isLayerStarted(Lnet/minecraft/util/BlockRenderLayer;)Z", ordinal = 0))
-    // [AUDIT-FIXED] three-way audit (P9): main-loop isLayerStarted must see the FIXED layer (OF:233-236).
-    public boolean optiRefine$isEffectiveLayerStarted(CompiledChunk compiledChunk, BlockRenderLayer layer, Operation<Boolean> original, @Local IBlockState state) {
-        return original.call(compiledChunk, this.optiRefine$fixBlockLayer(state, layer));
+    public boolean optiRefine$isEffectiveLayerStarted(CompiledChunk compiledChunk, BlockRenderLayer layer, Operation<Boolean> original,
+                                                     @Share("effectiveLayer") LocalRef<BlockRenderLayer> effectiveLayer) {
+        return original.call(compiledChunk, effectiveLayer.get());
     }
 
     @WrapOperation(method = "rebuildChunk", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/chunk/CompiledChunk;setLayerStarted(Lnet/minecraft/util/BlockRenderLayer;)V"))
-    // [AUDIT-FIXED] three-way audit (P9): setLayerStarted with the fixed layer (OF:234).
-    public void optiRefine$markEffectiveLayerStarted(CompiledChunk compiledChunk, BlockRenderLayer layer, Operation<Void> original, @Local IBlockState state) {
-        original.call(compiledChunk, this.optiRefine$fixBlockLayer(state, layer));
+    public void optiRefine$markEffectiveLayerStarted(CompiledChunk compiledChunk, BlockRenderLayer layer, Operation<Void> original,
+                                                    @Share("effectiveLayer") LocalRef<BlockRenderLayer> effectiveLayer) {
+        original.call(compiledChunk, effectiveLayer.get());
     }
 
     @WrapOperation(method = "rebuildChunk", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/chunk/CompiledChunk;isLayerStarted(Lnet/minecraft/util/BlockRenderLayer;)Z", ordinal = 1))
@@ -303,7 +303,6 @@ public abstract class MixinRenderChunk {
     }
 
     @Unique
-    // [AUDIT-OK] wired 2026-08-05: invoked from rebuildChunk$renderBlock/processPreBlockRender/fixBlockLayer* (4 call sites, matches OF:223)
     private BlockRenderLayer optiRefine$fixBlockLayer(IBlockState blockState, BlockRenderLayer layer) {
         if (CustomBlockLayers.isActive()) {
             BlockRenderLayer layerCustom = CustomBlockLayers.getRenderLayer(blockState);
