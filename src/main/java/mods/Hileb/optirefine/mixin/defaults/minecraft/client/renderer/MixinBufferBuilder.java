@@ -8,6 +8,7 @@ import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessTra
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.optifine.Config;
+import mods.Hileb.optirefine.optifine.shaders.ShaderVertexData;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GLAllocation;
@@ -298,14 +299,15 @@ public abstract class MixinBufferBuilder {
         return original.call(u, v);
     }
 
-    @Inject(method = "addVertexData", at = @At("HEAD"))
-    public void optiRefine$beginShaderVertexData(int[] vertexData, CallbackInfo ci){
-// [AUDIT-OK] target addVertexData([I)V matches baseline
+    @Inject(method = "addVertexData", at = @At(value = "INVOKE",
+            target = "Ljava/nio/IntBuffer;put([I)Ljava/nio/IntBuffer;", remap = false, shift = At.Shift.AFTER))
+    private void optiRefine$tagCopiedVertices(int[] vertexData, CallbackInfo ci) {
         if (Config.isShaders()) {
-            SVertexBuilder.beginAddVertexData((BufferBuilder)(Object) this, vertexData);
+            SVertexBuilder.beginAddVertex((BufferBuilder)(Object)this);
+            ((ShaderVertexData)this.sVertexBuilder).optiRefine$writeEntityData(this.rawIntBuffer,
+                    this.getBufferSize(), vertexData.length);
         }
     }
-
     @Inject(method = "addVertexData", at = @At("RETURN"))
     public void optiRefine$finishShaderVertexData(int[] vertexData, CallbackInfo ci){
 // [AUDIT-OK] target addVertexData([I)V matches baseline
@@ -687,19 +689,18 @@ public abstract class MixinBufferBuilder {
     private void growBuffer(int p_181670_1_) {}
 
     @WrapMethod(method = "putBulkData")
-    // [AUDIT-FIXED 2026-08-05, reworked 2026-08-09] the runtime putBulkData (Cleanroom patch version) has
-    // no SVertexBuilder hooks -> Forge LightUtil item rendering wrote 56-byte vertices without
-    // midTexCoord/tangent/entity data -> items corrupted under shaders. WrapMethod replicates OF's
-    // beginAddVertexData/endAddVertexData around the original body (was an @Inject HEAD/RETURN pair;
-    // the @Unique copy of putBulkData is discarded at apply, runtime version is Cleanroom's).
-    private void optiRefine$putBulkData(java.nio.ByteBuffer buffer, Operation<Void> original) {
-        if (Config.isShaders()) {
-            SVertexBuilder.beginAddVertexData((BufferBuilder) (Object)this, buffer);
+    private void optiRefine$putBulkData(ByteBuffer buffer, Operation<Void> original) {
+        if (!Config.isShaders()) {
+            original.call(buffer);
+            return;
         }
+        int start = this.getBufferSize();
+        int length = buffer.remaining() / Integer.BYTES;
+        BufferBuilder builder = (BufferBuilder)(Object)this;
+        SVertexBuilder.beginAddVertex(builder);
         original.call(buffer);
-        if (Config.isShaders()) {
-            SVertexBuilder.endAddVertexData((BufferBuilder) (Object)this);
-        }
+        ((ShaderVertexData)this.sVertexBuilder).optiRefine$writeEntityData(this.rawIntBuffer, start, length);
+        SVertexBuilder.endAddVertexData(builder);
     }
 
 

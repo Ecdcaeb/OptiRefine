@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Fix G5 chunk meshes using a stale block-light value when callers query the same position with different minimum light levels.
+- Apply shader entity tags to copied vertices and leave shared baked arrays and bulk vertex inputs untouched.
 
 ## 0.2.0-alpha
 

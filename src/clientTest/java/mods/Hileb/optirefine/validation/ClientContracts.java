@@ -197,6 +197,8 @@ public final class ClientContracts {
         }
         if (name.equals("modern-stages.zip")) {
             ShaderLifecycleContracts.verifySamplers();
+            ShaderVertexContracts.verify();
+            evidence.append("Shader vertex submission retains shared sources and applies distinct entity tags to appended quads\n");
             evidence.append("Actual GLSL samplers see prepare/shadowcomp flips and preserve custom sampler overrides\n");
         }
         if (pack == 0) screenshot(mc, "02-prepare-shadowcomp-debug");
