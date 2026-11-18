@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Fix G5 chunk meshes using a stale block-light value when callers query the same position with different minimum light levels.
+
 ## 0.2.0-alpha
 
 The tested baseline is Minecraft 1.12.2, Java 25, Cleanroom 0.5.17-alpha, and OptiFine HD U G5. [Changes since 0.1.0-alpha](https://github.com/Ecdcaeb/OptiRefine/compare/v0.1.0-alpha...e74a9bce88339d35ee9d4b52854eee55f5885031)
