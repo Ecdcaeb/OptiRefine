@@ -23,6 +23,12 @@ final class ChunkCacheContracts {
             if (cached.getCombinedLight(pos, 0) != dark || cached.getCombinedLight(pos, 15) != bright) {
                 throw new AssertionError("A cached default light value masked the requested light floor");
             }
+            // The backing cache can still answer a query beyond this section's padded box.
+            BlockPos outside = to.up(2);
+            if (cached.getCombinedLight(outside, 0) != vanilla.getCombinedLight(outside, 0)
+                    || cached.getBlockState(outside) != vanilla.getBlockState(outside)) {
+                throw new AssertionError("A query outside the padded section did not fall back to the backing cache");
+            }
         } finally {
             cached.renderFinish();
         }

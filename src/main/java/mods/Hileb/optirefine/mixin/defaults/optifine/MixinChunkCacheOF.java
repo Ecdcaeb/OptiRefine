@@ -6,6 +6,8 @@ import net.optifine.override.ChunkCacheOF;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Constant;
+import org.spongepowered.asm.mixin.injection.ModifyConstant;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(ChunkCacheOF.class)
@@ -13,6 +15,13 @@ public abstract class MixinChunkCacheOF {
     @Shadow(remap = false)
     private int getPositionIndex(BlockPos pos) {
         throw new AssertionError();
+    }
+
+    // G5 rounds both endpoints out to 16-block sections, then converts its origin and sizes back.
+    // Keep the original padded bounds in block units. getPositionIndex already handles misses.
+    @ModifyConstant(method = "<init>", constant = @Constant(intValue = 4), require = 12, allow = 12)
+    private int optiRefine$keepBlockCoordinates(int sectionShift) {
+        return 0;
     }
 
     @Redirect(method = "getCombinedLight", at = @At(value = "INVOKE",
