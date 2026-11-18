@@ -84,6 +84,8 @@ public final class ClientContracts {
                 evidence.append("Quad facing and packed normals preserve compact/expanded layouts, winding ties and non-finite inputs\n");
                 ChunkCacheContracts.verifyLightFloor(mc);
                 evidence.append("Cached block light honors both orders of default and raised light-floor queries\n");
+                FishingCullingContracts.verify(mc);
+                evidence.append("Fishing line draws once when visible and its hook section is culled\n");
                 ShaderLifecycleContracts.createResizeFailurePack(mc);
                 mc.gameSettings.showDebugInfo = true;
                 nextPack();

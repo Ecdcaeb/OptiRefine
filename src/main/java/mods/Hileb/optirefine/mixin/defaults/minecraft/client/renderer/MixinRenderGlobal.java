@@ -32,6 +32,7 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.projectile.EntityFishHook;
 import net.minecraft.init.Blocks;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityChest;
@@ -751,16 +752,7 @@ public abstract class MixinRenderGlobal {
                         if (flag2) {
                             boolean flag3 = this.mc.getRenderViewEntity() instanceof EntityLivingBase ? ((EntityLivingBase) this.mc.getRenderViewEntity()).isPlayerSleeping() : false;
                             if ((entity2 != this.mc.getRenderViewEntity() || flag1 || this.mc.gameSettings.thirdPersonView != 0 || flag3) && (entity2.posY < 0.0D || entity2.posY >= 256.0D || this.world.isBlockLoaded(pooledmutableblockpos.setPos(entity2)))) {
-                                ++this.countEntitiesRendered;
-                                this.renderedEntity = entity2;
-                                try {
-                                    if (flag) {
-                                        Shaders.nextEntity(entity2);
-                                    }
-                                    this.renderManager.renderEntityStatic(entity2, partialTicks, false);
-                                } finally {
-                                    this.renderedEntity = previousEntity;
-                                }
+                                this.optiRefine$renderWorldEntity(entity2, partialTicks, flag);
                                 if (this.isOutlineActive(entity2, entity, camera)) {
                                     list1.add(entity2);
                                 }
@@ -771,6 +763,9 @@ public abstract class MixinRenderGlobal {
                         }
                     }
                 }
+            }
+            if (!Shaders.isShadowPass) {
+                this.optiRefine$renderFishingHooksOutsideVisibleChunks(camera, partialTicks, pass, flag, d0, d1, d2, pooledmutableblockpos);
             }
             PooledMutableBlockPos usedPosition = pooledmutableblockpos;
             pooledmutableblockpos = null;
@@ -993,6 +988,53 @@ public abstract class MixinRenderGlobal {
             this.renderOverlayDamaged = previousDamageOverlay;
             this.optiRefine$normalDamagePhase = previousDamagePhase;
         }
+    }
+
+    @Unique
+    private void optiRefine$renderWorldEntity(Entity entity, float partialTicks, boolean shaders) {
+        ++this.countEntitiesRendered;
+        Entity previousEntity = this.renderedEntity;
+        this.renderedEntity = entity;
+        try {
+            if (shaders) Shaders.nextEntity(entity);
+            this.renderManager.renderEntityStatic(entity, partialTicks, false);
+        } finally {
+            this.renderedEntity = previousEntity;
+        }
+    }
+
+    @Unique
+    private void optiRefine$renderFishingHooksOutsideVisibleChunks(ICamera camera, float partialTicks, int pass,
+                                                                   boolean shaders, double x, double y, double z,
+                                                                   BlockPos.MutableBlockPos position) {
+        List<EntityPlayer> players = this.world.playerEntities;
+        for (int i = 0; i < players.size(); i++) {
+            EntityPlayer angler = players.get(i);
+            EntityFishHook hook = angler.fishEntity;
+            if (hook == null || hook.isDead || hook.world != this.world || !hook.addedToChunk || hook.getAngler() != angler
+                    || !hook.shouldRenderInPass(pass) || !this.renderManager.shouldRender(hook, camera, x, y, z)
+                    || !this.world.isBlockLoaded(position.setPos(hook)) || this.optiRefine$isFishingHookSectionVisible(hook)) {
+                continue;
+            }
+            // RenderFish ignores the bobber frustum. An omitted section still needs a draw
+            // when the line from the player's hand to the hook intersects the camera.
+            double eyeY = angler.posY + angler.getEyeHeight();
+            AxisAlignedBB line = new AxisAlignedBB(Math.min(angler.posX, hook.posX) - 1.0D,
+                    Math.min(eyeY, hook.posY) - 1.0D, Math.min(angler.posZ, hook.posZ) - 1.0D,
+                    Math.max(angler.posX, hook.posX) + 1.0D, Math.max(eyeY, hook.posY) + 1.0D,
+                    Math.max(angler.posZ, hook.posZ) + 1.0D);
+            if (camera.isBoundingBoxInFrustum(line)) this.optiRefine$renderWorldEntity(hook, partialTicks, shaders);
+        }
+    }
+
+    @Unique
+    private boolean optiRefine$isFishingHookSectionVisible(EntityFishHook hook) {
+        for (int i = 0; i < this.renderInfos.size(); i++) {
+            BlockPos pos = this.renderInfos.get(i).renderChunk.getPosition();
+            if ((pos.getX() >> 4) == hook.chunkCoordX && (pos.getY() >> 4) == hook.chunkCoordY
+                    && (pos.getZ() >> 4) == hook.chunkCoordZ) return true;
+        }
+        return false;
     }
 
     @Shadow
