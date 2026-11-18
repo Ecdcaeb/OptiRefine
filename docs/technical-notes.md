@@ -228,12 +228,24 @@ establish compatibility with arbitrary newer shader packs, resource formats or n
   views from byte zero, reusing them until the underlying buffer actually grows.
 - [#7](https://github.com/Ecdcaeb/OptiRefine/issues/7): keep the original spawning method and its
   injection points while reusing candidate coordinates and uninitialized samples through narrow hooks.
-- Sprite ordering and resource probes use separate optional mixins at priority 1100. The sprite
-  hook skips Nothirium's replacement sort, which supplies no `Arrays.sort` call. VintageFix's
-  replacement still calls `getResourceStream`, so the probe closes that stream.
-  RenderLib 1.4.5 also requires a workaround for its pre-existing `RenderGlobal.renderEntities`
-  transformer, such as Gambiarra's `fixRenderLibOptiRefine`.
-  [#8](https://github.com/Ecdcaeb/OptiRefine/issues/8) · [Gambiarra](https://github.com/snwxMR/gadolinium-gambiarra/blob/v1.0.0/README.md)
+- Separate mixins at priority 1100 keep the default resource probe and quad-sorting hooks
+  compatible with VintageFix and Nothirium. The probe closes the stream opened by VintageFix.
+  OptiRefine uses the active sort's permutation to keep G5 multi-texture sprites aligned with
+  their quads. Nothirium's cloud update redirect also runs through the original light-update loop.
+  RenderLib 1.4.5 uses vanilla anchors for its pre-Mixin transform. When both RenderLib draw calls
+  are installed, OptiRefine runs their Forge render-pass hooks and supplies G5's shader state for
+  entities, block entities, batches and damage overlays.
+  On Cleanroom 0.7.14-alpha with official G5, Nothirium 0.4.9-beta, RenderLib 1.4.5 and
+  VintageFix 0.7.2, the production client renders a pig and chest with shaders off, in the main
+  and shadow passes with shaders on, and after switching shaders off. The test leaves
+  `mixin.resourcepacks=true`, verifies dynamic-light registration, and checks quad/sprite alignment
+  through three camera positions at AF 4. Draw counts and captures are in
+  `build/issue-8/render-audit/reported-mods-after/`.
+  [#8](https://github.com/Ecdcaeb/OptiRefine/issues/8)
+- Block-part rotation uses the runtime parser, allowing Universal Tweaks to widen the angle
+  range. The five-argument `BufferBuilder.putColorRGBA` uses Forge's implementation.
+- The world render pass reads Kirino's settings through the configuration API available on
+  the running Cleanroom version. Both configurations retain the same headless rendering phases.
 
 Rendering additions restore their owned matrix, texture, lightmap, shader and emissive scopes after
 exceptions and nested calls. Custom-model context is restored to its enclosing renderer; zero model

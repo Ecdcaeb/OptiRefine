@@ -3,6 +3,7 @@ package mods.Hileb.optirefine.core;
 import mods.Hileb.optirefine.core.transformer.OptiRefineConfigTransformer;
 import mods.Hileb.optirefine.core.transformer.OptifineForgeTransformer;
 import mods.Hileb.optirefine.core.transformer.OptifineTransformerTransformer;
+import mods.Hileb.optirefine.core.transformer.RenderLibTransformer;
 import mods.Hileb.optirefine.library.foundationx.TransformerHelper;
 
 import java.io.File;
@@ -17,6 +18,7 @@ public final class OptiRefineBootstrap {
     public static synchronized void registerTransformers() {
         if (registered) return;
         TransformerHelper.registerTransformer(new OptifineTransformerTransformer());
+        TransformerHelper.registerTransformer(new RenderLibTransformer());
         TransformerHelper.registerTransformer(new OptifineForgeTransformer());
         TransformerHelper.registerTransformer(new OptiRefineConfigTransformer());
         registered = true;

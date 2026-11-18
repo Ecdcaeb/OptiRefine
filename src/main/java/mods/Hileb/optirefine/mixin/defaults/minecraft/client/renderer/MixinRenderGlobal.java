@@ -15,7 +15,6 @@ import net.minecraft.client.multiplayer.ChunkProviderClient;
 import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.DestroyBlockProgress;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.renderer.RenderHelper;
@@ -98,6 +97,9 @@ public abstract class MixinRenderGlobal {
 // [AUDIT-OK] OF-added field, not in baseline (@Public)
     @Unique
     private boolean renderOverlayDamaged;
+
+    @Unique
+    private boolean optiRefine$renderLibBlockEntitiesActive;
     // ===== cross-class private access =====
 
     @SuppressWarnings({"unused", "MissingUnique"})
@@ -454,6 +456,109 @@ public abstract class MixinRenderGlobal {
         }
     }
 
+    @Unique
+    private boolean optiRefine$useRenderLibEntityPass() {
+        // RenderLibTransformer enables this when both RenderLib draw calls survived Mixin application.
+        return false;
+    }
+
+    @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "meldexun.renderlib.renderer.EntityRenderManager renderEntities (F)V")
+    private static native void optiRefine$invokeRenderLibEntities(float partialTicks);
+
+    @AccessibleOperation(opcode = Opcodes.INVOKESTATIC, desc = "meldexun.renderlib.renderer.TileEntityRenderManager renderTileEntities (F)V")
+    private static native void optiRefine$invokeRenderLibBlockEntities(float partialTicks);
+
+    @Unique
+    private void optiRefine$renderLibEntities(float partialTicks) {
+        boolean shaders = Config.isShaders();
+        if (shaders) {
+            Shaders.beginEntities();
+        }
+        try {
+            optiRefine$updateRenderItemFrameItemRenderDistance();
+            optiRefine$invokeRenderLibEntities(partialTicks);
+        } finally {
+            if (shaders) {
+                Shaders.endEntities();
+            }
+        }
+    }
+
+    @Unique
+    private void optiRefine$renderLibBlockEntities(float partialTicks) {
+        if (Config.isShaders()) {
+            this.optiRefine$renderLibBlockEntitiesActive = true;
+            Shaders.beginBlockEntities();
+        }
+        optiRefine$updateTileEntitySignRendererTextRenderDistance();
+        optiRefine$invokeRenderLibBlockEntities(partialTicks);
+    }
+
+    @Unique
+    private void optiRefine$beginRenderLibDamageOverlay() {
+        this.renderOverlayDamaged = true;
+        this.preRenderDamagedBlocks();
+    }
+
+    @Unique
+    private static void optiRefine$renderLibDamagedBlockEntity(TileEntityRendererDispatcher dispatcher, TileEntity tileEntity,
+                                                             float partialTicks, int destroyStage) {
+        if (Config.isShaders()) {
+            Shaders.nextBlockEntity(tileEntity);
+        }
+        dispatcher.render(tileEntity, partialTicks, destroyStage);
+    }
+
+    @Unique
+    private void optiRefine$endRenderLibDamageOverlay() {
+        try {
+            this.postRenderDamagedBlocks();
+        } finally {
+            this.renderOverlayDamaged = false;
+            optiRefine$endRenderLibBlockEntities();
+        }
+    }
+
+    @Unique
+    private void optiRefine$endRenderLibBlockEntities() {
+        if (this.optiRefine$renderLibBlockEntitiesActive) {
+            this.optiRefine$renderLibBlockEntitiesActive = false;
+            Shaders.endBlockEntities();
+        }
+    }
+
+    @Unique
+    private void optiRefine$renderEntitiesWithRenderLib(Entity entity, ICamera camera, float partialTicks, Operation<Void> original) {
+        int previousCounter = optiRefine$getRenderedEntitiesCounter();
+        Entity previousEntity = this.renderedEntity;
+        boolean previousDamageOverlay = this.renderOverlayDamaged;
+        boolean previousBlockEntities = this.optiRefine$renderLibBlockEntitiesActive;
+        this.renderOverlayDamaged = false;
+        this.optiRefine$renderLibBlockEntitiesActive = false;
+        try {
+            if (this.renderEntitiesStartupCounter <= 0) {
+                optiRefine$setRenderedEntitiesCounter(previousCounter + 1);
+                if (Config.isFogOff() && optiRefine$getEntityRendererFogStandard(this.mc.entityRenderer)) {
+                    GlStateManager.disableFog();
+                }
+            }
+            original.call(entity, camera, partialTicks);
+        } finally {
+            try {
+                if (this.renderOverlayDamaged) {
+                    optiRefine$endRenderLibDamageOverlay();
+                } else {
+                    optiRefine$endRenderLibBlockEntities();
+                }
+            } finally {
+                optiRefine$setRenderedEntitiesCounter(previousCounter);
+                this.renderedEntity = previousEntity;
+                this.renderOverlayDamaged = previousDamageOverlay;
+                this.optiRefine$renderLibBlockEntitiesActive = previousBlockEntities;
+            }
+        }
+    }
+
     /**
      * @author OptiRefine
      * @reason OptiFine: shaders entity/tile-entity rendering + fog override + render distance updates
@@ -462,6 +567,10 @@ public abstract class MixinRenderGlobal {
     private void optiRefine$renderEntities(Entity entityIn, ICamera camera, float partialTicks, Operation<Void> original) {
 // [AUDIT-OK] target renderEntities(LEntity;LICamera;F)V = func_180446_a; OF body incl. Forge pass hooks (pass/shouldRenderInPass/preDrawBatch/drawBatch) preserved
         int pass = MinecraftForgeClient.getRenderPass();
+        if (optiRefine$useRenderLibEntityPass() && (pass == 0 || pass == 1)) {
+            optiRefine$renderEntitiesWithRenderLib(entityIn, camera, partialTicks, original);
+            return;
+        }
         if (this.renderEntitiesStartupCounter > 0) {
             if (pass > 0) {
                 return;
@@ -807,14 +916,8 @@ public abstract class MixinRenderGlobal {
 // [AUDIT-OK] baseline member vboEnabled (SRG field_175005_X)
     private boolean vboEnabled;
     @Shadow
-// [AUDIT-OK] baseline member cloudTickCounter (SRG field_72773_u)
-    private int cloudTickCounter;
-    @Shadow
 // [AUDIT-OK] baseline member renderDistanceChunks (SRG field_72739_F)
     private int renderDistanceChunks;
-    @Shadow
-// [AUDIT-OK] baseline member setLightUpdates (SRG field_184387_ae)
-    private java.util.Set<BlockPos> setLightUpdates;
 
     @Shadow
 // [AUDIT-OK] baseline member SUN_TEXTURES (SRG field_110928_i)
@@ -843,14 +946,6 @@ public abstract class MixinRenderGlobal {
     @Shadow
 // [AUDIT-OK] baseline member calculateParticleLevel(Z)I (SRG func_190572_a)
     protected abstract int calculateParticleLevel(boolean alwaysShow);
-
-    @Shadow
-// [AUDIT-OK] baseline member cleanupDamagedBlocks(Ljava/util/Iterator;)V (SRG func_174965_a)
-    protected abstract void cleanupDamagedBlocks(Iterator<DestroyBlockProgress> iterator);
-
-    @Shadow
-// [AUDIT-OK] baseline member markBlocksForUpdate(IIIIIIZ)V (SRG func_184385_a)
-    protected abstract void markBlocksForUpdate(int x1, int y1, int z1, int x2, int y2, int z2, boolean needsUpdate);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.settings.GameSettings ofCloudsHeight F")
@@ -1460,13 +1555,8 @@ public abstract class MixinRenderGlobal {
         }
     }
 
-    /**
-     * @author OptiRefine
-     * @reason OptiFine: F3+O shader options / F3+R shader reload hotkeys (1.12.2 OF; no cloud toggle in this version)
-     */
-    @WrapMethod(method = "updateClouds")
-    // [AUDIT-FIXED] OF RenderGlobal:1317-1347: Keyboard F3+O (24) opens GuiShaderOptions, F3+R (19) reloads shader pack + re-opens debug screen
-    private void optiRefine$updateClouds(Operation<Void> original) {
+    @Inject(method = "updateClouds", at = @At("HEAD"))
+    private void optiRefine$handleShaderShortcuts(CallbackInfo ci) {
         if (Config.isShaders()) {
             if (Keyboard.isKeyDown(61) && Keyboard.isKeyDown(24)) {
                 GuiShaderOptions guishaderoptions = new GuiShaderOptions(null, Config.getGameSettings());
@@ -1476,21 +1566,6 @@ public abstract class MixinRenderGlobal {
                 Shaders.uninit();
                 Shaders.loadShaderPack();
                 optiRefine$setMinecraftActionKeyF3(this.mc, true);
-            }
-        }
-        this.cloudTickCounter++;
-        if (this.cloudTickCounter % 20 == 0) {
-            this.cleanupDamagedBlocks(this.damagedBlocks.values().iterator());
-        }
-        if (!this.setLightUpdates.isEmpty() && !this.renderDispatcher.hasNoFreeRenderBuilders() && this.chunksToUpdate.isEmpty()) {
-            Iterator<BlockPos> iterator = this.setLightUpdates.iterator();
-            while (iterator.hasNext()) {
-                BlockPos blockpos = iterator.next();
-                iterator.remove();
-                int i = blockpos.getX();
-                int j = blockpos.getY();
-                int k = blockpos.getZ();
-                this.markBlocksForUpdate(i - 1, j - 1, k - 1, i + 1, j + 1, k + 1, false);
             }
         }
     }

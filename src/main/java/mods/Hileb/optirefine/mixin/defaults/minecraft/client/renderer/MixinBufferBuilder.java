@@ -144,24 +144,31 @@ public abstract class MixinBufferBuilder {
     private VertexFormat vertexFormat;
 
     @Unique
-    private void optiRefine$reorderQuadSprites(Object[] order) {
-        if (this.quadSprites != null) {
-            int quadCount = this.vertexCount / 4;
-            TextureAtlasSprite[] sorted = this.optiRefine$quadSpritesScratch;
-            if (sorted == null || sorted.length < quadCount) {
-                sorted = new TextureAtlasSprite[quadCount];
-                this.optiRefine$quadSpritesScratch = sorted;
-            }
-            try {
-                for (int index = 0; index < order.length; index++) {
-                    int sourceQuad = (Integer) order[index];
-                    sorted[index] = this.quadSprites[sourceQuad];
-                }
-                System.arraycopy(sorted, 0, this.quadSprites, 0, quadCount);
-            } finally {
-                Arrays.fill(sorted, 0, quadCount, null);
-            }
+    private void optiRefine$reorderQuadSprites(Object[] objectOrder, int[] primitiveOrder) {
+        int quadCount = this.vertexCount / 4;
+        if (this.quadSprites == null || quadCount < 2) {
+            return;
         }
+        TextureAtlasSprite[] sorted = this.optiRefine$quadSpritesScratch;
+        if (sorted == null || sorted.length < quadCount) {
+            sorted = new TextureAtlasSprite[quadCount];
+            this.optiRefine$quadSpritesScratch = sorted;
+        }
+        try {
+            if (primitiveOrder != null) {
+                for (int index = 0; index < quadCount; index++) {
+                    sorted[index] = this.quadSprites[primitiveOrder[index]];
+                }
+            } else {
+                for (int index = 0; index < quadCount; index++) {
+                    sorted[index] = this.quadSprites[(Integer) objectOrder[index]];
+                }
+            }
+            System.arraycopy(sorted, 0, this.quadSprites, 0, quadCount);
+        } finally {
+            Arrays.fill(sorted, 0, quadCount, null);
+        }
+
     }
 
     @Shadow
@@ -672,16 +679,6 @@ public abstract class MixinBufferBuilder {
             ((Buffer)this.byteBuffer).rewind();
             ((Buffer)this.byteBufferTriangles).flip();
             this.modeTriangles = true;
-        }
-    }
-
-    @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
-// [AUDIT-OK] member provided by Cleanroom patch (patch/patches adds 5-arg putColorRGBA/isColorDisabled/putBulkData); no @Unique here so the member silently resolves to the runtime-provided one (no warning)
-    public void putColorRGBA(int index, int red, int green, int blue, int alpha) {
-        if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN) {
-            this.rawIntBuffer.put(index, alpha << 24 | blue << 16 | green << 8 | red);
-        } else {
-            this.rawIntBuffer.put(index, red << 24 | green << 16 | blue << 8 | alpha);
         }
     }
 

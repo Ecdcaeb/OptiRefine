@@ -8,6 +8,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessTransformer;
 import mods.Hileb.optirefine.optifine.Config;
+import mods.Hileb.optirefine.optifine.client.KirinoRenderMode;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiChat;
 import net.minecraft.util.text.Style;
@@ -754,8 +755,7 @@ public abstract class MixinEntityRenderer {
     @WrapMethod(method = "renderWorldPass")
     private void optiRefine$renderWorldPass(int pass, float partialTicks, long finishTimeNano, Operation<Void> original) {
 // [AUDIT-OK] target renderWorldPass(IFJ)V (SRG func_175068_a) matches baseline
-        boolean kirinoHeadless = KirinoCommonCore.KIRINO_CONFIG_HUB.isEnable()
-                && (!KirinoCommonCore.KIRINO_CONFIG_HUB.isEnableRenderDelegate() || KirinoClientCore.isRenderUnsupported());
+        boolean kirinoHeadless = KirinoRenderMode.runsHeadlessly();
         if (kirinoHeadless) {
             if (KirinoCommonCore.KIRINO_ENGINE.isAfterFirstPrepare()) {
                 KirinoClientCore.runHeadlessly(FramePhase.PREPARE);
