@@ -5,8 +5,11 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.mojang.authlib.GameProfile;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.optifine.Config;
+import mods.Hileb.optirefine.optifine.entity.G5ShoulderParrots;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.entity.passive.EntityShoulderRiding;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StringUtils;
 import net.minecraft.world.World;
@@ -19,7 +22,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @SuppressWarnings({"unused", "AddedMixinMembersNamePattern"})
 @Mixin(AbstractClientPlayer.class)
-public abstract class MixinAbstractClientPlayer {
+public abstract class MixinAbstractClientPlayer extends EntityPlayer implements G5ShoulderParrots.Player {
 // [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
 
 
@@ -46,6 +49,26 @@ public abstract class MixinAbstractClientPlayer {
 // [AUDIT-OK] OF-added public field, not in baseline; @Public needed for OF-jar access
     @Public
     public EntityShoulderRiding entityShoulderRight;
+
+    protected MixinAbstractClientPlayer(World world, GameProfile profile) {
+        super(world, profile);
+    }
+
+    @Override
+    public void notifyDataManagerChange(DataParameter<?> key) {
+        super.notifyDataManagerChange(key);
+        AbstractClientPlayer player = (AbstractClientPlayer) (Object) this;
+        if (LEFT_SHOULDER_ENTITY.equals(key)) {
+            this.entityShoulderLeft = G5ShoulderParrots.updateShoulder(player, this.entityShoulderLeft, getLeftShoulderEntity());
+        } else if (RIGHT_SHOULDER_ENTITY.equals(key)) {
+            this.entityShoulderRight = G5ShoulderParrots.updateShoulder(player, this.entityShoulderRight, getRightShoulderEntity());
+        }
+    }
+
+    @Override
+    public EntityShoulderRiding optiRefine$getShoulderEntity(boolean left) {
+        return left ? this.entityShoulderLeft : this.entityShoulderRight;
+    }
 
 // [AUDIT-OK] OF-added member, not in baseline; @Public informational (OF keeps private)
     @Public

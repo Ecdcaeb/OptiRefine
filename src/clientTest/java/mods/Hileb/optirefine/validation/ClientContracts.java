@@ -74,6 +74,8 @@ public final class ClientContracts {
                 evidence.append("AF, custom-items and alternate-block settings retain selective texture/model reloads and live sound/language consumers\n");
                 DimensionSkyContracts.verify(mc);
                 evidence.append("Native sky rendering selects signed and sparse Forge dimensions across reloads\n");
+                ShoulderTextureContracts.verify(mc);
+                evidence.append("Native shoulder rendering retains random parrot texture rules across seating and reload\n");
                 CemContextContracts.verify(mc);
                 evidence.append("Worldless item chest CEM uses client/enclosing world values and restores nested and exceptional contexts\n");
                 GeometryContracts.verify();

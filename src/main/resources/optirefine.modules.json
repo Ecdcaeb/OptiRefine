@@ -86,6 +86,7 @@
         "minecraft.server.management.MixinPlayerChunkMap",
         "minecraftforge.fml.MixinFMLClientHandler",
         "optifine.MixinConfig",
+        "optifine.MixinG5RandomEntitiesShoulder",
         "optifine.MixinReflectorForge"
       ]
     },
