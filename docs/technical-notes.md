@@ -228,6 +228,12 @@ establish compatibility with arbitrary newer shader packs, resource formats or n
   views from byte zero, reusing them until the underlying buffer actually grows.
 - [#7](https://github.com/Ecdcaeb/OptiRefine/issues/7): keep the original spawning method and its
   injection points while reusing candidate coordinates and uninitialized samples through narrow hooks.
+- Sprite ordering and resource probes use separate optional mixins at priority 1100. The sprite
+  hook skips Nothirium's replacement sort, which supplies no `Arrays.sort` call. VintageFix's
+  replacement still calls `getResourceStream`, so the probe closes that stream.
+  RenderLib 1.4.5 also requires a workaround for its pre-existing `RenderGlobal.renderEntities`
+  transformer, such as Gambiarra's `fixRenderLibOptiRefine`.
+  [#8](https://github.com/Ecdcaeb/OptiRefine/issues/8) · [Gambiarra](https://github.com/snwxMR/gadolinium-gambiarra/blob/v1.0.0/README.md)
 
 Rendering additions restore their owned matrix, texture, lightmap, shader and emissive scopes after
 exceptions and nested calls. Custom-model context is restored to its enclosing renderer; zero model

@@ -3,7 +3,6 @@ package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessTransformer;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
@@ -37,7 +36,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.nio.*;
 import java.util.Arrays;
 import java.util.BitSet;
-import java.util.Comparator;
 @Mixin(BufferBuilder.class)
 public abstract class MixinBufferBuilder {
 // [AUDIT] 2026-08-03 — see AGENT.md; issues: 3
@@ -145,10 +143,8 @@ public abstract class MixinBufferBuilder {
 // [AUDIT-OK] baseline member vertexFormat (SRG field_179011_q)
     private VertexFormat vertexFormat;
 
-    @SuppressWarnings("unused")
-    @WrapOperation(method = "sortVertexData", at = @At(value = "INVOKE", target = "Ljava/util/Arrays;sort([Ljava/lang/Object;Ljava/util/Comparator;)V", remap = false))
-    private void optiRefine$sortQuadSprites(Object[] order, Comparator<?> comparator, Operation<Void> original) {
-        original.call(order, comparator);
+    @Unique
+    private void optiRefine$reorderQuadSprites(Object[] order) {
         if (this.quadSprites != null) {
             int quadCount = this.vertexCount / 4;
             TextureAtlasSprite[] sorted = this.optiRefine$quadSpritesScratch;
