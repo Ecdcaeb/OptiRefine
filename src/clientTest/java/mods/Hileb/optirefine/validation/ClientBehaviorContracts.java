@@ -164,7 +164,7 @@ public final class ClientBehaviorContracts {
             focusWindow();
             keyInput(keyboard, KeyEvent.VK_F3, GLFW.GLFW_KEY_F3, true);
             keyInput(keyboard, KeyEvent.VK_L, GLFW.GLFW_KEY_L, true);
-            keyState(true);
+            keyState(Keyboard.KEY_L, true);
             check.invoke(mc.entityRenderer, mc.player, 0F, camera, false);
             if (pending.getBoolean(mc.entityRenderer) || action.getBoolean(mc)) {
                 throw new AssertionError("F3+L activated through an unrelated open GUI");
@@ -177,7 +177,7 @@ public final class ClientBehaviorContracts {
             }
             keyInput(keyboard, KeyEvent.VK_L, GLFW.GLFW_KEY_L, false);
             keyInput(keyboard, KeyEvent.VK_F3, GLFW.GLFW_KEY_F3, false);
-            keyState(false);
+            keyState(Keyboard.KEY_L, false);
             Method nativeKeys;
             try {
                 nativeKeys = Minecraft.class.getDeclaredMethod("runTickKeyboard");
@@ -198,10 +198,27 @@ public final class ClientBehaviorContracts {
                     || mc.gameSettings.showDebugInfo != debug) {
                 throw new AssertionError("Visible-chunk loading lost its counter/settings/debug-state contract");
             }
+
+            keyInput(keyboard, KeyEvent.VK_F3, GLFW.GLFW_KEY_F3, true);
+            keyInput(keyboard, KeyEvent.VK_K, GLFW.GLFW_KEY_K, true);
+            keyState(Keyboard.KEY_K, true);
+            check.invoke(mc.entityRenderer, mc.player, 0F, camera, false);
+            if (!pending.getBoolean(mc.entityRenderer) || !action.getBoolean(mc)) {
+                throw new AssertionError("F3+K did not schedule visible chunks and consume F3");
+            }
+            keyInput(keyboard, KeyEvent.VK_K, GLFW.GLFW_KEY_K, false);
+            keyInput(keyboard, KeyEvent.VK_F3, GLFW.GLFW_KEY_F3, false);
+            keyState(Keyboard.KEY_K, false);
+            nativeKeys.invoke(mc);
+            if (action.getBoolean(mc) || mc.gameSettings.showDebugInfo != debug) {
+                throw new AssertionError("Releasing F3+K toggled the debug overlay");
+            }
         } finally {
             keyInput(keyboard, KeyEvent.VK_L, GLFW.GLFW_KEY_L, false);
+            keyInput(keyboard, KeyEvent.VK_K, GLFW.GLFW_KEY_K, false);
             keyInput(keyboard, KeyEvent.VK_F3, GLFW.GLFW_KEY_F3, false);
-            keyState(false);
+            keyState(Keyboard.KEY_L, false);
+            keyState(Keyboard.KEY_K, false);
             while (Keyboard.next()) {
                 // Consume any release events left by a failed scenario before restoring the F3 flag.
             }
@@ -239,17 +256,17 @@ public final class ClientBehaviorContracts {
         throw new AssertionError("Native contract window did not acquire keyboard focus");
     }
 
-    private static void keyState(boolean down) throws InterruptedException {
+    private static void keyState(int shortcut, boolean down) throws InterruptedException {
         long deadline = System.nanoTime() + 2_000_000_000L;
         do {
             Display.processMessages();
             Keyboard.poll();
-            if (Keyboard.isKeyDown(Keyboard.KEY_F3) == down && Keyboard.isKeyDown(Keyboard.KEY_L) == down) return;
+            if (Keyboard.isKeyDown(Keyboard.KEY_F3) == down && Keyboard.isKeyDown(shortcut) == down) return;
             Thread.sleep(10);
         } while (System.nanoTime() < deadline);
-        throw new AssertionError("Native keyboard did not receive F3/L " + (down ? "press" : "release")
-                + ": focused=" + Display.isActive() + ", F3=" + Keyboard.isKeyDown(Keyboard.KEY_F3)
-                + ", L=" + Keyboard.isKeyDown(Keyboard.KEY_L));
+        throw new AssertionError("Native keyboard did not receive F3/" + Keyboard.getKeyName(shortcut) + (down ? " press" : " release")
+                + ", focused=" + Display.isActive() + ", F3=" + Keyboard.isKeyDown(Keyboard.KEY_F3)
+                + ", shortcut=" + Keyboard.isKeyDown(shortcut));
     }
 
     private static Field field(Class<?> owner, String mcp, String srg) throws NoSuchFieldException {

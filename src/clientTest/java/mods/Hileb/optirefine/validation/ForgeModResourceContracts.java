@@ -81,6 +81,7 @@ public final class ForgeModResourceContracts {
         require(gold != mc.getTextureMapBlocks().getMissingSprite(), "Gold block fixture texture is missing");
         verifyCit(mc, gold);
         verifyCtm(mc, gold);
+        verifyStateConnection(mc);
     }
 
     private static void verifyCit(Minecraft mc, TextureAtlasSprite expected) {
@@ -102,6 +103,34 @@ public final class ForgeModResourceContracts {
         BakedQuad[] connected = ConnectedTextures.getConnectedTexture(mc.world, state, pos, quad, new RenderEnv(state, pos));
         require(quad.getSprite() != expected && connected.length == 1 && connected[0].getSprite() == expected,
                 "Native CTM did not apply the modern Forge rule to the block quad");
+    }
+
+    private static void verifyStateConnection(Minecraft mc) {
+        IBlockState white = Blocks.WOOL.getStateFromMeta(0);
+        IBlockState blue = Blocks.WOOL.getStateFromMeta(11);
+        BlockPos pos = mc.player.getPosition().up(3);
+        BlockPos east = pos.east();
+        BlockPos west = pos.west();
+        IBlockState oldEast = mc.world.getBlockState(east);
+        IBlockState oldWest = mc.world.getBlockState(west);
+        BakedQuad face = mc.getBlockRendererDispatcher().getModelForState(white)
+                .getQuads(white, EnumFacing.NORTH, 0).getFirst();
+        try {
+            mc.world.setBlockState(east, white, 3);
+            mc.world.setBlockState(west, white, 3);
+            TextureAtlasSprite connected = ConnectedTextures.getConnectedTexture(mc.world, white, pos, face,
+                    new RenderEnv(white, pos))[0].getSprite();
+            mc.world.setBlockState(east, blue, 3);
+            mc.world.setBlockState(west, blue, 3);
+            TextureAtlasSprite disconnected = ConnectedTextures.getConnectedTexture(mc.world, white, pos, face,
+                    new RenderEnv(white, pos))[0].getSprite();
+            require(connected == mc.getTextureMapBlocks().getAtlasSprite("minecraft:blocks/gold_block")
+                            && disconnected == mc.getTextureMapBlocks().getAtlasSprite("minecraft:blocks/diamond_block"),
+                    "CTM connect=state did not distinguish same-block variants");
+        } finally {
+            mc.world.setBlockState(east, oldEast, 3);
+            mc.world.setBlockState(west, oldWest, 3);
+        }
     }
 
     private static void require(boolean condition, String message) {

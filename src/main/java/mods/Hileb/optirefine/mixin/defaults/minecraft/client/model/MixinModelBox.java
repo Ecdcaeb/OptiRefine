@@ -5,15 +5,17 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.NewConstructor;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.ShadowSuper;
+import mods.Hileb.optirefine.optifine.cem.CemBoxGeometry;
 import net.minecraft.client.model.ModelBox;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.model.PositionTextureVertex;
 import net.minecraft.client.model.TexturedQuad;
 import net.minecraft.client.renderer.BufferBuilder;
+import net.minecraft.util.math.Vec3d;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 @Mixin(ModelBox.class)
-public abstract class MixinModelBox {
+public abstract class MixinModelBox implements CemBoxGeometry {
 // [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
 
 // [AUDIT-OK] baseline member vertexPositions exists in target class
@@ -58,6 +60,31 @@ public abstract class MixinModelBox {
 // [AUDIT-OK] baseline member boxName exists in target class
     @Shadow
     public String boxName;
+
+    @Override
+    public void optiRefine$inflate(float x, float y, float z, boolean mirror) {
+        for (int index = 0; index < this.vertexPositions.length; index++) {
+            PositionTextureVertex corner = this.vertexPositions[index];
+            Vec3d previous = corner.vector3D;
+            boolean maxX = ((index + 1) & 2) != 0;
+            boolean maxY = (index & 2) != 0;
+            boolean maxZ = (index & 4) != 0;
+            Vec3d inflated = new Vec3d(maxX != mirror ? this.posX2 + x : this.posX1 - x,
+                    maxY ? this.posY2 + y : this.posY1 - y, maxZ ? this.posZ2 + z : this.posZ1 - z);
+            corner.vector3D = inflated;
+            // The quad UV vertices share the original corner vectors, including coincident corners.
+            for (TexturedQuad quad : this.quadList) {
+                if (quad == null) {
+                    continue;
+                }
+                for (PositionTextureVertex vertex : quad.vertexPositions) {
+                    if (vertex.vector3D == previous) {
+                        vertex.vector3D = inflated;
+                    }
+                }
+            }
+        }
+    }
 
 // [AUDIT-OK] @ShadowSuper("<init>") rewrites to INVOKESPECIAL Object.<init> (cursed lib)
     @ShadowSuper("<init>")

@@ -70,9 +70,10 @@ verification reports on failure. Version/tag mismatches are rejected; build meta
 
 Implementation notes, compatibility repairs and validation details are in [Technical notes](docs/technical-notes.md).
 
-Modern backports include compute shaders, image load/store, prepare/shadowcomp stages, newer CEM
-expressions and entity variables, and modern `optifine/` resource directories. Requirements and
-compatibility limits are listed in the technical notes.
+Modern backports include compute shaders, image load/store, sixteen logical color targets,
+prepare/shadowcomp stages, CEM animation and model features, and modern `optifine/` resource
+rules. The [OptiFineDoc compatibility table](docs/technical-notes.md#optifinedoc-compatibility)
+lists supported formats, rendering requirements and remaining differences.
 
 ## Feats
 

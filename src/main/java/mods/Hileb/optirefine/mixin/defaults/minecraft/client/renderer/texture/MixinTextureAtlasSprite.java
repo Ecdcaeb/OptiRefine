@@ -9,6 +9,7 @@ import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.ShadowSuper;
 import mods.Hileb.optirefine.optifine.Config;
 import mods.Hileb.optirefine.optifine.client.AtlasSpriteMipmaps;
+import mods.Hileb.optirefine.optifine.resources.ModernTextureProperties;
 import net.minecraft.client.renderer.texture.PngSizeInfo;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;
@@ -24,6 +25,7 @@ import net.minecraft.util.ReportedException;
 import net.minecraft.util.ResourceLocation;
 import net.optifine.SmartAnimations;
 import net.optifine.shaders.Shaders;
+import net.optifine.shaders.ShadersTex;
 import net.optifine.util.CounterInt;
 import net.optifine.util.TextureUtils;
 import org.objectweb.asm.Opcodes;
@@ -59,6 +61,7 @@ public abstract class MixinTextureAtlasSprite implements AtlasSpriteMipmaps {
 
     @Unique private boolean optiRefine$allowRectangularLoad;
     @Unique private boolean optiRefine$alignedResource;
+    @Unique private boolean optiRefine$labPbrSpecular;
 
     // ===== new fields =====
 
@@ -346,7 +349,11 @@ public abstract class MixinTextureAtlasSprite implements AtlasSpriteMipmaps {
                     return;
                 }
                 if (i != k && k >= 0 && k < this.framesTextureData.size()) {
-                    TextureUtil.uploadTextureMipmap(this.framesTextureData.get(k), this.width, this.height, this.originX, this.originY, flag, flag1);
+                    if (this.optiRefine$labPbrSpecular) {
+                        ShadersTex.uploadTexSub1(this.framesTextureData.get(k), this.width, this.height, this.originX, this.originY, 0);
+                    } else {
+                        TextureUtil.uploadTextureMipmap(this.framesTextureData.get(k), this.width, this.height, this.originX, this.originY, flag, flag1);
+                    }
                 }
             } else if (this.animationMetadata.isInterpolate()) {
                 if (!this.animationActive) {
@@ -357,9 +364,14 @@ public abstract class MixinTextureAtlasSprite implements AtlasSpriteMipmaps {
         }
     }
 
-    @ModifyArg(method = "updateAnimationInterpolated", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/texture/TextureUtil;uploadTextureMipmap([[IIIIIZZ)V"), index = 6)
-    private boolean optiRefine$clampInterpolatedSingle(boolean clamp) {
-        return this.isSpriteSingle;
+    @WrapOperation(method = "updateAnimationInterpolated", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/texture/TextureUtil;uploadTextureMipmap([[IIIIIZZ)V"))
+    private void optiRefine$uploadInterpolated(int[][] data, int width, int height, int x, int y, boolean blur, boolean clamp,
+                                              Operation<Void> original) {
+        if (this.optiRefine$labPbrSpecular) {
+            ShadersTex.uploadTexSub1(data, width, height, x, y, 0);
+        } else {
+            original.call(data, width, height, x, y, blur, this.isSpriteSingle);
+        }
     }
 
     @Shadow
@@ -491,12 +503,10 @@ public abstract class MixinTextureAtlasSprite implements AtlasSpriteMipmaps {
             if (!this.optiRefine$alignedResource && Config.isShaders()) {
                 this.optiRefine$loadShaderSidecars(Config.getTextureMap(), Config.getResourceManager());
             }
-            for (int l = 0; l < this.framesTextureData.size(); ++l) {
-                int[][] aint1 = this.framesTextureData.get(l);
-                if (aint1 != null && !this.iconName.startsWith("minecraft:blocks/leaves_")) {
-                    for (int i1 = 0; i1 < aint1.length; ++i1) {
-                        int[] aint2 = aint1[i1];
-                        this.fixTransparentColor(aint2);
+            for (int[][] frame : this.framesTextureData) {
+                if (frame != null) {
+                    for (int[] pixels : frame) {
+                        ModernTextureProperties.fixTransparentColor(this.iconName, pixels);
                     }
                 }
             }
@@ -579,42 +589,6 @@ public abstract class MixinTextureAtlasSprite implements AtlasSpriteMipmaps {
     private void allocateFrameTextureData(int index) {
     }
 
-    // [AUDIT-OK] OF-added @Unique method fixTransparentColor, not in baseline
-    private void fixTransparentColor(int[] data) {
-        if (data != null) {
-            long l1 = 0L;
-            long l2 = 0L;
-            long l3 = 0L;
-            long l4 = 0L;
-            for (int i = 0; i < data.length; ++i) {
-                int j = data[i];
-                int k = j >> 24 & 255;
-                if (k >= 16) {
-                    int l = j >> 16 & 255;
-                    int i1 = j >> 8 & 255;
-                    int j1 = j & 255;
-                    l1 += l;
-                    l2 += i1;
-                    l3 += j1;
-                    ++l4;
-                }
-            }
-            if (l4 > 0L) {
-                int k1 = (int) (l1 / l4);
-                int l5 = (int) (l2 / l4);
-                int i2 = (int) (l3 / l4);
-                int j2 = k1 << 16 | l5 << 8 | i2;
-                for (int k2 = 0; k2 < data.length; ++k2) {
-                    int l6 = data[k2];
-                    int i3 = l6 >> 24 & 255;
-                    if (i3 <= 16) {
-                        data[k2] = j2;
-                    }
-                }
-            }
-        }
-    }
-
     @Override
     public void optiRefine$loadShaderSidecars(TextureMap atlas, IResourceManager resourceManager) {
         if (this.isShadersSprite) {
@@ -642,12 +616,20 @@ public abstract class MixinTextureAtlasSprite implements AtlasSpriteMipmaps {
         TextureAtlasSprite sidecar = new TextureAtlasSprite(name);
         MixinTextureAtlasSprite sprite = (MixinTextureAtlasSprite) (Object) sidecar;
         sprite.isShadersSprite = true;
+        sprite.optiRefine$labPbrSpecular = suffix.equals("_s") && ModernTextureProperties.isLabPbr();
         sidecar.copyFrom((TextureAtlasSprite) (Object) this);
         sprite.optiRefine$alignedResource = this.optiRefine$alignedResource;
         return optiRefine$generateTextureMapMipmaps(atlas, resourceManager, sidecar) ? sidecar : null;
     }
 
     // ===== generateMipmaps + frame helpers: spriteSingle propagation =====
+
+    @WrapOperation(method = "generateMipmaps", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/texture/TextureUtil;generateMipmapData(II[[I)[[I"))
+    private int[][] optiRefine$filterShaderMipmaps(int levels, int width, int[][] data, Operation<int[][]> original) {
+        return this.isShadersSprite && ModernTextureProperties.isLabPbr()
+                ? ModernTextureProperties.generateLabPbrMipmaps(levels, width, this.height, data, this.optiRefine$labPbrSpecular)
+                : original.call(levels, width, data);
+    }
 
     @ModifyArg(method = "generateMipmaps", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;setFramesTextureData(Ljava/util/List;)V"))
     private List<int[][]> optiRefine$keepAlignedFrameIndices(List<int[][]> generatedFrames) {

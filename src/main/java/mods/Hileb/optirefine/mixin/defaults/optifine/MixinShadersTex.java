@@ -4,12 +4,16 @@ import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
+import mods.Hileb.optirefine.optifine.Config;
+import mods.Hileb.optirefine.optifine.resources.ModernTextureProperties;
 import net.minecraft.client.resources.IResource;
 import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.util.ResourceLocation;
 import net.optifine.shaders.ShadersTex;
+import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Slice;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -47,7 +51,7 @@ public abstract class MixinShadersTex {
         if (location == null) {
             return null;
         }
-        try (IResource resource = mods.Hileb.optirefine.optifine.Config.getResourceManager().getResource(location);
+        try (IResource resource = Config.getResourceManager().getResource(location);
              InputStream input = resource.getInputStream()) {
             if (input == null) {
                 return null;
@@ -84,7 +88,11 @@ public abstract class MixinShadersTex {
 
     @WrapOperation(method = "readImageAndMipmaps", at = @At(value = "INVOKE", target = "Lnet/optifine/shaders/ShadersTex;genMipmapsSimple(II[[I)[[I", remap = false), remap = false)
     private static int[][] optiRefine$mipmapRectangularSidecar(int levels, int width, int[][] data, Operation<int[][]> original,
-                                                             @Local(argsOnly = true, ordinal = 1) int height) {
+                                                             @Local(argsOnly = true, ordinal = 1) int height,
+                                                             @Local(argsOnly = true) String name) {
+        if (ModernTextureProperties.isLabPbr()) {
+            return ModernTextureProperties.generateLabPbrMipmaps(levels, width, height, data, name.endsWith("_s"));
+        }
         if (width == height) {
             return original.call(levels, width, data);
         }
@@ -107,5 +115,15 @@ public abstract class MixinShadersTex {
             }
         }
         return data;
+    }
+
+    @WrapOperation(method = "updateTextureMinMagFilter", at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glTexParameteri(III)V"),
+            slice = @Slice(from = @At(value = "FIELD", target = "Lnet/optifine/shaders/MultiTexID;spec:I")), remap = false)
+    private static void optiRefine$keepLabPbrSpecularNearest(int target, int parameter, int value, Operation<Void> original) {
+        if (!ModernTextureProperties.blockAtlasMacros().isEmpty()) {
+            value = parameter == GL11.GL_TEXTURE_MIN_FILTER
+                    ? ModernTextureProperties.specularMinFilter(Config.getTextureMap().getMipmapLevels() > 0) : GL11.GL_NEAREST;
+        }
+        original.call(target, parameter, value);
     }
 }

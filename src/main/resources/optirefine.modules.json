@@ -97,6 +97,12 @@
         "optifine.MixinModernResourcePack",
         "optifine.MixinModernResourceDiscovery",
         "optifine.MixinCustomSky",
+        "minecraft.client.resources.MixinTexturePropertiesReload",
+        "optifine.MixinG5NbtTagValue",
+        "optifine.MixinG5CustomItemProperties",
+        "optifine.MixinG5RandomEntityRule",
+        "optifine.MixinG5RandomEntitiesVariants",
+        "optifine.MixinConnectedProperties",
         "optifine.MixinModernResourceReferences"
       ]
     },
@@ -113,6 +119,11 @@
         "optifine.MixinModernCemTileEntityRenderer",
         "optifine.MixinModernCemShoulderRenderer",
         "optifine.MixinModernCemFrameClock",
+        "optifine.MixinModernCemGuiInventory",
+        "optifine.MixinCemPartVariables",
+        "optifine.MixinCemPartVariableUpdater",
+        "optifine.MixinCemPartParser",
+        "minecraft.client.renderer.entity.layers.MixinCemHeldItemLayer",
         "optifine.MixinModernCemReload"
       ]
     },
@@ -259,6 +270,7 @@
         "optifine.MixinModernShaderRender",
         "optifine.MixinShaderBiomeExpressions",
         "optifine.ShaderBiomeCameraAccess",
+        "optifine.MixinTextureFormatShaderMacros",
         "optifine.MixinModernShaderOptions"
       ]
     },

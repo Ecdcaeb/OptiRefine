@@ -29,6 +29,7 @@ final class ShaderPackState implements AutoCloseable {
     final int[] mainFormatsB = new int[6];
     final int[] shadowAlternates = new int[8];
     final ModernShaderPipeline.Compute[][] computes;
+    final ShaderColorTargets colorTargets;
 
     ICustomTexture[] prepareTextures;
     ICustomTexture[] shadowcompTextures;
@@ -71,6 +72,7 @@ final class ShaderPackState implements AutoCloseable {
 
     ShaderPackState(int programCount) {
         this.computes = new ModernShaderPipeline.Compute[programCount][];
+        this.colorTargets = new ShaderColorTargets(programCount);
         Arrays.fill(imageFormats, GL11.GL_RGBA8);
         invalidateImageBindings();
     }
@@ -105,6 +107,7 @@ final class ShaderPackState implements AutoCloseable {
         preparePrograms = shadowcompPrograms = NO_STAGES;
         scanning = null;
         deleteShadowAlternates();
+        colorTargets.close();
 
         Set<ICustomTexture> deleted = java.util.Collections.newSetFromMap(new IdentityHashMap<>());
         deleteOwnedTextures(prepareTextures, deleted);

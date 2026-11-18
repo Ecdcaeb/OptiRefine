@@ -33,7 +33,12 @@ import java.util.*;
 
 @Mod(modid = "optirefine_client_contracts", name = "OptiRefine Client Contracts", version = "1", clientSideOnly = true)
 public final class ClientContracts {
-    private static final String[] PACKS = {"modern-stages.zip", "modern-compute.zip", "modern-compute-only.zip", "modern-compute-half.zip", "modern-deferred.zip", "modern-graphics-images.zip", "modern-disabled.zip", "modern-zero.zip", "modern-resize-failure.zip", "modern-failure.zip", "modern-compute.zip"};
+    private static final String[] PACKS = {
+            "modern-stages.zip", "modern-compute.zip", "modern-compute-only.zip", "modern-compute-half.zip",
+            "modern-deferred.zip", "modern-graphics-images.zip", "modern-disabled.zip", "modern-zero.zip",
+            "modern-resize-failure.zip", "modern-failure.zip", "documented-color-targets.zip",
+            "shadow-pass-properties.zip", "shadow-pass-complement.zip", "shadow-pass-defaults.zip", "modern-compute.zip"
+    };
     private final Path output = Path.of(System.getProperty("optirefine.contract.output"));
     private final long deadline = System.nanoTime() + 300_000_000_000L;
     private final StringBuilder evidence = new StringBuilder();
@@ -70,10 +75,14 @@ public final class ClientContracts {
                 resources(mc); sortedSprites(mc);
                 ForgeModResourceContracts.verify(mc);
                 evidence.append("Forge JAR resource packs supply working CIT and CTM rules with user-pack priority\n");
+                PackSelectorContracts.verify(mc);
+                evidence.append("CIT and Random Entities honor documented selectors, variant names and pack priority\n");
                 SelectiveResourceContracts.verify(mc);
                 evidence.append("AF, custom-items and alternate-block settings retain selective texture/model reloads and live sound/language consumers\n");
                 NpotAtlasContracts.verify(mc);
                 evidence.append("Rectangular sprites retain atlas mip levels, content and animation uploads\n");
+                NpotAtlasContracts.verifyTextureProperties(mc);
+                evidence.append("Texture alpha cutout follows the active pack and resets on reload\n");
                 DimensionSkyContracts.verify(mc);
                 evidence.append("Native sky rendering selects signed and sparse Forge dimensions across reloads\n");
                 ShoulderTextureContracts.verify(mc);
@@ -84,6 +93,9 @@ public final class ClientContracts {
                 evidence.append("Chunk workers preserve crash details without a current OpenGL context\n");
                 CemContextContracts.verify(mc);
                 evidence.append("Worldless item chest CEM uses client/enclosing world values and restores nested and exceptional contexts\n");
+                CemExpressionContracts.verify(mc);
+                CemPartContracts.verify();
+                evidence.append("G5 CEM evaluates documented predicates, visibility, box sizes and attachment transforms\n");
                 GeometryContracts.verify();
                 evidence.append("Quad facing and packed normals preserve compact/expanded layouts, winding ties and non-finite inputs\n");
                 ChunkCacheContracts.verifyLightFloor(mc);
@@ -91,6 +103,7 @@ public final class ClientContracts {
                 FishingCullingContracts.verify(mc);
                 evidence.append("Fishing line draws once when visible and its hook section is culled\n");
                 ShaderLifecycleContracts.createResizeFailurePack(mc);
+                ShaderPassContracts.prepare(mc);
                 mc.gameSettings.showDebugInfo = true;
                 nextPack();
             } else if (pack >= 0 && ++packTicks == 45) {
@@ -121,6 +134,8 @@ public final class ClientContracts {
                 if (pack + 1 == PACKS.length) {
                     NpotAtlasContracts.verifyShaderSidecars(mc);
                     evidence.append("Rectangular atlas uploads preserve shader normal and specular mipmaps\n");
+                    NpotAtlasContracts.verifyLabPbr(mc);
+                    evidence.append("LabPBR shader maps preserve channel filtering and format macros across reloads\n");
                     Shaders.setShaderPack("OFF");
                     ClientBehaviorContracts.verify(mc);
                     evidence.append("Native chat replacement, local reload commands, completions, notices and native debug-key handling passed\n");
@@ -193,6 +208,27 @@ public final class ClientContracts {
 
     private void checkPack(Minecraft mc) throws Exception {
         String name = PACKS[pack];
+        if (ShaderPassContracts.verify(mc, name)) {
+            evidence.append("Native shadow caster properties and particle ordering passed for ").append(name).append('\n');
+            return;
+        }
+        if (name.equals("documented-color-targets.zip")) {
+            if (!ModernShaderPipeline.isReady()) throw new AssertionError("Extended color target pack did not initialize");
+            int sizedTexture = ModernShaderPipeline.getMainImageTexture(5);
+            if (sizedTexture == 0) throw new AssertionError("Missing sized colortex5");
+            mc.getFramebuffer().bindFramebuffer(true);
+            mc.profiler.startSection("colorTargetContract");
+            try {
+                mc.entityRenderer.renderWorld(0.0F, 0L);
+                pixelTexture(mc.getFramebuffer().framebufferTexture, mc.displayWidth / 2, mc.displayHeight / 4,
+                        new int[]{64, 128, 192}, "Final color output");
+            } finally {
+                mc.profiler.endSection();
+            }
+            verifyRelease(sizedTexture);
+            evidence.append("Named outputs, legacy target 8, render-relative and fixed color targets pass pixel and cleanup checks\n");
+            return;
+        }
         boolean shaders = (Boolean)Class.forName("Config").getMethod("isShaders").invoke(null);
         if (name.equals("modern-resize-failure.zip")) {
             ShaderLifecycleContracts.verifyResizeRecovery(mc);
@@ -229,7 +265,7 @@ public final class ClientContracts {
         evidence.append(name).append(": pixels, stage selection, owned deletion and borrowed texture survival passed\n");
     }
 
-    private void verifyRelease() throws Exception {
+    private void verifyRelease(int... ownedTargets) throws Exception {
         int borrowed = ModernShaderPipeline.getMainImageTexture(0);
         List<Integer> programs = new ArrayList<>(), alternates = new ArrayList<>();
         Field registry = Shaders.class.getDeclaredField("programs"); registry.setAccessible(true);
@@ -240,6 +276,7 @@ public final class ClientContracts {
         if (ModernShaderPipeline.isReady()) throw new AssertionError("Closed pack remains ready");
         for (int id : programs) if (GL20.glIsProgram(id)) throw new AssertionError("Owned compute program survives close");
         for (int id : alternates) if (GL11.glIsTexture(id)) throw new AssertionError("Owned shadow alternate survives close");
+        for (int id : ownedTargets) if (GL11.glIsTexture(id)) throw new AssertionError("Owned color target survives close");
         if (borrowed != 0 && !GL11.glIsTexture(borrowed)) throw new AssertionError("Pack state deleted a borrowed G5 texture");
         Shaders.uninit();
     }
@@ -247,13 +284,23 @@ public final class ClientContracts {
     private static void pixel(int index, int[] expected) {
         int texture = ModernShaderPipeline.getMainImageTexture(index);
         if (texture == 0) throw new AssertionError("Missing image texture " + index);
+        pixelTexture(texture, 2, 2, expected, "Image " + index);
+    }
+
+    private static void pixelTexture(int texture, int x, int y, int[] expected, String name) {
         int previous = GL11.glGetInteger(GL30.GL_READ_FRAMEBUFFER_BINDING), framebuffer = GL30.glGenFramebuffers();
         ByteBuffer sample = BufferUtils.createByteBuffer(4);
         try {
             GL30.glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, framebuffer);
             GL30.glFramebufferTexture2D(GL30.GL_READ_FRAMEBUFFER, GL30.GL_COLOR_ATTACHMENT0, GL11.GL_TEXTURE_2D, texture, 0);
-            GL11.glReadBuffer(GL30.GL_COLOR_ATTACHMENT0); GL11.glReadPixels(2, 2, 1, 1, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, sample);
-            for (int channel = 0; channel < 3; channel++) if (Math.abs((sample.get(channel)&255)-expected[channel]) > 3) throw new AssertionError("Image " + index + " expected " + Arrays.toString(expected) + " got " + (sample.get(0)&255) + "," + (sample.get(1)&255) + "," + (sample.get(2)&255));
+            GL11.glReadBuffer(GL30.GL_COLOR_ATTACHMENT0);
+            GL11.glReadPixels(x, y, 1, 1, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, sample);
+            for (int channel = 0; channel < 3; channel++) {
+                if (Math.abs((sample.get(channel) & 255) - expected[channel]) > 3) {
+                    throw new AssertionError(name + " expected " + Arrays.toString(expected) + " got "
+                            + (sample.get(0) & 255) + "," + (sample.get(1) & 255) + "," + (sample.get(2) & 255));
+                }
+            }
         } finally { GL30.glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, previous); GL30.glDeleteFramebuffers(framebuffer); }
     }
 

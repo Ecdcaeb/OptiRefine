@@ -171,4 +171,38 @@ class ModernShaderSourceTest {
         assertEquals(0.5F, source.relativeX);
         assertEquals(0.25F, source.relativeY);
     }
+
+    @Test void discoversOnlyActiveDrawTargetsAndExtendedSamplers() {
+        ModernShaderSource source = new ModernShaderSource();
+        source.accept("""
+                #define AUX colortex15
+                #ifdef INACTIVE
+                /* RENDERTARGETS: 17 */
+                uniform sampler2D colortex16;
+                #endif
+                /* DRAWBUFFERS:08 */
+                /* RENDERTARGETS: 15, N, 2 */
+                uniform sampler2D AUX;
+                const int colortex15Format = RGBA16F;
+                const bool colortex15MipmapEnabled = true;
+                """);
+        assertNull(source.error);
+        assertNull(source.drawTargetsError);
+        assertArrayEquals(new int[]{15, -1, 2}, source.drawTargets.buffers());
+        assertEquals(1 << 15, source.extendedColors);
+        assertEquals(1 << 15, source.mipmaps);
+        assertEquals("RGBA16F", source.extendedSettings.getFirst().getValue());
+    }
+
+    @Test void separatesLegacyTargetOrderFromInvalidModernOutputs() {
+        ModernShaderSource source = new ModernShaderSource();
+        source.accept("// DRAWBUFFERS:908N");
+        assertArrayEquals(new int[]{9, 0, 8, -1}, source.drawTargets.buffers());
+        source.accept("/* RENDERTARGETS: 0,16 */");
+        assertTrue(source.drawTargetsError.contains("16"));
+        source.accept("/* RENDERTARGETS: 11,11 */");
+        assertTrue(source.drawTargetsError.contains("duplicate"));
+        source.accept("uniform sampler2D colortex16;");
+        assertTrue(source.error.contains("colortex16"));
+    }
 }

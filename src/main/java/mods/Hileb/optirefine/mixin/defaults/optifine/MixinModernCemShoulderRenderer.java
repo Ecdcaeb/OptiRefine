@@ -23,7 +23,7 @@ public abstract class MixinModernCemShoulderRenderer {
                                            float limbSpeed, float age, float headYaw, float headPitch,
                                            float scale, Operation<Void> original) {
         Entity shoulder = optiRefine$getRenderedEntity(Config.getRenderGlobal());
-        CemRenderContext.push(shoulder, renderArgument.world, CemRenderContext.partialTicks());
+        CemRenderContext.pushShoulder(shoulder, renderArgument.world, CemRenderContext.partialTicks());
         try {
             original.call(model, renderArgument, limbSwing, limbSpeed, age, headYaw, headPitch, scale);
         } finally {

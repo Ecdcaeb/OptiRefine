@@ -6,6 +6,7 @@ import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import mods.Hileb.optirefine.optifine.shaders.modern.ModernShaderPipeline;
+import mods.Hileb.optirefine.optifine.shaders.modern.ShaderPassProperties;
 import net.minecraft.client.Minecraft;
 import net.optifine.shaders.ICustomTexture;
 import net.optifine.shaders.Program;
@@ -16,6 +17,7 @@ import net.optifine.shaders.uniform.ShaderUniforms;
 import net.optifine.shaders.FlipTextures;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.util.vector.Vector4f;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -24,6 +26,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.nio.IntBuffer;
 import java.util.Arrays;
@@ -36,6 +39,7 @@ public abstract class MixinModernShaderPipeline {
     @Shadow private static boolean hasDeferredPrograms;
     @Shadow public static boolean isShaderPackInitialized;
     @Shadow static int usedColorBuffers;
+    @Shadow static int usedDrawBuffers;
     @Shadow static int usedDepthBuffers;
     @Shadow static int usedShadowColorBuffers;
     @Shadow static int usedShadowDepthBuffers;
@@ -49,6 +53,9 @@ public abstract class MixinModernShaderPipeline {
     @Shadow @Final static IntBuffer sfbColorTextures;
     @Shadow @Final static IntBuffer sfbDepthTextures;
     @Shadow @Final static IntBuffer sfbDrawBuffers;
+    @Shadow private static int[] gbuffersFormat;
+    @Shadow public static boolean[] gbuffersClear;
+    @Shadow public static Vector4f[] gbuffersClearColor;
     @Shadow private static ICustomTexture[] customTexturesGbuffers;
     @Unique private static Properties optiRefine$stageProperties;
 
@@ -57,14 +64,19 @@ public abstract class MixinModernShaderPipeline {
         throw new AssertionError();
     }
 
+    @Shadow private static native int getTextureFormatFromString(String name);
+    @Shadow private static native int getPixelFormat(int internalFormat);
+
     @Inject(method = "loadShaderPackProperties", at = @At("HEAD"))
     private static void optiRefine$clearStageProperties(CallbackInfo ci) {
         optiRefine$stageProperties = null;
+        ShaderPassProperties.reset();
     }
 
     @WrapOperation(method = "loadShaderPackProperties", at = @At(value = "INVOKE", target = "Lnet/optifine/shaders/Shaders;loadCustomTextures(Ljava/util/Properties;I)[Lnet/optifine/shaders/ICustomTexture;"))
     private static ICustomTexture[] optiRefine$captureStageProperties(Properties properties, int stage, Operation<ICustomTexture[]> original) {
         optiRefine$stageProperties = properties;
+        if (stage == 0) ShaderPassProperties.load(properties);
         return original.call(properties, stage);
     }
 
@@ -83,6 +95,7 @@ public abstract class MixinModernShaderPipeline {
         if (isShaderPackInitialized) { original.call(); return; }
         ModernShaderPipeline.beginPack();
         try {
+            ModernShaderPipeline.colorProperties(optiRefine$stageProperties, programs);
             ICustomTexture[] prepare = optiRefine$stageProperties == null ? null : loadCustomTextures(ModernShaderPipeline.stageTextureProperties(optiRefine$stageProperties, "prepare"), 1);
             ModernShaderPipeline.stageTextures(prepare, null, customTexturesGbuffers);
             ICustomTexture[] shadowcomp = optiRefine$stageProperties == null ? null : loadCustomTextures(ModernShaderPipeline.stageTextureProperties(optiRefine$stageProperties, "shadowcomp"), 1);
@@ -126,6 +139,17 @@ public abstract class MixinModernShaderPipeline {
         ModernShaderPipeline.checkLoadError();
     }
 
+    @WrapOperation(method = "setupProgram", at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/ARBShaderObjects;glLinkProgramARB(I)V"))
+    private static void optiRefine$linkFragmentOutputs(int id, Operation<Void> original, @Local(argsOnly = true) Program program) {
+        ModernShaderPipeline.bindFragmentOutputs(program, id);
+        original.call(id);
+    }
+
+    @ModifyExpressionValue(method = "createFragShader", at = @At(value = "INVOKE", target = "Lnet/optifine/shaders/config/ShaderParser;isValidDrawBuffers(Ljava/lang/String;)Z"))
+    private static boolean optiRefine$allowExtendedDrawTargets(boolean valid) {
+        return valid || ModernShaderPipeline.acceptsExtendedDrawBuffers();
+    }
+
     @Inject(method = {"createVertShader", "createGeomShader", "createFragShader"}, at = @At("HEAD"))
     private static void optiRefine$beginSource(Program program, String path, org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable<Integer> cir) {
         ModernShaderPipeline.beginSource(path);
@@ -139,8 +163,8 @@ public abstract class MixinModernShaderPipeline {
     }
 
     @Inject(method = {"createVertShader", "createGeomShader", "createFragShader"}, at = @At("RETURN"))
-    private static void optiRefine$endSource(Program program, String path, org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable<Integer> cir) {
-        ModernShaderPipeline.endSource(program);
+    private static void optiRefine$endSource(Program program, String path, CallbackInfoReturnable<Integer> cir) {
+        ModernShaderPipeline.endSource(program, MixinModernShaderPipeline::getTextureFormatFromString);
     }
 
     @WrapOperation(method = {"createVertShader", "createGeomShader", "createFragShader"}, at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL20;glGetShaderi(II)I"))
@@ -167,7 +191,13 @@ public abstract class MixinModernShaderPipeline {
     }
 
     @Inject(method = "initDrawBuffers", at = @At("HEAD"), cancellable = true)
-    private static void optiRefine$shadowCompositeDrawBuffers(Program program, CallbackInfo ci) {
+    private static void optiRefine$configureDrawBuffers(Program program, CallbackInfo ci) {
+        int outputs = ModernShaderPipeline.configureColorOutputs(program);
+        if (outputs != 0) {
+            usedDrawBuffers = Math.max(usedDrawBuffers, outputs);
+            ci.cancel();
+            return;
+        }
         if (!ModernShaderPipeline.isShadowComposite(program)) return;
         boolean[] toggles = program.getToggleColorTextures();
         Arrays.fill(toggles, false);
@@ -223,7 +253,8 @@ public abstract class MixinModernShaderPipeline {
 
     @Inject(method = "setupFrameBuffer", at = @At("RETURN"))
     private static void optiRefine$mainImages(CallbackInfo ci) {
-        ModernShaderPipeline.mainTargets(dfbColorTexturesFlip, dfbDepthTextures, usedColorBuffers, usedDepthBuffers, dfb);
+        ModernShaderPipeline.mainTargets(dfbColorTexturesFlip, dfbDepthTextures, usedColorBuffers, usedDepthBuffers, dfb,
+                gbuffersFormat, gbuffersClear, gbuffersClearColor, MixinModernShaderPipeline::getPixelFormat);
     }
 
     @Inject(method = "setupShadowFrameBuffer", at = @At("HEAD"))
@@ -255,6 +286,62 @@ public abstract class MixinModernShaderPipeline {
     @Inject(method = "setCamera", at = @At("RETURN"))
     private static void optiRefine$prepare(float partialTicks, CallbackInfo ci) {
         if (!Shaders.isShadowPass) ModernShaderPipeline.renderPrepare();
+    }
+
+    @Inject(method = "getTextureIndex", at = @At("RETURN"), cancellable = true)
+    private static void optiRefine$extendedCustomTextureUnit(int stage, String name, CallbackInfoReturnable<Integer> cir) {
+        if (cir.getReturnValueI() < 0) {
+            int unit = ModernShaderPipeline.extendedTextureUnit(name);
+            if (unit >= 0) cir.setReturnValue(unit);
+        }
+    }
+
+    @Inject(method = "updateToggleBuffers", at = @At("RETURN"))
+    private static void optiRefine$keepOwnedFlipsOutOfG5(Program program, CallbackInfo ci) {
+        ModernShaderPipeline.suppressOwnedTextureFlips(program);
+    }
+
+    @Inject(method = "setDrawBuffers", at = @At("HEAD"))
+    private static void optiRefine$routePackColorOutputs(IntBuffer buffers, CallbackInfo ci) {
+        ModernShaderPipeline.routeColorOutputs(buffers);
+    }
+
+    @Inject(method = "clearRenderBuffer", at = @At("RETURN"))
+    private static void optiRefine$clearPackColors(CallbackInfo ci) {
+        ModernShaderPipeline.clearColorTargets();
+    }
+
+    @WrapOperation(method = {"bindGbuffersTextures", "renderComposites"}, at = @At(value = "INVOKE", target = "Lnet/optifine/shaders/Shaders;bindCustomTextures([Lnet/optifine/shaders/ICustomTexture;)V"))
+    private static void optiRefine$bindPackColors(ICustomTexture[] textures, Operation<Void> original) {
+        ModernShaderPipeline.bindPackColorSamplers();
+        original.call((Object) textures);
+    }
+
+    @WrapMethod(method = "renderComposites")
+    private static void optiRefine$compositeColorOutputs(Program[] programs, boolean renderFinal, Operation<Void> original) {
+        boolean previous = ModernShaderPipeline.setCompositeColorOutputs(true);
+        try {
+            original.call(programs, renderFinal);
+        } finally {
+            ModernShaderPipeline.setCompositeColorOutputs(previous);
+        }
+    }
+
+    @WrapOperation(method = "renderComposites", at = @At(value = "INVOKE", target = "Lnet/optifine/shaders/Shaders;drawComposite()V"))
+    private static void optiRefine$drawPackColorOutputs(Operation<Void> original, @Local Program program) {
+        ModernShaderPipeline.drawCompositeWithColorTargets(program, original::call);
+        ModernShaderPipeline.flipCompositeColorTargets(program);
+    }
+
+    @WrapOperation(method = {"renderDeferred", "renderCompositeFinal"}, at = @At(value = "INVOKE", target = "Lnet/optifine/shaders/Shaders;checkBufferFlip(Lnet/optifine/shaders/Program;)Z"))
+    private static boolean optiRefine$flipPreColorTargets(Program program, Operation<Boolean> original) {
+        boolean flipped = original.call(program);
+        return ModernShaderPipeline.flipPreColorTargets(program) || flipped;
+    }
+
+    @Inject(method = "genCompositeMipmap", at = @At("RETURN"))
+    private static void optiRefine$generatePackColorMipmaps(CallbackInfo ci) {
+        ModernShaderPipeline.mipmapPackColors();
     }
 
     @Inject(method = "drawComposite", at = @At("RETURN"))

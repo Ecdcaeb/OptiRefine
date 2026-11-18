@@ -179,6 +179,12 @@ deduplication, then validate four real CIT model selections. A rendered pig JEM 
 independent float/boolean variables and nested context restoration. Results and captures are in
 `build/reports/modern-backport/`.
 
+The OptiFineDoc fixtures sample the final shader output and check deletion of pack-owned color
+textures. They verify shadow caster switches, particle order, resource and entity selectors,
+CEM geometry and hand transforms, LabPBR mip pixels, alpha cutout and the native F3+K shortcut.
+The current MCP and SRG suites write results and captures to `build/reports/client-contracts/`
+and `build/reports/runtime-client-contracts/`.
+
 ## Modern OptiFine backports
 
 The G5 runtime now accepts compute shader programs (`.csh` and `_a.csh` through `_z.csh`),
@@ -218,8 +224,33 @@ Modern `optifine/` resource paths are accepted alongside `mcpatcher/`. Resolutio
 resource-pack priority, prefers the modern path within a pack containing both, and deduplicates
 logical rules. ZIP and folder packs, discovery and relative CIT/CTM references share this rule.
 
-These additions retain G5's eight color buffers and the 1.12.2 scene/model APIs. They do not
-establish compatibility with arbitrary newer shader packs, resource formats or newer entities.
+### OptiFineDoc compatibility
+
+The format reference is upstream `OptiFineDoc` at `83d482c`. The runtime baseline remains
+Minecraft 1.12.2, G5 and Cleanroom 0.5.17-alpha. [Upstream reference](https://github.com/sp614x/optifine/tree/83d482c3882bb3fcacc3c3d2ce6dcb18b39383f2/OptiFineDoc/doc)
+
+| Format | Behavior on the G5 baseline |
+| --- | --- |
+| `shaders.txt` | `RENDERTARGETS` maps each fragment output location to the corresponding entry in the target list. Legacy `DRAWBUFFERS` also accepts targets 8 and 9. Color samplers extend to `colortex15`, using units 16–23 for `colortex8..15`. A pass can write at most eight outputs, subject to the driver's limits. |
+| `shaders.properties` | `size.buffer.*` accepts pixel sizes and render-relative sizes for prepare, deferred and composite passes. A pass's sized outputs share a size. `shadowTerrain`, `shadowEntities`, `shadowBlockEntities`, `shadow.culling` and `particles.before.deferred` control the existing renderer. Omitted switches retain the G5 defaults. |
+| `cem_animation.txt` | Typed `print` and `printb`, live entity predicates, and separate Boolean `visible` and `visible_boxes` variables. `visible_boxes=false` hides a part's geometry while its children still render. |
+| `cem_model.txt`, `cem_part.txt` | `sizesAdd` overrides `sizeAdd` for boxes and applies separate inflation on each axis. JEM and JPM held-item attachment points use the left and right paths of the 1.12.2 held-item layer. |
+| `cit_single.properties`, `random_entities.properties` | CIT accepts registry names and numeric IDs in `enchantments`, which takes precedence over `enchantmentIDs` when both are present. NBT rules support `range:`, `exists:` and composable `raw:`. Random entity rules accept `colors`, `sizes`, `nbt` and `blocks`. Digit-ending texture names accept both variant suffix spellings, with resource-pack priority first and the dotted spelling preferred within a pack. |
+| `ctm.properties` | `connect=state` compares listed block-state properties and works with Forge extended states. Existing G5 CTM rules retain their 1.12.2 metadata semantics. |
+| `texture.properties` | `alpha.cutout` clears pixels below the configured threshold in block-atlas sprites processed by G5's transparent-color correction. `format=lab-pbr/1.3` generates shader format macros and preserves the material ranges in specular mipmaps. Resource reload reapplies the active pack's settings. |
+| `debug_keys.txt` | F3+K loads visible chunks. The G5 F3+L shortcut also remains available. F3+O opens shader options and F3+R reloads the shader pack. |
+
+Color-target mapping keeps the native G5 textures borrowed and allocates the additional or
+sized targets for the active pack. Shader reload, framebuffer resize and shutdown release the
+textures and their scratch framebuffer. Extended targets require OpenGL 3.0 and enough fragment
+sampler units. Image aliases still cover `colorimg0..5` and `shadowcolorimg0..1`.
+
+Pack authors use 1.12.2 registry names, block metadata and NBT. The 1.13 flattening migration,
+item data components, per-painting textures, armor trims and models for newer entities require
+newer Minecraft APIs or a separate format backport. Random CEM models, render-variable animation,
+indexed buffer blending, the `renderStage` uniform and the optional chunk-debug modes remain open.
+G5 continues to provide the existing custom colors, palettes, lightmaps, fonts, GUIs, animations,
+emissive maps, loading screens and other legacy resource formats.
 
 ## Compatibility repairs
 

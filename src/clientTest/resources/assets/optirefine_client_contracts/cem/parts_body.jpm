@@ -1,0 +1,39 @@
+{
+  "invertAxis": "xz",
+  "mirrorTexture": "uv",
+  "translate": [2, 3, 4],
+  "scale": 2,
+  "attachments": {
+    "right_handheld_item": [1, 2, 3]
+  },
+  "boxes": [
+    {
+      "textureOffset": [10, 12],
+      "coordinates": [3, 4, 5, 6, 7, 8],
+      "sizeAdd": 0.25,
+      "sizesAdd": [1, -0.5, 2]
+    }
+  ],
+  "submodel": {
+    "id": "parts_child",
+    "translate": [2, 4, 6],
+    "rotate": [0, 0, 90],
+    "attachments": {
+      "left_handheld_item": [1, 2, 3]
+    },
+    "boxes": [
+      {
+        "uvFront": [2, 3, 6, 8],
+        "uvDown": [10, 13, 17, 19],
+        "coordinates": [0, 1, 2, 0, 3, 4],
+        "sizeAdd": 0.25,
+        "sizesAdd": [0.5, 1, 1.5]
+      },
+      {
+        "textureOffset": [0, 0],
+        "coordinates": [1, 2, 3, 2, 3, 4],
+        "sizeAdd": 0.25
+      }
+    ]
+  }
+}

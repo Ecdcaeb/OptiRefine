@@ -9,6 +9,7 @@ import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Accessibl
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessTransformer;
 import mods.Hileb.optirefine.optifine.Config;
 import mods.Hileb.optirefine.optifine.client.KirinoRenderMode;
+import mods.Hileb.optirefine.optifine.shaders.modern.ShaderPassProperties;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiChat;
 import net.minecraft.util.text.Style;
@@ -767,7 +768,7 @@ public abstract class MixinEntityRenderer {
             Shaders.beginRenderPass(pass, partialTicks, finishTimeNano);
         }
         RenderGlobal renderglobal = this.mc.renderGlobal;
-        ParticleManager particlemanager = this.mc.effectRenderer;
+        boolean particlesBeforeDeferred = !shaders || ShaderPassProperties.particlesBeforeDeferred();
         boolean flag = this.isDrawBlockOutline();
         GlStateManager.enableCull();
         this.mc.profiler.endStartSection("clear");
@@ -921,24 +922,8 @@ public abstract class MixinEntityRenderer {
         }
         GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
         GlStateManager.disableBlend();
-        if (!this.debugView) {
-            this.enableLightmap();
-            this.mc.profiler.endStartSection("litParticles");
-            if (shaders) {
-                Shaders.beginLitParticles();
-            }
-            particlemanager.renderLitParticles(entity, partialTicks);
-            RenderHelper.disableStandardItemLighting();
-            this.setupFog(0, partialTicks);
-            this.mc.profiler.endStartSection("particles");
-            if (shaders) {
-                Shaders.beginParticles();
-            }
-            particlemanager.renderParticles(entity, partialTicks);
-            if (shaders) {
-                Shaders.endParticles();
-            }
-            this.disableLightmap();
+        if (particlesBeforeDeferred && !this.debugView) {
+            this.optiRefine$renderWorldParticles(entity, partialTicks, shaders);
         }
         GlStateManager.depthMask(false);
         if (Config.isShaders()) {
@@ -992,6 +977,9 @@ public abstract class MixinEntityRenderer {
         GlStateManager.depthMask(true);
         GlStateManager.enableCull();
         GlStateManager.disableBlend();
+        if (!particlesBeforeDeferred && !this.debugView) {
+            this.optiRefine$renderWorldParticles(entity, partialTicks, shaders);
+        }
         GlStateManager.disableFog();
         if (entity.posY + (double) entity.getEyeHeight() >= 128.0D + (double) optiRefine$getConfiguredCloudHeight(this.mc.gameSettings) * 128.0D) {
             this.mc.profiler.endStartSection("aboveClouds");
@@ -1018,6 +1006,37 @@ public abstract class MixinEntityRenderer {
         if (kirinoHeadless) {
             KirinoClientCore.runHeadlessly(FramePhase.POST_UPDATE);
             KirinoClientCore.runHeadlessly(FramePhase.RENDER_OVERLAY);
+        }
+    }
+
+    @Unique
+    private void optiRefine$renderWorldParticles(Entity entity, float partialTicks, boolean shaders) {
+        ParticleManager particles = this.mc.effectRenderer;
+        this.enableLightmap();
+        try {
+            this.mc.profiler.endStartSection("litParticles");
+            if (shaders) {
+                Shaders.beginLitParticles();
+            }
+            try {
+                particles.renderLitParticles(entity, partialTicks);
+            } finally {
+                RenderHelper.disableStandardItemLighting();
+            }
+            this.setupFog(0, partialTicks);
+            this.mc.profiler.endStartSection("particles");
+            if (shaders) {
+                Shaders.beginParticles();
+            }
+            particles.renderParticles(entity, partialTicks);
+        } finally {
+            try {
+                if (shaders) {
+                    Shaders.endParticles();
+                }
+            } finally {
+                this.disableLightmap();
+            }
         }
     }
 
@@ -1358,7 +1377,7 @@ public abstract class MixinEntityRenderer {
     }
 
     /**
-     * OptiFine F3+L visible-chunks loader.
+     * OptiFine visible-chunks loader, including the G5 F3+L shortcut.
      */
     @Unique
 // [AUDIT-OK] OF-added method, not in baseline
@@ -1369,8 +1388,10 @@ public abstract class MixinEntityRenderer {
             this.loadAllVisibleChunks(entity, partialTicks, camera, spectator);
             this.mc.ingameGUI.getChatGUI().deleteChatLine(messageId);
         }
-        if (Keyboard.isKeyDown(61) && Keyboard.isKeyDown(38)) {
-            if (this.mc.gameSettings.keyBindAdvancements.getKeyCode() == 38) {
+        if (Keyboard.isKeyDown(Keyboard.KEY_F3)) {
+            int key = Keyboard.isKeyDown(Keyboard.KEY_K) ? Keyboard.KEY_K : Keyboard.KEY_L;
+            if (!Keyboard.isKeyDown(key)) return;
+            if (this.mc.gameSettings.keyBindAdvancements.getKeyCode() == key) {
                 if (this.mc.currentScreen instanceof GuiScreenAdvancements) {
                     this.mc.displayGuiScreen(null);
                 }

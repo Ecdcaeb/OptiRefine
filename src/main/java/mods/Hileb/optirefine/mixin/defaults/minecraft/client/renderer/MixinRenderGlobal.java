@@ -1,6 +1,7 @@
 package mods.Hileb.optirefine.mixin.defaults.minecraft.client.renderer;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
+import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -8,6 +9,7 @@ import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Accessibl
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessTransformer;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.optifine.Config;
+import mods.Hileb.optirefine.optifine.shaders.modern.ShaderPassProperties;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
@@ -36,6 +38,7 @@ import net.minecraft.entity.projectile.EntityFishHook;
 import net.minecraft.init.Blocks;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityChest;
+import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.ClassInheritanceMultiMap;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumParticleTypes;
@@ -73,6 +76,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Iterator;
 import java.util.List;
@@ -358,10 +362,16 @@ public abstract class MixinRenderGlobal {
         }
         this.renderInfos = this.optiRefine$shadowRenderInfos;
         this.renderInfos.clear();
-        Iterator<RenderChunk> chunks = ShadowUtils.makeShadowChunkIterator(this.world, partialTicks, viewEntity, this.renderDistanceChunks, this.viewFrustum);
-        while (chunks.hasNext()) {
-            RenderChunk chunk = chunks.next();
-            if (chunk != null) {
+        if (ShaderPassProperties.shadowCulling()) {
+            Iterator<RenderChunk> chunks = ShadowUtils.makeShadowChunkIterator(this.world, partialTicks, viewEntity, this.renderDistanceChunks, this.viewFrustum);
+            while (chunks.hasNext()) {
+                RenderChunk chunk = chunks.next();
+                if (chunk != null) {
+                    this.renderInfos.add(optiRefine$getRenderChunkRenderInfo(chunk));
+                }
+            }
+        } else {
+            for (RenderChunk chunk : this.viewFrustum.renderChunks) {
                 this.renderInfos.add(optiRefine$getRenderChunkRenderInfo(chunk));
             }
         }
@@ -442,6 +452,13 @@ public abstract class MixinRenderGlobal {
         }
     }
 
+    @Inject(method = "renderBlockLayer(Lnet/minecraft/util/BlockRenderLayer;DILnet/minecraft/entity/Entity;)I", at = @At("HEAD"), cancellable = true)
+    private void optiRefine$skipShadowTerrain(BlockRenderLayer layer, double partialTicks, int pass, Entity entity, CallbackInfoReturnable<Integer> cir) {
+        if (Shaders.isShadowPass && layer != BlockRenderLayer.TRANSLUCENT && !ShaderPassProperties.shadowTerrain()) {
+            cir.setReturnValue(0);
+        }
+    }
+
     @WrapOperation(method = "renderBlockLayer(Lnet/minecraft/util/BlockRenderLayer;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/ChunkRenderContainer;renderChunkLayer(Lnet/minecraft/util/BlockRenderLayer;)V"))
     // [AUDIT-FIXED] shaders hooks around renderChunkLayer (OF RenderGlobal:1275-1282): pre/postRenderChunkLayer
     // enable GL_NORMAL_ARRAY + midTexCoord/tangent/entity attrib arrays and flip backface culling.
@@ -497,6 +514,9 @@ public abstract class MixinRenderGlobal {
 
     @Unique
     private void optiRefine$renderLibEntities(float partialTicks) {
+        if (!optiRefine$shouldRenderEntities()) {
+            return;
+        }
         boolean shaders = Config.isShaders();
         if (shaders) {
             Shaders.beginEntities();
@@ -513,6 +533,9 @@ public abstract class MixinRenderGlobal {
 
     @Unique
     private void optiRefine$renderLibBlockEntities(float partialTicks) {
+        if (!optiRefine$shouldRenderBlockEntities()) {
+            return;
+        }
         if (Config.isShaders()) {
             this.optiRefine$renderLibBlockEntitiesActive = true;
             Shaders.beginBlockEntities();
@@ -523,6 +546,9 @@ public abstract class MixinRenderGlobal {
 
     @Unique
     private void optiRefine$beginRenderLibDamageOverlay() {
+        if (!optiRefine$shouldRenderBlockEntities()) {
+            return;
+        }
         this.renderOverlayDamaged = true;
         this.preRenderDamagedBlocks();
     }
@@ -530,6 +556,9 @@ public abstract class MixinRenderGlobal {
     @Unique
     private static void optiRefine$renderLibDamagedBlockEntity(TileEntityRendererDispatcher dispatcher, TileEntity tileEntity,
                                                              float partialTicks, int destroyStage) {
+        if (!optiRefine$shouldRenderBlockEntities()) {
+            return;
+        }
         if (Config.isShaders()) {
             Shaders.nextBlockEntity(tileEntity);
         }
@@ -538,6 +567,9 @@ public abstract class MixinRenderGlobal {
 
     @Unique
     private void optiRefine$endRenderLibDamageOverlay() {
+        if (!this.renderOverlayDamaged) {
+            return;
+        }
         try {
             this.postRenderDamagedBlocks();
         } finally {
@@ -649,6 +681,22 @@ public abstract class MixinRenderGlobal {
         }
     }
 
+    @WrapWithCondition(method = "renderEntities", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/RenderManager;renderEntityStatic(Lnet/minecraft/entity/Entity;FZ)V", ordinal = 0))
+    private boolean optiRefine$renderWeatherEntity(RenderManager manager, Entity entity, float partialTicks, boolean hideDebugBox) {
+        // The original RenderGlobal body handles weather before RenderLib's entity draw.
+        return optiRefine$shouldRenderEntities();
+    }
+
+    @Unique
+    private static boolean optiRefine$shouldRenderEntities() {
+        return !Shaders.isShadowPass || ShaderPassProperties.shadowEntities();
+    }
+
+    @Unique
+    private static boolean optiRefine$shouldRenderBlockEntities() {
+        return !Shaders.isShadowPass || ShaderPassProperties.shadowBlockEntities();
+    }
+
     /**
      * @author OptiRefine
      * @reason OptiFine: shaders entity/tile-entity rendering + fog override + render distance updates
@@ -668,6 +716,8 @@ public abstract class MixinRenderGlobal {
             return;
         }
 
+        boolean drawEntities = optiRefine$shouldRenderEntities();
+        boolean drawBlockEntities = optiRefine$shouldRenderBlockEntities();
         int previousCounter = optiRefine$getRenderedEntitiesCounter();
         Entity previousEntity = this.renderedEntity;
         boolean previousDamageOverlay = this.renderOverlayDamaged;
@@ -717,7 +767,7 @@ public abstract class MixinRenderGlobal {
             if (Config.isFogOff() && optiRefine$getEntityRendererFogStandard(this.mc.entityRenderer)) {
                 GlStateManager.disableFog();
             }
-            for (int i = 0; i < this.world.weatherEffects.size(); ++i) {
+            for (int i = 0; drawEntities && i < this.world.weatherEffects.size(); ++i) {
                 Entity entity1 = this.world.weatherEffects.get(i);
                 if (!entity1.shouldRenderInPass(pass)) {
                     continue;
@@ -729,18 +779,22 @@ public abstract class MixinRenderGlobal {
             }
             this.world.profiler.endStartSection("entities");
             boolean flag = Config.isShaders();
-            if (flag) {
+            if (flag && drawEntities) {
                 entities = true;
                 Shaders.beginEntities();
             }
-            optiRefine$updateRenderItemFrameItemRenderDistance();
-            List<Entity> list1 = com.google.common.collect.Lists.newArrayList();
-            List<Entity> list2 = com.google.common.collect.Lists.newArrayList();
-            pooledmutableblockpos = PooledMutableBlockPos.retain();
+            List<Entity> list1 = List.of();
+            List<Entity> list2 = List.of();
+            if (drawEntities) {
+                optiRefine$updateRenderItemFrameItemRenderDistance();
+                list1 = com.google.common.collect.Lists.newArrayList();
+                list2 = com.google.common.collect.Lists.newArrayList();
+                pooledmutableblockpos = PooledMutableBlockPos.retain();
+            }
             boolean flag1 = Shaders.isShadowPass && !this.mc.player.isSpectator();
             // setupTerrain supplies normal camera visibility or the separate shadow caster list.
             // Keep empty sections in that list so their entities and TESRs are still visited.
-            for (RenderGlobal.ContainerLocalRenderInformation renderglobal$containerlocalrenderinformation : this.renderInfos) {
+            for (RenderGlobal.ContainerLocalRenderInformation renderglobal$containerlocalrenderinformation : drawEntities ? this.renderInfos : List.<RenderGlobal.ContainerLocalRenderInformation>of()) {
                 Chunk chunk = optiRefine$getRenderChunkChunk(renderglobal$containerlocalrenderinformation.renderChunk);
                 ClassInheritanceMultiMap<Entity> classinheritancemultimap = chunk.getEntityLists()[renderglobal$containerlocalrenderinformation.renderChunk.getPosition().getY() / 16];
                 if (!classinheritancemultimap.isEmpty()) {
@@ -767,9 +821,11 @@ public abstract class MixinRenderGlobal {
             if (!Shaders.isShadowPass) {
                 this.optiRefine$renderFishingHooksOutsideVisibleChunks(camera, partialTicks, pass, flag, d0, d1, d2, pooledmutableblockpos);
             }
-            PooledMutableBlockPos usedPosition = pooledmutableblockpos;
-            pooledmutableblockpos = null;
-            usedPosition.release();
+            if (pooledmutableblockpos != null) {
+                PooledMutableBlockPos usedPosition = pooledmutableblockpos;
+                pooledmutableblockpos = null;
+                usedPosition.release();
+            }
             if (!list2.isEmpty()) {
                 for (Entity entity3 : list2) {
                     if (!entity3.shouldRenderInPass(pass)) {
@@ -781,7 +837,7 @@ public abstract class MixinRenderGlobal {
                     this.renderManager.renderMultipass(entity3, partialTicks);
                 }
             }
-            if (pass == 0 && this.isRenderEntityOutlines() && (!list1.isEmpty() || this.entityOutlinesRendered)) {
+            if (drawEntities && pass == 0 && this.isRenderEntityOutlines() && (!list1.isEmpty() || this.entityOutlinesRendered)) {
                 this.world.profiler.endStartSection("entityOutlines");
                 framebufferOutlines = true;
                 this.entityOutlineFramebuffer.framebufferClear();
@@ -818,7 +874,7 @@ public abstract class MixinRenderGlobal {
                 this.mc.getFramebuffer().bindFramebuffer(false);
                 framebufferOutlines = false;
             }
-            if (!this.isRenderEntityOutlines() && (!list1.isEmpty() || this.entityOutlinesRendered)) {
+            if (drawEntities && !this.isRenderEntityOutlines() && (!list1.isEmpty() || this.entityOutlinesRendered)) {
                 this.world.profiler.endStartSection("entityOutlines");
                 this.entityOutlinesRendered = !list1.isEmpty();
                 if (!list1.isEmpty()) {
@@ -854,87 +910,91 @@ public abstract class MixinRenderGlobal {
                     fallbackOutlines = false;
                 }
             }
-            if (flag) {
+            if (entities) {
                 entities = false;
                 Shaders.endEntities();
-                blockEntities = true;
-                Shaders.beginBlockEntities();
             }
-            this.world.profiler.endStartSection("blockentities");
-            net.minecraft.client.renderer.RenderHelper.enableStandardItemLighting();
-            BufferBuilder batch = optiRefine$getBatchBufferForRender(dispatcher);
-            if (optiRefine$isBufferDrawing(batch)) {
-                throw new IllegalStateException("Already building!");
-            }
-            ownedBatch = batch;
-            dispatcher.preDrawBatch();
-            optiRefine$updateTileEntitySignRendererTextRenderDistance();
-            for (RenderGlobal.ContainerLocalRenderInformation renderglobal$containerlocalrenderinformation1 : this.renderInfos) {
-                List<TileEntity> list3 = renderglobal$containerlocalrenderinformation1.renderChunk.getCompiledChunk().getTileEntities();
-                if (!list3.isEmpty()) {
-                    for (TileEntity tileentity : list3) {
-                        if (!tileentity.shouldRenderInPass(pass)) {
+            if (drawBlockEntities) {
+                if (flag) {
+                    blockEntities = true;
+                    Shaders.beginBlockEntities();
+                }
+                this.world.profiler.endStartSection("blockentities");
+                net.minecraft.client.renderer.RenderHelper.enableStandardItemLighting();
+                BufferBuilder batch = optiRefine$getBatchBufferForRender(dispatcher);
+                if (optiRefine$isBufferDrawing(batch)) {
+                    throw new IllegalStateException("Already building!");
+                }
+                ownedBatch = batch;
+                dispatcher.preDrawBatch();
+                optiRefine$updateTileEntitySignRendererTextRenderDistance();
+                for (RenderGlobal.ContainerLocalRenderInformation renderglobal$containerlocalrenderinformation1 : this.renderInfos) {
+                    List<TileEntity> list3 = renderglobal$containerlocalrenderinformation1.renderChunk.getCompiledChunk().getTileEntities();
+                    if (!list3.isEmpty()) {
+                        for (TileEntity tileentity : list3) {
+                            if (!tileentity.shouldRenderInPass(pass)) {
+                                continue;
+                            }
+                            AxisAlignedBB axisalignedbb = tileentity.getRenderBoundingBox();
+                            if (axisalignedbb == null || camera.isBoundingBoxInFrustum(axisalignedbb)) {
+                                if (flag) {
+                                    Shaders.nextBlockEntity(tileentity);
+                                }
+                                dispatcher.render(tileentity, partialTicks, -1);
+                                ++this.countTileEntitiesRendered;
+                            }
+                        }
+                    }
+                }
+                synchronized (this.setTileEntities) {
+                    for (TileEntity tileentity1 : this.setTileEntities) {
+                        if (!tileentity1.shouldRenderInPass(pass)) {
                             continue;
                         }
-                        AxisAlignedBB axisalignedbb = tileentity.getRenderBoundingBox();
-                        if (axisalignedbb == null || camera.isBoundingBoxInFrustum(axisalignedbb)) {
-                            if (flag) {
-                                Shaders.nextBlockEntity(tileentity);
-                            }
-                            dispatcher.render(tileentity, partialTicks, -1);
-                            ++this.countTileEntitiesRendered;
+                        AxisAlignedBB boundingBox = tileentity1.getRenderBoundingBox();
+                        if (boundingBox != null && !camera.isBoundingBoxInFrustum(boundingBox)) {
+                            continue;
                         }
-                    }
-                }
-            }
-            synchronized (this.setTileEntities) {
-                for (TileEntity tileentity1 : this.setTileEntities) {
-                    if (!tileentity1.shouldRenderInPass(pass)) {
-                        continue;
-                    }
-                    AxisAlignedBB boundingBox = tileentity1.getRenderBoundingBox();
-                    if (boundingBox != null && !camera.isBoundingBoxInFrustum(boundingBox)) {
-                        continue;
-                    }
-                    if (flag) {
-                        Shaders.nextBlockEntity(tileentity1);
-                    }
-                    dispatcher.render(tileentity1, partialTicks, -1);
-                }
-            }
-            dispatcher.drawBatch(pass);
-            ownedBatch = null;
-            this.renderOverlayDamaged = true;
-            this.optiRefine$normalDamagePhase = optiRefine$DAMAGE_PREPARING;
-            this.preRenderDamagedBlocks();
-            for (net.minecraft.client.renderer.DestroyBlockProgress destroyblockprogress : this.damagedBlocks.values()) {
-                BlockPos blockpos = destroyblockprogress.getPosition();
-                if (this.world.getBlockState(blockpos).getBlock().hasTileEntity()) {
-                    TileEntity tileentity2 = this.world.getTileEntity(blockpos);
-                    if (tileentity2 instanceof TileEntityChest) {
-                        TileEntityChest tileentitychest = (TileEntityChest) tileentity2;
-                        if (tileentitychest.adjacentChestXNeg != null) {
-                            blockpos = blockpos.offset(EnumFacing.WEST);
-                            tileentity2 = this.world.getTileEntity(blockpos);
-                        } else if (tileentitychest.adjacentChestZNeg != null) {
-                            blockpos = blockpos.offset(EnumFacing.NORTH);
-                            tileentity2 = this.world.getTileEntity(blockpos);
-                        }
-                    }
-                    IBlockState iblockstate = this.world.getBlockState(blockpos);
-                    if (tileentity2 != null && (iblockstate.hasCustomBreakingProgress() || tileentity2.canRenderBreaking()) && tileentity2.shouldRenderInPass(pass)) {
                         if (flag) {
-                            Shaders.nextBlockEntity(tileentity2);
+                            Shaders.nextBlockEntity(tileentity1);
                         }
-                        dispatcher.render(tileentity2, partialTicks, destroyblockprogress.getPartialBlockDamage());
+                        dispatcher.render(tileentity1, partialTicks, -1);
                     }
                 }
-            }
-            optiRefine$finishNormalDamageOverlay();
-            this.renderOverlayDamaged = previousDamageOverlay;
-            if (flag) {
-                blockEntities = false;
-                Shaders.endBlockEntities();
+                dispatcher.drawBatch(pass);
+                ownedBatch = null;
+                this.renderOverlayDamaged = true;
+                this.optiRefine$normalDamagePhase = optiRefine$DAMAGE_PREPARING;
+                this.preRenderDamagedBlocks();
+                for (net.minecraft.client.renderer.DestroyBlockProgress destroyblockprogress : this.damagedBlocks.values()) {
+                    BlockPos blockpos = destroyblockprogress.getPosition();
+                    if (this.world.getBlockState(blockpos).getBlock().hasTileEntity()) {
+                        TileEntity tileentity2 = this.world.getTileEntity(blockpos);
+                        if (tileentity2 instanceof TileEntityChest) {
+                            TileEntityChest tileentitychest = (TileEntityChest) tileentity2;
+                            if (tileentitychest.adjacentChestXNeg != null) {
+                                blockpos = blockpos.offset(EnumFacing.WEST);
+                                tileentity2 = this.world.getTileEntity(blockpos);
+                            } else if (tileentitychest.adjacentChestZNeg != null) {
+                                blockpos = blockpos.offset(EnumFacing.NORTH);
+                                tileentity2 = this.world.getTileEntity(blockpos);
+                            }
+                        }
+                        IBlockState iblockstate = this.world.getBlockState(blockpos);
+                        if (tileentity2 != null && (iblockstate.hasCustomBreakingProgress() || tileentity2.canRenderBreaking()) && tileentity2.shouldRenderInPass(pass)) {
+                            if (flag) {
+                                Shaders.nextBlockEntity(tileentity2);
+                            }
+                            dispatcher.render(tileentity2, partialTicks, destroyblockprogress.getPartialBlockDamage());
+                        }
+                    }
+                }
+                optiRefine$finishNormalDamageOverlay();
+                this.renderOverlayDamaged = previousDamageOverlay;
+                if (flag) {
+                    blockEntities = false;
+                    Shaders.endBlockEntities();
+                }
             }
             optiRefine$setRenderedEntitiesCounter(previousCounter);
             lightmap = false;

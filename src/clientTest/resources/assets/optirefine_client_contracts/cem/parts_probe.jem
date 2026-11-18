@@ -1,0 +1,19 @@
+{
+  "textureSize": [64, 64],
+  "models": [
+    {
+      "part": "body",
+      "id": "parts_probe",
+      "attach": true,
+      "model": "optirefine_client_contracts:cem/parts_body",
+      "animations": [
+        {
+          "this.visible": "part.tx > 0",
+          "this.visible_boxes": "part.ty > 0",
+          "this:parts_child.visible_boxes": "!this.visible_boxes",
+          "this:parts_child.tz": "if(this.visible, 8, 4)"
+        }
+      ]
+    }
+  ]
+}

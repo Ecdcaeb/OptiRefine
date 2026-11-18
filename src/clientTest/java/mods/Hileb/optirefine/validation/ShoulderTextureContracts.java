@@ -18,6 +18,8 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.biome.Biome;
 import net.optifine.RandomEntity;
+import net.optifine.expr.IExpressionBool;
+import net.optifine.expr.ParseException;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL11C;
@@ -103,6 +105,7 @@ final class ShoulderTextureContracts {
             renderedEntity.set(mc.renderGlobal, mc.player);
             CemRenderContext.push(mc.player, mc.world, 0.25F);
             try {
+                require(!CemExpressionContracts.shoulderExpression().eval(), "Player context was marked as a shoulder parrot");
                 render(layer, player);
                 assertBound(mc, boundTexture, RIGHT);
                 Probe leftProbe = new Probe(mc, renderedEntity, left);
@@ -250,15 +253,17 @@ final class ShoulderTextureContracts {
         private final Minecraft mc;
         private final Field renderedEntity;
         private final EntityParrot parrot;
+        private final IExpressionBool onShoulder;
         private ResourceLocation texture;
         private Runnable nested;
         private RuntimeException fault;
         private int renders;
 
-        private Probe(Minecraft mc, Field renderedEntity, EntityParrot parrot) {
+        private Probe(Minecraft mc, Field renderedEntity, EntityParrot parrot) throws ParseException {
             this.mc = mc;
             this.renderedEntity = renderedEntity;
             this.parrot = parrot;
+            this.onShoulder = CemExpressionContracts.shoulderExpression();
         }
 
         @Override
@@ -267,6 +272,7 @@ final class ShoulderTextureContracts {
             try {
                 require(renderedEntity.get(mc.renderGlobal) == parrot && CemRenderContext.entity() == parrot,
                         "Shoulder model did not see the same parrot as RandomEntities");
+                require(onShoulder.eval(), "Shoulder parrot model did not see is_on_shoulder");
                 texture = (ResourceLocation) mc.getTextureManager().getClass().getMethod("getBoundTextureLocation")
                         .invoke(mc.getTextureManager());
                 if (nested != null) {
@@ -275,6 +281,7 @@ final class ShoulderTextureContracts {
                     action.run();
                     require(renderedEntity.get(mc.renderGlobal) == parrot && CemRenderContext.entity() == parrot,
                             "Nested shoulder render did not restore its caller's entity");
+                    require(onShoulder.eval(), "Nested render did not restore is_on_shoulder");
                     mc.getTextureManager().bindTexture(BASE);
                 }
             } catch (ReflectiveOperationException error) {

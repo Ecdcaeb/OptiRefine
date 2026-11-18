@@ -5,14 +5,19 @@ import net.optifine.expr.IExpression;
 import net.optifine.expr.IExpressionBool;
 import net.optifine.expr.IExpressionFloat;
 import net.optifine.expr.ParseException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-/** Additions confirmed against J9 FunctionType; G5 retains all existing operators/functions. */
+/** CEM functions added to the G5 expression parser. */
 public final class CemFunctions {
+    private static final Logger LOGGER = LogManager.getLogger("OptiRefine/CEM");
+
     private CemFunctions() {}
 
     public static boolean handles(String name) {
         return "lerp".equals(name) || "ifb".equals(name) || "random".equals(name)
-                || "day_time".equals(name) || "day_count".equals(name);
+                || "day_time".equals(name) || "day_count".equals(name)
+                || "print".equals(name) || "printb".equals(name);
     }
 
     public static boolean permitsBare(String name) {
@@ -45,6 +50,33 @@ public final class CemFunctions {
                 return new SeededRandom((IExpressionFloat) args[0]);
             }
             return UnseededRandom.INSTANCE;
+        }
+        if ("print".equals(name) || "printb".equals(name)) {
+            boolean printBool = "printb".equals(name);
+            requireCount(name, args, 3);
+            requireType(name, args, 0, ExpressionType.FLOAT);
+            requireType(name, args, 1, ExpressionType.FLOAT);
+            requireType(name, args, 2, printBool ? ExpressionType.BOOL : ExpressionType.FLOAT);
+            IExpressionFloat id = (IExpressionFloat) args[0];
+            IExpressionFloat interval = (IExpressionFloat) args[1];
+            if (printBool) {
+                IExpressionBool value = (IExpressionBool) args[2];
+                return (IExpressionBool) () -> {
+                    boolean result = value.eval();
+                    if (CemRenderContext.isNthFrame((int) interval.eval())) {
+                        LOGGER.info("CEM printb [{}] = {}", (int) id.eval(), result);
+                    }
+                    return result;
+                };
+            }
+            IExpressionFloat value = (IExpressionFloat) args[2];
+            return (IExpressionFloat) () -> {
+                float result = value.eval();
+                if (CemRenderContext.isNthFrame((int) interval.eval())) {
+                    LOGGER.info("CEM print [{}] = {}", (int) id.eval(), result);
+                }
+                return result;
+            };
         }
         requireCount(name, args, 0);
         if ("day_time".equals(name)) {

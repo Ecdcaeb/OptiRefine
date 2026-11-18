@@ -25,6 +25,8 @@ import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.GL42;
 import org.lwjgl.opengl.GL43;
 
+import org.lwjgl.util.vector.Vector4f;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,11 +37,14 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Properties;
+import java.util.function.IntUnaryOperator;
+import java.util.function.ToIntFunction;
 
 public final class ModernShaderPipeline {
     private static final String[] IMAGE_NAMES = {"colorimg0", "colorimg1", "colorimg2", "colorimg3", "colorimg4", "colorimg5", "shadowcolorimg0", "shadowcolorimg1"};
     private static final int[] COLOR_UNITS = {0, 1, 2, 3, 7, 8, 9, 10};
     private static final ShaderUniform1i[] IMAGE_UNIFORMS = new ShaderUniform1i[8];
+    private static final ShaderUniform1i[] EXTENDED_COLOR_UNIFORMS = new ShaderUniform1i[8];
     private static final IntBuffer LOCAL_SIZE = BufferUtils.createIntBuffer(16);
     private static final int[] GROUP_LIMITS = new int[3];
     private static Program[] prepare;
@@ -58,11 +63,21 @@ public final class ModernShaderPipeline {
 
     public static void initializeUniforms(ShaderUniforms uniforms) {
         for (int i = 0; i < IMAGE_NAMES.length; i++) IMAGE_UNIFORMS[i] = uniforms.make1i(IMAGE_NAMES[i]);
+        for (int i = 0; i < EXTENDED_COLOR_UNIFORMS.length; ++i) EXTENDED_COLOR_UNIFORMS[i] = uniforms.make1i("colortex" + (8 + i));
     }
 
     public static void beginPack() {
         close();
         state = new ShaderPackState(programCount);
+    }
+
+    public static void colorProperties(Properties properties, Programs programs) {
+        state.colorTargets.properties(properties, programs);
+    }
+
+    public static int extendedTextureUnit(String name) {
+        int index = ModernShaderSource.colorIndex(name);
+        return index < 8 ? -1 : ShaderColorTargets.textureUnit(index);
     }
 
     public static void beginSource(String path) {
@@ -80,14 +95,57 @@ public final class ModernShaderPipeline {
         if (state.scanning != null) state.scanning.accept(line);
     }
 
-    public static void endSource(Program program) {
+    public static void endSource(Program program, ToIntFunction<String> parseFormat) {
         if (state == null || state.isClosed() || state.scanning == null) return;
-        requirements(state.scanning, state.scanningPath);
-        program.setCompositeMipmapSetting(program.getCompositeMipmapSetting() | state.scanning.mipmaps);
+        ModernShaderSource source = state.scanning;
+        String path = state.scanningPath;
+        requirements(source, path);
+        if (path.endsWith(".fsh")) {
+            if (source.drawTargetsError != null) state.pendingError = path + ": " + source.drawTargetsError;
+            ShaderDrawTargets outputs = source.drawTargets;
+            if (outputs != null && program != Shaders.ProgramFinal) {
+                int mask = outputs.mask();
+                if (program.getProgramStage() == ProgramStage.SHADOW || isShadowComposite(program)) {
+                    if ((mask & ~3) != 0 && outputs.namedOutputs()) state.pendingError = path + ": shadow outputs are limited to shadowcolor0..1";
+                    state.requiredShadowColors = Math.max(state.requiredShadowColors, 32 - Integer.numberOfLeadingZeros(mask & 3));
+                } else {
+                    state.requiredColors = Math.max(state.requiredColors, 32 - Integer.numberOfLeadingZeros(mask & ShaderColorTargets.LEGACY_MASK));
+                    state.colorTargets.require(mask);
+                }
+                state.colorTargets.declare(program, outputs);
+                if (outputs.namedOutputs()) program.setDrawBufSettings(outputs.legacySettings());
+                state.modernRequested |= outputs.namedOutputs() || (mask & ~ShaderColorTargets.LEGACY_MASK) != 0;
+            }
+            if (source.extendedSettings != null) {
+                for (var setting : source.extendedSettings) state.colorTargets.settings(setting, path, parseFormat);
+            }
+        }
+        program.setCompositeMipmapSetting(program.getCompositeMipmapSetting() | source.mipmaps);
         state.scanning = null;
     }
 
+    public static boolean acceptsExtendedDrawBuffers() {
+        return state != null && state.scanning != null && state.scanning.drawTargets != null
+                && !state.scanning.drawTargets.namedOutputs() && (state.scanning.drawTargets.mask() & ~ShaderColorTargets.LEGACY_MASK) != 0;
+    }
+
+    public static void bindFragmentOutputs(Program program, int id) {
+        if (state != null && !state.isClosed() && Shaders.capabilities.OpenGL30) state.colorTargets.linkOutputs(program, id);
+    }
+
+    public static int configureColorOutputs(Program program) {
+        if (state == null || state.isClosed() || program.getId() == 0 || program.getProgramStage() == ProgramStage.SHADOW || isShadowComposite(program)) return 0;
+        return state.colorTargets.configure(program);
+    }
+
+    public static void suppressOwnedTextureFlips(Program program) {
+        if (state != null && !state.isClosed() && program.getProgramStage() != ProgramStage.SHADOW && !isShadowComposite(program)) {
+            state.colorTargets.suppressLegacyFlips(program);
+        }
+    }
+
     private static void requirements(ModernShaderSource source, String path) {
+        state.colorTargets.require(source.extendedColors | source.mipmaps);
         state.requiredColors = Math.max(state.requiredColors, source.colors);
         state.requiredDepths = Math.max(state.requiredDepths, source.depths);
         state.requiredShadowColors = Math.max(state.requiredShadowColors, source.shadowColors);
@@ -204,13 +262,15 @@ public final class ModernShaderPipeline {
         bindImages();
     }
 
-    public static void mainTargets(FlipTextures flip, IntBuffer depthTextures, int count, int depthCountIn, int framebuffer) {
+    public static void mainTargets(FlipTextures flip, IntBuffer depthTextures, int count, int depthCountIn, int framebuffer,
+                                   int[] formats, boolean[] clear, Vector4f[] clearColors, IntUnaryOperator pixelFormat) {
         if (state == null || state.isClosed()) return;
         state.colors = flip;
         state.depths = depthTextures;
         state.colorCount = count;
         state.depthCount = depthCountIn;
         state.mainFramebuffer = framebuffer;
+        state.colorTargets.allocate(Shaders.renderWidth, Shaders.renderHeight, formats, clear, clearColors, pixelFormat);
         if (state.imagesRequested) {
             state.invalidateImageBindings();
             int active = GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE);
@@ -218,10 +278,10 @@ public final class ModernShaderPipeline {
             int texture = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
             try {
                 for (int i = 0; i < Math.min(count, 6); i++) {
-                    state.mainTexturesA[i] = flip.getA(i);
-                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, flip.getA(i));
+                    state.mainTexturesA[i] = mainTexture(i, false);
+                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, state.mainTexturesA[i]);
                     state.mainFormatsA[i] = imageFormat(GL11.glGetTexLevelParameteri(GL11.GL_TEXTURE_2D, 0, GL11.GL_TEXTURE_INTERNAL_FORMAT));
-                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, flip.getB(i));
+                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, mainTexture(i, true));
                     state.mainFormatsB[i] = imageFormat(GL11.glGetTexLevelParameteri(GL11.GL_TEXTURE_2D, 0, GL11.GL_TEXTURE_INTERNAL_FORMAT));
                     if ((state.requestedImageMask & 1 << i) != 0) {
                         validateImageFormat(state.mainFormatsA[i], IMAGE_NAMES[i]);
@@ -235,6 +295,49 @@ public final class ModernShaderPipeline {
                 if (stages != null) for (Compute compute : stages) compute.resize();
             }
         }
+    }
+
+    private static int mainTexture(int index, boolean alternate) {
+        if (state.colorTargets.owns(index)) return state.colorTargets.texture(index, alternate);
+        return alternate ? state.colors.getB(index) : state.colors.getA(index);
+    }
+
+    public static void routeColorOutputs(IntBuffer buffers) {
+        if (state != null && !Shaders.isShadowPass) {
+            state.colorTargets.route(buffers, state.colors, state.colorCount, state.mainFramebuffer, state.colorTargets.composite);
+        }
+    }
+
+    public static void clearColorTargets() {
+        if (state != null && !Shaders.isShadowPass) state.colorTargets.clearFrame();
+    }
+
+    public static void bindPackColorSamplers() {
+        if (state != null) state.colorTargets.samplers(true, state.colorTargets.composite ? 0 : 4);
+    }
+
+    public static boolean setCompositeColorOutputs(boolean composite) {
+        if (state == null) return false;
+        boolean previous = state.colorTargets.composite;
+        state.colorTargets.composite = composite;
+        return previous;
+    }
+
+    public static void drawCompositeWithColorTargets(Program program, Runnable draw) {
+        if (state == null) draw.run();
+        else state.colorTargets.draw(program, draw);
+    }
+
+    public static void flipCompositeColorTargets(Program program) {
+        if (state != null) state.colorTargets.refreshSamplers(state.colorTargets.flip(program, false));
+    }
+
+    public static boolean flipPreColorTargets(Program program) {
+        return state != null && state.colorTargets.flip(program, true) != 0;
+    }
+
+    public static void mipmapPackColors() {
+        if (state != null) state.colorTargets.mipmaps(Shaders.activeProgram.getCompositeMipmapSetting(), true);
     }
 
     public static void shadowTargets(IntBuffer colorTextures, IntBuffer depthTextures, int count, int depthCountIn, int width, int height, int framebuffer) {
@@ -309,6 +412,7 @@ public final class ModernShaderPipeline {
             Shaders.uniform_gaux3.setValue(9);
             Shaders.uniform_gaux4.setValue(10);
         }
+        if (state != null && Shaders.activeProgramID != 0) state.colorTargets.uniforms(EXTENDED_COLOR_UNIFORMS);
         if (state == null || !state.imagesRequested || Shaders.activeProgramID == 0) return;
         graphicsBarrier();
         for (int i = 0; i < IMAGE_UNIFORMS.length; i++) IMAGE_UNIFORMS[i].setValue(i);
@@ -322,7 +426,7 @@ public final class ModernShaderPipeline {
     public static void bindImages() {
         if (state == null || !state.imagesRequested || !Shaders.capabilities.OpenGL42) return;
         for (int i = 0; i < 6; i++) {
-            int texture = state.colors != null && i < state.colorCount && (state.requestedImageMask & 1 << i) != 0 ? state.colors.getA(i) : 0;
+            int texture = state.colors != null && i < state.colorCount && (state.requestedImageMask & 1 << i) != 0 ? mainTexture(i, false) : 0;
             int format = texture == 0 ? GL11.GL_RGBA8 : texture == state.mainTexturesA[i] ? state.mainFormatsA[i] : state.mainFormatsB[i];
             state.bindImage(i, texture, format);
         }
@@ -428,6 +532,7 @@ public final class ModernShaderPipeline {
         for (int i = 0; i < state.depthCount; i++) bindTexture(i == 0 ? 6 : 10 + i, state.depths.get(i));
         for (int i = 0; i < state.shadowDepthCount; i++) bindTexture(4 + i, state.shadowDepths.get(i));
         for (int i = 0; i < state.shadowColorCount; i++) bindTexture(13 + i, state.shadowColors.get(i));
+        state.colorTargets.samplers(false, 0);
         GL13.glActiveTexture(GL13.GL_TEXTURE0);
     }
 
@@ -485,10 +590,12 @@ public final class ModernShaderPipeline {
     private static void mipmaps(int mask, boolean shadow) {
         int count = shadow ? state.shadowColorCount : state.colorCount;
         for (int i = 0; i < count; i++) if ((mask & 1 << i) != 0) {
+            if (!shadow && state.colorTargets.owns(i)) continue;
             bindTexture(shadow ? 13 + i : COLOR_UNITS[i], shadow ? state.shadowColors.get(i) : state.colors.getA(i));
             GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR_MIPMAP_LINEAR);
             GL30.glGenerateMipmap(GL11.GL_TEXTURE_2D);
         }
+        if (!shadow) state.colorTargets.mipmaps(mask, false);
         GL13.glActiveTexture(GL13.GL_TEXTURE0);
     }
 
@@ -508,6 +615,7 @@ public final class ModernShaderPipeline {
         int width = shadow ? state.shadowWidth : Shaders.renderWidth;
         int height = shadow ? state.shadowHeight : Shaders.renderHeight;
         int flippedBuffers = 0;
+        int flippedPackTargets = 0;
         GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
         GL11.glMatrixMode(GL11.GL_PROJECTION);
         GL11.glPushMatrix();
@@ -538,12 +646,17 @@ public final class ModernShaderPipeline {
                 if (program.getId() == 0) continue;
                 int count = shadow ? state.shadowColorCount : state.colorCount;
                 for (int i = 0; i < count; i++) attach(i, shadow ? state.shadowAlternates[i] : state.colors.getB(i));
+                if (!shadow) state.colorTargets.route(program.getDrawBuffers(), state.colors, state.colorCount, state.mainFramebuffer, true);
                 GL20.glDrawBuffers(program.getDrawBuffers());
                 Shaders.useProgram(program);
                 mipmaps(program.getCompositeMipmapSetting(), shadow);
                 RenderScale scale = program.getRenderScale();
                 if (scale != null) GL11.glViewport((int)(width * scale.getOffsetX()), (int)(height * scale.getOffsetY()), (int)(width * scale.getScale()), (int)(height * scale.getScale()));
-                Shaders.drawComposite();
+                if (shadow) Shaders.drawComposite();
+                else {
+                    state.colorTargets.draw(program, Shaders::drawComposite);
+                    flippedPackTargets ^= state.colorTargets.flip(program, false);
+                }
                 GL11.glViewport(0, 0, width, height);
                 for (int i = 0; i < count; i++) if (program.getToggleColorTextures()[i]) {
                     if (shadow) {
@@ -557,6 +670,7 @@ public final class ModernShaderPipeline {
         } finally {
             int count = shadow ? state.shadowColorCount : state.colorCount;
             for (int i = 0; i < count; i++) attach(i, shadow ? state.shadowColors.get(i) : state.colors.getA(i));
+            if (!shadow) state.colorTargets.route(null, state.colors, state.colorCount, state.mainFramebuffer, false);
             Shaders.useProgram(previous);
             Shaders.isShadowPass = previousShadow;
             Shaders.isEntitiesGlowing = previousGlow;
@@ -568,6 +682,7 @@ public final class ModernShaderPipeline {
             EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, framebuffer);
             GL11.glPopAttrib();
             rebindFlippedGbuffersSamplers(shadow, flippedBuffers);
+            if (!shadow) state.colorTargets.refreshSamplers(flippedPackTargets);
             bindImages();
         }
     }
@@ -641,7 +756,7 @@ public final class ModernShaderPipeline {
 
     public static int getMainImageTexture(int index) {
         if (state == null || !state.ready || index < 0 || index >= Math.min(6, state.colorCount)) return 0;
-        return state.colors.getA(index);
+        return mainTexture(index, false);
     }
     public static int getShadowImageTexture(int index) { return state != null && state.ready && index >= 0 && index < Math.min(2, state.shadowColorCount) ? state.shadowColors.get(index) : 0; }
     public static int getImageInternalFormat(int unit) { return state == null ? GL11.GL_RGBA8 : state.imageFormats[unit]; }

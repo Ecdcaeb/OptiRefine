@@ -7,6 +7,7 @@ import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessTra
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.optifine.Config;
 import mods.Hileb.optirefine.optifine.client.AtlasSpriteMipmaps;
+import mods.Hileb.optirefine.optifine.resources.ModernTextureProperties;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.StitcherException;
 import net.minecraft.client.renderer.texture.ITickableTextureObject;
@@ -37,6 +38,7 @@ import net.optifine.util.CounterInt;
 import net.optifine.util.TextureUtils;
 import net.minecraftforge.client.ForgeHooksClient;
 import org.apache.commons.io.IOUtils;
+import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Mixin;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Shadow;
@@ -444,6 +446,7 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
 
         HashMap<String, TextureAtlasSprite> hashmap = new HashMap<>(this.mapRegisteredSprites);
         List<TextureAtlasSprite> stitchedSprites = stitcher.getStichSlots();
+        boolean labPbr = ModernTextureProperties.isLabPbr();
 
         for (TextureAtlasSprite textureatlassprite1 : stitchedSprites) {
             String s = textureatlassprite1.getIconName();
@@ -456,8 +459,10 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
                     spriteMipmaps.optiRefine$limitMipLevels(this.mipmapLevels + 1);
                 }
                 int[][] initialFrame = spriteMipmaps.optiRefine$getInitialFrame();
-                if (Config.isShaders() && spriteMipmaps.optiRefine$hasAlignedResource()) {
-                    this.optiRefine$uploadAlignedShaderSprite(textureatlassprite1, initialFrame);
+                if (Config.isShaders() && (spriteMipmaps.optiRefine$hasAlignedResource() || labPbr
+                        && (optiRefine$getTextureAtlasSpriteSpriteNormal(textureatlassprite1) != null
+                        || optiRefine$getTextureAtlasSpriteSpriteSpecular(textureatlassprite1) != null))) {
+                    this.optiRefine$uploadShaderSprite(textureatlassprite1, initialFrame);
                 } else if (Config.isShaders()) {
                     ShadersTex.uploadTexSubForLoadAtlas((TextureMap) (Object) this, s, initialFrame, textureatlassprite1.getIconWidth(), textureatlassprite1.getIconHeight(), textureatlassprite1.getOriginX(), textureatlassprite1.getOriginY(), false, false);
                 } else {
@@ -522,6 +527,18 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
             net.minecraft.client.Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
         }
 
+        if (labPbr && Shaders.configSpecularMap) {
+            MultiTexID textures = optiRefine$getTextureMapMultiTexID((TextureMap) (Object) this);
+            GlStateManager.bindTexture(textures.spec);
+            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER,
+                    ModernTextureProperties.specularMinFilter(this.mipmapLevels > 0));
+            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
+            GlStateManager.bindTexture(textures.base);
+        }
+        if ((Object) this == Config.getTextureMap()) {
+            ModernTextureProperties.publishBlockAtlasFormat();
+        }
+
         ForgeHooksClient.onTextureStitchedPost((TextureMap) (Object) this);
         this.updateIconGrid(stitcher.getCurrentWidth(), stitcher.getCurrentHeight());
         if (Config.equals(System.getProperty("saveTextureMap"), "true")) {
@@ -531,17 +548,17 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
     }
 
     @Unique
-    private void optiRefine$uploadAlignedShaderSprite(TextureAtlasSprite sprite, int[][] initialFrame) {
+    private void optiRefine$uploadShaderSprite(TextureAtlasSprite sprite, int[][] initialFrame) {
         MultiTexID textures = optiRefine$getTextureMapMultiTexID((TextureMap) (Object) this);
         int width = sprite.getIconWidth();
         int height = sprite.getIconHeight();
         TextureUtil.uploadTextureMipmap(initialFrame, width, height, sprite.getOriginX(), sprite.getOriginY(), false, false);
         try {
             if (Shaders.configNormalMap) {
-                this.optiRefine$uploadAlignedSidecar(sprite, optiRefine$getTextureAtlasSpriteSpriteNormal(sprite), textures.norm, 0xFF7F7FFF);
+                this.optiRefine$uploadShaderSidecar(sprite, optiRefine$getTextureAtlasSpriteSpriteNormal(sprite), textures.norm, 0xFF7F7FFF);
             }
             if (Shaders.configSpecularMap) {
-                this.optiRefine$uploadAlignedSidecar(sprite, optiRefine$getTextureAtlasSpriteSpriteSpecular(sprite), textures.spec, 0);
+                this.optiRefine$uploadShaderSidecar(sprite, optiRefine$getTextureAtlasSpriteSpriteSpecular(sprite), textures.spec, 0);
             }
         } finally {
             GlStateManager.bindTexture(textures.base);
@@ -549,7 +566,7 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
     }
 
     @Unique
-    private void optiRefine$uploadAlignedSidecar(TextureAtlasSprite sprite, TextureAtlasSprite sidecar, int textureId, int fallback) {
+    private void optiRefine$uploadShaderSidecar(TextureAtlasSprite sprite, TextureAtlasSprite sidecar, int textureId, int fallback) {
         int width = sprite.getIconWidth();
         int height = sprite.getIconHeight();
         int[][] pixels;

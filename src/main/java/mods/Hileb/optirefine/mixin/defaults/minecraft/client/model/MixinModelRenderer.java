@@ -7,6 +7,8 @@ import com.llamalad7.mixinextras.sugar.Local;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.AccessibleOperation;
 import mods.Hileb.optirefine.library.cursedmixinextensions.annotations.Public;
 import mods.Hileb.optirefine.optifine.Config;
+import mods.Hileb.optirefine.optifine.cem.CemHandAttachments;
+import mods.Hileb.optirefine.optifine.cem.CemPartVisibility;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelBox;
 import net.minecraft.client.model.ModelRenderer;
@@ -15,7 +17,9 @@ import net.minecraft.client.renderer.GLAllocation;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.util.EnumHandSide;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.optifine.entity.model.anim.ModelUpdater;
@@ -34,7 +38,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.ArrayList;
 import java.util.List;
 @Mixin(ModelRenderer.class)
-public abstract class MixinModelRenderer {
+public abstract class MixinModelRenderer implements CemPartVisibility.Part, CemHandAttachments.Part {
 // [AUDIT] 2026-08-03 - see AGENT.md; issues: 0
 
     @SuppressWarnings("unused")
@@ -93,6 +97,154 @@ public abstract class MixinModelRenderer {
 // [AUDIT-OK] baseline member isHidden exists in target class
     @Shadow
     public boolean isHidden;
+
+    @Unique private boolean optiRefine$hiddenByAnimation;
+    @Unique private boolean optiRefine$hideBoxes;
+    @Unique private CemHandAttachments optiRefine$handAttachments;
+    @Unique private CemHandAttachments.Part optiRefine$attachmentParent;
+    @Unique private boolean optiRefine$hasHandAttachments;
+
+    @Inject(method = "addChild", at = @At("RETURN"))
+    private void optiRefine$rememberAttachmentParent(ModelRenderer child, CallbackInfo ci) {
+        if (child instanceof CemHandAttachments.Part part) {
+            part.optiRefine$setAttachmentParent(this);
+        }
+    }
+
+    @Override
+    public void optiRefine$setAttachmentParent(CemHandAttachments.Part parent) {
+        this.optiRefine$attachmentParent = parent;
+        if (this.optiRefine$hasHandAttachments) {
+            parent.optiRefine$markHandAttachments();
+        }
+    }
+
+    @Override
+    public void optiRefine$setHandAttachments(CemHandAttachments attachments) {
+        this.optiRefine$handAttachments = attachments;
+        this.optiRefine$markHandAttachments();
+    }
+
+    @Override
+    public void optiRefine$markHandAttachments() {
+        if (!this.optiRefine$hasHandAttachments) {
+            this.optiRefine$hasHandAttachments = true;
+            if (this.optiRefine$attachmentParent != null) {
+                this.optiRefine$attachmentParent.optiRefine$markHandAttachments();
+            }
+        }
+    }
+
+    @Override
+    public boolean optiRefine$isAttachmentRoot() {
+        return this.optiRefine$hasHandAttachments && this.optiRefine$attachmentParent == null;
+    }
+
+    @Override
+    public boolean optiRefine$applyHandAttachment(EnumHandSide side, float scale) {
+        if (!this.optiRefine$hasHandAttachments || !this.optiRefine$isPartVisible()) {
+            return false;
+        }
+        Vec3d anchor = this.optiRefine$handAttachments == null ? null : this.optiRefine$handAttachments.forHand(side);
+        if (anchor != null) {
+            this.optiRefine$applyAttachmentTransforms(scale);
+            GlStateManager.translate(anchor.x * scale, anchor.y * scale, anchor.z * scale);
+            return true;
+        }
+        if (this.childModels != null) {
+            for (ModelRenderer child : this.childModels) {
+                if (((CemHandAttachments.Part) child).optiRefine$applyHandAttachment(side, scale)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public void optiRefine$applyAttachmentTransforms(float scale) {
+        if (this.optiRefine$attachmentParent != null) {
+            this.optiRefine$attachmentParent.optiRefine$applyAttachmentTransforms(scale);
+        }
+        if (this.offsetX != 0.0F || this.offsetY != 0.0F || this.offsetZ != 0.0F) {
+            GlStateManager.translate(this.offsetX, this.offsetY, this.offsetZ);
+        }
+        if (this.rotationPointX != 0.0F || this.rotationPointY != 0.0F || this.rotationPointZ != 0.0F) {
+            GlStateManager.translate(this.rotationPointX * scale, this.rotationPointY * scale, this.rotationPointZ * scale);
+        }
+        this.optiRefine$rotatePart();
+        if (this.scaleX != 1.0F || this.scaleY != 1.0F || this.scaleZ != 1.0F) {
+            GlStateManager.scale(this.scaleX, this.scaleY, this.scaleZ);
+        }
+    }
+
+    @Unique
+    private void optiRefine$rotatePart() {
+        if (this.rotateAngleZ != 0.0F) {
+            GlStateManager.rotate(this.rotateAngleZ * (180.0F / (float) Math.PI), 0.0F, 0.0F, 1.0F);
+        }
+        if (this.rotateAngleY != 0.0F) {
+            GlStateManager.rotate(this.rotateAngleY * (180.0F / (float) Math.PI), 0.0F, 1.0F, 0.0F);
+        }
+        if (this.rotateAngleX != 0.0F) {
+            GlStateManager.rotate(this.rotateAngleX * (180.0F / (float) Math.PI), 1.0F, 0.0F, 0.0F);
+        }
+    }
+
+    @Override
+    public boolean optiRefine$areBoxesVisible() {
+        return !this.optiRefine$hideBoxes;
+    }
+
+    @Override
+    public void optiRefine$setBoxesVisible(boolean visible) {
+        this.optiRefine$hideBoxes = !visible;
+    }
+
+    @Override
+    public boolean optiRefine$isPartVisible() {
+        return !this.isHidden && this.showModel && !this.optiRefine$hiddenByAnimation;
+    }
+
+    @Override
+    public void optiRefine$setPartVisible(boolean visible) {
+        this.optiRefine$hiddenByAnimation = !visible;
+    }
+
+    @Override
+    public void optiRefine$updateHiddenBranch() {
+        if (this.isHidden || !this.showModel) {
+            return;
+        }
+        if (this.modelUpdater != null) {
+            this.modelUpdater.update();
+        }
+        this.optiRefine$updateHiddenChildren();
+    }
+
+    @Unique
+    private void optiRefine$updateHiddenChildren() {
+        if (this.childModels != null) {
+            for (ModelRenderer child : this.childModels) {
+                ((CemPartVisibility.Part) child).optiRefine$updateHiddenBranch();
+            }
+        }
+    }
+
+    @Unique
+    private boolean optiRefine$prepareGeometry(float scale) {
+        if (this.optiRefine$hiddenByAnimation) {
+            this.optiRefine$updateHiddenChildren();
+            return false;
+        }
+        if (!this.optiRefine$hideBoxes) {
+            this.checkResetDisplayList();
+            if (!this.compiled) {
+                this.compileDisplayList(scale);
+            }
+        }
+        return true;
+    }
 
 // [AUDIT-OK] baseline member cubeList exists in target class
     @Shadow
@@ -200,10 +352,6 @@ public abstract class MixinModelRenderer {
         if (this.isHidden || !this.showModel) {
             return;
         }
-        this.checkResetDisplayList();
-        if (!this.compiled) {
-            this.compileDisplayList(scale);
-        }
         boolean customTexture = this.textureLocation != null && !optiRefine$isDamageOverlay(this.renderGlobal);
         if (customTexture && optiRefine$isEyesOverlay(this.renderGlobal)) {
             return;
@@ -215,6 +363,9 @@ public abstract class MixinModelRenderer {
             }
             if (this.modelUpdater != null) {
                 this.modelUpdater.update();
+            }
+            if (!this.optiRefine$prepareGeometry(scale)) {
+                return;
             }
 
             float offsetX = this.offsetX, offsetY = this.offsetY, offsetZ = this.offsetZ;
@@ -242,19 +393,15 @@ public abstract class MixinModelRenderer {
                     GlStateManager.translate(pivotX, pivotY, pivotZ);
                     pivotTranslated = true;
                 }
-                if (this.rotateAngleZ != 0.0F) {
-                    GlStateManager.rotate(this.rotateAngleZ * (180.0F / (float) Math.PI), 0.0F, 0.0F, 1.0F);
-                }
-                if (this.rotateAngleY != 0.0F) {
-                    GlStateManager.rotate(this.rotateAngleY * (180.0F / (float) Math.PI), 0.0F, 1.0F, 0.0F);
-                }
-                if (this.rotateAngleX != 0.0F) {
-                    GlStateManager.rotate(this.rotateAngleX * (180.0F / (float) Math.PI), 1.0F, 0.0F, 0.0F);
+                if (rotated) {
+                    this.optiRefine$rotatePart();
                 }
                 if (scaled) {
                     GlStateManager.scale(this.scaleX, this.scaleY, this.scaleZ);
                 }
-                GlStateManager.callList(this.displayList);
+                if (!this.optiRefine$hideBoxes) {
+                    GlStateManager.callList(this.displayList);
+                }
                 if (this.childModels != null) {
                     for (ModelRenderer childModel : this.childModels) {
                         childModel.render(scale);
@@ -283,10 +430,6 @@ public abstract class MixinModelRenderer {
         if (this.isHidden || !this.showModel) {
             return;
         }
-        this.checkResetDisplayList();
-        if (!this.compiled) {
-            this.compileDisplayList(scale);
-        }
         boolean customTexture = this.textureLocation != null && !optiRefine$isDamageOverlay(this.renderGlobal);
         if (customTexture && optiRefine$isEyesOverlay(this.renderGlobal)) {
             return;
@@ -298,6 +441,9 @@ public abstract class MixinModelRenderer {
             }
             if (this.modelUpdater != null) {
                 this.modelUpdater.update();
+            }
+            if (!this.optiRefine$prepareGeometry(scale)) {
+                return;
             }
             GlStateManager.pushMatrix();
             try {
@@ -314,7 +460,9 @@ public abstract class MixinModelRenderer {
                 if (this.scaleX != 1.0F || this.scaleY != 1.0F || this.scaleZ != 1.0F) {
                     GlStateManager.scale(this.scaleX, this.scaleY, this.scaleZ);
                 }
-                GlStateManager.callList(this.displayList);
+                if (!this.optiRefine$hideBoxes) {
+                    GlStateManager.callList(this.displayList);
+                }
                 if (this.childModels != null) {
                     for (ModelRenderer childModel : this.childModels) {
                         childModel.render(scale);

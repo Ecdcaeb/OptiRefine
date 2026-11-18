@@ -2,8 +2,25 @@ package mods.Hileb.optirefine.optifine.cem;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.monster.AbstractSkeleton;
+import net.minecraft.entity.monster.EntityBlaze;
+import net.minecraft.entity.monster.EntityCreeper;
+import net.minecraft.entity.monster.EntityEnderman;
+import net.minecraft.entity.monster.EntityGhast;
+import net.minecraft.entity.monster.EntityGuardian;
+import net.minecraft.entity.monster.EntityPigZombie;
+import net.minecraft.entity.monster.EntityPolarBear;
+import net.minecraft.entity.monster.EntityVex;
+import net.minecraft.entity.monster.EntityVindicator;
+import net.minecraft.entity.monster.EntityZombie;
+import net.minecraft.entity.passive.EntityParrot;
+import net.minecraft.entity.passive.EntityTameable;
+import net.minecraft.entity.passive.EntityWolf;
 import net.minecraft.world.World;
+import net.optifine.expr.IExpression;
+import net.optifine.expr.IExpressionBool;
 import net.optifine.expr.IExpressionFloat;
 
 import java.util.UUID;
@@ -34,13 +51,13 @@ public enum CemRenderParameter implements IExpressionFloat {
         this.blockEntity = blockEntity;
     }
 
-    public static CemRenderParameter resolve(String name, boolean tileEntity) {
+    public static IExpression resolve(String name, boolean tileEntity) {
         for (CemRenderParameter parameter : PARAMETERS) {
             if ((!tileEntity || parameter.blockEntity) && parameter.name.equals(name)) {
                 return parameter;
             }
         }
-        return null;
+        return tileEntity ? null : Predicate.resolve(name);
     }
 
     @Override
@@ -118,5 +135,70 @@ public enum CemRenderParameter implements IExpressionFloat {
 
     private static float lerp(float partial, float from, float to) {
         return from + partial * (to - from);
+    }
+
+    private enum Predicate implements IExpressionBool {
+        IS_AGGRESSIVE("is_aggressive"),
+        IS_GLOWING("is_glowing"),
+        IS_HURT("is_hurt"),
+        IS_IN_GUI("is_in_gui"),
+        IS_ON_SHOULDER("is_on_shoulder"),
+        IS_SITTING("is_sitting"),
+        IS_TAMED("is_tamed");
+
+        private static final Predicate[] PARAMETERS = values();
+        private final String name;
+
+        Predicate(String name) {
+            this.name = name;
+        }
+
+        private static Predicate resolve(String name) {
+            for (Predicate parameter : PARAMETERS) {
+                if (parameter.name.equals(name)) {
+                    return parameter;
+                }
+            }
+            return null;
+        }
+
+        @Override
+        public boolean eval() {
+            Entity entity = CemRenderContext.entity();
+            if (entity == null) {
+                return false;
+            }
+            return switch (this) {
+                case IS_AGGRESSIVE -> isAggressive(entity);
+                case IS_GLOWING -> entity.isGlowing();
+                case IS_HURT -> entity instanceof EntityLivingBase living && living.hurtTime > 0;
+                case IS_IN_GUI -> CemRenderContext.inGui();
+                case IS_ON_SHOULDER -> entity instanceof EntityParrot && CemRenderContext.onShoulder();
+                case IS_SITTING -> entity instanceof EntityTameable tameable && tameable.isSitting();
+                case IS_TAMED -> entity instanceof EntityTameable tameable && tameable.isTamed();
+            };
+        }
+
+        private static boolean isAggressive(Entity entity) {
+            if (entity instanceof EntityLiving mob && mob.getAttackTarget() != null) {
+                return true;
+            }
+            // Attack targets are generally server-side. Read native attack state when the client has it.
+            return switch (entity) {
+                case EntityWolf wolf -> wolf.isAngry();
+                case EntityEnderman enderman -> enderman.isScreaming();
+                case EntityPigZombie pigZombie -> pigZombie.isAngry() || pigZombie.isArmsRaised();
+                case EntityZombie zombie -> zombie.isArmsRaised();
+                case AbstractSkeleton skeleton -> skeleton.isSwingingArms();
+                case EntityBlaze blaze -> blaze.isCharged();
+                case EntityGhast ghast -> ghast.isAttacking();
+                case EntityGuardian guardian -> guardian.hasTargetedEntity();
+                case EntityPolarBear polarBear -> polarBear.isStanding();
+                case EntityVex vex -> vex.isCharging();
+                case EntityVindicator vindicator -> vindicator.isAggressive();
+                case EntityCreeper creeper -> creeper.getCreeperState() > 0 && !creeper.hasIgnited();
+                default -> false;
+            };
+        }
     }
 }

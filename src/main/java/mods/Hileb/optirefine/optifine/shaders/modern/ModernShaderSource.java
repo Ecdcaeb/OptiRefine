@@ -4,8 +4,10 @@ import net.optifine.shaders.config.MacroState;
 import net.optifine.shaders.config.ShaderLine;
 import net.optifine.shaders.config.ShaderParser;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,9 +22,15 @@ public final class ModernShaderSource {
     private static final Pattern LOCAL_SIZE = Pattern.compile(".*\\blayout\\s*\\([^)]*\\blocal_size_[xyz]\\s*=.*");
     private static final Pattern INVALID_GROUPS = Pattern.compile(".*\\bconst\\s+ivec3\\s+workGroups\\b.*");
     private static final Pattern INVALID_RELATIVE = Pattern.compile(".*\\bconst\\s+vec2\\s+workGroupsRender\\b.*");
+    private static final String COLOR_PREFIX = "colortex";
+    private static final Pattern COLOR_SETTING = Pattern.compile("colortex(\\d+)(Format|ClearColor|Clear|MipmapEnabled)");
     private final MacroState macros = new MacroState();
     private final Map<String, String> definitions = new HashMap<>();
     public int colors;
+    int extendedColors;
+    ShaderDrawTargets drawTargets;
+    String drawTargetsError;
+    List<ShaderLine> extendedSettings;
     public int depths;
     public int shadowColors;
     public int shadowDepths;
@@ -42,9 +50,11 @@ public final class ModernShaderSource {
     public void accept(String source) {
         // The include resolver may insert several macro lines in one returned line.
         for (String line : source.split("\\n")) {
+            String directive = !blockComment && (line.contains("RENDERTARGETS") || line.contains("DRAWBUFFERS")) ? line : null;
             line = stripComments(line);
             if (!macros.processLine(line)) continue;
             Matcher define = DEFINE.matcher(line);
+            if (directive != null) readDrawTargets(directive);
             if (define.matches()) {
                 definitions.put(define.group(1), define.group(2) == null ? "" : define.group(2));
                 continue;
@@ -88,10 +98,38 @@ public final class ModernShaderSource {
             if (parsed != null && parsed.isConstBoolSuffix("MipmapEnabled", true)) {
                 String name = parsed.getName();
                 name = name.substring(0, name.length() - "MipmapEnabled".length());
-                int index = net.optifine.shaders.Shaders.getBufferIndexFromString(name);
+                int index = colorIndex(name);
                 if (index >= 0) mipmaps |= 1 << index;
             }
+            if (parsed != null && parsed.getName().startsWith(COLOR_PREFIX)) readColorSetting(parsed);
         }
+    }
+
+    private void readDrawTargets(String directive) {
+        try {
+            ShaderDrawTargets targets = ShaderDrawTargets.parse(directive);
+            if (targets != null) {
+                drawTargets = targets;
+                drawTargetsError = null;
+            }
+        } catch (IllegalArgumentException invalid) {
+            drawTargetsError = "Invalid draw targets " + directive.trim() + " (" + invalid.getMessage() + ")";
+        }
+    }
+
+    private void readColorSetting(ShaderLine line) {
+        Matcher setting = COLOR_SETTING.matcher(line.getName());
+        if (!setting.matches()) return;
+        int buffer = colorIndex(COLOR_PREFIX + setting.group(1));
+        if (buffer >= ShaderDrawTargets.LEGACY_COUNT && !setting.group(2).equals("MipmapEnabled")) {
+            if (extendedSettings == null) extendedSettings = new ArrayList<>();
+            extendedSettings.add(line);
+        }
+    }
+
+    static int colorIndex(String name) {
+        int index = index(name, COLOR_PREFIX);
+        return index < 0 ? ShaderParser.getColorIndex(name) : index < ShaderDrawTargets.COLOR_COUNT ? index : -1;
     }
 
     private void uniform(String type, String name) {
@@ -104,10 +142,11 @@ public final class ModernShaderSource {
         } else if ((index = index(name, "shadowcolorimg")) >= 0) {
             if (!image || index > 1) error = "Unsupported image uniform " + type + " " + name + "; supported shadow images are shadowcolorimg0..1";
             else { images = true; imageMask |= 1 << (6 + index); shadowColors = Math.max(shadowColors, index + 1); shadowDepths = Math.max(shadowDepths, 1); }
-        } else if ((index = ShaderParser.getColorIndex(name)) >= 0) {
-            colors = Math.max(colors, index + 1);
-        } else if ((index = index(name, "colortex")) >= 8) {
-            error = "This G5 backport supports colortex0..7; requested " + name;
+        } else if ((index = colorIndex(name)) >= 0) {
+            if (index < ShaderDrawTargets.LEGACY_COUNT) colors = Math.max(colors, index + 1);
+            else extendedColors |= 1 << index;
+        } else if (index(name, COLOR_PREFIX) >= ShaderDrawTargets.COLOR_COUNT) {
+            error = "Color sampler out of range: " + name + " (expected colortex0..15)";
         } else if ((index = ShaderParser.getShadowColorIndex(name)) >= 0) {
             shadowColors = Math.max(shadowColors, index + 1);
             shadowDepths = Math.max(shadowDepths, 1);
