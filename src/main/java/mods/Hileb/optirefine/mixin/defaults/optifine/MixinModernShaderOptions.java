@@ -1,5 +1,6 @@
 package mods.Hileb.optirefine.mixin.defaults.optifine;
 
+import mods.Hileb.optirefine.optifine.shaders.modern.ComputeShaderPaths;
 import net.optifine.shaders.IShaderPack;
 import net.optifine.shaders.config.ShaderOption;
 import org.spongepowered.asm.mixin.Mixin;
@@ -24,8 +25,10 @@ public abstract class MixinModernShaderOptions {
         for (String program : programs) {
             if (program.isEmpty() || program.startsWith("gbuffers_") || program.endsWith("_pre")) continue;
             String base = directory + "/" + program;
-            collectShaderOptions(pack, base + ".csh", options);
-            for (char suffix = 'a'; suffix <= 'z'; suffix++) collectShaderOptions(pack, base + "_" + suffix + ".csh", options);
+            for (int variants = ComputeShaderPaths.variants(pack, base); variants != 0; variants &= variants - 1) {
+                String path = ComputeShaderPaths.path(base, Integer.numberOfTrailingZeros(variants));
+                collectShaderOptions(pack, path, options);
+            }
         }
     }
 }

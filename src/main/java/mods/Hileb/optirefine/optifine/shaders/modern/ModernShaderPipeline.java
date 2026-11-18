@@ -116,25 +116,26 @@ public final class ModernShaderPipeline {
     public static void loadComputes(Program owner, String vertexPath) {
         if (state == null || state.isClosed() || owner.getProgramStage() == ProgramStage.GBUFFERS || owner.getProgramStage() == ProgramStage.NONE || vertexPath.contains("<disabled>")) return;
         String base = vertexPath.substring(0, vertexPath.length() - 4);
-        ArrayList<Compute> loaded = new ArrayList<>();
+        IShaderPack pack = Shaders.getShaderPack();
+        ArrayList<Compute> loaded = null;
         try {
-            for (int suffix = 0; suffix < 27; suffix++) {
-                String path = base + (suffix == 0 ? "" : "_" + (char)('a' + suffix - 1)) + ".csh";
-                Compute compute = loadCompute(owner, path);
+            for (int variants = ComputeShaderPaths.variants(pack, base); variants != 0; variants &= variants - 1) {
+                String path = ComputeShaderPaths.path(base, Integer.numberOfTrailingZeros(variants));
+                Compute compute = loadCompute(pack, owner, path);
                 if (compute != null) {
+                    if (loaded == null) loaded = new ArrayList<>();
                     loaded.add(compute);
                     // Publish immediately, so failure cleanup owns every successful link.
-                    state.computes[owner.getIndex()] = loaded.toArray(new Compute[0]);
+                    state.computes[owner.getIndex()] = loaded.toArray(new Compute[loaded.size()]);
                 }
             }
         } catch (IOException exception) {
             throw failure(base + ": " + exception.getMessage(), exception);
         }
-        if (isShadowComposite(owner) && (owner.getId() != 0 || !loaded.isEmpty())) state.requiredShadowDepths = Math.max(state.requiredShadowDepths, 1);
+        if (isShadowComposite(owner) && (owner.getId() != 0 || loaded != null)) state.requiredShadowDepths = Math.max(state.requiredShadowDepths, 1);
     }
 
-    private static Compute loadCompute(Program owner, String path) throws IOException {
-        IShaderPack pack = Shaders.getShaderPack();
+    private static Compute loadCompute(IShaderPack pack, Program owner, String path) throws IOException {
         InputStream stream = pack.getResourceAsStream(path);
         if (stream == null) return null;
         StringBuilder code = new StringBuilder(16384);

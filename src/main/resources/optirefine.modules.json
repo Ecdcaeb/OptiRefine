@@ -247,6 +247,7 @@
       "side": "client",
       "mixins": [
         "optifine.MixinModernShaderPipeline",
+        "optifine.MixinShaderPackZip",
         "optifine.MixinModernShaderRender",
         "optifine.MixinModernShaderOptions"
       ]
