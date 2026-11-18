@@ -120,6 +120,7 @@
       "module": "minecraft-lifecycle-bridge",
       "side": "client",
       "mixins": [
+        "minecraft.client.MixinMinecraftCrashReport",
         "minecraft.client.MixinMinecraftShaderShutdown"
       ]
     },

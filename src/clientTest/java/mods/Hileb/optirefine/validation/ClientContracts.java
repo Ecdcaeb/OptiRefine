@@ -78,6 +78,8 @@ public final class ClientContracts {
                 evidence.append("Native shoulder rendering retains random parrot texture rules across seating and reload\n");
                 ShaderBiomeContracts.verify(mc);
                 evidence.append("G5 custom uniforms use biome category and precipitation at the camera\n");
+                CrashReportContracts.verify(mc);
+                evidence.append("Chunk workers preserve crash details without a current OpenGL context\n");
                 CemContextContracts.verify(mc);
                 evidence.append("Worldless item chest CEM uses client/enclosing world values and restores nested and exceptional contexts\n");
                 GeometryContracts.verify();
