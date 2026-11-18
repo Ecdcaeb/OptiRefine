@@ -434,8 +434,9 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
         }
 
         HashMap<String, TextureAtlasSprite> hashmap = new HashMap<>(this.mapRegisteredSprites);
+        List<TextureAtlasSprite> stitchedSprites = stitcher.getStichSlots();
 
-        for (TextureAtlasSprite textureatlassprite1 : stitcher.getStichSlots()) {
+        for (TextureAtlasSprite textureatlassprite1 : stitchedSprites) {
             String s = textureatlassprite1.getIconName();
             hashmap.remove(s);
             this.mapUploadedSprites.put(s, textureatlassprite1);
@@ -469,7 +470,7 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
             int k3 = stitcher.getCurrentWidth();
             int l3 = stitcher.getCurrentHeight();
 
-            for (TextureAtlasSprite textureatlassprite3 : stitcher.getStichSlots()) {
+            for (TextureAtlasSprite textureatlassprite3 : stitchedSprites) {
                 optiRefine$setTextureAtlasSpriteSheetWidth(textureatlassprite3, k3);
                 optiRefine$setTextureAtlasSpriteSheetHeight(textureatlassprite3, l3);
                 optiRefine$setTextureAtlasSpriteMipmapLevels(textureatlassprite3, this.mipmapLevels);
