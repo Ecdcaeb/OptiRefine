@@ -220,6 +220,8 @@ public final class ClientContracts {
             evidence.append("Faulting entity renderer restores the incoming entity, counter, profiler and Forge pass\n");
             TntFlashContracts.verify(mc);
             evidence.append("TNT flash and quiet phases produce the expected entityColor pixels\n");
+            FishingShaderContracts.verify(mc);
+            evidence.append("Fishing line and bobber draw with separate basic and entity shader programs\n");
         }
         if (pack == 0) screenshot(mc, "02-prepare-shadowcomp-debug");
         if (pack == 5) screenshot(mc, "03-graphics-images");

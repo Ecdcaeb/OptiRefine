@@ -19,6 +19,7 @@
 - Preserve random parrot textures while the parrot is on a player's shoulder. ([OptiFine #7686](https://github.com/sp614x/optifine/issues/7686))
 - Keep atlas mip levels with rectangular non-power-of-two sprites, including animated frames and shader sidecars. ([OptiFine #7513](https://github.com/sp614x/optifine/issues/7513))
 - Backport shader expressions `biome_category`, `biome_precipitation` and their named constants. ([OptiFine #3122](https://github.com/sp614x/optifine/issues/3122))
+- Render fishing lines with shader packs that use a separate entity program. ([OptiFine #5550](https://github.com/sp614x/optifine/issues/5550))
 - Keep visible fishing lines when the hook's chunk section is culled. ([OptiFine #6392](https://github.com/sp614x/optifine/issues/6392))
 - Keep the original chunk-render exception when a worker builds a crash report without an OpenGL context. ([OptiFine #7664](https://github.com/sp614x/optifine/issues/7664))
 

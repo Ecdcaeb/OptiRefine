@@ -188,6 +188,7 @@
         "minecraft.client.renderer.culling.MixinFrustum",
         "minecraft.client.renderer.debug.MixinDebugRendererChunkBorder",
         "minecraft.client.renderer.entity.MixinRender",
+        "minecraft.client.renderer.entity.MixinRenderFish",
         "minecraft.client.renderer.entity.MixinRenderItemFrame",
         "minecraft.client.renderer.entity.MixinRenderLiving",
         "minecraft.client.renderer.entity.MixinRenderLivingBase",
