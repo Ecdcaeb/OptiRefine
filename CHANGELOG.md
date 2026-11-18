@@ -17,6 +17,7 @@
 - Load custom skies for signed and sparse Forge dimension IDs. ([OptiFine #5527](https://github.com/sp614x/optifine/issues/5527))
 - Discover CIT and CTM rules packaged in Forge mods, with user and server pack precedence. ([OptiFine #5635](https://github.com/sp614x/optifine/issues/5635))
 - Preserve random parrot textures while the parrot is on a player's shoulder. ([OptiFine #7686](https://github.com/sp614x/optifine/issues/7686))
+- Backport shader expressions `biome_category`, `biome_precipitation` and their named constants. ([OptiFine #3122](https://github.com/sp614x/optifine/issues/3122))
 
 ## 0.2.0-alpha
 

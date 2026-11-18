@@ -255,6 +255,8 @@
         "optifine.MixinModernShaderPipeline",
         "optifine.MixinShaderPackZip",
         "optifine.MixinModernShaderRender",
+        "optifine.MixinShaderBiomeExpressions",
+        "optifine.ShaderBiomeCameraAccess",
         "optifine.MixinModernShaderOptions"
       ]
     },
