@@ -200,6 +200,8 @@ public final class ClientContracts {
             ShaderVertexContracts.verify();
             evidence.append("Shader vertex submission retains shared sources and applies distinct entity tags to appended quads\n");
             evidence.append("Actual GLSL samplers see prepare/shadowcomp flips and preserve custom sampler overrides\n");
+            EntityRenderContracts.verify(mc);
+            evidence.append("Faulting entity renderer restores the incoming entity, counter, profiler and Forge pass\n");
         }
         if (pack == 0) screenshot(mc, "02-prepare-shadowcomp-debug");
         if (pack == 5) screenshot(mc, "03-graphics-images");
