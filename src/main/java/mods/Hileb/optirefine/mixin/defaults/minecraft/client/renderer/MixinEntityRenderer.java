@@ -1410,9 +1410,7 @@ public abstract class MixinEntityRenderer {
                 for (int i = 0; i < 100; i++) {
                     optiRefine$setRenderGlobalDisplayListEntitiesDirty(renderglobal, true);
                     renderglobal.setupTerrain(entity, partialTicks, camera, this.frameCount++, spectator);
-                    if (!optiRefine$hasRenderGlobalNoChunkUpdates(renderglobal)) {
-                        loading = true;
-                    }
+                    loading = !optiRefine$hasRenderGlobalNoChunkUpdates(renderglobal);
                     updated += optiRefine$getRenderGlobalCountChunksToUpdate(renderglobal);
                     while (!optiRefine$hasRenderGlobalNoChunkUpdates(renderglobal)) {
                         renderglobal.updateChunks(System.nanoTime() + 1000000000L);
@@ -1422,9 +1420,10 @@ public abstract class MixinEntityRenderer {
                         break;
                     }
                 }
-                if (optiRefine$getRenderGlobalCountLoadedChunks(renderglobal) != loadedChunks) {
+                int currentLoadedChunks = optiRefine$getRenderGlobalCountLoadedChunks(renderglobal);
+                if (currentLoadedChunks != loadedChunks) {
                     loading = true;
-                    loadedChunks = optiRefine$getRenderGlobalCountLoadedChunks(renderglobal);
+                    loadedChunks = currentLoadedChunks;
                 }
                 if (System.currentTimeMillis() > timeLimit) {
                     Config.log("Chunks loaded: " + updated);
