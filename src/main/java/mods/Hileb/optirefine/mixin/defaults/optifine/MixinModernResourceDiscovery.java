@@ -13,6 +13,8 @@ public abstract class MixinModernResourceDiscovery {
     private static String[] optiRefine$collectModernFiles(IResourcePack pack, String[] prefixes, String[] suffixes,
                                                         String[] defaultPaths, Operation<String[]> original) {
         String[] expanded = ModernResourcePaths.discoveryPrefixes(prefixes);
+        // G5 unwraps LegacyV2Adapter and scans the original AbstractResourcePack backing file,
+        // including Forge's file and folder packs. Only the requested paths need translation.
         String[] files = original.call(pack, expanded, suffixes, defaultPaths);
         return expanded == prefixes ? files : ModernResourcePaths.discoveryFiles(files, prefixes);
     }

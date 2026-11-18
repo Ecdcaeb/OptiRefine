@@ -68,6 +68,8 @@ public final class ClientContracts {
                 evidence.append("Actual OpenGL: ").append(GL11.glGetString(GL11.GL_VERSION)).append('\n');
                 if (!Shaders.capabilities.OpenGL43) throw new AssertionError("Client contracts require OpenGL 4.3");
                 resources(mc); sortedSprites(mc);
+                ForgeModResourceContracts.verify(mc);
+                evidence.append("Forge JAR resource packs supply working CIT and CTM rules with user-pack priority\n");
                 SelectiveResourceContracts.verify(mc);
                 evidence.append("AF, custom-items and alternate-block settings retain selective texture/model reloads and live sound/language consumers\n");
                 CemContextContracts.verify(mc);

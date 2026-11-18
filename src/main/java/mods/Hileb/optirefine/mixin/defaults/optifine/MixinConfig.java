@@ -1,9 +1,13 @@
 package mods.Hileb.optirefine.mixin.defaults.optifine;
 
+import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import mods.Hileb.optirefine.optifine.resources.ForgeResourcePacks;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.IResourcePack;
 import net.minecraft.client.settings.GameSettings;
+import net.minecraft.util.ResourceLocation;
 import net.optifine.config.GlVersion;
 import net.optifine.reflect.Reflector;
 import org.lwjgl.opengl.GL;
@@ -12,6 +16,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(targets = "Config", remap = false)
 public abstract class MixinConfig {
 // [AUDIT] 2026-08-03 - see AGENT.md; issues: 1
@@ -35,5 +40,20 @@ public abstract class MixinConfig {
         } else if (GL.getCapabilities().OpenGL45) {
             return new GlVersion(4, 5);
         } else return original.call();
+    }
+
+    @ModifyReturnValue(method = "getResourcePacks", at = @At("RETURN"), remap = false)
+    private static IResourcePack[] optiRefine$includeForgePacks(IResourcePack[] selected) {
+        return ForgeResourcePacks.prependActivePacks(selected);
+    }
+
+    @Inject(method = "getDefiningResourcePack", at = @At(value = "INVOKE",
+            target = "LConfig;getDefaultResourcePack()Lnet/minecraft/client/resources/DefaultResourcePack;", ordinal = 0,
+            remap = false), cancellable = true, remap = false)
+    private static void optiRefine$findForgePack(ResourceLocation location, CallbackInfoReturnable<IResourcePack> cir) {
+        IResourcePack pack = ForgeResourcePacks.findDefiningPack(location);
+        if (pack != null) {
+            cir.setReturnValue(pack);
+        }
     }
 }
