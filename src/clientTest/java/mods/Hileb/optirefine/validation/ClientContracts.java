@@ -72,6 +72,8 @@ public final class ClientContracts {
                 evidence.append("Forge JAR resource packs supply working CIT and CTM rules with user-pack priority\n");
                 SelectiveResourceContracts.verify(mc);
                 evidence.append("AF, custom-items and alternate-block settings retain selective texture/model reloads and live sound/language consumers\n");
+                DimensionSkyContracts.verify(mc);
+                evidence.append("Native sky rendering selects signed and sparse Forge dimensions across reloads\n");
                 CemContextContracts.verify(mc);
                 evidence.append("Worldless item chest CEM uses client/enclosing world values and restores nested and exceptional contexts\n");
                 GeometryContracts.verify();

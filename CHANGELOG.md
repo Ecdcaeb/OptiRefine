@@ -14,6 +14,7 @@
 - Move compact CTM neighbor reads outside the shared quad-cache lock.
 - Stop F3+L terrain scans as soon as a pass finds an empty update queue.
 - Restore the TNT flash in shader packs through the `entityColor` overlay. ([OptiFine #7360](https://github.com/sp614x/optifine/issues/7360))
+- Load custom skies for signed and sparse Forge dimension IDs. ([OptiFine #5527](https://github.com/sp614x/optifine/issues/5527))
 - Discover CIT and CTM rules packaged in Forge mods, with user and server pack precedence. ([OptiFine #5635](https://github.com/sp614x/optifine/issues/5635))
 
 ## 0.2.0-alpha

@@ -95,6 +95,7 @@
       "mixins": [
         "optifine.MixinModernResourcePack",
         "optifine.MixinModernResourceDiscovery",
+        "optifine.MixinCustomSky",
         "optifine.MixinModernResourceReferences"
       ]
     },
