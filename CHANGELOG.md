@@ -6,6 +6,7 @@
 - Apply shader entity tags to copied vertices and leave shared baked arrays and bulk vertex inputs untouched.
 - Discover compute shaders from ZIP entries and share the result between option scanning and program setup.
 - Size G5 render caches to the padded block bounds and preserve backing-cache lookups outside them.
+- Publish immutable dynamic-light samples so chunk workers can evaluate lighting without the G5 update lock.
 
 ## 0.2.0-alpha
 
