@@ -212,6 +212,7 @@ public final class ModernShaderPipeline {
         state.depthCount = depthCountIn;
         state.mainFramebuffer = framebuffer;
         if (state.imagesRequested) {
+            state.invalidateImageBindings();
             int active = GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE);
             GL13.glActiveTexture(GL13.GL_TEXTURE0);
             int texture = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
@@ -246,6 +247,7 @@ public final class ModernShaderPipeline {
         state.shadowHeight = height;
         state.shadowFramebuffer = framebuffer;
         if (!state.imagesRequested && !hasGraphics(shadowcomp)) return;
+        state.invalidateImageBindings();
         int active = GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE);
         GL13.glActiveTexture(GL13.GL_TEXTURE0);
         int texture = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
@@ -313,16 +315,20 @@ public final class ModernShaderPipeline {
         if (state.ready) bindImages();
     }
 
+    public static void invalidateImageBindings() {
+        if (state != null && state.imagesRequested) state.invalidateImageBindings();
+    }
+
     public static void bindImages() {
         if (state == null || !state.imagesRequested || !Shaders.capabilities.OpenGL42) return;
         for (int i = 0; i < 6; i++) {
             int texture = state.colors != null && i < state.colorCount && (state.requestedImageMask & 1 << i) != 0 ? state.colors.getA(i) : 0;
-            if (texture != 0) state.imageFormats[i] = texture == state.mainTexturesA[i] ? state.mainFormatsA[i] : state.mainFormatsB[i];
-            GL42.glBindImageTexture(i, texture, 0, false, 0, GL15_READ_WRITE, texture == 0 ? GL11.GL_RGBA8 : state.imageFormats[i]);
+            int format = texture == 0 ? GL11.GL_RGBA8 : texture == state.mainTexturesA[i] ? state.mainFormatsA[i] : state.mainFormatsB[i];
+            state.bindImage(i, texture, format);
         }
         for (int i = 0; i < 2; i++) {
             int texture = state.shadowColors != null && i < state.shadowColorCount && (state.requestedImageMask & 1 << (6 + i)) != 0 ? state.shadowColors.get(i) : 0;
-            GL42.glBindImageTexture(6 + i, texture, 0, false, 0, GL15_READ_WRITE, texture == 0 ? GL11.GL_RGBA8 : state.imageFormats[6 + i]);
+            state.bindImage(6 + i, texture, texture == 0 ? GL11.GL_RGBA8 : state.imageFormats[6 + i]);
         }
     }
 
@@ -333,7 +339,6 @@ public final class ModernShaderPipeline {
     public static void graphicsBarrier() {
         if (state != null && state.ready && state.imagesRequested) memoryBarrier();
     }
-    private static final int GL15_READ_WRITE = 35002;
 
     public static boolean hasComputes(Program owner) {
         return state != null && state.computes[owner.getIndex()] != null;
@@ -539,7 +544,6 @@ public final class ModernShaderPipeline {
                 RenderScale scale = program.getRenderScale();
                 if (scale != null) GL11.glViewport((int)(width * scale.getOffsetX()), (int)(height * scale.getOffsetY()), (int)(width * scale.getScale()), (int)(height * scale.getScale()));
                 Shaders.drawComposite();
-                if (state.imagesRequested) GL42.glMemoryBarrier(GL42.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL42.GL_TEXTURE_FETCH_BARRIER_BIT);
                 GL11.glViewport(0, 0, width, height);
                 for (int i = 0; i < count; i++) if (program.getToggleColorTextures()[i]) {
                     if (shadow) {

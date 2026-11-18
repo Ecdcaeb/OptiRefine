@@ -8,6 +8,7 @@
 - Discover compute shaders from ZIP entries and share the result between option scanning and program setup.
 - Resolve the effective render layer once per block-layer iteration during chunk compilation.
 - Reuse the stitched sprite list for multi-texture atlas uploads.
+- Rebind shader images only when their texture or format changes within a frame and avoid a duplicate stage barrier.
 - Size G5 render caches to the padded block bounds and preserve backing-cache lookups outside them.
 - Publish immutable dynamic-light samples so chunk workers can evaluate lighting without the G5 update lock.
 - Move compact CTM neighbor reads outside the shared quad-cache lock.

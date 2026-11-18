@@ -210,6 +210,8 @@ public abstract class MixinModernShaderPipeline {
 
     @WrapMethod(method = "beginRender")
     private static void optiRefine$recoverFailedModernResize(Minecraft minecraft, float partialTicks, long finishTimeNano, Operation<Void> original) {
+        // Other renderers can use image units between world frames.
+        ModernShaderPipeline.invalidateImageBindings();
         try {
             original.call(minecraft, partialTicks, finishTimeNano);
         } catch (ModernShaderPipeline.LoadException exception) {

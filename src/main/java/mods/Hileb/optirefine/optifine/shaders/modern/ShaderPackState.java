@@ -21,6 +21,8 @@ final class ShaderPackState implements AutoCloseable {
     Program[] shadowcompPrograms = NO_STAGES;
 
     final int[] imageFormats = new int[8];
+    private final int[] boundImageTextures = new int[8];
+    private final int[] boundImageFormats = new int[8];
     final int[] mainTexturesA = new int[6];
     final int[] mainFormatsA = new int[6];
 
@@ -70,9 +72,22 @@ final class ShaderPackState implements AutoCloseable {
     ShaderPackState(int programCount) {
         this.computes = new ModernShaderPipeline.Compute[programCount][];
         Arrays.fill(imageFormats, GL11.GL_RGBA8);
+        invalidateImageBindings();
     }
 
     boolean isClosed() { return closed; }
+
+    void invalidateImageBindings() {
+        Arrays.fill(boundImageTextures, -1);
+    }
+
+    void bindImage(int unit, int texture, int format) {
+        if (boundImageTextures[unit] == texture && boundImageFormats[unit] == format) return;
+        GL42.glBindImageTexture(unit, texture, 0, false, 0, 35002, format);
+        boundImageTextures[unit] = texture;
+        boundImageFormats[unit] = format;
+    }
+
     void deleteShadowAlternates() {
         for (int i = 0; i < shadowAlternates.length; i++) {
             if (shadowAlternates[i] != 0) {
