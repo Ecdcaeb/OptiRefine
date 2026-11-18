@@ -64,7 +64,7 @@ verification reports on failure. Version/tag mismatches are rejected; build meta
 ## Installation
 
 - Tested with **Java 25**, **Cleanroom 0.5.17-alpha** and **OptiFine 1.12.2 HD U G5**.
-- Deployment: put the official OptiFine jar and `build/libs/optirefine-0.1.0-alpha.jar` in the instance `mods/` folder.
+- Deployment: put the official OptiFine jar and `build/libs/optirefine-0.2.0-alpha.jar` in the instance `mods/` folder.
 - Other Cleanroom/OptiFine versions, including G6_pre1, require separate runtime verification.
 - Bug reports: attach `logs/latest.log` / `crash-reports/crash-*.txt`
 

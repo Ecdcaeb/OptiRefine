@@ -7,7 +7,7 @@ public class Reference {
 
     public static final String MOD_ID = "optirefine";
     public static final String MOD_NAME = "OptiRefine";
-    public static final String VERSION = "0.1.0-alpha";
+    public static final String VERSION = "0.2.0-alpha";
     public static final String BRAND = MOD_ID + " " + VERSION;
 
     public static String getVersion() {
