@@ -188,6 +188,11 @@ CEM geometry and hand transforms, LabPBR mip pixels, alpha cutout and the native
 The current MCP and SRG suites write results and captures to `build/reports/client-contracts/`
 and `build/reports/runtime-client-contracts/`.
 
+The native suites also render a clipped sprite view and a custom-loader sprite with AF 4×.
+Pixel readback checks atlas UVs, translucent draw order and a live atlas update. The StellarCore
+1.6.0 compatibility check warms its classpath asset index, then verifies that G5's patched CTM
+tiles can be cached, decoded and stitched before and after resource reload.
+
 ## Modern OptiFine backports
 
 The G5 runtime now accepts compute shader programs (`.csh` and `_a.csh` through `_z.csh`),

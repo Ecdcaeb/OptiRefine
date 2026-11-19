@@ -461,7 +461,11 @@ public abstract class MixinTextureAtlasSprite implements AtlasSpriteMipmaps {
         for (int[][] frame : this.framesTextureData) {
             limited.add(frame != null && frame.length > levels ? Arrays.copyOf(frame, levels) : frame);
         }
-        ((TextureAtlasSprite) (Object) this).setFramesTextureData(limited);
+        // Retain each texture's own frames, including custom sprites whose single has no data.
+        this.framesTextureData = limited;
+        if (this.spriteSingle != null && this.spriteSingle.getFrameCount() > 0) {
+            ((AtlasSpriteMipmaps) this.spriteSingle).optiRefine$limitMipLevels(levels);
+        }
         if (this.spriteNormal != null) {
             ((AtlasSpriteMipmaps) this.spriteNormal).optiRefine$limitMipLevels(levels);
         }
@@ -665,7 +669,13 @@ public abstract class MixinTextureAtlasSprite implements AtlasSpriteMipmaps {
     // [AUDIT-OK] target clearFramesTextureData()V matches baseline; RETURN inject replicates OF spriteSingle propagation
     private void optiRefine$clearFramesTextureData(CallbackInfo ci) {
         if (this.spriteSingle != null) {
-            this.spriteSingle.clearFramesTextureData();
+            MixinTextureAtlasSprite single = (MixinTextureAtlasSprite) (Object) this.spriteSingle;
+            if (single.framesTextureData == this.framesTextureData) {
+                // A custom loader can refill the atlas list directly after clearing it.
+                single.framesTextureData = new ArrayList<>();
+            } else {
+                this.spriteSingle.clearFramesTextureData();
+            }
         }
     }
 
@@ -778,6 +788,10 @@ public abstract class MixinTextureAtlasSprite implements AtlasSpriteMipmaps {
     @Public
     // [AUDIT-OK] OF-added @Public method toSingleU, not in baseline
     public float toSingleU(float u) {
+        // An atlas-backed sprite still samples the original atlas coordinates.
+        if (this.glSpriteTextureId < 0) {
+            return u;
+        }
         u -= this.baseU;
         float f = (float) this.sheetWidth / this.width;
         return u * f;
@@ -786,6 +800,9 @@ public abstract class MixinTextureAtlasSprite implements AtlasSpriteMipmaps {
     @Public
     // [AUDIT-OK] OF-added @Public method toSingleV, not in baseline
     public float toSingleV(float v) {
+        if (this.glSpriteTextureId < 0) {
+            return v;
+        }
         v -= this.baseV;
         float f = (float) this.sheetHeight / this.height;
         return v * f;

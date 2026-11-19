@@ -440,6 +440,19 @@ public abstract class MixinBufferBuilder {
                 TextureAtlasSprite icon = this.quadSprites[i];
                 if (icon != null) {
                     int iconIndex = optiRefine$getSpriteIndexInMap(icon);
+                    int textureId = optiRefine$getSpriteTextureId(icon);
+                    if (textureId < 0 || iconIndex < 0 || iconIndex > maxTextureIndex) {
+                        // Atlas-backed sprites retain their original UVs. Draw their contiguous runs
+                        // without indexing the registered-sprite table or grouping disjoint runs.
+                        int end = i + 1;
+                        while (end < countQuads && this.quadSprites[end] == icon) {
+                            ++end;
+                        }
+                        GlStateManager.bindTexture(textureId < 0 ? previousTexture : textureId);
+                        this.draw(i, end);
+                        i = end - 1;
+                        continue;
+                    }
                     if (!this.drawnIcons[iconIndex]) {
                         if (icon == TextureUtils.iconGrassSideOverlay) {
                             if (grassOverlayIndex < 0) {

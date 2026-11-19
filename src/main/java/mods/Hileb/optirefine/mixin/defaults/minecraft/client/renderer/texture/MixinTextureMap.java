@@ -176,25 +176,13 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
     // [AUDIT-OK] OF member bindSpriteTexture()V, MCP name (not in tsrg)
     private static native void optiRefine$bindSpriteTexture(TextureAtlasSprite sprite);
 
+    @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite glSpriteTextureId I")
+    private static native int optiRefine$getSpriteTextureId(TextureAtlasSprite sprite);
+
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite isAnimationActive ()Z")
     // [AUDIT-OK] OF member isAnimationActive()Z, MCP name (not in tsrg)
     private static native boolean optiRefine$isTextureAtlasSpriteAnimationActive(TextureAtlasSprite sprite);
-
-    @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite getFramesTextureData ()Ljava/util/List;")
-    // [AUDIT-OK] OF member getFramesTextureData()Ljava/util/List; (vanilla only has getFrameTextureData(int)+static 4-arg), MCP name
-    private static native java.util.List<int[][]> optiRefine$getTextureAtlasSpriteFramesTextureData(TextureAtlasSprite sprite);
-
-    @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite getAnimationMetadata ()Lnet/minecraft/client/resources/data/AnimationMetadataSection;")
-    // [AUDIT-OK] OF member getAnimationMetadata(), MCP name (not in tsrg)
-    private static native net.minecraft.client.resources.data.AnimationMetadataSection optiRefine$getTextureAtlasSpriteAnimationMetadata(TextureAtlasSprite sprite);
-
-    @SuppressWarnings({"unused", "MissingUnique"})
-    @AccessibleOperation(opcode = Opcodes.INVOKEVIRTUAL, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite setAnimationMetadata (Lnet/minecraft/client/resources/data/AnimationMetadataSection;)V")
-    // [AUDIT-OK] OF member setAnimationMetadata(AnimationMetadataSection)V, MCP name (not in tsrg)
-    private static native void optiRefine$setTextureAtlasSpriteAnimationMetadata(TextureAtlasSprite sprite, net.minecraft.client.resources.data.AnimationMetadataSection animationMetadata);
 
     @SuppressWarnings({"unused", "MissingUnique"})
     @AccessibleOperation(opcode = Opcodes.GETFIELD, desc = "net.minecraft.client.renderer.texture.TextureAtlasSprite spriteSingle Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;")
@@ -491,36 +479,37 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
             int k3 = stitcher.getCurrentWidth();
             int l3 = stitcher.getCurrentHeight();
 
-            for (TextureAtlasSprite textureatlassprite3 : stitchedSprites) {
-                optiRefine$setTextureAtlasSpriteSheetWidth(textureatlassprite3, k3);
-                optiRefine$setTextureAtlasSpriteSheetHeight(textureatlassprite3, l3);
-                optiRefine$setTextureAtlasSpriteMipmapLevels(textureatlassprite3, this.mipmapLevels);
-                TextureAtlasSprite textureatlassprite4 = optiRefine$getTextureAtlasSpriteSpriteSingle(textureatlassprite3);
-                if (textureatlassprite4 != null) {
-                    if (textureatlassprite4.getIconWidth() <= 0) {
-                        textureatlassprite4.setIconWidth(textureatlassprite3.getIconWidth());
-                        textureatlassprite4.setIconHeight(textureatlassprite3.getIconHeight());
-                        textureatlassprite4.initSprite(textureatlassprite3.getIconWidth(), textureatlassprite3.getIconHeight(), 0, 0, false);
-                        textureatlassprite4.clearFramesTextureData();
-                        List<int[][]> list = optiRefine$getTextureAtlasSpriteFramesTextureData(textureatlassprite3);
-                        textureatlassprite4.setFramesTextureData(list);
-                        optiRefine$setTextureAtlasSpriteAnimationMetadata(textureatlassprite4, optiRefine$getTextureAtlasSpriteAnimationMetadata(textureatlassprite3));
-                    }
-                    optiRefine$setTextureAtlasSpriteSheetWidth(textureatlassprite4, k3);
-                    optiRefine$setTextureAtlasSpriteSheetHeight(textureatlassprite4, l3);
-                    optiRefine$setTextureAtlasSpriteMipmapLevels(textureatlassprite4, this.mipmapLevels);
-                    optiRefine$setTextureAtlasSpriteAnimationIndex(textureatlassprite4, optiRefine$getTextureAtlasSpriteAnimationIndex(textureatlassprite3));
-                    optiRefine$bindSpriteTexture(textureatlassprite3);
-                    boolean flag1 = false;
-                    boolean flag2 = true;
-
-                    try {
-                        int[][] initialFrame = ((AtlasSpriteMipmaps) textureatlassprite4).optiRefine$getInitialFrame();
-                        TextureUtil.uploadTextureMipmap(initialFrame, textureatlassprite4.getIconWidth(), textureatlassprite4.getIconHeight(), textureatlassprite4.getOriginX(), textureatlassprite4.getOriginY(), flag1, flag2);
-                    } catch (Exception exception) {
-                        Config.dbg("Error uploading sprite single: " + textureatlassprite4 + ", parent: " + textureatlassprite3);
-                        exception.printStackTrace();
-                    }
+            for (TextureAtlasSprite sprite : stitchedSprites) {
+                optiRefine$setTextureAtlasSpriteSheetWidth(sprite, k3);
+                optiRefine$setTextureAtlasSpriteSheetHeight(sprite, l3);
+                optiRefine$setTextureAtlasSpriteMipmapLevels(sprite, this.mipmapLevels);
+                TextureAtlasSprite single = optiRefine$getTextureAtlasSpriteSpriteSingle(sprite);
+                // Some custom loaders write their own frames and update only the atlas at runtime.
+                // Their atlas upload above remains the source of pixels for multi-texture draws.
+                if (single == null || single.getFrameCount() == 0) {
+                    continue;
+                }
+                int width = sprite.getIconWidth();
+                int height = sprite.getIconHeight();
+                if (single.getIconWidth() != width || single.getIconHeight() != height) {
+                    single.setIconWidth(width);
+                    single.setIconHeight(height);
+                    single.initSprite(width, height, 0, 0, false);
+                }
+                optiRefine$setTextureAtlasSpriteSheetWidth(single, k3);
+                optiRefine$setTextureAtlasSpriteSheetHeight(single, l3);
+                optiRefine$setTextureAtlasSpriteMipmapLevels(single, this.mipmapLevels);
+                optiRefine$setTextureAtlasSpriteAnimationIndex(single, optiRefine$getTextureAtlasSpriteAnimationIndex(sprite));
+                try {
+                    int[][] initialFrame = ((AtlasSpriteMipmaps) single).optiRefine$getInitialFrame();
+                    optiRefine$bindSpriteTexture(sprite);
+                    TextureUtil.uploadTextureMipmap(initialFrame, width, height, 0, 0, false, true);
+                } catch (Throwable throwable) {
+                    CrashReport report = CrashReport.makeCrashReport(throwable, "Uploading standalone sprite texture");
+                    CrashReportCategory category = report.makeCategory("Sprite being uploaded");
+                    category.addCrashSection("Atlas path", this.basePath);
+                    category.addCrashSection("Sprite", sprite);
+                    throw new ReportedException(report);
                 }
             }
 
@@ -699,7 +688,7 @@ public abstract class MixinTextureMap implements ITickableTextureObject {
             for (TextureAtlasSprite textureatlassprite1 : this.listAnimatedSprites) {
                 if (this.isTerrainAnimationActive(textureatlassprite1)) {
                     TextureAtlasSprite textureatlassprite2 = optiRefine$getTextureAtlasSpriteSpriteSingle(textureatlassprite1);
-                    if (textureatlassprite2 != null) {
+                    if (textureatlassprite2 != null && optiRefine$getSpriteTextureId(textureatlassprite1) >= 0) {
                         if (textureatlassprite1 == TextureUtils.iconClock || textureatlassprite1 == TextureUtils.iconCompass) {
                             textureatlassprite2.frameCounter = textureatlassprite1.frameCounter;
                         }

@@ -26,7 +26,7 @@ public abstract class MixinDefaultResourcePack {
     @WrapMethod(method = "getResourceStream")
     // [AUDIT-OK] target getResourceStream(ResourceLocation)LInputStream matches baseline; OptifineHelper == Forge port of ReflectorForge.getOptiFineResourceStream, matches OF
     public InputStream optiRefine$openOptifineResource(ResourceLocation location, Operation<InputStream> original){
-        InputStream input = OptifineHelper.getOptifineResource("/assets/" + location.getNamespace() + "/" + location.getPath());
+        InputStream input = OptifineHelper.getOptifineResource(location);
         if (input == null) return original.call(location);
         else return input;
     }

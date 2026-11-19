@@ -58,6 +58,10 @@ public final class ClientContracts {
             if (System.nanoTime() > deadline) throw new AssertionError("Client contracts exceeded deadline");
             if (!launched && mc.currentScreen instanceof GuiMainMenu) {
                 verifyEnvironment(mc);
+                if (Loader.isModLoaded("stellar_core")) {
+                    StellarResourceContracts.verify(mc);
+                    evidence.append("StellarCore caches valid G5 CTM tiles and missing resources correctly across reload\n");
+                }
                 launched = true;
                 mc.gameSettings.renderDistanceChunks = 4; mc.gameSettings.limitFramerate = 60;
                 mc.gameSettings.enableVsync = false; mc.gameSettings.pauseOnLostFocus = false;
@@ -93,6 +97,8 @@ public final class ClientContracts {
                 evidence.append("AF, custom-items and alternate-block settings retain selective texture/model reloads and live sound/language consumers\n");
                 NpotAtlasContracts.verify(mc);
                 evidence.append("Rectangular sprites retain atlas mip levels, content and animation uploads\n");
+                GlyphAtlasContracts.verify(mc);
+                evidence.append("AF 4x draws custom atlas sprites and clipped sprite views alongside single textures\n");
                 NpotAtlasContracts.verifyTextureProperties(mc);
                 evidence.append("Texture alpha cutout follows the active pack and resets on reload\n");
                 DimensionSkyContracts.verify(mc);

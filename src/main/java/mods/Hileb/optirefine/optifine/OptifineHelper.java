@@ -3,6 +3,7 @@ package mods.Hileb.optirefine.optifine;
 
 
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.ResourceLocation;
 import optifine.OptiFineClassTransformer;
 
 import java.io.ByteArrayInputStream;
@@ -15,6 +16,18 @@ public class OptifineHelper {
         byte[] d = optifineClassTransformer.getOptiFineResource(path);
         if (d == null) return null;
         else return new ByteArrayInputStream(d);
+    }
+
+    public static InputStream getOptifineResource(ResourceLocation location) {
+        return getOptifineResource(getAssetPath(location));
+    }
+
+    public static boolean hasOptifineResource(ResourceLocation location) {
+        return optifineClassTransformer.getOptiFineResource(getAssetPath(location)) != null;
+    }
+
+    private static String getAssetPath(ResourceLocation location) {
+        return "assets/" + location.getNamespace() + "/" + location.getPath();
     }
 
     @SuppressWarnings("unused")
