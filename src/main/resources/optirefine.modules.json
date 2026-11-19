@@ -140,6 +140,7 @@
       "side": "client",
       "mixins": [
         "minecraft.client.MixinLoadingScreenRenderer",
+        "minecraft.client.MixinMinecraftFrameLighting",
         "minecraft.client.gui.MixinFontRenderer",
         "minecraft.client.gui.MixinGuiCustomizeSkin",
         "minecraft.client.gui.MixinGuiDownloadTerrain",

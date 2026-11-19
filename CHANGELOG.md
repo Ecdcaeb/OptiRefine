@@ -22,6 +22,7 @@
 - Render fishing lines with shader packs that use a separate entity program. ([OptiFine #5550](https://github.com/sp614x/optifine/issues/5550))
 - Keep visible fishing lines when the hook's chunk section is culled. ([OptiFine #6392](https://github.com/sp614x/optifine/issues/6392))
 - Keep the original chunk-render exception when a worker builds a crash report without an OpenGL context. ([OptiFine #7664](https://github.com/sp614x/optifine/issues/7664))
+- Keep the sky at the same brightness while item tooltips are visible with Fast Render enabled and the HUD hidden. ([OptiFine #7769](https://github.com/sp614x/optifine/issues/7769))
 - Support `RENDERTARGETS`, `colortex8..15`, and fixed and render-relative shader color targets.
 - Apply documented shadow caster switches and particle ordering from `shaders.properties`.
 - Backport CEM diagnostics, entity predicates, part visibility, per-axis box inflation and held-item anchors.

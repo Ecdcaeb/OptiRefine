@@ -283,6 +283,12 @@ emissive maps, loading screens and other legacy resource formats.
   range. The five-argument `BufferBuilder.putColorRGBA` uses Forge's implementation.
 - The world render pass reads Kirino's settings through the configuration API available on
   the running Cleanroom version. Both configurations retain the same headless rendering phases.
+- The client frame loop disables fixed-function lighting after the framebuffer presentation call
+  returns. This clears the item lighting left by tooltips even when Fast Render skips the
+  framebuffer copy and the hidden HUD skips toast rendering. The MCP and SRG client suites
+  draw the real creative inventory and compare sky pixels before, during and after the Stone
+  tooltip. All three samples measured 53.828 on the GTX 1050 with NVIDIA 582.78.
+  [OptiFine #7769](https://github.com/sp614x/optifine/issues/7769)
 
 Rendering additions restore their owned matrix, texture, lightmap, shader and emissive scopes after
 exceptions and nested calls. Custom-model context is restored to its enclosing renderer; zero model

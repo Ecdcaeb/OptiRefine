@@ -47,6 +47,7 @@ public final class ClientContracts {
     private boolean resized;
     private boolean resizeFailureRequested;
     private float originalRenderQuality;
+    private CreativeTooltipContracts creativeTooltip;
 
     @Mod.EventHandler public void initialize(FMLInitializationEvent event) { MinecraftForge.EVENT_BUS.register(this); }
 
@@ -63,6 +64,17 @@ public final class ClientContracts {
                 mc.launchIntegratedServer("ClientContracts-" + System.currentTimeMillis(), "OptiRefine Client Contracts", new WorldSettings(1337L, GameType.CREATIVE, false, false, WorldType.FLAT));
             }
             if (mc.world == null || mc.player == null) return;
+            if (creativeTooltip != null) {
+                if (mc.currentScreen != creativeTooltip) throw new AssertionError("Creative tooltip screen closed during capture");
+                if (!creativeTooltip.isComplete()) return;
+                try (CreativeTooltipContracts contract = creativeTooltip) {
+                    creativeTooltip = null;
+                    evidence.append(contract.verify(output)).append('\n');
+                }
+                mc.world.sendQuittingDisconnectingPacket(); mc.loadWorld(null); mc.displayGuiScreen(new GuiMainMenu());
+                finish(mc, "PASS\n" + evidence);
+                return;
+            }
             ++ticks;
             if (ticks == 40) {
                 mc.displayGuiScreen(new GuiVideoSettings(new GuiIngameMenu(), mc.gameSettings));
@@ -139,11 +151,21 @@ public final class ClientContracts {
                     Shaders.setShaderPack("OFF");
                     ClientBehaviorContracts.verify(mc);
                     evidence.append("Native chat replacement, local reload commands, completions, notices and native debug-key handling passed\n");
-                    mc.world.sendQuittingDisconnectingPacket(); mc.loadWorld(null); mc.displayGuiScreen(new GuiMainMenu());
-                    finish(mc, "PASS\n" + evidence);
+                    creativeTooltip = new CreativeTooltipContracts(mc);
+                    creativeTooltip.open();
                 } else nextPack();
             }
-        } catch (Throwable error) { error.printStackTrace(); finish(mc, "FAIL\n" + evidence + error); }
+        } catch (Throwable error) {
+            if (creativeTooltip != null) {
+                try {
+                    creativeTooltip.close();
+                } catch (Throwable cleanup) {
+                    error.addSuppressed(cleanup);
+                }
+            }
+            error.printStackTrace();
+            finish(mc, "FAIL\n" + evidence + error);
+        }
     }
 
     private void verifyEnvironment(Minecraft mc) throws Exception {
