@@ -74,6 +74,9 @@ and launches the final runtime Jar with official G5, the original Minecraft clie
 installer's production Cleanroom Jar under `run/runtime-client-contracts`, using the installer's
 entry point and runtime libraries. Both suites verify the Minecraft namespace and the installed
 OptiRefine Jar before creating a world. They require OpenGL 4.3 and a focusable desktop.
+Build and release CI run the production SRG suite. The MCP suite is for local development.
+CI reuses the runner's installed native packages and caches downloaded Ubuntu package archives
+by their resolved versions. The production report retains the OpenGL and window manager logs.
 
 Reports and captures are in `build/reports/client-contracts/` and
 `build/reports/runtime-client-contracts/`; production reports also retain launch provenance and

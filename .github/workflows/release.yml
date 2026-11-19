@@ -40,9 +40,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Install Mesa and a focusable X11 desktop
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y xvfb xauth openbox wmctrl mesa-utils libgl1-mesa-dri libglx-mesa0 libasound2t64 libopenal1 libxtst6 libxi6 libxrender1 libxrandr2 libxcursor1 libxinerama1
+        uses: ./.github/actions/native-client-dependencies
 
       - name: Resolve version
         id: version
@@ -86,7 +84,7 @@ jobs:
           RELEASE_VERSION: ${{ steps.version.outputs.value }}
         run: ./gradlew build "-Pmod_version=$RELEASE_VERSION"
 
-      - name: Validate development and final SRG clients
+      - name: Validate the production SRG client
         env:
           RELEASE_VERSION: ${{ steps.version.outputs.value }}
         run: |
@@ -101,7 +99,7 @@ jobs:
             done
             wmctrl -m
             glxinfo -B | tee build/reports/native-desktop/opengl.txt
-            ./gradlew verifyClientContracts verifyRuntimeClientContracts "-Pmod_version=$RELEASE_VERSION" --no-daemon --continue
+            ./gradlew verifyRuntimeClientContracts "-Pmod_version=$RELEASE_VERSION" --no-daemon
           '
 
       - name: Generate checksums
@@ -120,8 +118,6 @@ jobs:
           path: |
             build/reports/
             build/test-results/
-            run/client-contracts/logs/
-            run/client-contracts/crash-reports/
             run/runtime-client-contracts/logs/
             run/runtime-client-contracts/crash-reports/
 

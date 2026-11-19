@@ -25,7 +25,7 @@ The project targets **Java 25**
 ./gradlew build
 ```
 
-The build runs JVM bytecode and compatibility contracts. For the real-client checks, run:
+The build runs JVM bytecode and compatibility contracts. For local MCP development checks, run:
 
 ```
 ./gradlew verifyClientContracts
@@ -34,6 +34,8 @@ The build runs JVM bytecode and compatibility contracts. For the real-client che
 This requires OpenGL 4.3 and opens an isolated client in `run/client-contracts`. Results and
 captures are written to `build/reports/client-contracts/`. The verification mod is a separate
 test artifact under `build/contract-tests/`.
+OptiRefine uses this suite for its own development. Compatibility with other mods in MCP
+development environments is outside the supported runtime scope.
 
 To verify the final SRG runtime Jar with official G5 and production Cleanroom, run:
 
@@ -42,6 +44,7 @@ To verify the final SRG runtime Jar with official G5 and production Cleanroom, r
 ```
 
 This uses `run/runtime-client-contracts` and writes reports to `build/reports/runtime-client-contracts/`.
+Build and release CI use this production suite for native-client validation.
 Both client suites require a graphical desktop and briefly focus the test window for shortcut checks.
 
 Shader fixtures are editable sources in
@@ -56,7 +59,7 @@ To prepare the fixtures without starting Minecraft, run:
 
 Generated ZIPs are staged under `build/client-contract-fixtures/shaderpacks/`.
 
-The [release workflow](.github/workflows/release.yml) runs the build and both client suites before
+The [release workflow](.github/workflows/release.yml) runs the build and the production SRG suite before
 creating a GitHub draft. It attaches the runtime Jar, sources Jar and `SHA256SUMS.txt`, and retains
 verification reports on failure. Version/tag mismatches are rejected; build metadata such as
 `+build-alpha` does not by itself mark a release as a prerelease.

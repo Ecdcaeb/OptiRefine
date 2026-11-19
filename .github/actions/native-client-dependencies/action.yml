@@ -1,0 +1,61 @@
+name: Set up native client dependencies
+description: Install missing X11, Mesa, and audio packages using cached Ubuntu archives.
+runs:
+  using: composite
+  steps:
+    - name: Resolve missing native packages
+      id: packages
+      shell: bash
+      run: |
+        packages=(xvfb xauth openbox wmctrl mesa-utils libgl1-mesa-dri libglx-mesa0
+                  libasound2t64 libopenal1 libxtst6 libxi6 libxrender1 libxrandr2 libxcursor1 libxinerama1)
+        missing=()
+        for package in "${packages[@]}"; do
+          if [[ $(dpkg-query -W -f='${db:Status-Status}' "$package" 2>/dev/null) != installed ]]; then
+            missing+=("$package")
+          fi
+        done
+        if ((${#missing[@]} == 0)); then
+          exit 0
+        fi
+
+        archives="$RUNNER_TEMP/optirefine-native-apt"
+        mkdir -p "$archives"
+        echo "archives=$archives" >> "$GITHUB_OUTPUT"
+        echo "missing=${missing[*]}" >> "$GITHUB_OUTPUT"
+        sudo apt-get -o Acquire::Languages=none update
+
+        # Fingerprint the resolved archives and ignore the mirror URLs, which vary by runner.
+        manifest=$(sudo apt-get -y --no-install-recommends --print-uris \
+          -o "Dir::Cache::archives=$archives" install "${missing[@]}" |
+          awk '$2 ~ /[.]deb$/ {print $2, $3, $4}' | LC_ALL=C sort)
+        if [[ -n "$manifest" ]]; then
+          fingerprint=$(printf '%s\n' "$manifest" | sha256sum | cut -d ' ' -f 1)
+          echo "key=native-client-apt-${RUNNER_OS}-${RUNNER_ARCH}-$fingerprint" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Restore Ubuntu package archives
+      id: apt-cache
+      if: steps.packages.outputs.key != ''
+      uses: actions/cache/restore@v5
+      with:
+        path: ${{ steps.packages.outputs.archives }}/*.deb
+        key: ${{ steps.packages.outputs.key }}
+
+    - name: Install missing native packages
+      if: steps.packages.outputs.missing != ''
+      shell: bash
+      env:
+        APT_ARCHIVES: ${{ steps.packages.outputs.archives }}
+        APT_MISSING_PACKAGES: ${{ steps.packages.outputs.missing }}
+      run: |
+        read -r -a packages <<< "$APT_MISSING_PACKAGES"
+        sudo apt-get -y --no-install-recommends -o APT::Keep-Downloaded-Packages=true \
+          -o "Dir::Cache::archives=$APT_ARCHIVES" install "${packages[@]}"
+
+    - name: Save Ubuntu package archives
+      if: steps.packages.outputs.key != '' && steps.apt-cache.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v5
+      with:
+        path: ${{ steps.packages.outputs.archives }}/*.deb
+        key: ${{ steps.packages.outputs.key }}

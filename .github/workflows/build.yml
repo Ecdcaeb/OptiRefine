@@ -61,10 +61,8 @@ jobs:
       with:
         gradle-version: 9.6.1
     - name: Install Mesa and a focusable X11 desktop
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y xvfb xauth openbox wmctrl mesa-utils libgl1-mesa-dri libglx-mesa0 libasound2t64 libopenal1 libxtst6 libxi6 libxrender1 libxrandr2 libxcursor1 libxinerama1
-    - name: Run development and production client contracts
+      uses: ./.github/actions/native-client-dependencies
+    - name: Run production SRG client contracts
       run: |
         chmod +x ./gradlew
         mkdir -p build/reports/native-desktop
@@ -78,7 +76,7 @@ jobs:
           done
           wmctrl -m
           glxinfo -B | tee build/reports/native-desktop/opengl.txt
-          ./gradlew verifyClientContracts verifyRuntimeClientContracts --no-daemon --continue
+          ./gradlew verifyRuntimeClientContracts --no-daemon
         '
     - name: Preserve client contract reports and game logs
       if: always()
@@ -86,10 +84,7 @@ jobs:
       with:
         name: native-client-contract-reports
         path: |
-          build/reports/client-contracts/
           build/reports/runtime-client-contracts/
           build/reports/native-desktop/
-          run/client-contracts/logs/
-          run/client-contracts/crash-reports/
           run/runtime-client-contracts/logs/
           run/runtime-client-contracts/crash-reports/
