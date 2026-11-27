@@ -42,6 +42,16 @@ public final class SelectiveResourceContracts {
 
     private SelectiveResourceContracts() {}
 
+    /** A full resource reload restarts the live sound engine on its own loader thread. */
+    public static boolean soundEngineReady(Minecraft mc) {
+        try {
+            Object manager = field(SoundHandler.class, "sndManager", "field_147694_f").get(mc.getSoundHandler());
+            return manager != null && field(SoundManager.class, "loaded", "field_148617_f").getBoolean(manager);
+        } catch (ReflectiveOperationException error) {
+            throw new IllegalStateException("Cannot inspect the live sound engine", error);
+        }
+    }
+
     /** Run on the client thread after modern-base.zip is refreshed, before enabling shader packs. */
     public static void verify(Minecraft mc) throws Exception {
         require(mc.isCallingFromMinecraftThread(), "Selective resource contracts require the client thread");

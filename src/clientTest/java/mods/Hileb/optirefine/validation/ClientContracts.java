@@ -46,6 +46,8 @@ public final class ClientContracts {
     private int ticks, pack = -1, packTicks;
     private boolean resized;
     private boolean resizeFailureRequested;
+    private boolean awaitingSoundEngine;
+    private int soundEngineTicks;
     private float originalRenderQuality;
     private CreativeTooltipContracts creativeTooltip;
 
@@ -93,6 +95,14 @@ public final class ClientContracts {
                 evidence.append("Forge JAR resource packs supply working CIT and CTM rules with user-pack priority\n");
                 PackSelectorContracts.verify(mc);
                 evidence.append("CIT and Random Entities honor documented selectors, variant names and pack priority\n");
+                // refreshResources restarts the live sound engine on its loader thread.
+                awaitingSoundEngine = true;
+            } else if (awaitingSoundEngine) {
+                if (!SelectiveResourceContracts.soundEngineReady(mc)) {
+                    if (++soundEngineTicks > 600) throw new AssertionError("The live sound engine did not finish starting after the resource reload");
+                    return;
+                }
+                awaitingSoundEngine = false;
                 SelectiveResourceContracts.verify(mc);
                 evidence.append("AF, custom-items and alternate-block settings retain selective texture/model reloads and live sound/language consumers\n");
                 NpotAtlasContracts.verify(mc);
