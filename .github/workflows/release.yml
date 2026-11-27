@@ -130,7 +130,7 @@ jobs:
           # only the remapped runtime jar + sources; the -dev jar is the pre-remap MCP intermediate
           artifacts: "build/libs/optirefine-${{ steps.version.outputs.value }}.jar,build/libs/optirefine-${{ steps.version.outputs.value }}-sources.jar,build/libs/SHA256SUMS.txt"
           generateReleaseNotes: true
-          failOnUnmatchedFiles: true
+          artifactErrorsFailBuild: true
           # alpha project: create as draft, publish manually; set draft: false for auto-release
           draft: true
           prerelease: ${{ steps.version.outputs.prerelease == 'true' }}
