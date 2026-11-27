@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## 0.3.0-alpha
+
+The tested baseline is Minecraft 1.12.2, Java 25, Cleanroom 0.5.17-alpha, and OptiFine HD U G5. [Changes since 0.2.0-alpha](https://github.com/Ecdcaeb/OptiRefine/compare/v0.2.0-alpha...v0.3.0-alpha)
 
 - Fix G5 chunk meshes using a stale block-light value when callers query the same position with different minimum light levels.
 - Apply shader entity tags to copied vertices and leave shared baked arrays and bulk vertex inputs untouched.
